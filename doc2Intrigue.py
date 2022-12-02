@@ -3,6 +3,7 @@ from __future__ import print_function
 import os.path
 import re
 
+import modeleGN
 from modeleGN import *
 
 from google.auth.transport.requests import Request
@@ -236,24 +237,21 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
             #1 Intervention:(Permanente ou Temporaire)
             #2 Type d’implication: (Active, Passive, Info,ou Objet)
             #3 Résumé de l’implication
-            pnjAAjouter = Role(currentIntrigue, nom=sections[0].strip(), niveauImplication=sections[2].strip(), description=sections[3].strip(), pj=False)
+            pnjAAjouter = Role(currentIntrigue, nom=sections[0].strip(), niveauImplication=sections[2].strip(), description=sections[3].strip(), pj=modeleGN.EST_PNJ_HORS_JEU)
 
-            print("Je suis en train de regarder {0} et son implication est {1}".format(pnjAAjouter.nom, sections[1].strip()))
+            # print("Je suis en train de regarder {0} et son implication est {1}".format(pnjAAjouter.nom, sections[1].strip()))
 
             #cherche ensuite le niveau d'implication du pj
             if sections[1].strip().lower().find('perman') > -1 :
-                print(pnjAAjouter.nom + " est permanent !!")
-                pnjAAjouter.enJeu = 2
+                # print(pnjAAjouter.nom + " est permanent !!")
+                pnjAAjouter.pj = modeleGN.EST_PNJ_PERMANENT
             elif sections[1].strip().lower().find('temp') > -1 :
-                pnjAAjouter.enJeu = 1
-                print(pnjAAjouter.nom + " est temporaire !!")
-            #sinon 0 est la valeur par défaut
+                pnjAAjouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
+                # print(pnjAAjouter.nom + " est temporaire !!")
+            #sinon 0 est la valeur par défaut : ne rien faire
 
             #du coup on peut l'ajouter aux intrigues
             currentIntrigue.roles[pnjAAjouter.nom] = pnjAAjouter
-
-
-    # todo : tester la section PNJ
 
     # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de reférence des noms dans l'intrigue
     nomsRoles = currentIntrigue.getNomsRoles()

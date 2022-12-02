@@ -2,12 +2,18 @@ import datetime
 import pickle
 import datetime
 
+EST_PJ = 6
+EST_REROLL = 5
+EST_PNJ_INFILTRE = 4
+EST_PNJ_PERMANENT = 3
+EST_PNJ_TEMPORAIRE = 2
+EST_PNJ_HORS_JEU = 1
+
 # personnage
 
 class Personnage:
-
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
-                 sexe="i", pj=True):
+                 sexe="i", pj=EST_PJ):
         self.nom = nom
         self.concept = concept
         self.driver = driver
@@ -29,7 +35,7 @@ class Personnage:
 # rôle
 class Role:
 
-    def __init__(self, intrigue, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=True, typeIntrigue="", niveauImplication = "",
+    def __init__(self, intrigue, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ, typeIntrigue="", niveauImplication = "",
                  enJeu=0):
         self.intrigue = intrigue
         self.perso = perso
@@ -42,7 +48,8 @@ class Role:
         self.typeIntrigue = typeIntrigue
         self.niveauImplication = niveauImplication
         self.scenes = set()
-        self.enJeu = enJeu #pour les PNJs uniquement : 0 : non, 1 : oui ponctuellement, 2 : oui sur le long terme
+        # self.enJeu = enJeu #pour les PNJs uniquement : 0 : non, 1 : oui ponctuellement, 2 : oui sur le long terme
+        #remplacé par la notion globale EST_XXX qui permet de tout gérer au même niveau
 
     def __str__(self):
         toReturn = ""
@@ -59,7 +66,7 @@ class Role:
         # toReturn += "sexe : " + self.sexe + "\n"
         toReturn += "typeIntrigue : " + self.typeIntrigue + "\n"
         toReturn += "niveauImplication : " + self.niveauImplication + "\n"
-        toReturn += "en Jeu : " + str(self.enJeu) + "\n"
+        # toReturn += "en Jeu : " + str(self.enJeu) + "\n" # n'existe plus
         return toReturn
 
     def ajouterAScene(self, sceneAAjouter):
