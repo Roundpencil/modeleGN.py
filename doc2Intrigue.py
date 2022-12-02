@@ -73,7 +73,7 @@ def extraireIntrigues(monGN):
 
                 print("... est une intrigue !")
 
-                singletest = "13" #si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
+                singletest = "81" #si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
                 if int(singletest) > 0:
                     # pour tester sur une intrigue en particulier
                     if document.get('title')[0:2] == str(singletest):  # numéro de l'intrigue
@@ -128,19 +128,13 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
     RESOLUTION = "résolution de l’intrigue"
     NOTES = "notes supplémentaires"
 
-    # labels = ["orga référent", "etat de l’intrigue", "résumé de l’intrigue", "personnages impliqués", "pnjs impliqués",
-    #           "rerolls possibles", "objets liés", "scènes nécessaires et FX", "chronologie des événements",
-    #           "détail de l’intrigue", "résolution de l’intrigue", "notes supplémentaires"]
-
     labels = [REFERENT, TODO, PITCH, PJS, PNJS, REROLLS, OBJETS, SCENESFX,
               TIMELINE, SCENES, RESOLUTION, NOTES]
 
     indexes = dict()
     for label in labels:
-        # indexes[label] = texteIntrigueLow.find(label)
-        # indexes[label] = [texteIntrigueLow.find(label), ""]
         indexes[label] = {"debut": texteIntrigueLow.find(label)}
-        # on complètera la seconde dimension plus tard avec la fin de la séquence
+        # on complètera la seconde dimension (fin) plus bas avec la fin de la séquence
 
     # print("dictionnaire des labels : {0}".format(indexes))
 
@@ -242,13 +236,17 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
             # print("Je suis en train de regarder {0} et son implication est {1}".format(pnjAAjouter.nom, sections[1].strip()))
 
             #cherche ensuite le niveau d'implication du pj
-            if sections[1].strip().lower().find('perman') > -1 :
+            if sections[1].strip().lower().find('perman') > -1:
                 # print(pnjAAjouter.nom + " est permanent !!")
                 pnjAAjouter.pj = modeleGN.EST_PNJ_PERMANENT
-            elif sections[1].strip().lower().find('temp') > -1 :
+            elif sections[1].strip().lower().find('temp') > -1:
                 pnjAAjouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
                 # print(pnjAAjouter.nom + " est temporaire !!")
-            #sinon 0 est la valeur par défaut : ne rien faire
+            elif sections[1].strip().lower().find('infiltr') > -1:
+                pnjAAjouter.pj = modeleGN.EST_PNJ_INFILTRE
+                # print(pnjAAjouter.nom + " est temporaire !!")
+
+            #sinon PNJ hors jeu est la valeur par défaut : ne rien faire
 
             #du coup on peut l'ajouter aux intrigues
             currentIntrigue.roles[pnjAAjouter.nom] = pnjAAjouter
@@ -258,6 +256,19 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
 
     # gestion de la section Rerolls
     # todo : rerolls
+    if indexes[REROLLS]["debut"] > -1:
+        rerolls = texteIntrigue[indexes[REROLLS]["debut"]:indexes[REROLLS]["fin"]].split('#####')
+        # faire un tableau avec une ligne par Reroll
+        for reroll in rerolls[1:]: #on enlève la première ligne qui contient les titres
+            if len(reroll) < 14:
+                #dans ce cas c'est une ligne vide
+                continue
+            sections = reroll.split("###")
+            #même sections que les PJs
+            reRollAAjouter = Role(currentIntrigue, nom=sections[0].strip(), description=sections[3].strip(), niveauImplication=sections[1].strip(), typeIntrigue=sections[2].strip(), pj=modeleGN.EST_REROLL)
+
+            #du coup on peut l'ajouter aux intrigues
+            currentIntrigue.roles[reRollAAjouter.nom] = reRollAAjouter
 
     # gestion de la section Objets
     # todo : objets
@@ -353,14 +364,6 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter):
         monRole = currentIntrigue.roles[nomNormalise[0]]
 
         monRole.ajouterAScene(sceneAAjouter)
-
-
-def reconstruireTableauRolesFromScenes(texteSectionScenes, listeNoms):
-    # extraire toutes les balises "qui"
-    # standardiser les noms trouvés et les concaténer
-    # supprimer les doublons
-    # todo : reconstruire les noms des tableaux d'intrigue
-    pass
 
 
 def extraireDateScene(baliseDate, sceneAAjouter):

@@ -9,6 +9,22 @@ EST_PNJ_PERMANENT = 3
 EST_PNJ_TEMPORAIRE = 2
 EST_PNJ_HORS_JEU = 1
 
+def stringTypePJ(typePJ):
+    if typePJ == EST_PJ:
+        return "PJ"
+    if typePJ == EST_REROLL:
+        return "Reroll"
+    if typePJ == EST_PNJ_INFILTRE:
+        return "PNJ Infiltré"
+    if typePJ == EST_PNJ_PERMANENT:
+        return "PNJ Permanent"
+    if typePJ == EST_PNJ_TEMPORAIRE:
+        return "PNJ Temporaire"
+    if typePJ == EST_PNJ_HORS_JEU:
+        return "PNJ Hors Jeu"
+    return f"Type de PJ inconnu ({typePJ})"
+
+
 # personnage
 
 class Personnage:
@@ -62,7 +78,7 @@ class Role:
         toReturn += "description : " + self.description + "\n"
         # toReturn += "pipr : " + str(self.pipr) + "\n"
         # toReturn += "pipi : " + str(self.pipi) + "\n"
-        toReturn += "pj : " + str(self.pj) + "\n"
+        toReturn += "pj : " + stringTypePJ(self.pj) + "\n"
         # toReturn += "sexe : " + self.sexe + "\n"
         toReturn += "typeIntrigue : " + self.typeIntrigue + "\n"
         toReturn += "niveauImplication : " + self.niveauImplication + "\n"
