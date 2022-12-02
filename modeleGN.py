@@ -94,7 +94,7 @@ class Role:
 class Intrigue:
 
     def __init__(self, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orgaReferent="", url="", timeline="", lastChange=datetime.datetime.now(), scenesEnJeu =""):
+                 questions_ouvertes="", notes="", resolution="", orgaReferent="", url="", timeline="", lastChange=0, scenesEnJeu =""):
         self.nom = nom
         self.roles = {} #nom, rôle
         self.scenes = set()

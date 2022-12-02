@@ -43,7 +43,7 @@ def genererCsvOrgaIntrigue(monGN):
 
 def listerLesRoles(monGN):
     for intrigue in monGN.intrigues:
-        print(f"intrigue : {intrigue.nom}")
+        print(f"intrigue : {intrigue.nom} - url : {intrigue.url}")
         for role in intrigue.roles.values():
             print(str(role))
 

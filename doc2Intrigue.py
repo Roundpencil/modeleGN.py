@@ -22,7 +22,7 @@ os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre de
 folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"  # le folder des intrigues de Chalacta
 
 
-def extraireIntrigues(monGN):
+def extraireIntrigues(monGN, singletest="81"):
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -48,7 +48,7 @@ def extraireIntrigues(monGN):
         results = service.files().list(
             pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
             fields="nextPageToken, files(id, name)").execute()
-        items = results.get('files', [])
+        items = results.get('files', []) #le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues
 
         if not items:
             print('No files found.')
@@ -72,8 +72,11 @@ def extraireIntrigues(monGN):
                     continue
 
                 print("... est une intrigue !")
-
-                singletest = "81" #si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
+                #todo : réécrire avec juste un truc qui fait continue / return une fois qu'on a trouvé notre intrigue
+                #       ajouter item['id'] dans l'URL à la fin de la procédure
+                #       lire la date de dernière mise à jour dans les propriétés du fichier
+                #       vérifier au début si la date de dernière mise à jour est plus récente
+                #si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
                 if int(singletest) > 0:
                     # pour tester sur une intrigue en particulier
                     if document.get('title')[0:2] == str(singletest):  # numéro de l'intrigue
@@ -96,14 +99,11 @@ def extraireIntrigues(monGN):
                 print(err)
                 # return #ajouté pour débugger
     except HttpError as error:
-        # TODO(developer) - Handle errors from drive API.
         print(f'An error occurred: {error}')
 
 
 def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
     # todo : une fois qu'il y aura un objet GN serialisé, ajouter pour chaque intrigue une date de dernière mise à jour pour croiser avec le fichier > si mise à jour : réécriture de toute la scène, sinon passer la mise à jour
-    #todo : vérifier qu'on a bien l'url qui est mise à jour à un moement
-    #todo : ajouter la date de dernière mise à jour pour préparer la serialisation
 
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue)
@@ -255,7 +255,6 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
     nomsRoles = currentIntrigue.getNomsRoles()
 
     # gestion de la section Rerolls
-    # todo : rerolls
     if indexes[REROLLS]["debut"] > -1:
         rerolls = texteIntrigue[indexes[REROLLS]["debut"]:indexes[REROLLS]["fin"]].split('#####')
         # faire un tableau avec une ligne par Reroll
@@ -272,7 +271,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
 
     # gestion de la section Objets
     # todo : objets
-    # todo dans la gestion des objets faire la difference entre les objets à 3 et 4 colonnes (avec ou sans RFID)
+    #   dans la gestion des objets faire la difference entre les objets à 3 et 4 colonnes (avec ou sans RFID)
 
     # gestion de la section FX
     if indexes[SCENESFX]["debut"] > -1:
@@ -360,7 +359,7 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter):
                   "déclaré {1} : indice de correspondance : {2}".format(sceneAAjouter.titre, nomRole, nomNormalise))
 
         # trouver le rôle à ajouter à la scène en lisant l'intrigue
-        #todo : vérifier que le tableau n'est pas vide
+        #warning: un truc plante parfois ici mais je ne sais pas encore quoi ni pourquoi (process renvoie None)
         monRole = currentIntrigue.roles[nomNormalise[0]]
 
         monRole.ajouterAScene(sceneAAjouter)
