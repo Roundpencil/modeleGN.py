@@ -238,13 +238,13 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
             #3 Résumé de l’implication
             pnjAAjouter = Role(currentIntrigue, nom=sections[0].strip(), niveauImplication=sections[2].strip(), description=sections[3].strip(), pj=False)
 
-            print("Je suis en train de regarder {0} et son implication est {1}".format(pnjAAjouter.nom, sections[1].strip())
+            print("Je suis en train de regarder {0} et son implication est {1}".format(pnjAAjouter.nom, sections[1].strip()))
 
             #cherche ensuite le niveau d'implication du pj
-            if sections[1].strip().lower().find('perman'):
+            if sections[1].strip().lower().find('perman') > -1 :
                 print(pnjAAjouter.nom + " est permanent !!")
                 pnjAAjouter.enJeu = 2
-            elif sections[1].strip().lower().find('temp'):
+            elif sections[1].strip().lower().find('temp') > -1 :
                 pnjAAjouter.enJeu = 1
                 print(pnjAAjouter.nom + " est temporaire !!")
             #sinon 0 est la valeur par défaut
