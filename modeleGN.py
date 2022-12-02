@@ -68,7 +68,7 @@ class Role:
 class Intrigue:
 
     def __init__(self, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orgaReferent="", url=""):
+                 questions_ouvertes="", notes="", resolution="", orgaReferent="", url="", timeline="", lastChange=datetime.datetime.now()):
         self.nom = nom
         self.roles = {} #nom, rôle
         self.scenes = set()
@@ -80,6 +80,8 @@ class Intrigue:
         self.orgaReferent = orgaReferent
         self.dateModification = datetime.datetime.now()
         self.url = url
+        self.timeline = timeline
+        self.lastchange = lastChange
 
     def __str__(self):
         return self.nom

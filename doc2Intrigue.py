@@ -119,7 +119,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
     PNJS = "pnjs impliqués"
     REROLLS = "rerolls possibles"
     OBJETS = "objets liés"
-    SCENESFX = "scènes nécessaires et FX"
+    SCENESFX = "scènes nécessaires et fx"
     TIMELINE = "chronologie des événements"
     SCENES = "détail de l’intrigue"
     RESOLUTION = "résolution de l’intrigue"
@@ -129,8 +129,8 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
     #           "rerolls possibles", "objets liés", "scènes nécessaires et FX", "chronologie des événements",
     #           "détail de l’intrigue", "résolution de l’intrigue", "notes supplémentaires"]
 
-    labels =[REFERENT, TODO, PITCH, PJS, PNJS, REROLLS, OBJETS, SCENESFX,
-             TIMELINE, SCENES, RESOLUTION, NOTES]
+    labels = [REFERENT, TODO, PITCH, PJS, PNJS, REROLLS, OBJETS, SCENESFX,
+              TIMELINE, SCENES, RESOLUTION, NOTES]
 
     indexes = dict()
     for label in labels:
@@ -145,15 +145,15 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
     # pour cela on fait un dictionnaire ou la fin de chaque entrée est le début de la suivante
     print("toutes les valeurs du tableau : {0}".format([x['debut'] for x in indexes.values()]))
 
-    # on commence par extraire toutes les valeur de start et les trier dans l'ordre
+    # on commence par extraire toutes les valeurs de début et les trier dans l'ordre
     tousLesIndexes = [x['debut'] for x in indexes.values()]
     tousLesIndexes.sort()
-    print("Tous les indexes : {0}".format(tousLesIndexes))
+    # print("Tous les indexes : {0}".format(tousLesIndexes))
 
+    # on crée une table qui associe à chaque début la section suivante
     tableDebutsFinsLabels = dict()
     for i in range(len(indexes)):
         try:
-            # tableDebutsFinsLabels[tousLesIndexes[i][0]] = tousLesIndexes[i + 1][0] - 1
             tableDebutsFinsLabels[tousLesIndexes[i]] = tousLesIndexes[i + 1] - 1
             # print("pour l'index {0}, j'ai le couple {1}:{2}".format(i, tousLesIndexes[i], tousLesIndexes[i+1]))
         except IndexError:
@@ -162,88 +162,26 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
 
     # enfin on met à jour la table des labels pour avoir la fin à côté du début
     for label in labels:
-        # indexes[label][1] = tableDebutsFinsLabels[indexes[label][0]]
-        # print("label {0} : [{1}:{2}]".format(label, indexes[label][0], indexes[label][1]))
-
         indexes[label]["fin"] = tableDebutsFinsLabels[indexes[label]["debut"]]
-        print("label {0} : [{1}:{2}]".format(label, indexes[label]["debut"], indexes[label]["fin"]))
-
-    # print(" aussi : ")
-    # # on teste qu'on a bien tout
-    # for label in labels:
-    #     print("label {0} : [{1}:{2}]".format(label, indexes[label],
-    #                                          tableDebutsFinsLabels[indexes[label]]))
-
-    # # à virer des qu'on aura réussi, non nécessaire
-
-    #
-    # indexDebutReferent = texteIntrigueLow.find(REFERENT)
-    # indexToLabels[REFERENT] = indexDebutReferent
-    #
-    # indexDebutTodo = texteIntrigueLow.find(TODO)
-    # indexToLabels[str(indexDebutTodo)] = TODO
-    #
-    # indexDebutResume = texteIntrigueLow.find(PITCH)
-    # indexToLabels[str(indexDebutResume)] = PITCH
-    #
-    # indexDebutPjs = texteIntrigueLow.find(PJS)
-    # indexToLabels[str(indexDebutReferent)] = REFERENT
-    #
-    # indexDebutPNJs = texteIntrigueLow.find(PNJS)
-    # indexToLabels[str(indexDebutReferent)] = REFERENT
-    #
-    # indexDebutRerolls = texteIntrigueLow.find(REROLLS)
-    # indexToLabels[str(indexDebutReferent)] = REFERENT
-    #
-    # indexDebutObjets = texteIntrigueLow.find(OBJETS)
-    # indexToLabels[str(indexDebutReferent)] = REFERENT
-    #
-    # indexDebutFX = texteIntrigueLow.find(SCENESFX)
-    # indexToLabels[str(indexDebutReferent)] = REFERENT
-    #
-    # indexDebutTimeline = texteIntrigueLow.find(TIMELINE)
-    # indexToLabels[str(indexDebutReferent)] = REFERENT
-    #
-    # indexDebutScenes = texteIntrigueLow.find(SCENES)
-    # indexToLabels[str(indexDebutReferent)] = REFERENT
-    #
-    # indexdebutResolution = texteIntrigueLow.find(RESOLUTION)
-    # indexToLabels[str(indexDebutReferent)] = REFERENT
-    #
-    # indexDebutNotes = texteIntrigueLow.find(NOTES)
-    # indexToLabels[str(indexDebutReferent)] = REFERENT
-    #
-    # # todo : mettre en place un failsafe en cas de disparition d'un tag?
-    # # ou bien mettre toutes les valeurs dans un tableau et ré-identifier les sections en focntion de ce qu'on a?
-    #
-    # indexFinReferent = indexDebutTodo - 1
-    # indexFinTodo = indexDebutResume - 1
-    # indexFinResume = indexDebutPjs - 1
-    # indexFinPjs = indexDebutPNJs - 1
-    # indexFinPNJs = indexDebutRerolls - 1
-    # indexFinRerolls = indexDebutObjets - 1
-    # indexFinObjets = indexDebutFX - 1
-    # indexFinFX = indexDebutTimeline - 1
-    # indexFinTimeline = indexDebutScenes - 1
-    # indexFinScenes = indexdebutResolution - 1
-    # indexFinResolution = indexDebutNotes - 1
-    # indexFinNotes = len(texteIntrigue)
+        # print("label {0} : [{1}:{2}]".format(label, indexes[label]["debut"], indexes[label]["fin"]))
 
     # gestion de la section OrgaRéférent
     if indexes[REFERENT]["debut"] == -1:
         print("problème référent avec l'intrigue " + nomIntrigue)
     else:
         currentIntrigue.orgaReferent = texteIntrigue[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[0][
-                                       len(REFERENT) + len(
-                                           " : "):]  # prendre la première ligne puis les caractères à partir du label
+                                       len(REFERENT) + len(" : "):]
+                                        # prendre la première ligne puis les caractères à partir du label
         # print("debut / fin orga référent : {0}/{1} pour {2}".format(indexDebutReferent, indexFinReferent, nomIntrigue))
         # print("Orga référent : " + currentIntrigue.orgaReferent)
 
     # gestion de la section à faire
-    currentIntrigue.questions_ouvertes = ''.join(texteIntrigue[indexes[TODO]["debut"]:indexes[TODO]["fin"]].splitlines()[1:])
+    currentIntrigue.questions_ouvertes = ''.join(
+        texteIntrigue[indexes[TODO]["debut"]:indexes[TODO]["fin"]].splitlines()[1:])
 
     # gestion de la section Résumé
-    currentIntrigue.pitch = ''.join(texteIntrigue[indexes[PITCH]["debut"]:indexes[PITCH]["fin"]].splitlines(keepends=True)[1:])
+    currentIntrigue.pitch = ''.join(
+        texteIntrigue[indexes[PITCH]["debut"]:indexes[PITCH]["fin"]].splitlines(keepends=True)[1:])
     # print("section pitch trouvée : " + section)
     # print("pitch isolé after découpage : " + ''.join(section.splitlines(keepends=True)[1:]))
     # print("pitch lu dans l'intrigue après mise à jour : " + currentIntrigue.pitch)
@@ -300,7 +238,8 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
     # todo : FX et scenes en jeu
 
     # gestion de la section Timeline
-    # todo : timeline
+    currentIntrigue.timeline = ''.join(
+        texteIntrigue[indexes[TIMELINE]["debut"]:indexes[TIMELINE]["fin"]].splitlines()[1:])
 
     # gestion de la section Scènes
     scenes = texteIntrigue[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]].split("###")
@@ -344,10 +283,11 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
         # print("texte de la scene apres insertion : " + sceneAAjouter.description)
 
     # gestion de la section Résolution
-    currentIntrigue.resolution = ''.join(texteIntrigue[indexes[RESOLUTION]["debut"]:indexes[RESOLUTION]["fin"]].splitlines()[1:])
+    currentIntrigue.resolution = ''.join(
+        texteIntrigue[indexes[RESOLUTION]["debut"]:indexes[RESOLUTION]["fin"]].splitlines()[1:])
 
     # gestion de la section notes
-    print("debut/fin notes : {0}/{1}".format(indexes[NOTES]["debut"], indexes[NOTES]["fin"]))
+    # print("debut/fin notes : {0}/{1}".format(indexes[NOTES]["debut"], indexes[NOTES]["fin"]))
     currentIntrigue.notes = ''.join(texteIntrigue[indexes[NOTES]["debut"]:indexes[NOTES]["fin"]].splitlines()[1:])
 
     # print("liste des persos : ")
