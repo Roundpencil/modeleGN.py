@@ -12,7 +12,9 @@ def main():
     doc2Intrigue.extraireIntrigues(monGN)
 
     # afficherLesPersos(monGN)
-    afficherDatesScenes(monGN)
+    # afficherDatesScenes(monGN)
+    # genererCsvOrgaIntrigue(monGN)
+    listerLesRoles(monGN)
 
 def afficherLesPersos(monGN):
     for intrigue in monGN.intrigues:
@@ -35,5 +37,14 @@ def afficherDatesScenes(monGN):
             print("scène : {0} / date : {1} > {2}".format(scene.titre, scene.date, scene.getFormattedDate()))
 
 
+def genererCsvOrgaIntrigue(monGN):
+    for intrigue in monGN.intrigues:
+        print("{0};{1}".format(intrigue.nom, intrigue.orgaReferent))
+
+def listerLesRoles(monGN):
+    for intrigue in monGN.intrigues:
+        print(f"intrigue : {intrigue.nom}")
+        for role in intrigue.roles.values():
+            print(str(role))
 
 main()

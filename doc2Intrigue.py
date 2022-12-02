@@ -72,7 +72,7 @@ def extraireIntrigues(monGN):
 
                 print("... est une intrigue !")
 
-                singletest = "76"
+                singletest = "13" #si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
                 if int(singletest) > 0:
                     # pour tester sur une intrigue en particulier
                     if document.get('title')[0:2] == str(singletest):  # numéro de l'intrigue
@@ -101,6 +101,8 @@ def extraireIntrigues(monGN):
 
 def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
     # todo : une fois qu'il y aura un objet GN serialisé, ajouter pour chaque intrigue une date de dernière mise à jour pour croiser avec le fichier > si mise à jour : réécriture de toute la scène, sinon passer la mise à jour
+    #todo : vérifier qu'on a bien l'url qui est mise à jour à un moement
+    #todo : ajouter la date de dernière mise à jour pour préparer la serialisation
 
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue)
@@ -139,11 +141,11 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
         indexes[label] = {"debut": texteIntrigueLow.find(label)}
         # on complètera la seconde dimension plus tard avec la fin de la séquence
 
-    print("dictionnaire des labels : {0}".format(indexes))
+    # print("dictionnaire des labels : {0}".format(indexes))
 
     # maintenant, on aura besoin d'identifier pour chaque label où il se termine
     # pour cela on fait un dictionnaire ou la fin de chaque entrée est le début de la suivante
-    print("toutes les valeurs du tableau : {0}".format([x['debut'] for x in indexes.values()]))
+    # print("toutes les valeurs du tableau : {0}".format([x['debut'] for x in indexes.values()]))
 
     # on commence par extraire toutes les valeurs de début et les trier dans l'ordre
     tousLesIndexes = [x['debut'] for x in indexes.values()]
@@ -217,12 +219,41 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
             currentIntrigue.roles[pjAAjouter.nom] = pjAAjouter
         else:
             print("Erreur : impossible d'associer le personnage {0} au rôle {1} dans l'intrigue {2} : il est déjà "
-                  "associé à un rôle".format(nomNormalise[0], roleAAssocier.nom, currentIntrigue))
+                  "associé à un rôle".format(nomNormalise[0], sections[0].strip(), currentIntrigue))
             # print("taille du nombre de roles dans l'intrigue {0}".format(len(currentIntrigue.roles)))
         # print("check pour {0} = {1}".format(pjAAjouter.nom, check))
 
     # gestion de la section PNJs
-    # todo : gérer la section PNJ
+    if indexes[PNJS]["debut"] > -1:
+        pnjs = texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]].split('#####')
+        # faire un tableau avec une ligne par PNJ
+        for pnj in pnjs[1:]: #on enlève la première ligne qui contient les titres
+            if len(pnj) < 14:
+                #dans ce cas c'est une ligne vide
+                continue
+            sections = pnj.split("###")
+            #0 Nom duPNJ et / ou fonction:
+            #1 Intervention:(Permanente ou Temporaire)
+            #2 Type d’implication: (Active, Passive, Info,ou Objet)
+            #3 Résumé de l’implication
+            pnjAAjouter = Role(currentIntrigue, nom=sections[0].strip(), niveauImplication=sections[2].strip(), description=sections[3].strip(), pj=False)
+
+            print("Je suis en train de regarder {0} et son implication est {1}".format(pnjAAjouter.nom, sections[1].strip())
+
+            #cherche ensuite le niveau d'implication du pj
+            if sections[1].strip().lower().find('perman'):
+                print(pnjAAjouter.nom + " est permanent !!")
+                pnjAAjouter.enJeu = 2
+            elif sections[1].strip().lower().find('temp'):
+                pnjAAjouter.enJeu = 1
+                print(pnjAAjouter.nom + " est temporaire !!")
+            #sinon 0 est la valeur par défaut
+
+            #du coup on peut l'ajouter aux intrigues
+            currentIntrigue.roles[pnjAAjouter.nom] = pnjAAjouter
+
+
+    # todo : tester la section PNJ
 
     # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de reférence des noms dans l'intrigue
     nomsRoles = currentIntrigue.getNomsRoles()
@@ -235,60 +266,66 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
     # todo dans la gestion des objets faire la difference entre les objets à 3 et 4 colonnes (avec ou sans RFID)
 
     # gestion de la section FX
-    # todo : FX et scenes en jeu
+    if indexes[SCENESFX]["debut"] > -1:
+        currentIntrigue.scenesEnJeu = ''.join(
+            texteIntrigue[indexes[SCENESFX]["debut"]:indexes[SCENESFX]["fin"]].splitlines()[1:])
 
     # gestion de la section Timeline
-    currentIntrigue.timeline = ''.join(
-        texteIntrigue[indexes[TIMELINE]["debut"]:indexes[TIMELINE]["fin"]].splitlines()[1:])
+    if indexes[TIMELINE]["debut"] > -1:
+        currentIntrigue.timeline = ''.join(
+            texteIntrigue[indexes[TIMELINE]["debut"]:indexes[TIMELINE]["fin"]].splitlines()[1:])
 
     # gestion de la section Scènes
-    scenes = texteIntrigue[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]].split("###")
+    if indexes[SCENES]["debut"] > -1:
+        scenes = texteIntrigue[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]].split("###")
 
-    for scene in scenes:
-        # print("taille de la scène : " + str(len(scene)))
-        if len(scene) < 10:
-            continue
+        for scene in scenes:
+            # print("taille de la scène : " + str(len(scene)))
+            if len(scene) < 10:
+                continue
 
-        titreScene = scene.splitlines()[0].strip()
-        sceneAAjouter = currentIntrigue.addScene(titreScene)
-        # print("titre de la scène ajoutée : " + sceneAAjouter.titre)
+            titreScene = scene.splitlines()[0].strip()
+            sceneAAjouter = currentIntrigue.addScene(titreScene)
+            # print("titre de la scène ajoutée : " + sceneAAjouter.titre)
 
-        balises = re.findall(r'##.*', scene)
-        for balise in balises:
-            # print("balise : " + balise)
-            if balise[0:9].lower() == '## quand?':
-                extraireDateScene(balise[10:], sceneAAjouter)
-            elif balise[0:10].lower() == '## quand ?':
-                extraireDateScene(balise[11:], sceneAAjouter)
-                # sceneAAjouter.date = balise[11:].strip()
-                # # print("date de la scène : " + sceneAAjouter.date)
-            elif balise[0:9].lower() == '## il y a':
-                extraireIlYAScene(balise[10:], sceneAAjouter)
-            elif balise[0:7].lower() == '## qui?':
-                extraireQuiScene(balise[8:], currentIntrigue, nomsRoles, sceneAAjouter)
+            balises = re.findall(r'##.*', scene)
+            for balise in balises:
+                # print("balise : " + balise)
+                if balise[0:9].lower() == '## quand?':
+                    extraireDateScene(balise[10:], sceneAAjouter)
+                elif balise[0:10].lower() == '## quand ?':
+                    extraireDateScene(balise[11:], sceneAAjouter)
+                    # sceneAAjouter.date = balise[11:].strip()
+                    # # print("date de la scène : " + sceneAAjouter.date)
+                elif balise[0:9].lower() == '## il y a':
+                    extraireIlYAScene(balise[10:], sceneAAjouter)
+                elif balise[0:7].lower() == '## qui?':
+                    extraireQuiScene(balise[8:], currentIntrigue, nomsRoles, sceneAAjouter)
 
-            elif balise[0:8].lower() == '## qui ?':
-                extraireQuiScene(balise[9:], currentIntrigue, nomsRoles, sceneAAjouter)
+                elif balise[0:8].lower() == '## qui ?':
+                    extraireQuiScene(balise[9:], currentIntrigue, nomsRoles, sceneAAjouter)
 
-            elif balise[0:11].lower() == '## niveau :':
-                sceneAAjouter.niveau = balise[12:].strip()
+                elif balise[0:11].lower() == '## niveau :':
+                    sceneAAjouter.niveau = balise[12:].strip()
 
-            elif balise[0:11].lower() == '## resumé :':
-                sceneAAjouter.resume = balise[12:].strip()
+                elif balise[0:11].lower() == '## resumé :':
+                    sceneAAjouter.resume = balise[12:].strip()
 
-            else:
-                print("balise inconnue : " + balise + " dans l'intrigue " + nomIntrigue)
+                else:
+                    print("balise inconnue : " + balise + " dans l'intrigue " + nomIntrigue)
 
-        sceneAAjouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
-        # print("texte de la scene apres insertion : " + sceneAAjouter.description)
+            sceneAAjouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
+            # print("texte de la scene apres insertion : " + sceneAAjouter.description)
 
     # gestion de la section Résolution
-    currentIntrigue.resolution = ''.join(
-        texteIntrigue[indexes[RESOLUTION]["debut"]:indexes[RESOLUTION]["fin"]].splitlines()[1:])
+    if indexes[RESOLUTION]["debut"] > -1:
+        currentIntrigue.resolution = ''.join(
+            texteIntrigue[indexes[RESOLUTION]["debut"]:indexes[RESOLUTION]["fin"]].splitlines()[1:])
 
     # gestion de la section notes
     # print("debut/fin notes : {0}/{1}".format(indexes[NOTES]["debut"], indexes[NOTES]["fin"]))
-    currentIntrigue.notes = ''.join(texteIntrigue[indexes[NOTES]["debut"]:indexes[NOTES]["fin"]].splitlines()[1:])
+    if indexes[NOTES]["debut"] > -1:
+        currentIntrigue.notes = ''.join(texteIntrigue[indexes[NOTES]["debut"]:indexes[NOTES]["fin"]].splitlines()[1:])
 
     # print("liste des persos : ")
     # for role in currentIntrigue.roles:
@@ -314,6 +351,7 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter):
                   "déclaré {1} : indice de correspondance : {2}".format(sceneAAjouter.titre, nomRole, nomNormalise))
 
         # trouver le rôle à ajouter à la scène en lisant l'intrigue
+        #todo : vérifier que le tableau n'est pas vide
         monRole = currentIntrigue.roles[nomNormalise[0]]
 
         monRole.ajouterAScene(sceneAAjouter)
@@ -333,15 +371,29 @@ def extraireDateScene(baliseDate, sceneAAjouter):
 
 
 def extraireIlYAScene(baliseDate, sceneAAjouter):
+    # print("balise date : " + baliseDate)
     # trouver s'il y a un nombres* a[ns]
-    ans = re.search(r"\d*\s*[a]", baliseDate).group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
-    # trouver s'il y a un nombres* m[ois]
-    mois = re.search('\d*\s*[m]', baliseDate).group(0)[:-1]
-    # trouver s'il y a un nombres* j[ours]
-    jours = re.search('\d*\s*[j]', baliseDate).group(0)[:-1]
-    sceneAAjouter.date = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(jours))
+    ans = re.search(r"\d*\s*[a]", baliseDate)
+    if ans is None:
+        ans = 0
+    else:
+        ans = ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
 
-    pass
+    # trouver s'il y a un nombres* m[ois]
+    mois = re.search('\d*\s*[m]', baliseDate)
+    if mois is None:
+        mois = 0
+    else:
+        mois = mois.group(0)[:-1]
+
+    # trouver s'il y a un nombres* j[ours]
+    jours = re.search('\d*\s*[j]', baliseDate)
+    if jours is None:
+        jours = 0
+    else:
+        jours = jours.group(0)[:-1]
+
+    sceneAAjouter.date = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(jours))
 
 
 def read_paragraph_element(element):

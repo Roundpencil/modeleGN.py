@@ -29,7 +29,8 @@ class Personnage:
 # rôle
 class Role:
 
-    def __init__(self, intrigue, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=True, typeIntrigue="", niveauImplication = ""):
+    def __init__(self, intrigue, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=True, typeIntrigue="", niveauImplication = "",
+                 enJeu=0):
         self.intrigue = intrigue
         self.perso = perso
         self.nom = nom
@@ -41,22 +42,24 @@ class Role:
         self.typeIntrigue = typeIntrigue
         self.niveauImplication = niveauImplication
         self.scenes = set()
+        self.enJeu = enJeu #pour les PNJs uniquement : 0 : non, 1 : oui ponctuellement, 2 : oui sur le long terme
 
     def __str__(self):
         toReturn = ""
         toReturn += "intrigue : " + self.intrigue.nom + "\n"
         toReturn += "nom dans l'intrigue : " + self.nom + "\n"
-        # if self.perso == None :
-        #     toReturn += "perso : aucun" + "\n"
-        # else :
-        #     toReturn += "perso : " + self.perso.nom + "\n"
+        if self.perso == None :
+            toReturn += "perso : aucun" + "\n"
+        else:
+            toReturn += "perso : " + self.perso.nom + "\n"
         toReturn += "description : " + self.description + "\n"
         # toReturn += "pipr : " + str(self.pipr) + "\n"
         # toReturn += "pipi : " + str(self.pipi) + "\n"
-        # toReturn += "pj : " + str(self.pj) + "\n"
+        toReturn += "pj : " + str(self.pj) + "\n"
         # toReturn += "sexe : " + self.sexe + "\n"
         toReturn += "typeIntrigue : " + self.typeIntrigue + "\n"
         toReturn += "niveauImplication : " + self.niveauImplication + "\n"
+        toReturn += "en Jeu : " + str(self.enJeu) + "\n"
         return toReturn
 
     def ajouterAScene(self, sceneAAjouter):
@@ -68,7 +71,7 @@ class Role:
 class Intrigue:
 
     def __init__(self, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orgaReferent="", url="", timeline="", lastChange=datetime.datetime.now()):
+                 questions_ouvertes="", notes="", resolution="", orgaReferent="", url="", timeline="", lastChange=datetime.datetime.now(), scenesEnJeu =""):
         self.nom = nom
         self.roles = {} #nom, rôle
         self.scenes = set()
@@ -81,7 +84,8 @@ class Intrigue:
         self.dateModification = datetime.datetime.now()
         self.url = url
         self.timeline = timeline
-        self.lastchange = lastChange
+        self.lastChange = lastChange
+        self.scenesEnJeu = scenesEnJeu
 
     def __str__(self):
         return self.nom
@@ -111,7 +115,6 @@ class Intrigue:
     def getNomsRoles(self):
         return self.roles.keys()
 
-        #todo : est-ce que cela a du sens d'acceder à des roles sans passer par des méthodes de l'intrigue?
 
     # def getOrAddRole(self, nom):
     #     for role in self.roles:
