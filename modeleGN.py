@@ -93,8 +93,8 @@ class Role:
 # intrigue
 class Intrigue:
 
-    def __init__(self, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orgaReferent="", url="", timeline="", lastChange=0, scenesEnJeu =""):
+    def __init__(self, url, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
+                 questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", lastChange=0, scenesEnJeu =""):
         self.nom = nom
         self.roles = {} #nom, rôle
         self.scenes = set()
@@ -226,7 +226,8 @@ class Scene:
 class GN:
     def __init__(self):
         self.personnages = {}
-        self.intrigues = set()
+        self.intrigues = dict() #clef : id google
+        # self.lastUpdated = datetime.datetime(year=2000, month=1, day=1)
 
     def save(self, filename):
         pickle.dump(self, filename, "w")

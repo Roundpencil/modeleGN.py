@@ -16,6 +16,7 @@ def main():
     # afficherDatesScenes(monGN)
     # genererCsvOrgaIntrigue(monGN)
     # listerLesRoles(monGN)
+    listerDatesIntrigues(monGN)
 
 def afficherLesPersos(monGN):
     for intrigue in monGN.intrigues:
@@ -47,5 +48,8 @@ def listerLesRoles(monGN):
         print(f"intrigue : {intrigue.nom} - url : {intrigue.url}")
         for role in intrigue.roles.values():
             print(str(role))
+def listerDatesIntrigues(monGN):
+    for intrigue in monGN.intrigues.values():
+        print("{0} - {1}".format(intrigue.nom, intrigue.lastChange))
 
 main()

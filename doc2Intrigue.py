@@ -68,14 +68,11 @@ def extraireIntrigues(monGN, singletest="-01"):
                 # print(document.get('title')[0:2])
 
                 if not document.get('title')[0:2].isdigit():
-                    print("... n'est pas une intrigue")
+                    # print("... n'est pas une intrigue")
                     continue
 
-                print("... est une intrigue !")
-                #todo : vérifier au début si la date de dernière mise à jour est plus récente
-                #       et à priori (à vérifier) dès la première date antérieure à la dernière date de mise à jour du GN
-                #       ... à condition d'avoir pour tout le GN la dernière date de mise à jour
-                #       utilser l'id comme clef, et donc faire des intrigues dans l'objet GN un dicitonnaire
+                # print("... est une intrigue !")
+
 
                 #si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
                 if int(singletest) > 0:
@@ -87,12 +84,27 @@ def extraireIntrigues(monGN, singletest="-01"):
                         print("intrigue {0} trouvée".format(singletest))
 
                 #du coup on traite
+
+                # on vérifie d'abord si il est nécessaire de traiter :
+                #   SI l'intrigue existe dans le GN ?
+                if item['id'] in monGN.intrigues.keys():
+                #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
+                    if monGN.intrigues[item['id']].lastChange >= item['modifiedTime']:
+                        continue
+                #           ALORS : on arrête
+                #
+                #   sinon, on est bons : l'intégrer
+
+                #todo : vérifier au début si la date de dernière mise à jour est plus récente
+                #       et à priori (à vérifier) dès la première date antérieure à la dernière date de mise à jour du GN
+                #       ... à condition d'avoir pour tout le GN la dernière date de mise à jour
+
                 contenuDocument = document.get('body').get('content')
                 text = read_structural_elements(contenuDocument)
 
                 # print(text) #test de la focntion récursive pour le texte
-                monIntrigue = extraireIntrigueDeTexte(text, document.get('title'), monGN)
-                monIntrigue.url = item["id"]
+                monIntrigue = extraireIntrigueDeTexte(text, document.get('title'), item["id"], monGN)
+                # monIntrigue.url = item["id"]
                 monIntrigue.lastChange = item['modifiedTime']
                 # print(f'url intrigue = {monIntrigue.url}')
                 # print(f"intrigue {monIntrigue.nom}, date de modification : {item['modifiedTime']}")
@@ -111,14 +123,14 @@ def extraireIntrigues(monGN, singletest="-01"):
         print(f'An error occurred: {error}')
 
 
-def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, monGN):
+def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     # todo : une fois qu'il y aura un objet GN serialisé, ajouter pour chaque intrigue une date de dernière mise à jour pour croiser avec le fichier > si mise à jour : réécriture de toute la scène, sinon passer la mise à jour
 
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue)
     # print("*****************************")
-    currentIntrigue = Intrigue(nom=nomIntrigue)
-    monGN.intrigues.add(currentIntrigue)
+    currentIntrigue = Intrigue(nom=nomIntrigue, url=idUrl)
+    monGN.intrigues[idUrl] = currentIntrigue
     nomspersos = monGN.getNomsPersos()
 
     texteIntrigueLow = texteIntrigue.lower()  # on passe en minuscule pour mieux trouver les chaines
