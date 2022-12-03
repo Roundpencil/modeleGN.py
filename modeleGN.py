@@ -9,6 +9,7 @@ EST_PNJ_PERMANENT = 3
 EST_PNJ_TEMPORAIRE = 2
 EST_PNJ_HORS_JEU = 1
 
+
 def stringTypePJ(typePJ):
     if typePJ == EST_PJ:
         return "PJ"
@@ -48,10 +49,12 @@ class Personnage:
     def __str__(self):
         return "nom perso : " + self.nom
 
+
 # rôle
 class Role:
 
-    def __init__(self, intrigue, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ, typeIntrigue="", niveauImplication = "",
+    def __init__(self, intrigue, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ,
+                 typeIntrigue="", niveauImplication="",
                  enJeu=0):
         self.intrigue = intrigue
         self.perso = perso
@@ -65,13 +68,13 @@ class Role:
         self.niveauImplication = niveauImplication
         self.scenes = set()
         # self.enJeu = enJeu #pour les PNJs uniquement : 0 : non, 1 : oui ponctuellement, 2 : oui sur le long terme
-        #remplacé par la notion globale EST_XXX qui permet de tout gérer au même niveau
+        # remplacé par la notion globale EST_XXX qui permet de tout gérer au même niveau
 
     def __str__(self):
         toReturn = ""
         toReturn += "intrigue : " + self.intrigue.nom + "\n"
         toReturn += "nom dans l'intrigue : " + self.nom + "\n"
-        if self.perso == None :
+        if self.perso == None:
             toReturn += "perso : aucun" + "\n"
         else:
             toReturn += "perso : " + self.perso.nom + "\n"
@@ -94,9 +97,10 @@ class Role:
 class Intrigue:
 
     def __init__(self, url, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", lastChange=0, scenesEnJeu =""):
+                 questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", lastChange=0,
+                 scenesEnJeu=""):
         self.nom = nom
-        self.roles = {} #nom, rôle
+        self.roles = {}  # nom, rôle
         self.scenes = set()
         self.description = description
         self.pitch = pitch
@@ -113,21 +117,21 @@ class Intrigue:
     def __str__(self):
         return self.nom
 
-    #vérifier que le personnge que l'on souhaite associer à un rôle n'est pas déjà associé à un autre rôle
-    #dans la même intrigue
-    #Si c'est le cas :
+    # vérifier que le personnge que l'on souhaite associer à un rôle n'est pas déjà associé à un autre rôle
+    # dans la même intrigue
+    # Si c'est le cas :
     #   renvoyer -1 : un même personnage ne peut être associé qu'à un seul rôle dans une intrigue
-    #Sinon :
+    # Sinon :
     #   réaliser l'association entre le personnage et le rôle
     #   ajouter le rôle à la liste des rôles du personnage
     #   renvoyer 0
 
     def associerRoleAPerso(self, roleAAssocier, personnage):
-        #pour chaque rôle qui fait partie des rôles de l'intrigue
+        # pour chaque rôle qui fait partie des rôles de l'intrigue
         for role in self.roles.values():
-            #si le personnage que l'on souhaite associer au rôle est déjà associé à un rôle dans l'intrigue
+            # si le personnage que l'on souhaite associer au rôle est déjà associé à un rôle dans l'intrigue
             if role.perso == personnage:
-            #ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au sein d'une mêm intrigue
+                # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au sein d'une mêm intrigue
                 # print("Erreur : impossible d'associer le personnage {0} au rôle {1} dans l'intrigue {2} : il est déjà "
                 #       "associé au rôle {3}".format(personnage.nom, roleAAssocier.nom, self.nom, role.nom))
                 return -1
@@ -139,12 +143,13 @@ class Intrigue:
         return self.roles.keys()
 
     def getFullUrl(self):
-        return "https://docs.google.com/document/d/"+self.url
+        return "https://docs.google.com/document/d/" + self.url
 
     def addScene(self, nomScene):
         sceneAajouter = Scene(self, nomScene)
         self.scenes.add(sceneAajouter)
         return sceneAajouter
+
 
 # relations
 class Relation:
@@ -175,9 +180,9 @@ class Scene:
         self.description = description
         self.actif = actif
         self.roles = set()
-        self.niveau = niveau    # 1 : dans la chronologie globale,
-                                #2, dans tous les personnages de l'intrigue (pour info, donc pour les autres)
-                                #3 : personnages impactés uniquement
+        self.niveau = niveau  # 1 : dans la chronologie globale,
+        # 2, dans tous les personnages de l'intrigue (pour info, donc pour les autres)
+        # 3 : personnages impactés uniquement
         # faut-il dire que role et personnages héritent l'un de l'autre? Ou bien d'un objet "protagoniste"?
 
     def get_date(self):
@@ -200,14 +205,14 @@ class Scene:
             elif nbAnnees == 1:
                 dateTexte += "1 an, "
 
-            if nbMois > 0 :
+            if nbMois > 0:
                 dateTexte += str(nbMois)[:-2] + " mois, "
 
             if nbJours > 1:
                 dateTexte += str(nbJours)[:-2] + " jours, "
             elif nbJours > 0:
                 dateTexte += "1 jour, "
-            return dateTexte[0:-2] #car meme dans le cadre de jours on a rajouté deux cars ;)
+            return dateTexte[0:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
 
         else:
             print("la date <{0}> n'est pas un nombre".format(self.date))
@@ -217,7 +222,7 @@ class Scene:
         self.roles.add(role)
 
     def __str__(self):
-        return("Titre Scène : " + self.titre)
+        return ("Titre Scène : " + self.titre)
 
 
 # objet pour tout sauvegarder
@@ -226,11 +231,25 @@ class Scene:
 class GN:
     def __init__(self):
         self.personnages = {}
-        self.intrigues = dict() #clef : id google
+        self.intrigues = dict()  # clef : id google
+        self.oldestUpdate = None
+        self.idOldestUpdate = ""
         # self.lastUpdated = datetime.datetime(year=2000, month=1, day=1)
 
+    # permet de mettre à jour la date d'intrigue la plus ancienne
+    # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
+    # Tant que les modifs dans google sont postérieures à la date de dernière modif > les prendre en compte
+    # Après > arréter
+    def updateOldestUpdate(self):
+        pairesDatesId = dict()
+        for intrigue in self.intrigues.values():
+            pairesDatesId[intrigue.lastChange] = intrigue.url
+        self.oldestUpdate = min(pairesDatesId.keys())
+        self.idOldestUpdate = pairesDatesId[self.oldestUpdate]
+
     def save(self, filename):
-        pickle.dump(self, filename, "w")
+        filehandler = open(filename, "wb")
+        pickle.dump(self, filehandler)
         print("pas de procédure de sauvegarde actuellement")
 
     def getNomsPersos(self):

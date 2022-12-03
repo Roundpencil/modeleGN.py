@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import datetime
 import os.path
 import re
 
@@ -48,7 +49,8 @@ def extraireIntrigues(monGN, singletest="-01"):
         results = service.files().list(
             pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
             fields="nextPageToken, files(id, name, modifiedTime)").execute()
-        items = results.get('files', []) #le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues
+        items = results.get('files',
+                            [])  # le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues
 
         if not items:
             print('No files found.')
@@ -73,46 +75,50 @@ def extraireIntrigues(monGN, singletest="-01"):
 
                 # print("... est une intrigue !")
 
-
-                #si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
+                # si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
                 if int(singletest) > 0:
                     # Alors on se demandne si c'est la bonne
                     if document.get('title')[0:2] != str(singletest):  # numéro de l'intrigue
-                        #si ce n'est pas la bonne, pas la peine d'aller plus loin
+                        # si ce n'est pas la bonne, pas la peine d'aller plus loin
                         continue
                     else:
                         print("intrigue {0} trouvée".format(singletest))
 
-                #du coup on traite
+                # du coup on traite
 
                 # on vérifie d'abord si il est nécessaire de traiter :
                 #   SI l'intrigue existe dans le GN ?
                 if item['id'] in monGN.intrigues.keys():
-                #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
+                    #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
                     if monGN.intrigues[item['id']].lastChange >= item['modifiedTime']:
-                        continue
-                #           ALORS : on arrête
+                        # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
+                        if monGN.idOldeestUpdate == item['id']:
+                            break
+                        else:
+                            #sinon on passe à l'intrigue suivante
+                            continue
+
                 #
                 #   sinon, on est bons : l'intégrer
 
-                #todo : vérifier au début si la date de dernière mise à jour est plus récente
-                #       et à priori (à vérifier) dès la première date antérieure à la dernière date de mise à jour du GN
-                #       ... à condition d'avoir pour tout le GN la dernière date de mise à jour
+                # todo : tester quela fonction de mise à jour de la dernière date fonctionne bien
 
                 contenuDocument = document.get('body').get('content')
                 text = read_structural_elements(contenuDocument)
 
-                # print(text) #test de la focntion récursive pour le texte
+                # print(text) #test de la fonction récursive pour le texte
                 monIntrigue = extraireIntrigueDeTexte(text, document.get('title'), item["id"], monGN)
                 # monIntrigue.url = item["id"]
-                monIntrigue.lastChange = item['modifiedTime']
+
+                # et on enregistre la date de dernière mise à jour de l'intrigue
+                monIntrigue.lastChange = datetime.datetime.now()
+
                 # print(f'url intrigue = {monIntrigue.url}')
                 # print(f"intrigue {monIntrigue.nom}, date de modification : {item['modifiedTime']}")
 
-
                 if int(singletest) > 0:
-                    #alors si on est toujours là, c'est que c'était notre intrigue
-                    #pas la peine d'aller plus loin
+                    # alors si on est toujours là, c'est que c'était notre intrigue
+                    # pas la peine d'aller plus loin
                     return
 
                 # return #ajouté pour débugger
@@ -124,7 +130,9 @@ def extraireIntrigues(monGN, singletest="-01"):
 
 
 def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
-    # todo : une fois qu'il y aura un objet GN serialisé, ajouter pour chaque intrigue une date de dernière mise à jour pour croiser avec le fichier > si mise à jour : réécriture de toute la scène, sinon passer la mise à jour
+    # todo : travailler sur la serialisation
+    #   Faire une fonction de destruction / resetting d'une intrigue
+    #   Rajouter dans les cas ou l'intrigue existe mais il faut faire une mise à jour l'appel à cette fonction
 
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue)
@@ -187,9 +195,10 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     if indexes[REFERENT]["debut"] == -1:
         print("problème référent avec l'intrigue " + nomIntrigue)
     else:
-        currentIntrigue.orgaReferent = texteIntrigue[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[0][
+        currentIntrigue.orgaReferent = texteIntrigue[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[
+                                           0][
                                        len(REFERENT) + len(" : "):]
-                                        # prendre la première ligne puis les caractères à partir du label
+        # prendre la première ligne puis les caractères à partir du label
         # print("debut / fin orga référent : {0}/{1} pour {2}".format(indexDebutReferent, indexFinReferent, nomIntrigue))
         # print("Orga référent : " + currentIntrigue.orgaReferent)
 
@@ -243,20 +252,21 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     if indexes[PNJS]["debut"] > -1:
         pnjs = texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]].split('#####')
         # faire un tableau avec une ligne par PNJ
-        for pnj in pnjs[1:]: #on enlève la première ligne qui contient les titres
+        for pnj in pnjs[1:]:  # on enlève la première ligne qui contient les titres
             if len(pnj) < 14:
-                #dans ce cas c'est une ligne vide
+                # dans ce cas c'est une ligne vide
                 continue
             sections = pnj.split("###")
-            #0 Nom duPNJ et / ou fonction:
-            #1 Intervention:(Permanente ou Temporaire)
-            #2 Type d’implication: (Active, Passive, Info,ou Objet)
-            #3 Résumé de l’implication
-            pnjAAjouter = Role(currentIntrigue, nom=sections[0].strip(), niveauImplication=sections[2].strip(), description=sections[3].strip(), pj=modeleGN.EST_PNJ_HORS_JEU)
+            # 0 Nom duPNJ et / ou fonction:
+            # 1 Intervention:(Permanente ou Temporaire)
+            # 2 Type d’implication: (Active, Passive, Info,ou Objet)
+            # 3 Résumé de l’implication
+            pnjAAjouter = Role(currentIntrigue, nom=sections[0].strip(), niveauImplication=sections[2].strip(),
+                               description=sections[3].strip(), pj=modeleGN.EST_PNJ_HORS_JEU)
 
             # print("Je suis en train de regarder {0} et son implication est {1}".format(pnjAAjouter.nom, sections[1].strip()))
 
-            #cherche ensuite le niveau d'implication du pj
+            # cherche ensuite le niveau d'implication du pj
             if sections[1].strip().lower().find('perman') > -1:
                 # print(pnjAAjouter.nom + " est permanent !!")
                 pnjAAjouter.pj = modeleGN.EST_PNJ_PERMANENT
@@ -267,9 +277,9 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
                 pnjAAjouter.pj = modeleGN.EST_PNJ_INFILTRE
                 # print(pnjAAjouter.nom + " est temporaire !!")
 
-            #sinon PNJ hors jeu est la valeur par défaut : ne rien faire
+            # sinon PNJ hors jeu est la valeur par défaut : ne rien faire
 
-            #du coup on peut l'ajouter aux intrigues
+            # du coup on peut l'ajouter aux intrigues
             currentIntrigue.roles[pnjAAjouter.nom] = pnjAAjouter
 
     # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de reférence des noms dans l'intrigue
@@ -279,15 +289,17 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     if indexes[REROLLS]["debut"] > -1:
         rerolls = texteIntrigue[indexes[REROLLS]["debut"]:indexes[REROLLS]["fin"]].split('#####')
         # faire un tableau avec une ligne par Reroll
-        for reroll in rerolls[1:]: #on enlève la première ligne qui contient les titres
+        for reroll in rerolls[1:]:  # on enlève la première ligne qui contient les titres
             if len(reroll) < 14:
-                #dans ce cas c'est une ligne vide
+                # dans ce cas c'est une ligne vide
                 continue
             sections = reroll.split("###")
-            #même sections que les PJs
-            reRollAAjouter = Role(currentIntrigue, nom=sections[0].strip(), description=sections[3].strip(), niveauImplication=sections[1].strip(), typeIntrigue=sections[2].strip(), pj=modeleGN.EST_REROLL)
+            # même sections que les PJs
+            reRollAAjouter = Role(currentIntrigue, nom=sections[0].strip(), description=sections[3].strip(),
+                                  niveauImplication=sections[1].strip(), typeIntrigue=sections[2].strip(),
+                                  pj=modeleGN.EST_REROLL)
 
-            #du coup on peut l'ajouter aux intrigues
+            # du coup on peut l'ajouter aux intrigues
             currentIntrigue.roles[reRollAAjouter.nom] = reRollAAjouter
 
     # gestion de la section Objets
@@ -380,7 +392,7 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter):
                   "déclaré {1} : indice de correspondance : {2}".format(sceneAAjouter.titre, nomRole, nomNormalise))
 
         # trouver le rôle à ajouter à la scène en lisant l'intrigue
-        #warning: un truc plante parfois ici mais je ne sais pas encore quoi ni pourquoi (process renvoie None)
+        # warning: un truc plante parfois ici mais je ne sais pas encore quoi ni pourquoi (process renvoie None)
         monRole = currentIntrigue.roles[nomNormalise[0]]
 
         monRole.ajouterAScene(sceneAAjouter)

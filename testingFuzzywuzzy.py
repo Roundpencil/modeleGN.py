@@ -9,14 +9,17 @@ def main():
     for perso in nomspersos:
         monGN.personnages[perso] = Personnage(nom=perso, pj=True)
 
-    # doc2Intrigue.extraireIntrigues(monGN, singletest=81)
-    doc2Intrigue.extraireIntrigues(monGN)
+    doc2Intrigue.extraireIntrigues(monGN, singletest="77")
+    # doc2Intrigue.extraireIntrigues(monGN)
+    monGN.updateOldestUpdate()
+    monGN.save("test Sauvegarde")
 
     # afficherLesPersos(monGN)
     # afficherDatesScenes(monGN)
     # genererCsvOrgaIntrigue(monGN)
     # listerLesRoles(monGN)
-    listerDatesIntrigues(monGN)
+    # listerDatesIntrigues(monGN)
+    # print(" l'intrigue la plus ancienne est {0}, c'est {1}, maj : {2}".format(monGN.idOldestUpdate, monGN.intrigues[monGN.idOldestUpdate], monGN.oldestUpdate))
 
 def afficherLesPersos(monGN):
     for intrigue in monGN.intrigues:
