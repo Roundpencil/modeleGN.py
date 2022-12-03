@@ -250,13 +250,12 @@ class GN:
     def save(self, filename):
         filehandler = open(filename, "wb")
         pickle.dump(self, filehandler)
-        print("pas de procédure de sauvegarde actuellement")
 
     def getNomsPersos(self):
         return self.personnages.keys()
 
     @staticmethod
     def load(filename):
-        return pickle.load(filename)
-
+        monfichier = open(filename, 'rb')
+        return pickle.load(monfichier)
 # objets
