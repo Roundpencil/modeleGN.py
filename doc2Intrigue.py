@@ -22,7 +22,7 @@ os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre de
 folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"  # le folder des intrigues de Chalacta
 
 
-def extraireIntrigues(monGN, singletest="81"):
+def extraireIntrigues(monGN, singletest="-01"):
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -47,7 +47,7 @@ def extraireIntrigues(monGN, singletest="81"):
         # Call the Drive v3 API
         results = service.files().list(
             pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
-            fields="nextPageToken, files(id, name)").execute()
+            fields="nextPageToken, files(id, name, modifiedTime)").execute()
         items = results.get('files', []) #le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues
 
         if not items:
@@ -72,27 +72,36 @@ def extraireIntrigues(monGN, singletest="81"):
                     continue
 
                 print("... est une intrigue !")
-                #todo : réécrire avec juste un truc qui fait continue / return une fois qu'on a trouvé notre intrigue
-                #       ajouter item['id'] dans l'URL à la fin de la procédure
-                #       lire la date de dernière mise à jour dans les propriétés du fichier
-                #       vérifier au début si la date de dernière mise à jour est plus récente
+                #todo : vérifier au début si la date de dernière mise à jour est plus récente
+                #       et à priori (à vérifier) dès la première date antérieure à la dernière date de mise à jour du GN
+                #       ... à condition d'avoir pour tout le GN la dernière date de mise à jour
+                #       utilser l'id comme clef, et donc faire des intrigues dans l'objet GN un dicitonnaire
+
                 #si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
                 if int(singletest) > 0:
-                    # pour tester sur une intrigue en particulier
-                    if document.get('title')[0:2] == str(singletest):  # numéro de l'intrigue
+                    # Alors on se demandne si c'est la bonne
+                    if document.get('title')[0:2] != str(singletest):  # numéro de l'intrigue
+                        #si ce n'est pas la bonne, pas la peine d'aller plus loin
+                        continue
+                    else:
                         print("intrigue {0} trouvée".format(singletest))
-                        contenuDocument = document.get('body').get('content')
-                        text = read_structural_elements(contenuDocument)
 
-                        # print(text) #test de la focntion récursive pour le texte
-                        extraireIntrigueDeTexte(text, document.get('title'), monGN)
-                        return
-                else:
-                    # pour tester en live...
-                    # print("*** intrigue en cours : " + document.get('title'))
-                    contenuDocument = document.get('body').get('content')
-                    text = read_structural_elements(contenuDocument)
-                    extraireIntrigueDeTexte(text, document.get('title'), monGN)
+                #du coup on traite
+                contenuDocument = document.get('body').get('content')
+                text = read_structural_elements(contenuDocument)
+
+                # print(text) #test de la focntion récursive pour le texte
+                monIntrigue = extraireIntrigueDeTexte(text, document.get('title'), monGN)
+                monIntrigue.url = item["id"]
+                monIntrigue.lastChange = item['modifiedTime']
+                # print(f'url intrigue = {monIntrigue.url}')
+                # print(f"intrigue {monIntrigue.nom}, date de modification : {item['modifiedTime']}")
+
+
+                if int(singletest) > 0:
+                    #alors si on est toujours là, c'est que c'était notre intrigue
+                    #pas la peine d'aller plus loin
+                    return
 
                 # return #ajouté pour débugger
             except HttpError as err:
@@ -373,21 +382,21 @@ def extraireDateScene(baliseDate, sceneAAjouter):
 def extraireIlYAScene(baliseDate, sceneAAjouter):
     # print("balise date : " + baliseDate)
     # trouver s'il y a un nombres* a[ns]
-    ans = re.search(r"\d*\s*[a]", baliseDate)
+    ans = re.search(r"\d*\s*a", baliseDate)
     if ans is None:
         ans = 0
     else:
         ans = ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
 
     # trouver s'il y a un nombres* m[ois]
-    mois = re.search('\d*\s*[m]', baliseDate)
+    mois = re.search('\d*\s*m', baliseDate)
     if mois is None:
         mois = 0
     else:
         mois = mois.group(0)[:-1]
 
     # trouver s'il y a un nombres* j[ours]
-    jours = re.search('\d*\s*[j]', baliseDate)
+    jours = re.search('\d*\s*j', baliseDate)
     if jours is None:
         jours = 0
     else:

@@ -9,12 +9,13 @@ def main():
     for perso in nomspersos:
         monGN.personnages[perso] = Personnage(nom=perso, pj=True)
 
+    # doc2Intrigue.extraireIntrigues(monGN, singletest=81)
     doc2Intrigue.extraireIntrigues(monGN)
 
     # afficherLesPersos(monGN)
     # afficherDatesScenes(monGN)
     # genererCsvOrgaIntrigue(monGN)
-    listerLesRoles(monGN)
+    # listerLesRoles(monGN)
 
 def afficherLesPersos(monGN):
     for intrigue in monGN.intrigues:

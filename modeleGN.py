@@ -138,15 +138,8 @@ class Intrigue:
     def getNomsRoles(self):
         return self.roles.keys()
 
-
-    # def getOrAddRole(self, nom):
-    #     for role in self.roles:
-    #         if role == nom:
-    #             return role
-    #     nouveauRole = Role(nom=nom, intrigue=self)
-    #     self.roles.add(nouveauRole)
-    #     return nouveauRole
-    #todo : réutiliser cette fonction quand on voudra vérifier que les persos dans les scènes sont bien dans les intrigues
+    def getFullUrl(self):
+        return "https://docs.google.com/document/d/"+self.url
 
     def addScene(self, nomScene):
         sceneAajouter = Scene(self, nomScene)
