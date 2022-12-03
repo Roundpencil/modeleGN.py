@@ -125,7 +125,6 @@ class Intrigue:
     #   réaliser l'association entre le personnage et le rôle
     #   ajouter le rôle à la liste des rôles du personnage
     #   renvoyer 0
-
     def associerRoleAPerso(self, roleAAssocier, personnage):
         # pour chaque rôle qui fait partie des rôles de l'intrigue
         for role in self.roles.values():
@@ -149,6 +148,21 @@ class Intrigue:
         sceneAajouter = Scene(self, nomScene)
         self.scenes.add(sceneAajouter)
         return sceneAajouter
+
+    def clear(self):
+        #retirer l'intrigue du GN > à faire au niveau de l'appel
+        #casser toutes les relations role <> personnages
+        for role in self.roles.values():
+            # print(f"Role à dissocier  : {role.nom} de {role.perso}")
+            if role.perso is not None:
+                role.perso.roles.remove(role)
+                del role
+
+        #effacer toutes les scènes de l'intrigue
+        for scene in self.scenes:
+            del scene
+        # print(f"intrigue effacée {self.nom}")
+
 
 
 # relations

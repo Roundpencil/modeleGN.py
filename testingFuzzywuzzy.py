@@ -10,7 +10,10 @@ def main():
         monGN.personnages[perso] = Personnage(nom=perso, pj=True)
 
     monGN = GN.load("archive Chalacta")
-    # doc2Intrigue.extraireIntrigues(monGN, singletest="77")
+    monGN.updateOldestUpdate()
+    listerRolesPerso(monGN, "Kyle Talus")
+    doc2Intrigue.extraireIntrigues(monGN, singletest="-01")
+    listerRolesPerso(monGN, "Kyle Talus")
     # doc2Intrigue.extraireIntrigues(monGN)
     # monGN.updateOldestUpdate()
     # monGN.save("archive Chalacta")
@@ -19,8 +22,21 @@ def main():
     # afficherDatesScenes(monGN)
     # genererCsvOrgaIntrigue(monGN)
     # listerLesRoles(monGN)
-    listerDatesIntrigues(monGN)
+    # del monGN.intrigues['1gf3VUIophPUIgu6EPmubO0kPiOwAx9-3DacvVEfAgiw']
+    # listerDatesIntrigues(monGN)
+
+    ## test de la fonction d'effaçage'
+    # testEffacerIntrigue(monGN)
+
     # print(" l'intrigue la plus ancienne est {0}, c'est {1}, maj : {2}".format(monGN.idOldestUpdate, monGN.intrigues[monGN.idOldestUpdate], monGN.oldestUpdate))
+
+
+def testEffacerIntrigue(monGN):
+    listerRolesPerso(monGN, "Kyle Talus")
+    monGN.intrigues["1p5ndWGUb3uCJ1iSSkPpHrDAzwY8iBdK8Lf9CLpP9Diw"].clear()
+    del monGN.intrigues["1p5ndWGUb3uCJ1iSSkPpHrDAzwY8iBdK8Lf9CLpP9Diw"]
+    print("J'ai effacé l'intrigue Rox et Rouky")
+    listerRolesPerso(monGN, "Kyle Talus")
 
 def afficherLesPersos(monGN):
     for intrigue in monGN.intrigues:
@@ -54,6 +70,10 @@ def listerLesRoles(monGN):
             print(str(role))
 def listerDatesIntrigues(monGN):
     for intrigue in monGN.intrigues.values():
-        print("{0} - {1}".format(intrigue.nom, intrigue.lastChange))
+        print("{0} - {1} - {2}".format(intrigue.nom, intrigue.lastChange, intrigue.url))
+
+def listerRolesPerso(monGN, nomPerso):
+    for role in monGN.personnages[nomPerso].roles:
+        print("Role : {0}".format(role))
 
 main()
