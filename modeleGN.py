@@ -321,9 +321,24 @@ class GN:
     # et les fonctions d'accélération de ré-importations
 
     def rebuildLinks(self, verbal=True):
+        self.clearAllAssociations()
         self.updateOldestUpdate()
         self.associerPNJsARoles(verbal)
         self.associerPJsARoles(verbal)
+
+    def clearAllAssociations(self):
+        for pj in self.personnages.values():
+            pj.roles.clear()
+        for pnj in self.listePnjs.values():
+            pnj.roles.clear()
+
+        #todo : vider les roles associés aux PJs /PNJs
+        #   vider les personnages associés aux rôles
+        for intrigue in self.intrigues.values():
+            for role in intrigue.roles.values():
+                role.perso = None
+
+        pass
 
 
 # objets

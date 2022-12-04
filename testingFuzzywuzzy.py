@@ -60,7 +60,7 @@ def main():
     print("****************************")
     print("****************************")
     print("****************************")
-    # listerRolesPerso(monGN, "Kyle Talus")
+    listerRolesPerso(monGN, "Kyle Talus")
     # listerPNJs(monGN)
     # genererCsvPNJs(monGN)
     # genererCsvObjets(monGN)
