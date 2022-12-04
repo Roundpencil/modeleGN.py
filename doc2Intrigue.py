@@ -238,28 +238,32 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
 
         if len(sections) < 4:
             continue
-        # print("perso découpé avant ajout : " + str(sections))
-        nomNormalise = process.extractOne(str(sections[0]).strip(), nomspersos)
-        # print("nom normalisé pour " + str(sections[0].strip()) + " : " + nomNormalise[0] + " - " + str(nomNormalise[1]))
-        if nomNormalise[1] < 70:
-            print("WARNING : indice de confiance faible ({0}) pour l'association du personnage {1}, trouvé dans le "
-                  "tableau, avec le personnage {2} dans l'intrigue {3}".format(nomNormalise[1],
-                                                                               str(sections[0]).strip(),
-                                                                               nomNormalise[0], nomIntrigue))
 
-        pjAAjouter = Role(currentIntrigue, nom=sections[0].strip())
-        pjAAjouter.description = sections[3].strip()
-        pjAAjouter.typeIntrigue = sections[2].strip()
-        pjAAjouter.niveauImplication = sections[1].strip()
-        check = currentIntrigue.associerRoleAPerso(pjAAjouter, monGN.personnages[nomNormalise[0]])
+        # déplacé dans l'objet GN à faire tourner en fin de traitement, notamment si changement des Persos depuis le
+        # dernier run
+        # print("perso découpé avant ajout : " + str(sections)) nomNormalise = process.extractOne(str(
+        # sections[0]).strip(), nomspersos) # print("nom normalisé pour " + str(sections[0].strip()) + " : " +
+        # nomNormalise[0] + " - " + str(nomNormalise[1])) if nomNormalise[1] < 70: print("WARNING : indice de
+        # confiance faible ({0}) pour l'association du personnage {1}, trouvé dans le " "tableau, avec le personnage
+        # {2} dans l'intrigue {3}".format(nomNormalise[1], str(sections[0]).strip(), nomNormalise[0], nomIntrigue))
 
-        if check == 0:  # dans ce cas, ce personnage n'était pas déjà associé à un rôle dans l'intrigue
-            currentIntrigue.roles[pjAAjouter.nom] = pjAAjouter
-        else:
-            print("Erreur : impossible d'associer le personnage {0} au rôle {1} dans l'intrigue {2} : il est déjà "
-                  "associé à un rôle".format(nomNormalise[0], sections[0].strip(), currentIntrigue))
-            # print("taille du nombre de roles dans l'intrigue {0}".format(len(currentIntrigue.roles)))
-        # print("check pour {0} = {1}".format(pjAAjouter.nom, check))
+        pjAAjouter = Role(currentIntrigue,
+                          nom=sections[0].strip(),
+                          description=sections[3].strip(),
+                          typeIntrigue=sections[2].strip(),
+                          niveauImplication=sections[1].strip()
+                          )
+
+        #fait partie de ce qu'on a rapatrié dans GN :
+        # check = currentIntrigue.associerRoleAPerso(pjAAjouter, monGN.personnages[nomNormalise[0]])
+
+        # if check == 0:  # dans ce cas, ce personnage n'était pas déjà associé à un rôle dans l'intrigue
+        #     currentIntrigue.roles[pjAAjouter.nom] = pjAAjouter
+        # else:
+        #     print("Erreur : impossible d'associer le personnage {0} au rôle {1} dans l'intrigue {2} : il est déjà "
+        #           "associé à un rôle".format(nomNormalise[0], sections[0].strip(), currentIntrigue))
+        #     # print("taille du nombre de roles dans l'intrigue {0}".format(len(currentIntrigue.roles)))
+        # # print("check pour {0} = {1}".format(pjAAjouter.nom, check))
 
     # gestion de la section PNJs
     if indexes[PNJS]["debut"] > -1:

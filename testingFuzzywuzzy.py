@@ -62,14 +62,14 @@ def main():
 
     monGN.updateOldestUpdate()
     monGN.associerPNJsARoles()
-    monGN.associerPJsARoles()
+    monGN.associerPJsARoles(seuilAlerte=5)
     monGN.save("archive Chalacta")
 
 
     print("****************************")
     print("****************************")
     print("****************************")
-    # listerRolesPerso(monGN, "Naam poorf")
+    listerRolesPerso(monGN, "Kyle Talus")
     # listerPNJs(monGN)
     # genererCsvPNJs(monGN)
     # genererCsvObjets(monGN)
