@@ -94,15 +94,16 @@ def extraireIntrigues(monGN, singletest="-01"):
                     # print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} / {item['modifiedTime']}")
 
                     # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
-                    if monGN.intrigues[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
-                        print ("et elle n'a pas changé depuis le dernier passage")
+                    if monGN.intrigues[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5],
+                                                                                            '%Y-%m-%dT%H:%M:%S'):
+                        print("et elle n'a pas changé depuis le dernier passage")
                         # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
-                        #si c'était la plus vieille du GN, pas la peine de continuer
+                        # si c'était la plus vieille du GN, pas la peine de continuer
                         if monGN.idOldestUpdate == item['id']:
                             print("et d'ailleurs c'était la plus vieille > j'ai fini !")
                             break
                         else:
-                            #sinon on passe à l'intrigue suivante (sauf si on est dans singletest)
+                            # sinon on passe à l'intrigue suivante (sauf si on est dans singletest)
                             if int(singletest) > 0:
                                 print("stop !")
                                 # alors si on est toujours là, c'est que c'était notre intrigue
@@ -111,7 +112,7 @@ def extraireIntrigues(monGN, singletest="-01"):
                             continue
                     else:
                         print("elle a changé depuis mon dernier passage : supprimons-la !")
-                        #dans ce cas il faut la supprimer car on va tout réécrire
+                        # dans ce cas il faut la supprimer car on va tout réécrire
                         monGN.intrigues[item['id']].clear()
                         del monGN.intrigues[item['id']]
 
@@ -146,7 +147,6 @@ def extraireIntrigues(monGN, singletest="-01"):
 
 
 def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
-
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue)
     # print("*****************************")
@@ -236,7 +236,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
         sections = pj.split("###")
         # print("j'ai trouvé " + str(len(sections)) + " sections")
 
-        if len(sections) < 4:
+        if len(sections) < 4:  # testé pour éviter de se taper les lignes vides après le tableau
             continue
 
         # déplacé dans l'objet GN à faire tourner en fin de traitement, notamment si changement des Persos depuis le
@@ -247,23 +247,24 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
         # confiance faible ({0}) pour l'association du personnage {1}, trouvé dans le " "tableau, avec le personnage
         # {2} dans l'intrigue {3}".format(nomNormalise[1], str(sections[0]).strip(), nomNormalise[0], nomIntrigue))
 
-        pjAAjouter = Role(currentIntrigue,
-                          nom=sections[0].strip(),
-                          description=sections[3].strip(),
-                          typeIntrigue=sections[2].strip(),
-                          niveauImplication=sections[1].strip()
-                          )
+        roleAAjouter = Role(currentIntrigue,
+                            nom=sections[0].split("http")[0].strip(),
+                            description=sections[3].strip(),
+                            typeIntrigue=sections[2].strip(),
+                            niveauImplication=sections[1].strip()
+                            )
+        currentIntrigue.roles[roleAAjouter.nom] = roleAAjouter
 
-        #fait partie de ce qu'on a rapatrié dans GN :
-        # check = currentIntrigue.associerRoleAPerso(pjAAjouter, monGN.personnages[nomNormalise[0]])
+        # fait partie de ce qu'on a rapatrié dans GN :
+        # check = currentIntrigue.associerRoleAPerso(roleAAjouter, monGN.personnages[nomNormalise[0]])
 
         # if check == 0:  # dans ce cas, ce personnage n'était pas déjà associé à un rôle dans l'intrigue
-        #     currentIntrigue.roles[pjAAjouter.nom] = pjAAjouter
+        #     currentIntrigue.roles[roleAAjouter.nom] = roleAAjouter
         # else:
         #     print("Erreur : impossible d'associer le personnage {0} au rôle {1} dans l'intrigue {2} : il est déjà "
         #           "associé à un rôle".format(nomNormalise[0], sections[0].strip(), currentIntrigue))
         #     # print("taille du nombre de roles dans l'intrigue {0}".format(len(currentIntrigue.roles)))
-        # # print("check pour {0} = {1}".format(pjAAjouter.nom, check))
+        # # print("check pour {0} = {1}".format(roleAAjouter.nom, check))
 
     # gestion de la section PNJs
     if indexes[PNJS]["debut"] > -1:
@@ -337,22 +338,23 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
                 # dans ce cas, c'est une ligne vide
                 continue
             sections = objet.split("###")
-            #vérifier si nous sommes avec un objet RFID (4 colonnes) ou sans (3 colonnes)
+            # vérifier si nous sommes avec un objet RFID (4 colonnes) ou sans (3 colonnes)
             monObjet = None
             if len(sections) == 4:
-                monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[2].strip(), fourniPar=sections[3].strip())
-                if sections[3].strip().lower() != "non": #si on a mis non pour le RFID ca ne veut pas dire oui :)
+                monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[2].strip(),
+                                 fourniPar=sections[3].strip())
+                if sections[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
                     monObjet.specialEffect = sections[3].strip()
 
             elif len(sections) == 3:
-                monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[1].strip(), fourniPar=sections[2].strip())
+                monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[1].strip(),
+                                 fourniPar=sections[2].strip())
             else:
                 print(f"Erreur de format d'objet dans l'intrigue {currentIntrigue.nom} : {sections}")
 
             if monObjet is not None:
                 currentIntrigue.objets.add(monObjet)
                 monObjet.inIntrigues.add(currentIntrigue)
-
 
     # gestion de la section FX
     if indexes[SCENESFX]["debut"] > -1:
@@ -423,7 +425,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     return currentIntrigue
 
 
-def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter):
+def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verbal=True):
     roles = listeNoms.split(",")
     # print("rôles trouvés en lecture brute : " + str(roles))
 
@@ -431,19 +433,21 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter):
     # les noms de la scène
     for nomRole in roles:
         # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
-        nomNormalise = process.extractOne(nomRole.strip(), nomsRoles)
-        # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nomRole.strip(), currentIntrigue.nom, nomNormalise))
+        score = process.extractOne(nomRole.strip(), nomsRoles)
+        # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nomRole.strip(), currentIntrigue.nom, score))
 
         # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'tes peut etre trompé de perso
-        if nomNormalise is not None and nomNormalise[1] < 80:
-            print("Warning, lors de l'association des rôles dans la scene {0}, problème avec le nom "
-                  "déclaré {1} : indice de correspondance : {2}".format(sceneAAjouter.titre, nomRole, nomNormalise))
+        if score is not None:
+            if verbal and score[1] < 80:
+                print(
+                    f"Warning association Scene ({score[1]}) - nom dans scène : {nomRole} > Role : {score[0]} dans {currentIntrigue.nom}/{sceneAAjouter.titre}")
 
-        # trouver le rôle à ajouter à la scène en lisant l'intrigue
-        # warning: un truc plante parfois ici mais je ne sais pas encore quoi ni pourquoi (process renvoie None)
-        monRole = currentIntrigue.roles[nomNormalise[0]]
-
-        monRole.ajouterAScene(sceneAAjouter)
+            # trouver le rôle à ajouter à la scène en lisant l'intrigue
+            # warning: un truc plante parfois ici mais je ne sais pas encore quoi ni pourquoi (process renvoie None)
+            monRole = currentIntrigue.roles[score[0]]
+            monRole.ajouterAScene(sceneAAjouter)
+        elif verbal:
+            print(f"Erreur, process renvoie None pour nom scène : {nomRole} dans {sceneAAjouter.titre}")
 
 
 def extraireDateScene(baliseDate, sceneAAjouter):

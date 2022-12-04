@@ -89,7 +89,6 @@ class Role:
         # toReturn += "sexe : " + self.sexe + "\n"
         toReturn += "typeIntrigue : " + self.typeIntrigue + "\n"
         toReturn += "niveauImplication : " + self.niveauImplication + "\n"
-        # toReturn += "en Jeu : " + str(self.enJeu) + "\n" # n'existe plus
         return toReturn
 
     def ajouterAScene(self, sceneAAjouter):
@@ -132,16 +131,21 @@ class Intrigue:
     #   réaliser l'association entre le personnage et le rôle
     #   ajouter le rôle à la liste des rôles du personnage
     #   renvoyer 0
-    def associerRoleAPerso(self, roleAAssocier, personnage):
+    def associerRoleAPerso(self, roleAAssocier, personnage, verbal=True):
         # pour chaque rôle qui fait partie des rôles de l'intrigue
         for role in self.roles.values():
             # si le personnage que l'on souhaite associer au rôle est déjà associé à un rôle dans l'intrigue
             if role.perso == personnage:
                 # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au sein d'une mêm intrigue
-                # print("Erreur : impossible d'associer le personnage {0} au rôle {1} dans l'intrigue {2} : il est déjà "
-                #       "associé au rôle {3}".format(personnage.nom, roleAAssocier.nom, self.nom, role.nom))
+
+                if verbal: # et si on a demandé à ce que la fonction raconte sa vie, on détaille
+                    print(f"Erreur Association role > PJ : "
+                          f"{roleAAssocier.nom} > {personnage.nom}, "
+                          f"déjà associé au rôle {role.nom} dans {self.nom}")
                 return -1
         roleAAssocier.perso = personnage
+        #au passage on update le niveau de perso (surtout utile pour les PNJs), en prenant toujours le max
+        personnage.pj = max(personnage.pj, roleAAssocier.pj)
         personnage.roles.add(roleAAssocier)
         return 0
 
@@ -300,10 +304,9 @@ class GN:
             for role in intrigue.roles.values():
                 if estUnPJ(role.pj):
                     score = process.extractOne(role.nom, nomsPjs)
-                    check = intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.personnages[score[0]])
+                    # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
+                    check = intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.personnages[score[0]], verbal=verbal)
                     if verbal:
-                        if not check:
-                            print(f"Erreur association ! role : {role.nom} > PJ : {score[0]}, déjà associé à {intrigue.roles[score[0]].nom} dans {intrigue.nom}")
                         if score[1] < seuilAlerte:
                             print(f"Warning association ({score[1]}) - nom rôle : {role.nom} > PJ : {score[0]} dans {intrigue.nom}")
 
@@ -311,6 +314,18 @@ class GN:
     def load(filename):
         monfichier = open(filename, 'rb')
         return pickle.load(monfichier)
+
+    #apres une importation recrée
+    # tous les liens entre les PJs,
+    # les PNJs
+    # et les fonctions d'accélération de ré-importations
+
+    def rebuildLinks(self, verbal=True):
+        self.updateOldestUpdate()
+        self.associerPNJsARoles(verbal)
+        self.associerPJsARoles(verbal)
+
+
 # objets
 
 class Objet:

@@ -37,15 +37,8 @@ nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran
 
 def main():
 
-    #todo remonter toutes les fcontions associations rtoles-persos dans le GN : c'est lui qui a la vision de tout
-    #  écrire la fonction de normalisation du nom des PNJs en reprenant ce qu'il y a dans fuzzy
-    #  Conserver une archive des warning associations roles - persos et scenes-roles, ou au moins des indices de confiance
-    #  Quand on attribuera les PNJs aux roles PNJs, bien prendre le max entre le niveau du rôle et celui du personnage
     #todo faire en sorte que si on force une intrigue(singletest)  elle est automaitiquement traitée / updatée
-    #todo quand on importe un perso dans une case perso, virer les url qui peuvent lier à sa fiche
     #todo charger les relations depuis le tableau des relations
-
-
 
     monGN = GN(folderid)
 
@@ -60,16 +53,14 @@ def main():
 
     doc2Intrigue.extraireIntrigues(monGN, singletest="-01")
 
-    monGN.updateOldestUpdate()
-    monGN.associerPNJsARoles()
-    monGN.associerPJsARoles(seuilAlerte=5)
+    monGN.rebuildLinks()
     monGN.save("archive Chalacta")
 
 
     print("****************************")
     print("****************************")
     print("****************************")
-    listerRolesPerso(monGN, "Kyle Talus")
+    # listerRolesPerso(monGN, "Kyle Talus")
     # listerPNJs(monGN)
     # genererCsvPNJs(monGN)
     # genererCsvObjets(monGN)
