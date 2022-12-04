@@ -230,7 +230,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     pjs = texteIntrigue[indexes[PJS]["debut"]:indexes[PJS]["fin"]].split("#####")
     for pj in pjs[1:]:  # on commence en 1 pour éviter de prendre la première ligne
         # print("taille du prochain PJ : " +str(len(pj)))
-        if len(pj) < 14:  # dans ce cas c'est qu'un a une ligne du tableau vide
+        if len(pj) < 14:  # dans ce cas, c'est qu'un a une ligne du tableau vide
             # print("pas assez de caractères je me suis arrêté")
             continue  # il y a de fortes chances que le PJ ne contienne que des renvois à la ligne
         sections = pj.split("###")
@@ -321,7 +321,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
                                   pj=modeleGN.EST_REROLL, typeIntrigue=sections[2].strip(),
                                   niveauImplication=sections[1].strip())
 
-            # du coup on peut l'ajouter aux intrigues
+            # du coup, on peut l'ajouter aux intrigues
             currentIntrigue.roles[reRollAAjouter.nom] = reRollAAjouter
 
     # gestion de la section Objets

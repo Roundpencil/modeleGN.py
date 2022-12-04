@@ -1,6 +1,7 @@
 import datetime
 import pickle
 import datetime
+from fuzzywuzzy import process
 
 EST_PJ = 6
 EST_REROLL = 5
@@ -11,6 +12,9 @@ EST_PNJ_HORS_JEU = 1
 
 def estUnPNJ(niveauPJ):
     return niveauPJ == EST_PNJ_HORS_JEU or niveauPJ == EST_PNJ_TEMPORAIRE or niveauPJ == EST_PNJ_INFILTRE or niveauPJ == EST_PNJ_PERMANENT
+
+def estUnPJ(niveauPJ):
+    return niveauPJ == EST_PJ
 
 def stringTypePJ(typePJ):
     if typePJ == EST_PJ:
@@ -251,8 +255,8 @@ class Scene:
 
 class GN:
     def __init__(self, folderId):
-        self.personnages = {}
-        self.listePnjs = {}
+        self.personnages = {} #nom, personnage
+        self.listePnjs = {} #nom, personnage
         self.intrigues = dict()  # clef : id google
         self.oldestUpdate = None
         self.idOldestUpdate = ""
@@ -277,7 +281,31 @@ class GN:
         return self.personnages.keys()
 
     def getNomsPNJs(self):
-        return self.pnjs.keys()
+        return self.listePnjs.keys()
+
+    def associerPNJsARoles(self, seuilAlerte=90, verbal=True):
+        nomsPnjs = self.getNomsPNJs()
+        for intrigue in self.intrigues.values():
+            for role in intrigue.roles.values():
+                if estUnPNJ(role.pj):
+                    score = process.extractOne(role.nom, nomsPnjs)
+                    # role.perso = self.listePnjs[score[0]]
+                    intrigue.associerRoleAPerso(roleAAssocier=role, personnage= self.listePnjs[score[0]])
+                    if verbal and score[1] < seuilAlerte:
+                        print(f"Warning association ({score[1]}) - nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}")
+
+    def associerPJsARoles(self, seuilAlerte=70, verbal=True):
+        nomsPjs = self.getNomsPersos()
+        for intrigue in self.intrigues.values():
+            for role in intrigue.roles.values():
+                if estUnPJ(role.pj):
+                    score = process.extractOne(role.nom, nomsPjs)
+                    check = intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.personnages[score[0]])
+                    if verbal:
+                        if not check:
+                            print(f"Erreur association ! role : {role.nom} > PJ : {score[0]}, déjà associé à {intrigue.roles[score[0]].nom} dans {intrigue.nom}")
+                        if score[1] < seuilAlerte:
+                            print(f"Warning association ({score[1]}) - nom rôle : {role.nom} > PJ : {score[0]} dans {intrigue.nom}")
 
     @staticmethod
     def load(filename):

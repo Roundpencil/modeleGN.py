@@ -4,16 +4,47 @@ import modeleGN
 from modeleGN import *
 import doc2Intrigue
 
-def main():
-    folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"  # le folder des intrigues de Chalacta
-    nomspersos = ["Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa", "Dal Joval D'rasnov", "Desnash Rhylee", "Dophine Rhue", "Driss Ranner", "Edrik Vance", "Greeta Asty", "Hart Do", "Havok", "Hog'Gemod Ippolruna", "Isayjja Kahl", "Jaldine Gerams", "Jay Mozel", "Jerima D'rasnov", "Jish Zyld", "Jory Asty", "Kael Sin", "Kalitt", "Kess Horoby", "Kianstev Nacram", "Korrgaarr Gguurd'k", "KR3-NC0", "Kyle Talus", "Kyrielle Viszla", "Lars Duskon", "Lexi Ipolruna", "Mano Tori", "Mina Tarkin", "Naka Kushir", "Naam Poorf", "Nemko Var", "Nexxar Graam", "NT 346/bredan", "Oni Lux", "Pregda Snorn", "Rhebanxx Kar", "Rika Sant", "Rimo Twil", "Saryth D'rasnov", "Seika Poorf", "Sirudan Bonte", "Slayke Jontab", "Sol Preeda - Soree", "Tarik Koma", "Teysa Cio", "Thuorn Hermon", "Timagua", "Trevek", "Tristan Wrenn", "Tsvan Kessig", "Val Krendel", "Valin​ Hess", "Vauber Brasell", "Wexley Ello", "Wor Monba", "Xabria", "Yulsa Nazdij", "Zaar Tamwi", "Zagrinn Vrask", "Zoln Ubri"]
-    nomsPNJs = ['', 'Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran ?', 'Kelar Veil', 'Un des joueurs de Sabbacc (nom à trouver)', 'Lady Santhe ??', 'Tranche Mitaines', 'Tranche Mitaines', 'Jaarush Adan', 'L’inquisiteur', 'Clawool', 'Yerraz', 'Droïdes mercenaires', 'Quay Tolsite, agent des Pykes', 'FX-4', 'Oskrabkosi', 'Loomis Xent', 'Katlyn Clawwool', 'Tranche mitaines', 'Rebelle 1', 'Boh Pragg chef de gare Kel dor Et Teezk un esclave rodien issu de la purge du cartel Rodien par Tagge', 'Nekma', 'Katlyn Clawool', 'Benjey Doroat', 'Droïde syndiqué', 'Seerdo', 'Sid Kashan', 'Nosfran Ratspik', 'Membres du J.A.N', 'Caleadr Schlon', 'Zuckuss (ou Boush, ou une autre star)', 'B2B', 'Haaris', 'Le fils de Kalitt', 'Trewek', 'Revos Vannak', 'Inquisiteurice', 'Varima', 'Eliana Zorn', 'Zev Jessk', 'Katlyn Clawool', 'Mohadarr Bodfre', 'Ex esclave', 'Inquisiteur', 'XXXX Rhylee', 'Rak Stryn  le mandalo', 'Yerraz le go faster', 'Apprenti de l’Inquisiteur', 'Témoin X', 'XXX Geska (frère de wirt)', 'Fraterr Millbra', 'Izzik Walo’s', 'Katlyn Clawool', 'Rosson & Yorshill', 'Rebelle 3', 'Drashk', 'Baron Soontir Fel', 'esclave porcher, sbire de Hogg', 'Osrabkosi', '5ème frère', 'La mère (Suwan) et la soeur (Ilanni) de Lexi', 'Darsha Viel', 'Jarus Adams (star tour)', 'Muic Wula', 'Rebelle 2', 'Nosfran ?', 'O-MR1', 'Katleen Clawool', 'Varina Leech', 'Kalie Hess (Décédée)', 'Boba Fett (ou un mandalorien bien badass de l’enfer)', 'OMR-1', 'Lieira Sonn', 'esclave 1', 'Bossk (ou un trando qui le représente)', 'Soontir Fel', 'FX4', 'Trerlil Irgann', 'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère']
+folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"  # le folder des intrigues de Chalacta
+nomspersos = ["Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa", "Dal Joval D'rasnov",
+              "Desnash Rhylee", "Dophine Rhue", "Driss Ranner", "Edrik Vance", "Greeta Asty", "Hart Do", "Havok",
+              "Hog'Gemod Ippolruna", "Isayjja Kahl", "Jaldine Gerams", "Jay Mozel", "Jerima D'rasnov", "Jish Zyld",
+              "Jory Asty", "Kael Sin", "Kalitt", "Kess Horoby", "Kianstev Nacram", "Korrgaarr Gguurd'k", "KR3-NC0",
+              "Kyle Talus", "Kyrielle Viszla", "Lars Duskon", "Lexi Ipolruna", "Mano Tori", "Mina Tarkin",
+              "Naka Kushir", "Naam Poorf", "Nemko Var", "Nexxar Graam", "NT 346/bredan", "Oni Lux", "Pregda Snorn",
+              "Rhebanxx Kar", "Rika Sant", "Rimo Twil", "Saryth D'rasnov", "Seika Poorf", "Sirudan Bonte",
+              "Slayke Jontab", "Sol Preeda - Soree", "Tarik Koma", "Teysa Cio", "Thuorn Hermon", "Timagua", "Trevek",
+              "Tristan Wrenn", "Tsvan Kessig", "Val Krendel", "Valin​ Hess", "Vauber Brasell", "Wexley Ello",
+              "Wor Monba", "Xabria", "Yulsa Nazdij", "Zaar Tamwi", "Zagrinn Vrask", "Zoln Ubri"]
+nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran ?', 'Kelar Veil',
+            'Un des joueurs de Sabbacc (nom à trouver)', 'Lady Santhe ??', 'Tranche Mitaines', 'Tranche Mitaines',
+            'Jaarush Adan', 'L’inquisiteur', 'Clawool', 'Yerraz', 'Droïdes mercenaires',
+            'Quay Tolsite, agent des Pykes', 'FX-4', 'Oskrabkosi', 'Loomis Xent', 'Katlyn Clawwool', 'Tranche mitaines',
+            'Rebelle 1',
+            'Boh Pragg chef de gare Kel dor Et Teezk un esclave rodien issu de la purge du cartel Rodien par Tagge',
+            'Nekma', 'Katlyn Clawool', 'Benjey Doroat', 'Droïde syndiqué', 'Seerdo', 'Sid Kashan', 'Nosfran Ratspik',
+            'Membres du J.A.N', 'Caleadr Schlon', 'Zuckuss (ou Boush, ou une autre star)', 'B2B', 'Haaris',
+            'Le fils de Kalitt', 'Trewek', 'Revos Vannak', 'Inquisiteurice', 'Varima', 'Eliana Zorn', 'Zev Jessk',
+            'Katlyn Clawool', 'Mohadarr Bodfre', 'Ex esclave', 'Inquisiteur', 'XXXX Rhylee', 'Rak Stryn  le mandalo',
+            'Yerraz le go faster', 'Apprenti de l’Inquisiteur', 'Témoin X', 'XXX Geska (frère de wirt)',
+            'Fraterr Millbra', 'Izzik Walo’s', 'Katlyn Clawool', 'Rosson & Yorshill', 'Rebelle 3', 'Drashk',
+            'Baron Soontir Fel', 'esclave porcher, sbire de Hogg', 'Osrabkosi', '5ème frère',
+            'La mère (Suwan) et la soeur (Ilanni) de Lexi', 'Darsha Viel', 'Jarus Adams (star tour)', 'Muic Wula',
+            'Rebelle 2', 'Nosfran ?', 'O-MR1', 'Katleen Clawool', 'Varina Leech', 'Kalie Hess (Décédée)',
+            'Boba Fett (ou un mandalorien bien badass de l’enfer)', 'OMR-1', 'Lieira Sonn', 'esclave 1',
+            'Bossk (ou un trando qui le représente)', 'Soontir Fel', 'FX4', 'Trerlil Irgann',
+            'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère', 'Shaani']
 
-    #todo : remonter toutes les fcontions associations rtoles-persos dans le GN : c'est lui qui a la vision de tout
+
+def main():
+
+    #todo remonter toutes les fcontions associations rtoles-persos dans le GN : c'est lui qui a la vision de tout
     #  écrire la fonction de normalisation du nom des PNJs en reprenant ce qu'il y a dans fuzzy
     #  Conserver une archive des warning associations roles - persos et scenes-roles, ou au moins des indices de confiance
     #  Quand on attribuera les PNJs aux roles PNJs, bien prendre le max entre le niveau du rôle et celui du personnage
     #todo faire en sorte que si on force une intrigue(singletest)  elle est automaitiquement traitée / updatée
+    #todo quand on importe un perso dans une case perso, virer les url qui peuvent lier à sa fiche
+    #todo charger les relations depuis le tableau des relations
+
 
 
     monGN = GN(folderid)
@@ -28,16 +59,19 @@ def main():
     monGN = GN.load("archive Chalacta")
 
     doc2Intrigue.extraireIntrigues(monGN, singletest="-01")
-    # #on update les dates (et todo les liens entre les persos) et on sauve
+
     monGN.updateOldestUpdate()
+    monGN.associerPNJsARoles()
+    monGN.associerPJsARoles()
     monGN.save("archive Chalacta")
 
 
     print("****************************")
     print("****************************")
     print("****************************")
+    # listerRolesPerso(monGN, "Naam poorf")
     # listerPNJs(monGN)
-    genererCsvPNJs(monGN)
+    # genererCsvPNJs(monGN)
     # genererCsvObjets(monGN)
 
     # #lister les correspondaces entre les roles et les noms standards
@@ -63,6 +97,8 @@ def main():
 
     # print(" l'intrigue la plus ancienne est {0}, c'est {1}, maj : {2}".format(monGN.idOldestUpdate, monGN.intrigues[monGN.idOldestUpdate], monGN.oldestUpdate))
 
+    #test de la focntion de rapprochement des PNJs
+    # fuzzyWuzzyme(listerPNJs(monGN), nomsPNJs)
 
 def testEffacerIntrigue(monGN):
     listerRolesPerso(monGN, "Kyle Talus")
@@ -107,14 +143,18 @@ def listerDatesIntrigues(monGN):
         print("{0} - {1} - {2}".format(intrigue.nom, intrigue.lastChange, intrigue.url))
 
 def listerRolesPerso(monGN, nomPerso):
+    nomPerso = process.extractOne(nomPerso, nomspersos)[0]
     for role in monGN.personnages[nomPerso].roles:
         print("Role : {0}".format(role))
 
 def listerPNJs(monGN):
+    toReturn=[]
     for intrigue in monGN.intrigues.values():
         for role in intrigue.roles.values():
             if role.estUnPNJ():
                 print(role)
+                toReturn.append(role.nom)
+    return toReturn
 
 def genererCsvPNJs(monGN):
     print("nomRole;description;typePJ;niveau implication;details intervention;intrigue")
