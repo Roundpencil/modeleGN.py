@@ -76,7 +76,7 @@ def main():
                 print(err)
                 # return #ajouté pour débugger
     except HttpError as error:
-        # TODO(developer) - Handle errors from drive API.
+        # Handle errors from drive API.
         print(f'An error occurred: {error}')
 
 def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue):
@@ -94,10 +94,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue):
         # print("début de la section +1 " + section[0:11])
         # print("texte de la section : " + section)
         # print("texte de la section7_:_" + section[0:7])
-    #todo : prendreun Gn en point d'entrée, chercher si l'intrigue existe
-    #todo : proposer une fonction pour croiser les rôles avec les personnages qui existent dans le GN - voire faire des approximations
-    #todo : ajouter pour chaque intrigue une date de dernière mise à jour pour croiser avec le fichier > si mise à jour : réécriture de toute la scène, sinon passer la mise à jour
-        # todo : gérer les tableaux de PJ et de PNJ
+
         if section[0:6] == " Pitch":
         # if section[0:10] == '### Pitch':
         # if debutSection == "### Pitch":

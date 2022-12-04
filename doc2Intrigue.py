@@ -20,10 +20,9 @@ SCOPES = ['https://www.googleapis.com/auth/drive.readonly https://www.googleapis
 
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre des tokens dans la déclaration
 
-folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"  # le folder des intrigues de Chalacta
-
 
 def extraireIntrigues(monGN, singletest="-01"):
+    folderid = monGN.folderID
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -264,14 +263,19 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
 
     # gestion de la section PNJs
     if indexes[PNJS]["debut"] > -1:
+        # print(f'bloc PNJs = {texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]]}')
+        # print(f"dans l'intrigue {currentIntrigue.nom}")
+
         pnjs = texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]].split('#####')
         # faire un tableau avec une ligne par PNJ
         for pnj in pnjs[1:]:  # on enlève la première ligne qui contient les titres
-            if len(pnj) < 14:
-                # dans ce cas c'est une ligne vide
+            # print(f"section pnj en cours de lecture : {pnj}")
+            # print(f"taille = {len(pnj)}")
+            if len(pnj) < 18:
+                # dans ce cas, c'est une ligne vide
                 continue
             sections = pnj.split("###")
-            # 0 Nom duPNJ et / ou fonction:
+            # 0 Nom duPNJ et / ou fonction :
             # 1 Intervention:(Permanente ou Temporaire)
             # 2 Type d’implication: (Active, Passive, Info,ou Objet)
             # 3 Résumé de l’implication

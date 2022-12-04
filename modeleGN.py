@@ -250,12 +250,13 @@ class Scene:
 
 
 class GN:
-    def __init__(self):
+    def __init__(self, folderId):
         self.personnages = {}
+        self.listePnjs = {}
         self.intrigues = dict()  # clef : id google
         self.oldestUpdate = None
         self.idOldestUpdate = ""
-        # self.lastUpdated = datetime.datetime(year=2000, month=1, day=1)
+        self.folderID = folderId
 
     # permet de mettre à jour la date d'intrigue la plus ancienne
     # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
@@ -274,6 +275,9 @@ class GN:
 
     def getNomsPersos(self):
         return self.personnages.keys()
+
+    def getNomsPNJs(self):
+        return self.pnjs.keys()
 
     @staticmethod
     def load(filename):

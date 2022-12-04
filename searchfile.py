@@ -53,7 +53,7 @@ def main():
             print(u'{0} ({1})'.format(item['name'], item['id']))
             #print(item.items())
     except HttpError as error:
-        # TODO(developer) - Handle errors from drive API.
+        # (developer) - Handle errors from drive API.
         print(f'An error occurred: {error}')
 
 
