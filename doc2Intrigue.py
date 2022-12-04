@@ -91,8 +91,10 @@ def extraireIntrigues(monGN, singletest="-01"):
                 if item['id'] in monGN.intrigues.keys():
                     #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
                     # print("l'intrigue fait déjà partie du GN ! ")
-                    print(f"Variable / type : monGN.intrigues[item['id']].lastChange / {type(monGN.intrigues[item['id']].lastChange)} / {monGN.intrigues[item['id']].lastChange}")
-                    print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} / {item['modifiedTime']}")
+                    # print(f"Variable / type : monGN.intrigues[item['id']].lastChange / {type(monGN.intrigues[item['id']].lastChange)} / {monGN.intrigues[item['id']].lastChange}")
+                    # print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} / {item['modifiedTime']}")
+
+                    # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
                     if monGN.intrigues[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
                         print ("et elle n'a pas changé depuis le dernier passage")
                         # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
@@ -273,8 +275,9 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
             # 1 Intervention:(Permanente ou Temporaire)
             # 2 Type d’implication: (Active, Passive, Info,ou Objet)
             # 3 Résumé de l’implication
-            pnjAAjouter = Role(currentIntrigue, nom=sections[0].strip(), niveauImplication=sections[2].strip(),
-                               description=sections[3].strip(), pj=modeleGN.EST_PNJ_HORS_JEU)
+            pnjAAjouter = Role(currentIntrigue, nom=sections[0].strip(), description=sections[3].strip(),
+                               pj=modeleGN.EST_PNJ_HORS_JEU, niveauImplication=sections[2].strip(),
+                               perimetreIntervention=sections[1].strip())
 
             # print("Je suis en train de regarder {0} et son implication est {1}".format(pnjAAjouter.nom, sections[1].strip()))
 
@@ -282,16 +285,19 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
             if sections[1].strip().lower().find('perman') > -1:
                 # print(pnjAAjouter.nom + " est permanent !!")
                 pnjAAjouter.pj = modeleGN.EST_PNJ_PERMANENT
-            elif sections[1].strip().lower().find('temp') > -1:
-                pnjAAjouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
-                # print(pnjAAjouter.nom + " est temporaire !!")
             elif sections[1].strip().lower().find('infiltr') > -1:
                 pnjAAjouter.pj = modeleGN.EST_PNJ_INFILTRE
                 # print(pnjAAjouter.nom + " est temporaire !!")
+            # elif sections[1].strip().lower().find('temp') > -1:
+            #     pnjAAjouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
+            #     # print(pnjAAjouter.nom + " est temporaire !!")
+            elif len(sections[1].strip()) > 1:
+                pnjAAjouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
+                # print(pnjAAjouter.nom + " est temporaire !!")
 
-            # sinon PNJ hors jeu est la valeur par défaut : ne rien faire
+            # sinon PNJ hors-jeu est la valeur par défaut : ne rien faire
 
-            # du coup on peut l'ajouter aux intrigues
+            # du coup, on peut l'ajouter aux intrigues
             currentIntrigue.roles[pnjAAjouter.nom] = pnjAAjouter
 
     # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de reférence des noms dans l'intrigue
@@ -303,20 +309,42 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
         # faire un tableau avec une ligne par Reroll
         for reroll in rerolls[1:]:  # on enlève la première ligne qui contient les titres
             if len(reroll) < 14:
-                # dans ce cas c'est une ligne vide
+                # dans ce cas, c'est une ligne vide
                 continue
             sections = reroll.split("###")
             # même sections que les PJs
             reRollAAjouter = Role(currentIntrigue, nom=sections[0].strip(), description=sections[3].strip(),
-                                  niveauImplication=sections[1].strip(), typeIntrigue=sections[2].strip(),
-                                  pj=modeleGN.EST_REROLL)
+                                  pj=modeleGN.EST_REROLL, typeIntrigue=sections[2].strip(),
+                                  niveauImplication=sections[1].strip())
 
             # du coup on peut l'ajouter aux intrigues
             currentIntrigue.roles[reRollAAjouter.nom] = reRollAAjouter
 
     # gestion de la section Objets
-    # todo : objets
-    #   dans la gestion des objets faire la difference entre les objets à 3 et 4 colonnes (avec ou sans RFID)
+    if indexes[OBJETS]["debut"] > -1:
+        objets = texteIntrigue[indexes[OBJETS]["debut"]:indexes[OBJETS]["fin"]].split('#####')
+        # faire un tableau avec une ligne par objet
+        for objet in objets[1:]:  # on enlève la première ligne qui contient les titres
+            if len(objet) < 14:
+                # dans ce cas, c'est une ligne vide
+                continue
+            sections = objet.split("###")
+            #vérifier si nous sommes avec un objet RFID (4 colonnes) ou sans (3 colonnes)
+            monObjet = None
+            if len(sections) == 4:
+                monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[2].strip(), fourniPar=sections[3].strip())
+                if sections[3].strip().lower() != "non": #si on a mis non pour le RFID ca ne veut pas dire oui :)
+                    monObjet.specialEffect = sections[3].strip()
+
+            elif len(sections) == 3:
+                monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[1].strip(), fourniPar=sections[2].strip())
+            else:
+                print(f"Erreur de format d'objet dans l'intrigue {currentIntrigue.nom} : {sections}")
+
+            if monObjet is not None:
+                currentIntrigue.objets.add(monObjet)
+                monObjet.inIntrigues.add(currentIntrigue)
+
 
     # gestion de la section FX
     if indexes[SCENESFX]["debut"] > -1:

@@ -9,6 +9,8 @@ EST_PNJ_PERMANENT = 3
 EST_PNJ_TEMPORAIRE = 2
 EST_PNJ_HORS_JEU = 1
 
+def estUnPNJ(niveauPJ):
+    return niveauPJ == EST_PNJ_HORS_JEU or niveauPJ == EST_PNJ_TEMPORAIRE or niveauPJ == EST_PNJ_INFILTRE or niveauPJ == EST_PNJ_PERMANENT
 
 def stringTypePJ(typePJ):
     if typePJ == EST_PJ:
@@ -54,8 +56,7 @@ class Personnage:
 class Role:
 
     def __init__(self, intrigue, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ,
-                 typeIntrigue="", niveauImplication="",
-                 enJeu=0):
+                 typeIntrigue="", niveauImplication="", perimetreIntervention = ""):
         self.intrigue = intrigue
         self.perso = perso
         self.nom = nom
@@ -67,8 +68,7 @@ class Role:
         self.typeIntrigue = typeIntrigue
         self.niveauImplication = niveauImplication
         self.scenes = set()
-        # self.enJeu = enJeu #pour les PNJs uniquement : 0 : non, 1 : oui ponctuellement, 2 : oui sur le long terme
-        # remplacé par la notion globale EST_XXX qui permet de tout gérer au même niveau
+        self.perimetreIntervention = perimetreIntervention
 
     def __str__(self):
         toReturn = ""
@@ -92,6 +92,8 @@ class Role:
         self.scenes.add(sceneAAjouter)
         sceneAAjouter.roles.add(self)
 
+    def estUnPNJ(self):
+        return estUnPNJ(self.pj)
 
 # intrigue
 class Intrigue:
@@ -113,6 +115,7 @@ class Intrigue:
         self.timeline = timeline
         self.lastChange = lastChange
         self.scenesEnJeu = scenesEnJeu
+        self.objets = set()
 
     def __str__(self):
         return self.nom
@@ -157,6 +160,10 @@ class Intrigue:
             if role.perso is not None:
                 role.perso.roles.remove(role)
                 del role
+
+        #se séparer de tous les objets
+        for objet in self.objets:
+            objet.inIntrigues.remove(self)
 
         #effacer toutes les scènes de l'intrigue
         for scene in self.scenes:
@@ -273,3 +280,12 @@ class GN:
         monfichier = open(filename, 'rb')
         return pickle.load(monfichier)
 # objets
+
+class Objet:
+    def __init__(self, description="", fourniPar="Inconnu", emplacementDebut="", specialEffect=""):
+        self.description = description
+        self.fourniParJoueur = fourniPar
+        self.emplacementDebut = emplacementDebut
+        self.rfid = len(specialEffect) > 0
+        self.specialEffect = specialEffect
+        self.inIntrigues = set()
