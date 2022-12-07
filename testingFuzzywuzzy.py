@@ -42,7 +42,8 @@ def main():
     # todo prendre des array en entrée ds focntions de lecture
     # todo srtir l'objet qui lit les fichies d'un générateur pour le réutiliser pour les persos et les relations
 
-    monGN = GN(folderid)
+    monGN = GN(folderid, folderPJID=None)
+
 
     for perso in nomspersos:
         monGN.dictPJs[perso] = Personnage(nom=perso, pj=EST_PJ)
@@ -51,9 +52,12 @@ def main():
         monGN.dictPNJs[pnj] = Personnage(nom=nomsPNJs, pj=EST_PNJ_HORS_JEU)
 
     # si on veut charger un fichier
-    monGN = GN.load("archive Chalacta")
+    # monGN = GN.load("archive Chalacta")
 
-    doc2Intrigue.extraireIntrigues(monGN, singletest="-01")
+    apiDrive, apiDoc = doc2Intrigue.creerLecteursGoogleAPIs()
+
+
+    doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
 
     monGN.rebuildLinks()
     monGN.save("archive Chalacta")

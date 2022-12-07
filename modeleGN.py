@@ -264,12 +264,12 @@ class GN:
         self.intrigues = dict()  # clef : id google
         self.oldestUpdate = None
         self.idOldestUpdate = ""
-        if folderIntriguesID.isArray():
+        if isinstance(folderIntriguesID, list):
             self.folderIntriguesID = folderIntriguesID
         else:
             self.folderIntriguesID = [folderIntriguesID]
 
-        if folderPJID.isArray():
+        if isinstance(folderPJID, list):
             self.folderPJID = folderPJID
         else:
             self.folderPJID = [folderPJID]

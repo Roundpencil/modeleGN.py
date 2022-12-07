@@ -21,8 +21,8 @@ SCOPES = ['https://www.googleapis.com/auth/drive.readonly https://www.googleapis
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre des tokens dans la déclaration
 
 
-def extraireIntrigues(monGN, singletest="-01"):
-    folderid = monGN.folderIntriguesID #todo : utiliser cette variable, qui est un tableau, pour construire la requête
+#crée deux lecteurs, apiDrive et ApiDoc, pour pouvoir lire plus facilement les fichiers par la suite
+def creerLecteursGoogleAPIs():
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -42,23 +42,47 @@ def extraireIntrigues(monGN, singletest="-01"):
             token.write(creds.to_json())
 
     try:
-        service = build('drive', 'v3', credentials=creds)
+        apiDrive = build('drive', 'v3', credentials=creds)
+        lecteurDoc = build('docs', 'v1', credentials=creds)
 
+    except HttpError as error:
+        print(f'An error occurred: {error}')
+
+    return apiDrive, lecteurDoc
+
+
+def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
+    folderid = monGN.folderIntriguesID #todo : utiliser cette variable, qui est un tableau, pour construire la requête
+
+    #faire la requête pour lire tous les dossiers en entrée
+
+    if len(folderid) < 1:
+        print("erreur, aucun id dans l'input")
+        return -1
+
+    requete = ''
+    for id in folderid:
+        requete += f"'{id}' in parents or"
+    requete = requete[:-3]
+    print(f"requete = {requete}")
+
+    try:
         # Call the Drive v3 API
-        results = service.files().list(
-            pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
+        # results = apiDrive.files().list(
+        #     pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
+        #     fields="nextPageToken, files(id, name, modifiedTime)").execute()
+        results = apiDrive.files().list(
+            pageSize=100, q=requete,
             fields="nextPageToken, files(id, name, modifiedTime)").execute()
+
         items = results.get('files',
                             [])  # le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues
 
         if not items:
             print('No files found.')
             return
-    except HttpError as error:
-        print(f'An error occurred: {error}')
 
-    for item in items:
-        try:
+        for item in items:
             # print ("poung")
 
             # todo : remonter plus haut pour traiter tous les lecteurs en une fois
@@ -66,11 +90,10 @@ def extraireIntrigues(monGN, singletest="-01"):
             #  dans ce cas le builder prend en entrée les type de lecteurs qu'il faudra : doc, sheets, drive
             #  l'idée est de s'adapter auc futurs paramètres de GN quand on releasera
 
-            lecteurDoc = build('docs', 'v1', credentials=creds)
 
             # print ("ping")
             # Retrieve the documents contents from the Docs service.
-            document = lecteurDoc.documents().get(documentId=item['id']).execute()
+            document = apiDoc.documents().get(documentId=item['id']).execute()
             # print ("pong")
 
             print('Titre document : {}'.format(document.get('title')))
@@ -147,9 +170,9 @@ def extraireIntrigues(monGN, singletest="-01"):
             print("here we go again")
 
             # return #ajouté pour débugger
-        except HttpError as err:
-            print(f'An error occurred: {error}')
-            # return #ajouté pour débugger
+    except HttpError as err:
+        print(f'An error occurred: {err}')
+        # return #ajouté pour débugger
 
 
 
