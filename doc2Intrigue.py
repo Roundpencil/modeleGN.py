@@ -52,7 +52,7 @@ def creerLecteursGoogleAPIs():
 
 
 def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
-    folderid = monGN.folderIntriguesID #todo : utiliser cette variable, qui est un tableau, pour construire la requête
+    folderid = monGN.folderIntriguesID
 
     #faire la requête pour lire tous les dossiers en entrée
 
@@ -130,7 +130,7 @@ def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
                     print("et elle n'a pas changé depuis le dernier passage")
                     # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
                     # si c'était la plus vieille du GN, pas la peine de continuer
-                    if monGN.idOldestUpdate == item['id']:
+                    if monGN.oldestUpdatedIntrigue == item['id']:
                         print("et d'ailleurs c'était la plus vieille > j'ai fini !")
                         break
                     else:

@@ -39,8 +39,6 @@ def main():
     # todo charger les relations depuis le tableau des relations
     # todo : parser et lire les pitch persos pour obtenir les infos sur eux
     # todo faire en sorte que si on force une intrigue(singletest)  elle est automaitiquement traitée / updatée
-    # todo prendre des array en entrée ds focntions de lecture
-    # todo srtir l'objet qui lit les fichies d'un générateur pour le réutiliser pour les persos et les relations
 
     monGN = GN(folderid, folderPJID=None)
 
@@ -210,7 +208,7 @@ def genererCsvObjets(monGN):
 
 def tousLesRoles(monGN):
     tousLesRoles = []
-    print(f"dernière modification GN : {monGN.oldestUpdate}/{monGN.intrigues[monGN.idOldestUpdate]}")
+    print(f"dernière modification GN : {monGN.oldestUpdate}/{monGN.intrigues[monGN.oldestUpdatedIntrigue]}")
     for intrigue in monGN.intrigues.values():
         for role in intrigue.roles.values():
             if not modeleGN.estUnPNJ(role.pj) and role.pj != EST_REROLL:

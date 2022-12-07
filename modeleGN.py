@@ -263,7 +263,8 @@ class GN:
         self.dictPNJs = {} #nom, personnage
         self.intrigues = dict()  # clef : id google
         self.oldestUpdate = None
-        self.idOldestUpdate = ""
+        self.oldestUpdatedIntrigue = ""
+        self.oldestUpdatedPJ = ""
         if isinstance(folderIntriguesID, list):
             self.folderIntriguesID = folderIntriguesID
         else:
@@ -286,7 +287,7 @@ class GN:
         for intrigue in self.intrigues.values():
             pairesDatesId[intrigue.lastChange] = intrigue.url
         self.oldestUpdate = min(pairesDatesId.keys())
-        self.idOldestUpdate = pairesDatesId[self.oldestUpdate]
+        self.oldestUpdatedIntrigue = pairesDatesId[self.oldestUpdate]
 
     def save(self, filename):
         filehandler = open(filename, "wb")
