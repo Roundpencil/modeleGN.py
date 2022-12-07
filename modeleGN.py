@@ -218,7 +218,7 @@ class Scene:
         return self.date
 
     def getFormattedDate(self):
-        print("date/type > {0}/{1}".format(self.date, type(self.date)))
+        # print("date/type > {0}/{1}".format(self.date, type(self.date)))
         if type(self.date) == float or type(self.date) == int or str(self.date[1:]).isnumeric():
             if type(self.date) == str:
                 maDate = float(self.date[1:])
@@ -258,13 +258,24 @@ class Scene:
 
 
 class GN:
-    def __init__(self, folderId):
-        self.personnages = {} #nom, personnage
-        self.listePnjs = {} #nom, personnage
+    def __init__(self, folderIntriguesID, folderPJID):
+        self.dictPJs = {} #nom, personnage
+        self.dictPNJs = {} #nom, personnage
         self.intrigues = dict()  # clef : id google
         self.oldestUpdate = None
         self.idOldestUpdate = ""
-        self.folderID = folderId
+        if folderIntriguesID.isArray():
+            self.folderIntriguesID = folderIntriguesID
+        else:
+            self.folderIntriguesID = [folderIntriguesID]
+
+        if folderPJID.isArray():
+            self.folderPJID = folderPJID
+        else:
+            self.folderPJID = [folderPJID]
+
+
+        self.folderPJID = folderPJID
 
     # permet de mettre à jour la date d'intrigue la plus ancienne
     # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
@@ -282,10 +293,10 @@ class GN:
         pickle.dump(self, filehandler)
 
     def getNomsPersos(self):
-        return self.personnages.keys()
+        return self.dictPJs.keys()
 
     def getNomsPNJs(self):
-        return self.listePnjs.keys()
+        return self.dictPNJs.keys()
 
     def associerPNJsARoles(self, seuilAlerte=90, verbal=True):
         nomsPnjs = self.getNomsPNJs()
@@ -294,7 +305,7 @@ class GN:
                 if estUnPNJ(role.pj):
                     score = process.extractOne(role.nom, nomsPnjs)
                     # role.perso = self.listePnjs[score[0]]
-                    intrigue.associerRoleAPerso(roleAAssocier=role, personnage= self.listePnjs[score[0]])
+                    intrigue.associerRoleAPerso(roleAAssocier=role, personnage= self.dictPNJs[score[0]])
                     if verbal and score[1] < seuilAlerte:
                         print(f"Warning association ({score[1]}) - nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}")
 
@@ -305,7 +316,7 @@ class GN:
                 if estUnPJ(role.pj):
                     score = process.extractOne(role.nom, nomsPjs)
                     # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
-                    check = intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.personnages[score[0]], verbal=verbal)
+                    check = intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.dictPJs[score[0]], verbal=verbal)
                     if verbal:
                         if score[1] < seuilAlerte:
                             print(f"Warning association ({score[1]}) - nom rôle : {role.nom} > PJ : {score[0]} dans {intrigue.nom}")
@@ -326,19 +337,17 @@ class GN:
         self.associerPNJsARoles(verbal)
         self.associerPJsARoles(verbal)
 
+    #utilisée pour préparer lassociation roles/persos
+    #l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
     def clearAllAssociations(self):
-        for pj in self.personnages.values():
+        for pj in self.dictPJs.values():
             pj.roles.clear()
-        for pnj in self.listePnjs.values():
+        for pnj in self.dictPNJs.values():
             pnj.roles.clear()
 
-        #todo : vider les roles associés aux PJs /PNJs
-        #   vider les personnages associés aux rôles
         for intrigue in self.intrigues.values():
             for role in intrigue.roles.values():
                 role.perso = None
-
-        pass
 
 
 # objets

@@ -22,7 +22,7 @@ os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre de
 
 
 def extraireIntrigues(monGN, singletest="-01"):
-    folderid = monGN.folderIntriguesID #todo : utiliser cette variable, qui est un tableau, pour construire la requête
+    folderid = monGN.pjFolderID
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -40,7 +40,8 @@ def extraireIntrigues(monGN, singletest="-01"):
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
-
+#todo finir doc 2 PJ
+# mettre à jour les requetes ac du OR pour prendre compte plusieurs paramètres
     try:
         service = build('drive', 'v3', credentials=creds)
 
@@ -54,103 +55,96 @@ def extraireIntrigues(monGN, singletest="-01"):
         if not items:
             print('No files found.')
             return
+        for item in items:
+            try:
+                # print ("poung")
+
+                lecteurDoc = build('docs', 'v1', credentials=creds)
+
+                # print ("ping")
+                # Retrieve the documents contents from the Docs service.
+                document = lecteurDoc.documents().get(documentId=item['id']).execute()
+                # print ("pong")
+
+                print('Titre document : {}'.format(document.get('title')))
+                # print(document.get('title')[0:2])
+
+                if not document.get('title')[0:2].isdigit():
+                    # print("... n'est pas un perso")
+                    continue
+
+                # print("... est un perso !")
+
+                # si contient "-01" fera tous les persos les intrigues, sinon seule celui  qui est spécifiée
+                if int(singletest) > 0:
+                    # Alors on se demandne si c'est la bonne
+                    if document.get('title')[0:2] != str(singletest):  # numéro de l'intrigue
+                        # si ce n'est pas la bonne, pas la peine d'aller plus loin
+                        continue
+                    else:
+                        print("perso {0} trouvée".format(singletest))
+
+                # du coup, on traite
+
+                # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
+                #   SI l'intrigue existe dans le GN ?
+                if item['id'] in monGN.intrigues.keys():#todo : trouver comment on gère pour des intrigues / persos dans plusieurs dossiers
+                    #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
+                    # print("l'intrigue fait déjà partie du GN ! ")
+                    # print(f"Variable / type : monGN.intrigues[item['id']].lastChange / {type(monGN.intrigues[item['id']].lastChange)} / {monGN.intrigues[item['id']].lastChange}")
+                    # print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} / {item['modifiedTime']}")
+
+                    # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
+                    if monGN.intrigues[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5],
+                                                                                            '%Y-%m-%dT%H:%M:%S'):
+                        print("et elle n'a pas changé depuis le dernier passage")
+                        # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
+                        # si c'était la plus vieille du GN, pas la peine de continuer
+                        if monGN.idOldestUpdate == item['id']:
+                            print("et d'ailleurs c'était la plus vieille > j'ai fini !")
+                            break
+                        else:
+                            # sinon on passe à l'intrigue suivante (sauf si on est dans singletest)
+                            if int(singletest) > 0:
+                                print("stop !")
+                                # alors si on est toujours là, c'est que c'était notre intrigue
+                                # pas la peine d'aller plus loin
+                                return
+                            continue
+                    else:
+                        print("elle a changé depuis mon dernier passage : supprimons-la !")
+                        # dans ce cas il faut la supprimer car on va tout réécrire
+                        monGN.intrigues[item['id']].clear()
+                        del monGN.intrigues[item['id']]
+
+                print("et du coup, il est est temps de créer un nouveau fichier")
+                # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
+                contenuDocument = document.get('body').get('content')
+                text = read_structural_elements(contenuDocument)
+
+                # print(text) #test de la fonction récursive pour le texte
+                monIntrigue = extraireIntrigueDeTexte(text, document.get('title'), item["id"], monGN)
+                # monIntrigue.url = item["id"]
+
+                # et on enregistre la date de dernière mise à jour de l'intrigue
+                monIntrigue.lastChange = datetime.datetime.now()
+
+                # print(f'url intrigue = {monIntrigue.url}')
+                # print(f"intrigue {monIntrigue.nom}, date de modification : {item['modifiedTime']}")
+
+                if int(singletest) > 0:
+                    print("stop !")
+                    # alors si on est toujours là, c'est que c'était notre intrigue
+                    # pas la peine d'aller plus loin
+                    return
+                print("here we go again")
+
+                # return #ajouté pour débugger
+            except HttpError as err:
+                print(err)
+                # return #ajouté pour débugger
     except HttpError as error:
         print(f'An error occurred: {error}')
-
-    for item in items:
-        try:
-            # print ("poung")
-
-            # todo : remonter plus haut pour traiter tous les lecteurs en une fois
-            #  quitte à passer les lecteurs en paramètre pour initier doc2PJ au passge
-            #  dans ce cas le builder prend en entrée les type de lecteurs qu'il faudra : doc, sheets, drive
-            #  l'idée est de s'adapter auc futurs paramètres de GN quand on releasera
-
-            lecteurDoc = build('docs', 'v1', credentials=creds)
-
-            # print ("ping")
-            # Retrieve the documents contents from the Docs service.
-            document = lecteurDoc.documents().get(documentId=item['id']).execute()
-            # print ("pong")
-
-            print('Titre document : {}'.format(document.get('title')))
-            # print(document.get('title')[0:2])
-
-            if not document.get('title')[0:2].isdigit():
-                # print("... n'est pas une intrigue")
-                continue
-
-            # print("... est une intrigue !")
-
-            # si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
-            if int(singletest) > 0:
-                # Alors on se demandne si c'est la bonne
-                if document.get('title')[0:2] != str(singletest):  # numéro de l'intrigue
-                    # si ce n'est pas la bonne, pas la peine d'aller plus loin
-                    continue
-                else:
-                    print("intrigue {0} trouvée".format(singletest))
-
-            # du coup on traite
-
-            # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
-            #   SI l'intrigue existe dans le GN ?
-            if item['id'] in monGN.intrigues.keys():
-                #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
-                # print("l'intrigue fait déjà partie du GN ! ")
-                # print(f"Variable / type : monGN.intrigues[item['id']].lastChange / {type(monGN.intrigues[item['id']].lastChange)} / {monGN.intrigues[item['id']].lastChange}")
-                # print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} / {item['modifiedTime']}")
-
-                # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
-                if monGN.intrigues[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5],
-                                                                                        '%Y-%m-%dT%H:%M:%S'):
-                    print("et elle n'a pas changé depuis le dernier passage")
-                    # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
-                    # si c'était la plus vieille du GN, pas la peine de continuer
-                    if monGN.idOldestUpdate == item['id']:
-                        print("et d'ailleurs c'était la plus vieille > j'ai fini !")
-                        break
-                    else:
-                        # sinon on passe à l'intrigue suivante (sauf si on est dans singletest)
-                        if int(singletest) > 0:
-                            print("stop !")
-                            # alors si on est toujours là, c'est que c'était notre intrigue
-                            # pas la peine d'aller plus loin
-                            return
-                        continue
-                else:
-                    print("elle a changé depuis mon dernier passage : supprimons-la !")
-                    # dans ce cas il faut la supprimer car on va tout réécrire
-                    monGN.intrigues[item['id']].clear()
-                    del monGN.intrigues[item['id']]
-
-            print("et du coup, il est est temps de créer un nouveau fichier")
-            # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
-            contenuDocument = document.get('body').get('content')
-            text = read_structural_elements(contenuDocument)
-
-            # print(text) #test de la fonction récursive pour le texte
-            monIntrigue = extraireIntrigueDeTexte(text, document.get('title'), item["id"], monGN)
-            # monIntrigue.url = item["id"]
-
-            # et on enregistre la date de dernière mise à jour de l'intrigue
-            monIntrigue.lastChange = datetime.datetime.now()
-
-            # print(f'url intrigue = {monIntrigue.url}')
-            # print(f"intrigue {monIntrigue.nom}, date de modification : {item['modifiedTime']}")
-
-            if int(singletest) > 0:
-                print("stop !")
-                # alors si on est toujours là, c'est que c'était notre intrigue
-                # pas la peine d'aller plus loin
-                return
-            print("here we go again")
-
-            # return #ajouté pour débugger
-        except HttpError as err:
-            print(f'An error occurred: {error}')
-            # return #ajouté pour débugger
-
 
 
 def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):

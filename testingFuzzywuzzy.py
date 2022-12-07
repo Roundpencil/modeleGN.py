@@ -36,19 +36,21 @@ nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran
 
 
 def main():
-
-    #todo faire en sorte que si on force une intrigue(singletest)  elle est automaitiquement traitée / updatée
-    #todo charger les relations depuis le tableau des relations
+    # todo charger les relations depuis le tableau des relations
+    # todo : parser et lire les pitch persos pour obtenir les infos sur eux
+    # todo faire en sorte que si on force une intrigue(singletest)  elle est automaitiquement traitée / updatée
+    # todo prendre des array en entrée ds focntions de lecture
+    # todo srtir l'objet qui lit les fichies d'un générateur pour le réutiliser pour les persos et les relations
 
     monGN = GN(folderid)
 
     for perso in nomspersos:
-        monGN.personnages[perso] = Personnage(nom=perso, pj=EST_PJ)
+        monGN.dictPJs[perso] = Personnage(nom=perso, pj=EST_PJ)
 
     for pnj in nomsPNJs:
-        monGN.listePnjs[pnj] = Personnage(nom=nomsPNJs, pj=EST_PNJ_HORS_JEU)
+        monGN.dictPNJs[pnj] = Personnage(nom=nomsPNJs, pj=EST_PNJ_HORS_JEU)
 
-    #si on veut charger un fichier
+    # si on veut charger un fichier
     monGN = GN.load("archive Chalacta")
 
     doc2Intrigue.extraireIntrigues(monGN, singletest="-01")
@@ -56,11 +58,11 @@ def main():
     monGN.rebuildLinks()
     monGN.save("archive Chalacta")
 
-
     print("****************************")
     print("****************************")
     print("****************************")
-    listerRolesPerso(monGN, "Kyle Talus")
+    squelettePerso(monGN, "Kyle Talus")
+    # listerRolesPerso(monGN, "Kyle Talus")
     # listerPNJs(monGN)
     # genererCsvPNJs(monGN)
     # genererCsvObjets(monGN)
@@ -88,8 +90,9 @@ def main():
 
     # print(" l'intrigue la plus ancienne est {0}, c'est {1}, maj : {2}".format(monGN.idOldestUpdate, monGN.intrigues[monGN.idOldestUpdate], monGN.oldestUpdate))
 
-    #test de la focntion de rapprochement des PNJs
+    # test de la focntion de rapprochement des PNJs
     # fuzzyWuzzyme(listerPNJs(monGN), nomsPNJs)
+
 
 def testEffacerIntrigue(monGN):
     listerRolesPerso(monGN, "Kyle Talus")
@@ -98,13 +101,14 @@ def testEffacerIntrigue(monGN):
     print("J'ai effacé l'intrigue Rox et Rouky")
     listerRolesPerso(monGN, "Kyle Talus")
 
+
 def afficherLesPersos(monGN):
     for intrigue in monGN.intrigues:
         # print("propriétaire intrigue : {0} : {1}".format(intrigue.nom, intrigue.orgaReferent))
         # for clef in intrigue.roles.keys():
         #     print(clef + " a pour nom complet : " + str(intrigue.roles[clef].nom))
 
-        for role in intrigue.roles.values() :
+        for role in intrigue.roles.values():
             print("pour le rôle " + role.nom)
             print("Personnage : " + role.perso.nom)
             texteScenes = ""
@@ -123,29 +127,47 @@ def genererCsvOrgaIntrigue(monGN):
     for intrigue in monGN.intrigues:
         print("{0};{1}".format(intrigue.nom, intrigue.orgaReferent))
 
+
 def listerLesRoles(monGN):
     for intrigue in monGN.intrigues:
         print(f"intrigue : {intrigue.nom} - url : {intrigue.url}")
         for role in intrigue.roles.values():
             print(str(role))
 
+
 def listerDatesIntrigues(monGN):
     for intrigue in monGN.intrigues.values():
         print("{0} - {1} - {2}".format(intrigue.nom, intrigue.lastChange, intrigue.url))
 
+
 def listerRolesPerso(monGN, nomPerso):
     nomPerso = process.extractOne(nomPerso, nomspersos)[0]
-    for role in monGN.personnages[nomPerso].roles:
+    for role in monGN.dictPJs[nomPerso].roles:
         print("Role : {0}".format(role))
 
+
+def squelettePerso(monGN, nomPerso):
+    mesScenes = dict()
+    nomPerso = process.extractOne(nomPerso, nomspersos)[0]
+    for role in monGN.dictPJs[nomPerso].roles:
+        for scene in role.scenes:
+            mesScenes[str(scene.date)] = scene
+
+    for key in sorted([str(x) for x in mesScenes.keys()], reverse=True):
+        print(
+            f"date : {mesScenes[key].getFormattedDate()} ({mesScenes[key].date}) : {mesScenes[key].titre} dans {mesScenes[key].intrigue.nom}")
+        print(f"{mesScenes[key].description}")
+
+
 def listerPNJs(monGN):
-    toReturn=[]
+    toReturn = []
     for intrigue in monGN.intrigues.values():
         for role in intrigue.roles.values():
             if role.estUnPNJ():
                 print(role)
                 toReturn.append(role.nom)
     return toReturn
+
 
 def genererCsvPNJs(monGN):
     print("nomRole;description;typePJ;niveau implication;details intervention;intrigue")
@@ -163,22 +185,24 @@ def genererCsvPNJs(monGN):
                       f"{perimetreIntervention};"
                       f"{intrigue.nom}")
 
+
 def genererCsvObjets(monGN):
     print("description;Avec FX?;FX;Débute Où?;fourni par Qui?;utilisé où?")
     for intrigue in monGN.intrigues.values():
         for objet in intrigue.objets:
-                description = objet.description.replace('\n', "***")
-                avecfx = objet.rfid
-                fx = objet.specialEffect.replace('\n', "***")
-                debuteou = objet.emplacementDebut.replace('\n', "***")
-                fournipar = objet.fourniParJoueur.replace('\n', "***")
-                utiliseou = [x.nom for x in objet.inIntrigues]
-                print(f"{description};"
-                      f"{avecfx};"
-                      f"{fx};"
-                      f"{debuteou};"
-                      f"{fournipar};"
-                      f"{utiliseou}")
+            description = objet.description.replace('\n', "***")
+            avecfx = objet.rfid
+            fx = objet.specialEffect.replace('\n', "***")
+            debuteou = objet.emplacementDebut.replace('\n', "***")
+            fournipar = objet.fourniParJoueur.replace('\n', "***")
+            utiliseou = [x.nom for x in objet.inIntrigues]
+            print(f"{description};"
+                  f"{avecfx};"
+                  f"{fx};"
+                  f"{debuteou};"
+                  f"{fournipar};"
+                  f"{utiliseou}")
+
 
 def tousLesRoles(monGN):
     tousLesRoles = []
@@ -190,10 +214,11 @@ def tousLesRoles(monGN):
         # print(f"date dernière MAJ {intrigue.dateModification}")
     return tousLesRoles
 
+
 def fuzzyWuzzyme(input, choices):
     # input.sort()
     toReturn = []
-    input=set(input)
+    input = set(input)
     for element in input:
         # scores = process.extract(element, choices, limit=5)
         scores = process.extractOne(element, choices)
@@ -203,6 +228,7 @@ def fuzzyWuzzyme(input, choices):
     for element in toReturn:
         print(f"fuzzy : {element}")
 
+
 def normaliserNomsPNJs(monGN):
     nomsPNJs = []
     nomsNormalises = dict()
@@ -210,13 +236,13 @@ def normaliserNomsPNJs(monGN):
         for role in intrigue.roles.values():
             if role.estUnPNJ():
                 nomsPNJs.append(role.nom)
-    nomsPNJs= list(set(nomsPNJs))
+    nomsPNJs = list(set(nomsPNJs))
     print("Nom D'origine ;Meilleur choix;Confiance")
     for i in range(len(nomsPNJs)):
         choices = process.extract(nomsPNJs[i], nomsPNJs, limit=2)
         print(f"{choices[0][0]};{choices[1][0]};{choices[1][1]}")
 
-        #le premier choix sera toujours de 100, vu qu'il se sera trouvé lui-même
+        # le premier choix sera toujours de 100, vu qu'il se sera trouvé lui-même
         # si le second choix est > 90 il y a de fortes chances qu'on ait le même perso
         # sinon on ne prend pas de risques et on garde le meme perso
         if choices[1][1] > 90:
