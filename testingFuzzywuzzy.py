@@ -3,8 +3,12 @@ from fuzzywuzzy import process
 import modeleGN
 from modeleGN import *
 import doc2Intrigue
+import lecteurGoogle
 
 folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"  # le folder des intrigues de Chalacta
+folderSquelette = "1810LjsDzdbFusKCzlimBC_M0vxCeAm6l"
+
+
 nomspersos = ["Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa", "Dal Joval D'rasnov",
               "Desnash Rhylee", "Dophine Rhue", "Driss Ranner", "Edrik Vance", "Greeta Asty", "Hart Do", "Havok",
               "Hog'Gemod Ippolruna", "Isayjja Kahl", "Jaldine Gerams", "Jay Mozel", "Jerima D'rasnov", "Jish Zyld",
@@ -40,7 +44,7 @@ def main():
     # todo : parser et lire les pitch persos pour obtenir les infos sur eux
     # todo faire en sorte que si on force une intrigue(singletest)  elle est automaitiquement traitée / updatée
 
-    monGN = GN(folderid, folderPJID=None)
+    monGN = GN(folderid, folderPJID=folderSquelette)
 
 
     for perso in nomspersos:
@@ -52,7 +56,7 @@ def main():
     # si on veut charger un fichier
     # monGN = GN.load("archive Chalacta")
 
-    apiDrive, apiDoc = doc2Intrigue.creerLecteursGoogleAPIs()
+    apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
 
 
     doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
