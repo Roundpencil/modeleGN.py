@@ -12,7 +12,7 @@ folderSqueletteJu = "17ii8P23nkyEk37MqFZKS3K9xohKDg0X7"
 folderSqueletteCharles = "1uz_m0PEY8fxNFembqL7om3LMskE4e5Ee"
 
 
-nomspersos = ["Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa", "Dal Joval D'rasnov",
+nomspersos = ["Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa", "Dall Joval D'rasnov",
               "Desnash Rhylee", "Dophine Rhue", "Driss Ranner", "Edrik Vance", "Greeta Asty", "Hart Do", "Havok",
               "Hog'Gemod Ippolruna", "Isayjja Kahl", "Jaldine Gerams", "Jay Mozel", "Jerima D'rasnov", "Jish Zyld",
               "Jory Asty", "Kael Sin", "Kalitt", "Kess Horoby", "Kianstev Nacram", "Korrgaarr Gguurd'k", "KR3-NC0",
@@ -42,29 +42,39 @@ nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran
             'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère', 'Shaani']
 
 
+def ajouterPersosSansFiche(monGN):
+    nomsLus = [x.nom for x in monGN.dictPJs.values()]
+    #pour chaque perso de ma liste :
+    # SI son nom est dans les persos > ne rien faire
+    #SINON, lui créer une coquille vide
+    for perso in nomspersos:
+        if perso in nomsLus:
+            print(f"le personnage {perso} a une correspondance dans les persos lus")
+        else:
+            monGN.dictPJs[perso] = Personnage(nom=perso, pj=EST_PJ) #on met son nom en clef pour se souvenir qu'il a été généré
+
+
 def main():
     # todo charger les relations depuis le tableau des relations
-    # todo : parser et lire les pitch persos pour obtenir les infos sur eux
     # todo faire en sorte que si on force une intrigue(singletest)  elle est automaitiquement traitée / updatée
 
     monGN = GN(folderIntriguesID=folderid,
                folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles])
 
 
-    for perso in nomspersos:
-        monGN.dictPJs[perso] = Personnage(nom=perso, pj=EST_PJ)
-
     for pnj in nomsPNJs:
         monGN.dictPNJs[pnj] = Personnage(nom=nomsPNJs, pj=EST_PNJ_HORS_JEU)
 
     # si on veut charger un fichier
-    # monGN = GN.load("archive Chalacta")
+    monGN = GN.load("archive Chalacta")
 
     apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
 
 
-    # doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
     doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+
+    ajouterPersosSansFiche(monGN)
 
     monGN.rebuildLinks()
     monGN.save("archive Chalacta")
@@ -107,6 +117,7 @@ def main():
 
     #test de la focntion de lecture des PJs
     dumpPersosLus(monGN)
+    dumpSortedPersos(monGN)
 
 
 def testEffacerIntrigue(monGN):
@@ -275,6 +286,13 @@ def generecsvobjets(monGn):
 
 def dumpPersosLus(monGN):
     for pj in monGN.dictPJs.values():
-        if pj.url != "":
+        # if pj.url != "":
             print(pj)
+
+def dumpSortedPersos(monGN):
+    tousLesPersos = [x.nom for x in monGN.dictPJs.values()]
+    tousLesPersos.sort()
+    print(tousLesPersos)
+    print(len(tousLesPersos))
+    print(len(nomspersos))
 main()

@@ -39,7 +39,6 @@ def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
 
             # print ("ping")
             # Retrieve the documents contents from the Docs service.
-            print(f"mime type : {item['mimeType']}")
             document = apiDoc.documents().get(documentId=item['id']).execute()
 
             print('Titre document : {}'.format(document.get('title')))
