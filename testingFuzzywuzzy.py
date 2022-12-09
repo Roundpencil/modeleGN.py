@@ -1,12 +1,15 @@
 from fuzzywuzzy import process
 
+import doc2PJ
 import modeleGN
 from modeleGN import *
 import doc2Intrigue
 import lecteurGoogle
 
 folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"  # le folder des intrigues de Chalacta
-folderSquelette = "1810LjsDzdbFusKCzlimBC_M0vxCeAm6l"
+folderSqueletteEmeric = "1hpo8HQ8GKjQG63Qm_QlEX7wQ58wZ9-Bw"
+folderSqueletteJu = "17ii8P23nkyEk37MqFZKS3K9xohKDg0X7"
+folderSqueletteCharles = "1uz_m0PEY8fxNFembqL7om3LMskE4e5Ee"
 
 
 nomspersos = ["Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa", "Dal Joval D'rasnov",
@@ -44,7 +47,8 @@ def main():
     # todo : parser et lire les pitch persos pour obtenir les infos sur eux
     # todo faire en sorte que si on force une intrigue(singletest)  elle est automaitiquement traitée / updatée
 
-    monGN = GN(folderid, folderPJID=folderSquelette)
+    monGN = GN(folderIntriguesID=folderid,
+               folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles])
 
 
     for perso in nomspersos:
@@ -59,7 +63,8 @@ def main():
     apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
 
 
-    doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    # doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
 
     monGN.rebuildLinks()
     monGN.save("archive Chalacta")
@@ -67,7 +72,8 @@ def main():
     print("****************************")
     print("****************************")
     print("****************************")
-    squelettePerso(monGN, "Kyle Talus")
+    generecsvobjets(monGN)
+    # squelettePerso(monGN, "Kyle Talus")
     # listerRolesPerso(monGN, "Kyle Talus")
     # listerPNJs(monGN)
     # genererCsvPNJs(monGN)
@@ -98,6 +104,9 @@ def main():
 
     # test de la focntion de rapprochement des PNJs
     # fuzzyWuzzyme(listerPNJs(monGN), nomsPNJs)
+
+    #test de la focntion de lecture des PJs
+    dumpPersosLus(monGN)
 
 
 def testEffacerIntrigue(monGN):
@@ -258,5 +267,14 @@ def normaliserNomsPNJs(monGN):
 
     return nomsNormalises
 
+def generecsvobjets(monGn):
+    for intrigue in monGn.intrigues.values():
+        for objet in intrigue.objets:
+            print(f"{intrigue.nom};{intrigue.orgaReferent};{objet.description};{objet.fourniParJoueur};{objet.fourniParJoueur};{objet.rfid};{objet.specialEffect};")
 
+
+def dumpPersosLus(monGN):
+    for pj in monGN.dictPJs.values():
+        if pj.url != "":
+            print(pj)
 main()

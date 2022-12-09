@@ -19,37 +19,16 @@ from fuzzywuzzy import process
 
 
 def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
-    folderid = monGN.folderIntriguesID
 
-    #faire la requête pour lire tous les dossiers en entrée
+    items = lecteurGoogle.genererListeItems(monGN, apiDrive=apiDrive, folderID=monGN.folderIntriguesID)
 
-    if len(folderid) < 1:
-        print("erreur, aucun id dans l'input")
-        return -1
 
-    requete = ''
-    for id in folderid:
-        requete += f"'{id}' in parents or"
-    requete = requete[:-3]
-    print(f"requete = {requete}")
+    if not items:
+        print('No files found.')
+        return
 
-    try:
-        # Call the Drive v3 API
-        # results = apiDrive.files().list(
-        #     pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
-        #     fields="nextPageToken, files(id, name, modifiedTime)").execute()
-        results = apiDrive.files().list(
-            pageSize=100, q=requete,
-            fields="nextPageToken, files(id, name, modifiedTime)").execute()
-
-        items = results.get('files',
-                            [])  # le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues
-
-        if not items:
-            print('No files found.')
-            return
-
-        for item in items:
+    for item in items:
+        try:
             # print ("poung")
 
             # todo : remonter plus haut pour traiter tous les lecteurs en une fois
@@ -60,8 +39,8 @@ def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
 
             # print ("ping")
             # Retrieve the documents contents from the Docs service.
+            print(f"mime type : {item['mimeType']}")
             document = apiDoc.documents().get(documentId=item['id']).execute()
-            # print ("pong")
 
             print('Titre document : {}'.format(document.get('title')))
             # print(document.get('title')[0:2])
@@ -137,9 +116,9 @@ def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
             print("here we go again")
 
             # return #ajouté pour débugger
-    except HttpError as err:
-        print(f'An error occurred: {err}')
-        # return #ajouté pour débugger
+        except HttpError as err:
+            print(f'An error occurred: {err}')
+            # return #ajouté pour débugger
 
 
 
@@ -150,8 +129,6 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     currentIntrigue = Intrigue(nom=nomIntrigue, url=idUrl)
     monGN.intrigues[idUrl] = currentIntrigue
     nomspersos = monGN.getNomsPersos()
-
-    texteIntrigueLow = texteIntrigue.lower()  # on passe en minuscule pour mieux trouver les chaines
 
     # on fait un dict du début de chaque label
     REFERENT = "orga référent"
@@ -170,36 +147,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     labels = [REFERENT, TODO, PITCH, PJS, PNJS, REROLLS, OBJETS, SCENESFX,
               TIMELINE, SCENES, RESOLUTION, NOTES]
 
-    indexes = dict()
-    for label in labels:
-        indexes[label] = {"debut": texteIntrigueLow.find(label)}
-        # on complètera la seconde dimension (fin) plus bas avec la fin de la séquence
-
-    # print("dictionnaire des labels : {0}".format(indexes))
-
-    # maintenant, on aura besoin d'identifier pour chaque label où il se termine
-    # pour cela on fait un dictionnaire ou la fin de chaque entrée est le début de la suivante
-    # print("toutes les valeurs du tableau : {0}".format([x['debut'] for x in indexes.values()]))
-
-    # on commence par extraire toutes les valeurs de début et les trier dans l'ordre
-    tousLesIndexes = [x['debut'] for x in indexes.values()]
-    tousLesIndexes.sort()
-    # print("Tous les indexes : {0}".format(tousLesIndexes))
-
-    # on crée une table qui associe à chaque début la section suivante
-    tableDebutsFinsLabels = dict()
-    for i in range(len(indexes)):
-        try:
-            tableDebutsFinsLabels[tousLesIndexes[i]] = tousLesIndexes[i + 1] - 1
-            # print("pour l'index {0}, j'ai le couple {1}:{2}".format(i, tousLesIndexes[i], tousLesIndexes[i+1]))
-        except IndexError:
-            tableDebutsFinsLabels[tousLesIndexes[i]] = len(texteIntrigueLow)
-            break
-
-    # enfin on met à jour la table des labels pour avoir la fin à côté du début
-    for label in labels:
-        indexes[label]["fin"] = tableDebutsFinsLabels[indexes[label]["debut"]]
-        # print("label {0} : [{1}:{2}]".format(label, indexes[label]["debut"], indexes[label]["fin"]))
+    indexes = lecteurGoogle.identifierSectionsFiche(labels, texteIntrigue)
 
     # gestion de la section OrgaRéférent
     if indexes[REFERENT]["debut"] == -1:
@@ -420,6 +368,8 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     #     print(role)
 
     return currentIntrigue
+
+
 
 
 def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verbal=True):

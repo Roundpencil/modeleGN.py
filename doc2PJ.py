@@ -4,6 +4,7 @@ import datetime
 import os.path
 import re
 
+import lecteurGoogle
 import modeleGN
 from modeleGN import *
 
@@ -22,37 +23,16 @@ os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre de
 
 
 def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
-    folderid = monGN.folderIntriguesID
+    print("début extractions PJs")
 
-    #faire la requête pour lire tous les dossiers en entrée
+    items = lecteurGoogle.genererListeItems(monGN, apiDrive=apiDrive, folderID=monGN.folderPJID)
 
-    if len(folderid) < 1:
-        print("erreur, aucun id dans l'input")
-        return -1
+    if not items:
+        print('No files found.')
+        return
 
-    requete = ''
-    for id in folderid:
-        requete += f"'{id}' in parents or"
-    requete = requete[:-3]
-    print(f"requete = {requete}")
-
-    try:
-        # Call the Drive v3 API
-        # results = apiDrive.files().list(
-        #     pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
-        #     fields="nextPageToken, files(id, name, modifiedTime)").execute()
-        results = apiDrive.files().list(
-            pageSize=100, q=requete,
-            fields="nextPageToken, files(id, name, modifiedTime)").execute()
-
-        items = results.get('files',
-                            [])  # le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues
-
-        if not items:
-            print('No files found.')
-            return
-
-        for item in items:
+    for item in items:
+        try:
             # print ("poung")
 
             # print ("ping")
@@ -63,9 +43,10 @@ def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
             print('Titre document : {}'.format(document.get('title')))
             # print(document.get('title')[0:2])
 
-            if not document.get('title')[0:2].isdigit():
-                # print("... n'est pas un personnage")
-                continue
+
+            # if not document.get('title')[0:2].isdigit():
+            #     # print("... n'est pas un personnage")
+            #     continue
 
             # print("... est un personnage !")
 
@@ -90,11 +71,11 @@ def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
 
                 # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
                 if monGN.dictPJs[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5],
-                                                                                        '%Y-%m-%dT%H:%M:%S'):
+                                                                                      '%Y-%m-%dT%H:%M:%S'):
                     print("et il n'a pas changé depuis le dernier passage")
                     # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
                     # si c'était la plus vieille du GN, pas la peine de continuer
-                    if monGN..oldestUpdatedPJ == item['id']:
+                    if monGN.oldestUpdatedPJ == item['id']:
                         print("et d'ailleurs c'était le plus vieux > j'ai fini !")
                         break
                     else:
@@ -114,9 +95,123 @@ def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
             print("et du coup, il est est temps de créer un nouveau fichier")
             # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
             contenuDocument = document.get('body').get('content')
-            text = read_structural_elements(contenuDocument)
-            #todo fonction de lecture de PJ
+            text = lecteurGoogle.read_structural_elements(contenuDocument)
+            # todo fonction de lecture de PJ
 
-    except HttpError as err:
-        print(f'An error occurred: {err}')
-        # return #ajouté pour débugger
+            monPJ = extrairePJDeTexte(text, document.get('title'), item["id"], monGN)
+            # monIntrigue.url = item["id"]
+
+            print(f"j'ai ajouté : {monPJ.nom}")
+
+            # et on enregistre la date de dernière mise à jour de l'intrigue
+            monPJ.lastChange = datetime.datetime.now()
+
+            # print(f'url intrigue = {monIntrigue.url}')
+            # print(f"intrigue {monIntrigue.nom}, date de modification : {item['modifiedTime']}")
+
+            if int(singletest) > 0:
+                print("stop !")
+                # alors si on est toujours là, c'est que c'était notre PJ
+                # pas la peine d'aller plus loin
+                return
+            print("here we go again")
+
+        except HttpError as err:
+            print(f'An error occurred: {err}')
+            # return #ajouté pour débugger
+
+
+def extrairePJDeTexte(textePJ, nomDoc, idUrl, monGN):
+    nomPJ = nomDoc.split("-")[-1].strip() #si il y a un nombre dans le nom du pj, il est séparé par un tiret
+    print(f"Personnage en cours d'importation : {nomPJ}")
+    currentPJ = Personnage(nom=nomPJ, url=idUrl)
+    monGN.dictPJs[idUrl] = currentPJ
+
+    textePJLow = textePJ.lower()  # on passe en minuscule pour mieux trouver les chaines
+
+    REFERENT = "orga référent"
+    JOUEURV1 = "joueur v1"
+    JOUEURV2 = "joueur v2"
+    PITCH = "pitch perso"
+    COSTUME = "indications costumes"
+    FACTION1 = "faction principale"
+    FACTION2 = "faction secondaire"
+    BIO = "bio résumée"
+    PSYCHO = "psychologie"
+    MOTIVATIONS = "motivations et objectifs"
+    CHRONOLOGIE = "chronologie "
+
+    labels = [REFERENT, JOUEURV1, JOUEURV2, PITCH, COSTUME, FACTION1, FACTION2, BIO, PSYCHO, MOTIVATIONS, CHRONOLOGIE]
+
+    indexes = lecteurGoogle.identifierSectionsFiche(labels, textePJ)
+
+    if indexes[REFERENT]["debut"] == -1:
+        print("pas de référént avec le perso " + nomPJ)
+    else:
+        currentPJ.orgaReferent = textePJ[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[
+                                     0][
+                                 len(REFERENT) + len(" : "):]
+
+    if indexes[JOUEURV1]["debut"] == -1:
+        print("Pas de joueur 1 avec le perso " + nomPJ)
+    else:
+        currentPJ.joueurs['V1'] = textePJ[indexes[JOUEURV1]["debut"]:indexes[JOUEURV1]["fin"]].splitlines()[
+                                      0][
+                                  len(JOUEURV1) + len(" : "):]
+
+    if indexes[JOUEURV2]["debut"] == -1:
+        print("Pas de joueur 2 avec le perso " + nomPJ)
+    else:
+        currentPJ.joueurs['V2'] = textePJ[indexes[JOUEURV2]["debut"]:indexes[JOUEURV2]["fin"]].splitlines()[
+                                      0][
+                                  len(JOUEURV1) + len(" : "):]
+
+    if indexes[PITCH]["debut"] == -1:
+        print("Pas de pitch  avec le perso " + nomPJ)
+    else:
+        currentPJ.pitch = textePJ[indexes[PITCH]["debut"]:indexes[PITCH]["fin"]].splitlines()[1:]
+
+    if indexes[COSTUME]["debut"] == -1:
+        print("Pas d'indication costume avec le perso " + nomPJ)
+    else:
+        currentPJ.indicationsCostume = textePJ[indexes[COSTUME]["debut"] + len(COSTUME) + len(" : "):
+                                               indexes[COSTUME]["fin"]]
+
+    if indexes[FACTION1]["debut"] == -1:
+        print("Pas de faction 1 avec le perso " + nomPJ)
+    else:
+        currentPJ.factions.append(textePJ[indexes[FACTION1]["debut"]:indexes[FACTION1]["fin"]].splitlines()[
+                                     0][
+                                 len(FACTION1) + len(" : "):])
+
+    if indexes[FACTION2]["debut"] == -1:
+        print("Pas de faction 2 avec le perso " + nomPJ)
+    else:
+        currentPJ.factions.append(textePJ[indexes[FACTION2]["debut"]:indexes[FACTION2]["fin"]].splitlines()[
+                                     0][
+                                 len(FACTION2) + len(" : "):])
+
+    if indexes[BIO]["debut"] == -1:
+        print("Pas de BIO avec le perso " + nomPJ)
+    else:
+        currentPJ.description = textePJ[indexes[BIO]["debut"]:
+                                         indexes[BIO]["fin"]].splitlines()[1:]
+
+    if indexes[PSYCHO]["debut"] == -1:
+        print("Pas de psycho avec le perso " + nomPJ)
+    else:
+        currentPJ.concept = textePJ[indexes[PSYCHO]["debut"]:
+                                         indexes[PSYCHO]["fin"]].splitlines()[1:]
+
+    if indexes[MOTIVATIONS]["debut"] == -1:
+        print("Pas de motivations avec le perso " + nomPJ)
+    else:
+        currentPJ.driver = textePJ[indexes[MOTIVATIONS]["debut"]:indexes[MOTIVATIONS]["fin"]].splitlines()[
+                                     0][
+                                 len(MOTIVATIONS) + len(" : "):]
+
+    #rajouter les scènes en jeu après le tableau
+    bottomText = textePJ.split("#####")[-1]
+    currentPJ.textesAnnexes = bottomText
+
+    return currentPJ

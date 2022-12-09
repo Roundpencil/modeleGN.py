@@ -10,11 +10,14 @@ EST_PNJ_PERMANENT = 3
 EST_PNJ_TEMPORAIRE = 2
 EST_PNJ_HORS_JEU = 1
 
+
 def estUnPNJ(niveauPJ):
     return niveauPJ == EST_PNJ_HORS_JEU or niveauPJ == EST_PNJ_TEMPORAIRE or niveauPJ == EST_PNJ_INFILTRE or niveauPJ == EST_PNJ_PERMANENT
 
+
 def estUnPJ(niveauPJ):
     return niveauPJ == EST_PJ
+
 
 def stringTypePJ(typePJ):
     if typePJ == EST_PJ:
@@ -36,7 +39,8 @@ def stringTypePJ(typePJ):
 
 class Personnage:
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
-                 sexe="i", pj=EST_PJ):
+                 sexe="i", pj=EST_PJ, orgaReferent="", pitchJoueur="", indicationsCostume="", textesAnnexes="",
+                 url="", lastChange=datetime.datetime(year=2000, month=1, day=1)):
         self.nom = nom
         self.concept = concept
         self.driver = driver
@@ -48,6 +52,17 @@ class Personnage:
         self.relations = set()  # nom relation, relation
         self.images = set()
         self.description = description
+        self.orgaReferent = orgaReferent
+        self.joueurs = dict()
+        self.pitchJoueur = pitchJoueur
+        self.indicationsCostume = indicationsCostume
+        self.factions = []
+        # trouver comment interpréter les textes en dessous des tableaux
+        # : des scènes ?
+        self.textesAnnexes = textesAnnexes
+        self.url = url
+        self.lastChange = lastChange
+
 
     def addrole(self, r):
         self.roles.add(r)
@@ -55,12 +70,31 @@ class Personnage:
     def __str__(self):
         return "nom perso : " + self.nom
 
+    def __str__(self):
+        toReturn = ""
+        toReturn += f"nom = {self.nom} \n"
+        toReturn += f"concept = {self.concept} \n"
+        toReturn += f"questions_ouvertes = {self.questions_ouvertes} \n"
+        toReturn += f"sexe = {self.sexe} \n"
+        toReturn += f"pj = {self.pj} \n"
+        toReturn += f"actif = {self.actif} \n"
+        toReturn += f"roles = {self.roles} \n"
+        toReturn += f"relations = {self.relations} \n"
+        toReturn += f"images = {self.images} \n"
+        toReturn += f"description = {self.description} \n"
+        toReturn += f"orgaReferent = {self.orgaReferent} \n"
+        toReturn += f"joueurs = {self.joueurs.values()} \n"
+        toReturn += f"pitchJoueur = {self.pitchJoueur} \n"
+        toReturn += f"indicationsCostume = {self.indicationsCostume} \n"
+        toReturn += f"factions = {self.factions} \n"
+        toReturn += f"textesAnnexes = {self.textesAnnexes} \n"
+        return toReturn
 
 # rôle
 class Role:
 
     def __init__(self, intrigue, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ,
-                 typeIntrigue="", niveauImplication="", perimetreIntervention = ""):
+                 typeIntrigue="", niveauImplication="", perimetreIntervention=""):
         self.intrigue = intrigue
         self.perso = perso
         self.nom = nom
@@ -98,6 +132,7 @@ class Role:
     def estUnPNJ(self):
         return estUnPNJ(self.pj)
 
+
 # intrigue
 class Intrigue:
 
@@ -113,7 +148,7 @@ class Intrigue:
         self.notes = notes
         self.resolution = resolution
         self.orgaReferent = orgaReferent
-        self.dateModification = datetime.datetime.now()
+        # self.dateModification = datetime.datetime.now() #seul usage dans le projet d'après l'inspecteur, je vire
         self.url = url
         self.timeline = timeline
         self.lastChange = lastChange
@@ -138,13 +173,13 @@ class Intrigue:
             if role.perso == personnage:
                 # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au sein d'une mêm intrigue
 
-                if verbal: # et si on a demandé à ce que la fonction raconte sa vie, on détaille
+                if verbal:  # et si on a demandé à ce que la fonction raconte sa vie, on détaille
                     print(f"Erreur Association role > PJ : "
                           f"{roleAAssocier.nom} > {personnage.nom}, "
                           f"déjà associé au rôle {role.nom} dans {self.nom}")
                 return -1
         roleAAssocier.perso = personnage
-        #au passage on update le niveau de perso (surtout utile pour les PNJs), en prenant toujours le max
+        # au passage on update le niveau de perso (surtout utile pour les PNJs), en prenant toujours le max
         personnage.pj = max(personnage.pj, roleAAssocier.pj)
         personnage.roles.add(roleAAssocier)
         return 0
@@ -161,23 +196,22 @@ class Intrigue:
         return sceneAajouter
 
     def clear(self):
-        #retirer l'intrigue du GN > à faire au niveau de l'appel
-        #casser toutes les relations role <> personnages
+        # retirer l'intrigue du GN > à faire au niveau de l'appel
+        # casser toutes les relations role <> personnages
         for role in self.roles.values():
             # print(f"Role à dissocier  : {role.nom} de {role.perso}")
             if role.perso is not None:
                 role.perso.roles.remove(role)
                 del role
 
-        #se séparer de tous les objets
+        # se séparer de tous les objets
         for objet in self.objets:
             objet.inIntrigues.remove(self)
 
-        #effacer toutes les scènes de l'intrigue
+        # effacer toutes les scènes de l'intrigue
         for scene in self.scenes:
             del scene
         # print(f"intrigue effacée {self.nom}")
-
 
 
 # relations
@@ -259,12 +293,13 @@ class Scene:
 
 class GN:
     def __init__(self, folderIntriguesID, folderPJID):
-        self.dictPJs = {} #nom, personnage
-        self.dictPNJs = {} #nom, personnage
+        self.dictPJs = {}  # nom, personnage
+        self.dictPNJs = {}  # nom, personnage
         self.intrigues = dict()  # clef : id google
-        self.oldestUpdate = None
-        self.oldestUpdatedIntrigue = ""
-        self.oldestUpdatedPJ = ""
+        self.oldestUpdateIntrigue = None #contient al dernière date d'update d'une intrigue dans le GN
+        self.oldestUpdatePJ = None #contient al dernière date d'update d'une intrigue dans le GN
+        self.oldestUpdatedIntrigue = "" #contient l'id de la dernière intrigue updatée dans le GN
+        self.oldestUpdatedPJ = "" #contient l'id du dernier PJ updaté dans le GN
         if isinstance(folderIntriguesID, list):
             self.folderIntriguesID = folderIntriguesID
         else:
@@ -274,20 +309,30 @@ class GN:
             self.folderPJID = folderPJID
         else:
             self.folderPJID = [folderPJID]
+        print(f"PJID = {self.folderPJID}")
 
-
-        self.folderPJID = folderPJID
 
     # permet de mettre à jour la date d'intrigue la plus ancienne
     # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
     # Tant que les modifs dans google sont postérieures à la date de dernière modif > les prendre en compte
     # Après > arréter
     def updateOldestUpdate(self):
-        pairesDatesId = dict()
+        pairesDatesIdIntrigues = dict()
         for intrigue in self.intrigues.values():
-            pairesDatesId[intrigue.lastChange] = intrigue.url
-        self.oldestUpdate = min(pairesDatesId.keys())
-        self.oldestUpdatedIntrigue = pairesDatesId[self.oldestUpdate]
+            pairesDatesIdIntrigues[intrigue.lastChange] = intrigue.url
+        if len(pairesDatesIdIntrigues) > 0:
+            self.oldestUpdateIntrigue = min(pairesDatesIdIntrigues.keys())
+            self.oldestUpdatedIntrigue = pairesDatesIdIntrigues[self.oldestUpdateIntrigue]
+
+        pairesDatesIdPJ = dict()
+        for pj in self.dictPJs.values():
+            print(pj.nom)
+            pairesDatesIdPJ[pj.lastChange] = pj.url
+        print(pairesDatesIdPJ)
+        if len(pairesDatesIdPJ) > 0:
+            self.oldestUpdatePJ = min(pairesDatesIdPJ.keys())
+            # print(f"oldestdate pj : {self.oldestUpdatePJ} ")
+            self.oldestUpdatedPJ = pairesDatesIdPJ[self.oldestUpdatePJ]
 
     def save(self, filename):
         filehandler = open(filename, "wb")
@@ -306,9 +351,10 @@ class GN:
                 if estUnPNJ(role.pj):
                     score = process.extractOne(role.nom, nomsPnjs)
                     # role.perso = self.listePnjs[score[0]]
-                    intrigue.associerRoleAPerso(roleAAssocier=role, personnage= self.dictPNJs[score[0]])
+                    intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.dictPNJs[score[0]])
                     if verbal and score[1] < seuilAlerte:
-                        print(f"Warning association ({score[1]}) - nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}")
+                        print(
+                            f"Warning association ({score[1]}) - nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}")
 
     def associerPJsARoles(self, seuilAlerte=70, verbal=True):
         nomsPjs = self.getNomsPersos()
@@ -317,17 +363,19 @@ class GN:
                 if estUnPJ(role.pj):
                     score = process.extractOne(role.nom, nomsPjs)
                     # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
-                    check = intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.dictPJs[score[0]], verbal=verbal)
+                    check = intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.dictPJs[score[0]],
+                                                        verbal=verbal)
                     if verbal:
                         if score[1] < seuilAlerte:
-                            print(f"Warning association ({score[1]}) - nom rôle : {role.nom} > PJ : {score[0]} dans {intrigue.nom}")
+                            print(
+                                f"Warning association ({score[1]}) - nom rôle : {role.nom} > PJ : {score[0]} dans {intrigue.nom}")
 
     @staticmethod
     def load(filename):
         monfichier = open(filename, 'rb')
         return pickle.load(monfichier)
 
-    #apres une importation recrée
+    # apres une importation recrée
     # tous les liens entre les PJs,
     # les PNJs
     # et les fonctions d'accélération de ré-importations
@@ -338,8 +386,8 @@ class GN:
         self.associerPNJsARoles(verbal)
         self.associerPJsARoles(verbal)
 
-    #utilisée pour préparer lassociation roles/persos
-    #l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
+    # utilisée pour préparer lassociation roles/persos
+    # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
     def clearAllAssociations(self):
         for pj in self.dictPJs.values():
             pj.roles.clear()

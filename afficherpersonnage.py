@@ -4,7 +4,8 @@ from PyQt5.QtCore import Qt
 from personnage_controller import *
 
 
-testPerso = Personnage(nom="Jean", concept="Vengeur", driver="Se venger", questions_ouvertes="aucune", sexe="m", pj=True, description="beau")
+testPerso = Personnage(nom="Jean", concept="Vengeur", driver="Se venger", description="beau",
+                       questions_ouvertes="aucune", sexe="m", pj=True)
 
 monGN = GN()
 #monGN.personnages().add(testPerso)

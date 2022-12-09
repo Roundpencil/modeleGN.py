@@ -15,14 +15,13 @@ from googleapiclient.errors import HttpError
 
 from fuzzywuzzy import process
 
-
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/documents.readonly']
 
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre des tokens dans la déclaration
 
 
-#crée deux lecteurs, apiDrive et ApiDoc, pour pouvoir lire plus facilement les fichiers par la suite
+# crée deux lecteurs, apiDrive et ApiDoc, pour pouvoir lire plus facilement les fichiers par la suite
 def creerLecteursGoogleAPIs():
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -91,3 +90,72 @@ def read_structural_elements(elements):
             toc = value.get('tableOfContents')
             text += read_structural_elements(toc.get('content'))
     return text
+
+
+# renvoie un dictionnaire [label]["debut"/"fin"]
+def identifierSectionsFiche(labelsATrouver, texteDocument):
+    texteDocument = texteDocument.lower()
+    # on passe en minuscule pour mieux trouver les chaines
+
+    indexes = dict()
+    for label in labelsATrouver:
+        indexes[label] = {"debut": texteDocument.find(label)}
+        # on complètera la seconde dimension (fin) plus bas avec la fin de la séquence
+    # print("dictionnaire des labels : {0}".format(indexes))
+    # maintenant, on aura besoin d'identifier pour chaque label où il se termine
+    # pour cela on fait un dictionnaire ou la fin de chaque entrée est le début de la suivante
+    # print("toutes les valeurs du tableau : {0}".format([x['debut'] for x in indexes.values()]))
+    # on commence par extraire toutes les valeurs de début et les trier dans l'ordre
+    tousLesIndexes = [x['debut'] for x in indexes.values()]
+    tousLesIndexes.sort()
+    # print("Tous les indexes : {0}".format(tousLesIndexes))
+    # on crée une table qui associe à chaque début la section suivante
+    tableDebutsFinsLabels = dict()
+    for i in range(len(indexes)):
+        try:
+            tableDebutsFinsLabels[tousLesIndexes[i]] = tousLesIndexes[i + 1] - 1
+            # print("pour l'index {0}, j'ai le couple {1}:{2}".format(i, tousLesIndexes[i], tousLesIndexes[i+1]))
+        except IndexError:
+            tableDebutsFinsLabels[tousLesIndexes[i]] = len(texteDocument)
+            break
+    # enfin on met à jour la table des labels pour avoir la fin à côté du début
+    for label in labelsATrouver:
+        indexes[label]["fin"] = tableDebutsFinsLabels[indexes[label]["debut"]]
+        # print("label {0} : [{1}:{2}]".format(label, indexes[label]["debut"], indexes[label]["fin"]))
+    return indexes
+
+
+def genererListeItems(monGN, apiDrive, folderID):
+    folderid = folderID
+
+    # faire la requête pour lire tous les dossiers en entrée
+
+    if len(folderid) < 1:
+        print("erreur, aucun id dans l'input")
+        return -1
+
+    requete = ""
+    for id in folderid:
+        requete += f"'{id}' in parents or"
+    requete = requete[:-3]
+    print(f"requete = {requete}")
+
+    ## pour tentere de comprendre comment on spécifie le mimetype
+    # requete = "mimeType == application/vnd.google-apps.document"
+
+    try:
+        # Call the Drive v3 API
+        # results = apiDrive.files().list(
+        #     pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
+        #     fields="nextPageToken, files(id, name, modifiedTime)").execute()
+        results = apiDrive.files().list(
+            pageSize=100, q=requete,
+            fields="nextPageToken, files(id, name, modifiedTime)").execute()
+
+        items = results.get('files',
+                            [])  # le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues
+        print((f"j'ai trouvé {len(items)} items "))
+        return items
+    except HttpError as err:
+        print(f'An error occurred: {err}')
+        return None
