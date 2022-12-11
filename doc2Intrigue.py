@@ -31,12 +31,6 @@ def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
         try:
             # print ("poung")
 
-            # todo : remonter plus haut pour traiter tous les lecteurs en une fois
-            #  quitte à passer les lecteurs en paramètre pour initier doc2PJ au passge
-            #  dans ce cas le builder prend en entrée les type de lecteurs qu'il faudra : doc, sheets, drive
-            #  l'idée est de s'adapter auc futurs paramètres de GN quand on releasera
-
-
             # print ("ping")
             # Retrieve the documents contents from the Docs service.
             document = apiDoc.documents().get(documentId=item['id']).execute()
@@ -87,12 +81,12 @@ def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
                             return
                         continue
                 else:
-                    print("elle a changé depuis mon dernier passage : supprimons-la !")
+                    # print("elle a changé depuis mon dernier passage : supprimons-la !")
                     # dans ce cas il faut la supprimer car on va tout réécrire
                     monGN.intrigues[item['id']].clear()
                     del monGN.intrigues[item['id']]
 
-            print("et du coup, il est est temps de créer un nouveau fichier")
+            # print("et du coup, il est est temps de créer un nouveau fichier")
             # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
             contenuDocument = document.get('body').get('content')
             text = lecteurGoogle.read_structural_elements(contenuDocument)
@@ -112,7 +106,7 @@ def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
                 # alors si on est toujours là, c'est que c'était notre intrigue
                 # pas la peine d'aller plus loin
                 return
-            print("here we go again")
+            # print("here we go again")
 
             # return #ajouté pour débugger
         except HttpError as err:
@@ -387,9 +381,12 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verba
 
         # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'tes peut etre trompé de perso
         if score is not None:
-            if verbal and score[1] < 80:
-                print(
-                    f"Warning association Scene ({score[1]}) - nom dans scène : {nomRole} > Role : {score[0]} dans {currentIntrigue.nom}/{sceneAAjouter.titre}")
+            if score[1] < 80:
+                warningText = f"Warning association Scene ({score[1]}) - nom dans scène : {nomRole} > Role : {score[0]} dans {currentIntrigue.nom}/{sceneAAjouter.titre}"
+                currentIntrigue.addToErrorLog(warningText)
+                if verbal:
+                    print(warningText)
+
 
             # trouver le rôle à ajouter à la scène en lisant l'intrigue
             # warning: un truc plante parfois ici mais je ne sais pas encore quoi ni pourquoi (process renvoie None)

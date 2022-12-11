@@ -87,21 +87,20 @@ def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
                             return
                         continue
                 else:
-                    print("il a changé depuis mon dernier passage : supprimons-la !")
+                    # print("il a changé depuis mon dernier passage : supprimons-le !")
                     # dans ce cas il faut la supprimer car on va tout réécrire
                     monGN.dictPJs[item['id']].clear()
                     del monGN.dictPJs[item['id']]
 
-            print("et du coup, il est est temps de créer un nouveau fichier")
+            # print("et du coup, il est est temps de créer un nouveau fichier")
             # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
             contenuDocument = document.get('body').get('content')
             text = lecteurGoogle.read_structural_elements(contenuDocument)
-            # todo fonction de lecture de PJ
 
             monPJ = extrairePJDeTexte(text, document.get('title'), item["id"], monGN)
             # monIntrigue.url = item["id"]
 
-            print(f"j'ai ajouté : {monPJ.nom}")
+            # print(f"j'ai ajouté : {monPJ.nom}")
 
             # et on enregistre la date de dernière mise à jour de l'intrigue
             monPJ.lastChange = datetime.datetime.now()
@@ -114,7 +113,7 @@ def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
                 # alors si on est toujours là, c'est que c'était notre PJ
                 # pas la peine d'aller plus loin
                 return
-            print("here we go again")
+            # print("here we go again")
 
         except HttpError as err:
             print(f'An error occurred: {err}')
@@ -122,8 +121,9 @@ def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
 
 
 def extrairePJDeTexte(textePJ, nomDoc, idUrl, monGN):
-    nomPJ = nomDoc.split("-")[-1].strip() #si il y a un nombre dans le nom du pj, il est séparé par un tiret
-    print(f"Personnage en cours d'importation : {nomPJ}")
+    nomPJ = re.sub(r"^\d+\s*-", '', nomDoc).strip() #todo à tester
+    # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
+    # print(f"Personnage en cours d'importation : {nomPJ}")
     currentPJ = Personnage(nom=nomPJ, url=idUrl)
     monGN.dictPJs[idUrl] = currentPJ
 

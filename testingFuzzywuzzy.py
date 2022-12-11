@@ -5,6 +5,7 @@ import modeleGN
 from modeleGN import *
 import doc2Intrigue
 import lecteurGoogle
+import sys
 
 folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"  # le folder des intrigues de Chalacta
 folderSqueletteEmeric = "1hpo8HQ8GKjQG63Qm_QlEX7wQ58wZ9-Bw"
@@ -46,8 +47,9 @@ nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran
 
 
 def main():
+    sys.setrecursionlimit(5000) #mis en place pour prévenir pickle de planter
     # todo charger les relations depuis le tableau des relations
-    # todo faire en sorte que si on force une intrigue(singletest)  elle est automaitiquement traitée / updatée
+    # todo faire en sorte que si on force une intrigue(singletest)  elle est automatiquement traitée / updatée
 
     monGN = GN(folderIntriguesID=folderid,
                folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles])
@@ -58,21 +60,23 @@ def main():
 
     # si on veut charger un fichier
     # monGN = GN.load("archive Chalacta")
-
+ #todo refaire une passe sur la fconction de personnages entre ceux qui sont importés et les autres : limiter les versions ne processantone
     apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
-    doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="10")
-    # doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    # doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
 
     ajouterPersosSansFiche(monGN)
-
-    monGN.rebuildLinks()
+#todo : quand on cherche les joueurs, chercher aussi les "joueuses"
+    monGN.rebuildLinks(verbal=False)
     monGN.save("archive Chalacta")
-#todo : ajouter un wanrning quand on a moins de persos dans une scene qu'il n'y en avait au début > ca veutsurement dire que le perso n'est pas dans le tableau récap
+#todo : ajouter un wanrning quand on a moins de persos dans une scene qu'il n'y en avait au début > ca veutsurement dire que le perso n'est pas dans le tableau récap// marche aussi pour le nombre de cars est trop petit
     print("****************************")
     print("****************************")
     print("****************************")
     # #écrit toutes les scènes qui sont dans le GN, sans ordre particulier
     dumpAllScenes(monGN)
+
+#todo comprendre pourquoi les PNJs ont un plein lot de roles qui leurs sont affectés (ex : intrigue 40)
 
     ## pour avoir tous les objets du jeu :
     # generecsvobjets(monGN)
@@ -115,15 +119,27 @@ def main():
 
 
 def ajouterPersosSansFiche(monGN):
+    print("début de l'ajout des personnages sans fiche")
     nomsLus = [x.nom for x in monGN.dictPJs.values()]
     #pour chaque perso de ma liste :
     # SI son nom est dans les persos > ne rien faire
     #SINON, lui créer une coquille vide
+    persosSansCorrespondance=[]
     for perso in nomspersos:
         if perso in nomsLus:
             print(f"le personnage {perso} a une correspondance dans les persos lus")
         else:
+            persosSansCorrespondance.append(
+                [perso,
+                 process.extractOne(perso, nomsLus)[0],
+                 process.extractOne(perso, nomsLus)[1]])
+            #todo : si processone >= 75 >> on adapte, sinon on crée
             monGN.dictPJs[perso] = Personnage(nom=perso, pj=EST_PJ) #on met son nom en clef pour se souvenir qu'il a été généré
+
+    print(persosSansCorrespondance)
+    for perso in persosSansCorrespondance:
+        print(perso)
+    print("fin de l'ajout des personnages sans fiche")
 
 def testEffacerIntrigue(monGN):
     listerRolesPerso(monGN, "Kyle Talus")
@@ -182,7 +198,7 @@ def squelettePerso(monGN, nomPerso):
     nomPerso = process.extractOne(nomPerso, nomspersos)[0]
     for role in monGN.dictPJs[nomPerso].roles:
         for scene in role.scenes:
-            mesScenes[str(scene.date)] = scene
+            mesScenes[str(scene.getLongdigitsDate())] = scene
 
     for key in sorted([str(x) for x in mesScenes.keys()], reverse=True):
         print(
@@ -306,9 +322,17 @@ def dumpAllScenes(monGN):
     for intrigue in monGN.intrigues.values():
         print(f"{str(intrigue)}")
         print(f" a {len(intrigue.scenes)} scenes")
+
+        mesScenes = dict()
         for scene in intrigue.scenes:
             # print(scene.titre)
             # print(scene.getFormattedDate())
-            print(scene)
+            # print(scene)
+
+            mesScenes[str(scene.getLongdigitsDate())] = scene
+
+        for key in sorted([str(x) for x in mesScenes.keys()], reverse=True):
+            print(mesScenes[key])
+
 
 main()

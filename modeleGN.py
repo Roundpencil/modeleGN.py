@@ -63,7 +63,6 @@ class Personnage:
         self.url = url
         self.lastChange = lastChange
 
-
     def addrole(self, r):
         self.roles.add(r)
 
@@ -89,6 +88,7 @@ class Personnage:
         toReturn += f"factions = {self.factions} \n"
         toReturn += f"textesAnnexes = {self.textesAnnexes} \n"
         return toReturn
+
 
 # rôle
 class Role:
@@ -154,9 +154,14 @@ class Intrigue:
         self.lastChange = lastChange
         self.scenesEnJeu = scenesEnJeu
         self.objets = set()
+        self.errorLog = ""
 
     def __str__(self):
         return self.nom
+
+    def addToErrorLog(self, text):
+        self.errorLog += text + "\n"
+
 
     # vérifier que le personnge que l'on souhaite associer à un rôle n'est pas déjà associé à un autre rôle
     # dans la même intrigue
@@ -173,10 +178,13 @@ class Intrigue:
             if role.perso == personnage:
                 # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au sein d'une mêm intrigue
 
+                texteErreur = f"Erreur Association role > PJ : " \
+                          f"{roleAAssocier.nom} > {personnage.nom}, " \
+                          f"déjà associé au rôle {role.nom} dans {self.nom}"
+                self.addToErrorLog(texteErreur)
+
                 if verbal:  # et si on a demandé à ce que la fonction raconte sa vie, on détaille
-                    print(f"Erreur Association role > PJ : "
-                          f"{roleAAssocier.nom} > {personnage.nom}, "
-                          f"déjà associé au rôle {role.nom} dans {self.nom}")
+                    print(texteErreur)
                 return -1
         roleAAssocier.perso = personnage
         # au passage on update le niveau de perso (surtout utile pour les PNJs), en prenant toujours le max
@@ -212,7 +220,7 @@ class Intrigue:
         for scene in self.scenes:
             del scene
         # print(f"intrigue effacée {self.nom}")
-
+        self.errorLog = ''
 
 # relations
 class Relation:
@@ -236,9 +244,9 @@ class Scene:
     def __init__(self, intrigue, titre, date="0", pitch="Pas de description simple", description="Description complète",
                  actif=True, resume="", niveau=3):
         self.intrigue = intrigue
-        self.date = date
+        self.date = date # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
+        # l'évènement
         self.titre = titre
-        self.resume = resume
         self.pitch = pitch
         self.description = description
         self.actif = actif
@@ -250,6 +258,12 @@ class Scene:
 
     def get_date(self):
         return self.date
+
+    def getLongdigitsDate(self, size=30):
+        if type(self.date) == float or type(self.date) == int or str(self.date[1:]).isnumeric():
+            return "0"*(size-len(str(self.date * -1))) + str(self.date * -1)
+        else:
+            return str(self.date) + "0"*(size-len(str(self.date)))
 
     def getFormattedDate(self):
         # print("date/type > {0}/{1}".format(self.date, type(self.date)))
@@ -288,7 +302,7 @@ class Scene:
         toReturn = ""
 
         toReturn += f"titre scène : {self.titre} \n"
-        toReturn += f"date  : {self.getFormattedDate()} \n"
+        toReturn += f"date  : {self.getFormattedDate()} - {self.getLongdigitsDate()}\n"
         strRolesPersos = 'Roles (Perso) : '
         for role in self.roles:
             if role.perso is None:
@@ -297,13 +311,11 @@ class Scene:
                 strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
         toReturn += f"roles  : {strRolesPersos} \n"
         toReturn += f"intrigue : {self.intrigue.nom} \n"
-        toReturn += f"resume  : {self.resume} \n"
         toReturn += f"pitch  : {self.pitch} \n"
         toReturn += f"description : {self.description} \n"
         toReturn += f"actif  : {self.actif} \n"
         return toReturn
 
-#TODO : débugger les associations roles persos (genre seika???)
 
 # objet pour tout sauvegarder
 
@@ -313,10 +325,10 @@ class GN:
         self.dictPJs = {}  # nom, personnage
         self.dictPNJs = {}  # nom, personnage
         self.intrigues = dict()  # clef : id google
-        self.oldestUpdateIntrigue = None #contient al dernière date d'update d'une intrigue dans le GN
-        self.oldestUpdatePJ = None #contient al dernière date d'update d'une intrigue dans le GN
-        self.oldestUpdatedIntrigue = "" #contient l'id de la dernière intrigue updatée dans le GN
-        self.oldestUpdatedPJ = "" #contient l'id du dernier PJ updaté dans le GN
+        self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN
+        self.oldestUpdatePJ = None  # contient al dernière date d'update d'une intrigue dans le GN
+        self.oldestUpdatedIntrigue = ""  # contient l'id de la dernière intrigue updatée dans le GN
+        self.oldestUpdatedPJ = ""  # contient l'id du dernier PJ updaté dans le GN
         if isinstance(folderIntriguesID, list):
             self.folderIntriguesID = folderIntriguesID
         else:
@@ -327,7 +339,6 @@ class GN:
         else:
             self.folderPJID = [folderPJID]
         print(f"PJID = {self.folderPJID}")
-
 
     # permet de mettre à jour la date d'intrigue la plus ancienne
     # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
@@ -343,9 +354,9 @@ class GN:
 
         pairesDatesIdPJ = dict()
         for pj in self.dictPJs.values():
-            print(pj.nom)
+            # print(pj.nom)
             pairesDatesIdPJ[pj.lastChange] = pj.url
-        print(pairesDatesIdPJ)
+        # print(pairesDatesIdPJ)
         if len(pairesDatesIdPJ) > 0:
             self.oldestUpdatePJ = min(pairesDatesIdPJ.keys())
             # print(f"oldestdate pj : {self.oldestUpdatePJ} ")
@@ -354,9 +365,11 @@ class GN:
     def save(self, filename):
         filehandler = open(filename, "wb")
         pickle.dump(self, filehandler)
+        filehandler.close()
 
     def getNomsPersos(self):
-        return self.dictPJs.keys()
+        # return self.dictPJs.keys()
+        return [x.nom for x in self.dictPJs.values()]
 
     def getNomsPNJs(self):
         return self.dictPNJs.keys()
@@ -369,29 +382,44 @@ class GN:
                     score = process.extractOne(role.nom, nomsPnjs)
                     # role.perso = self.listePnjs[score[0]]
                     intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.dictPNJs[score[0]])
-                    if verbal and score[1] < seuilAlerte:
-                        print(
-                            f"Warning association ({score[1]}) - nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}")
-#todo comprendre pourquoi quand on ajoute les noms qui viennenent des fichiers ca plante
+                    if score[1] < seuilAlerte:
+                        texteErreur =f"Warning association ({score[1]}) " \
+                                     f"- nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}"
+                        intrigue.addToErrorLog(texteErreur)
+                        if verbal:
+                            print(texteErreur)
+
     def associerPJsARoles(self, seuilAlerte=70, verbal=True):
+        print("Début de l'association automatique des rôles aux persos")
         nomsPjs = self.getNomsPersos()
+        dictNomsPJ = dict()
+        for pj in self.dictPJs.values():  # on crée un dictionnaire temporaire nom > pj pour faire les associations
+            dictNomsPJ[pj.nom] = pj
+
         for intrigue in self.intrigues.values():
             for role in intrigue.roles.values():
                 if estUnPJ(role.pj):
                     score = process.extractOne(role.nom, nomsPjs)
-                    print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
-                    check = intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.dictPJs[score[0]],
+                    # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
+                    check = intrigue.associerRoleAPerso(roleAAssocier=role, personnage=dictNomsPJ[score[0]],
                                                         verbal=verbal)
-                    if verbal:
-                        # print(f"je paaaaaarle {score[1]}")
-                        if score[1] < seuilAlerte:
-                            print(
-                                f"Warning association ({score[1]}) - nom rôle : {role.nom} > PJ : {score[0]} dans {intrigue.nom}")
+
+                    if score[1] < seuilAlerte:
+                        texteErreur = f"Warning association ({score[1]}) - nom rôle : " \
+                                      f"{role.nom} > PJ : {score[0]} dans {intrigue.nom}"
+                        intrigue.addToErrorLog(texteErreur)
+                        if verbal:
+                            # print(f"je paaaaaarle {score[1]}")
+                            print(texteErreur)
+
+
+        print("Fin de l'association automatique des rôles aux persos")
 
     @staticmethod
     def load(filename):
         monfichier = open(filename, 'rb')
         return pickle.load(monfichier)
+        monfichier.close()
 
     # apres une importation recrée
     # tous les liens entre les PJs,
