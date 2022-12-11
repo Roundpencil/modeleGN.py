@@ -129,6 +129,8 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl, monGN):
 
     textePJLow = textePJ.lower()  # on passe en minuscule pour mieux trouver les chaines
 
+#todo : corriger le problème de lecture du nom des persos dans les titres en utilisant une regexp
+#todo : ou bien rajouter, avant réconciliation avec les persos, une focntion de correction des noms des objets persos lus dans les fiches avec la source des noms
     REFERENT = "orga référent"
     JOUEURV1 = "joueur v1"
     JOUEURV2 = "joueur v2"
@@ -140,8 +142,10 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl, monGN):
     PSYCHO = "psychologie"
     MOTIVATIONS = "motivations et objectifs"
     CHRONOLOGIE = "chronologie "
+    INTRIGUES = "intrigues"
+    RELATIONS = "relations avec les autres persos"
 
-    labels = [REFERENT, JOUEURV1, JOUEURV2, PITCH, COSTUME, FACTION1, FACTION2, BIO, PSYCHO, MOTIVATIONS, CHRONOLOGIE]
+    labels = [REFERENT, JOUEURV1, JOUEURV2, PITCH, COSTUME, FACTION1, FACTION2, BIO, PSYCHO, MOTIVATIONS, CHRONOLOGIE, RELATIONS, INTRIGUES]
 
     indexes = lecteurGoogle.identifierSectionsFiche(labels, textePJ)
 

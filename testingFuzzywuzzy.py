@@ -42,16 +42,7 @@ nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran
             'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère', 'Shaani']
 
 
-def ajouterPersosSansFiche(monGN):
-    nomsLus = [x.nom for x in monGN.dictPJs.values()]
-    #pour chaque perso de ma liste :
-    # SI son nom est dans les persos > ne rien faire
-    #SINON, lui créer une coquille vide
-    for perso in nomspersos:
-        if perso in nomsLus:
-            print(f"le personnage {perso} a une correspondance dans les persos lus")
-        else:
-            monGN.dictPJs[perso] = Personnage(nom=perso, pj=EST_PJ) #on met son nom en clef pour se souvenir qu'il a été généré
+
 
 
 def main():
@@ -66,23 +57,26 @@ def main():
         monGN.dictPNJs[pnj] = Personnage(nom=nomsPNJs, pj=EST_PNJ_HORS_JEU)
 
     # si on veut charger un fichier
-    monGN = GN.load("archive Chalacta")
+    # monGN = GN.load("archive Chalacta")
 
     apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
-
-
-    doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
-    doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="10")
+    # doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
 
     ajouterPersosSansFiche(monGN)
 
     monGN.rebuildLinks()
     monGN.save("archive Chalacta")
+#todo : ajouter un wanrning quand on a moins de persos dans une scene qu'il n'y en avait au début > ca veutsurement dire que le perso n'est pas dans le tableau récap
+    print("****************************")
+    print("****************************")
+    print("****************************")
+    # #écrit toutes les scènes qui sont dans le GN, sans ordre particulier
+    dumpAllScenes(monGN)
 
-    print("****************************")
-    print("****************************")
-    print("****************************")
-    generecsvobjets(monGN)
+    ## pour avoir tous les objets du jeu :
+    # generecsvobjets(monGN)
+
     # squelettePerso(monGN, "Kyle Talus")
     # listerRolesPerso(monGN, "Kyle Talus")
     # listerPNJs(monGN)
@@ -115,10 +109,21 @@ def main():
     # test de la focntion de rapprochement des PNJs
     # fuzzyWuzzyme(listerPNJs(monGN), nomsPNJs)
 
-    #test de la focntion de lecture des PJs
-    dumpPersosLus(monGN)
-    dumpSortedPersos(monGN)
+    # #test de la focntion de lecture des PJs
+    # dumpPersosLus(monGN)
+    # dumpSortedPersos(monGN)
 
+
+def ajouterPersosSansFiche(monGN):
+    nomsLus = [x.nom for x in monGN.dictPJs.values()]
+    #pour chaque perso de ma liste :
+    # SI son nom est dans les persos > ne rien faire
+    #SINON, lui créer une coquille vide
+    for perso in nomspersos:
+        if perso in nomsLus:
+            print(f"le personnage {perso} a une correspondance dans les persos lus")
+        else:
+            monGN.dictPJs[perso] = Personnage(nom=perso, pj=EST_PJ) #on met son nom en clef pour se souvenir qu'il a été généré
 
 def testEffacerIntrigue(monGN):
     listerRolesPerso(monGN, "Kyle Talus")
@@ -295,4 +300,15 @@ def dumpSortedPersos(monGN):
     print(tousLesPersos)
     print(len(tousLesPersos))
     print(len(nomspersos))
+
+
+def dumpAllScenes(monGN):
+    for intrigue in monGN.intrigues.values():
+        print(f"{str(intrigue)}")
+        print(f" a {len(intrigue.scenes)} scenes")
+        for scene in intrigue.scenes:
+            # print(scene.titre)
+            # print(scene.getFormattedDate())
+            print(scene)
+
 main()

@@ -285,8 +285,25 @@ class Scene:
         self.roles.add(role)
 
     def __str__(self):
-        return ("Titre Scène : " + self.titre)
+        toReturn = ""
 
+        toReturn += f"titre scène : {self.titre} \n"
+        toReturn += f"date  : {self.getFormattedDate()} \n"
+        strRolesPersos = 'Roles (Perso) : '
+        for role in self.roles:
+            if role.perso is None:
+                strRolesPersos += f"{role.nom} (pas de perso affecté) / "
+            else:
+                strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
+        toReturn += f"roles  : {strRolesPersos} \n"
+        toReturn += f"intrigue : {self.intrigue.nom} \n"
+        toReturn += f"resume  : {self.resume} \n"
+        toReturn += f"pitch  : {self.pitch} \n"
+        toReturn += f"description : {self.description} \n"
+        toReturn += f"actif  : {self.actif} \n"
+        return toReturn
+
+#TODO : débugger les associations roles persos (genre seika???)
 
 # objet pour tout sauvegarder
 
@@ -355,17 +372,18 @@ class GN:
                     if verbal and score[1] < seuilAlerte:
                         print(
                             f"Warning association ({score[1]}) - nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}")
-
+#todo comprendre pourquoi quand on ajoute les noms qui viennenent des fichiers ca plante
     def associerPJsARoles(self, seuilAlerte=70, verbal=True):
         nomsPjs = self.getNomsPersos()
         for intrigue in self.intrigues.values():
             for role in intrigue.roles.values():
                 if estUnPJ(role.pj):
                     score = process.extractOne(role.nom, nomsPjs)
-                    # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
+                    print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
                     check = intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.dictPJs[score[0]],
                                                         verbal=verbal)
                     if verbal:
+                        # print(f"je paaaaaarle {score[1]}")
                         if score[1] < seuilAlerte:
                             print(
                                 f"Warning association ({score[1]}) - nom rôle : {role.nom} > PJ : {score[0]} dans {intrigue.nom}")
