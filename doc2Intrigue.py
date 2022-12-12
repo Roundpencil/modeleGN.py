@@ -46,7 +46,7 @@ def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
 
             # si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
             if int(singletest) > 0:
-                # Alors on se demandne si c'est la bonne
+                # Alors on se demande si c'est la bonne
                 if document.get('title')[0:2] != str(singletest):  # numéro de l'intrigue
                     # si ce n'est pas la bonne, pas la peine d'aller plus loin
                     continue
@@ -86,7 +86,7 @@ def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
                     monGN.intrigues[item['id']].clear()
                     del monGN.intrigues[item['id']]
 
-            # print("et du coup, il est est temps de créer un nouveau fichier")
+            # print("et du coup, il est temps de créer un nouveau fichier")
             # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
             contenuDocument = document.get('body').get('content')
             text = lecteurGoogle.read_structural_elements(contenuDocument)
@@ -368,7 +368,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
 
 
 
-def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verbal=True):
+def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verbal=True, seuil=80):
     roles = listeNoms.split(",")
     # print("rôles trouvés en lecture brute : " + str(roles))
 
@@ -381,7 +381,7 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verba
 
         # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'tes peut etre trompé de perso
         if score is not None:
-            if score[1] < 80:
+            if score[1] < seuil:
                 warningText = f"Warning association Scene ({score[1]}) - nom dans scène : {nomRole} > Role : {score[0]} dans {currentIntrigue.nom}/{sceneAAjouter.titre}"
                 currentIntrigue.addToErrorLog(warningText)
                 if verbal:
@@ -389,7 +389,6 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verba
 
 
             # trouver le rôle à ajouter à la scène en lisant l'intrigue
-            # warning: un truc plante parfois ici mais je ne sais pas encore quoi ni pourquoi (process renvoie None)
             monRole = currentIntrigue.roles[score[0]]
             monRole.ajouterAScene(sceneAAjouter)
         elif verbal:

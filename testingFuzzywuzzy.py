@@ -49,9 +49,7 @@ nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran
 def main():
     sys.setrecursionlimit(5000) #mis en place pour prévenir pickle de planter
 
-    #todo faire en sorte que si on force une intrigue(singletest)  elle est automatiquement traitée / updatée
-    # arréter de charger des qu'on a découvert la première intrigue à ne pas mettre à jour
-    # et ne pas mettre à jour la date si on est sur single test pour ne pas faire planter les choses
+
 
     # todo : ajouter un wanrning quand on a moins de persos dans une scene qu'il n'y en avait au début > ca veutsurement dire que le perso n'est pas dans le tableau récap// marche aussi pour le nombre de cars est trop petit
     # todo charger les relations depuis le tableau des relations
