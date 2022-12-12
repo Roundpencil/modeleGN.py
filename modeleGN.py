@@ -65,6 +65,11 @@ class Personnage:
         self.url = url
         self.lastChange = lastChange
 
+    def clear(self):
+        for role in self.roles:
+            role.perso = None
+        self.roles.clear()
+
     def addrole(self, r):
         self.roles.add(r)
 

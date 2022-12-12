@@ -49,32 +49,32 @@ nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran
 def main():
     sys.setrecursionlimit(5000) #mis en place pour prévenir pickle de planter
 
-
+    rogue()
 
     # todo : ajouter un wanrning quand on a moins de persos dans une scene qu'il n'y en avait au début > ca veutsurement dire que le perso n'est pas dans le tableau récap// marche aussi pour le nombre de cars est trop petit
     # todo charger les relations depuis le tableau des relations
 
-    monGN = GN(folderIntriguesID=folderid,
-               folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles])
-
-
-    for pnj in nomsPNJs:
-        monGN.dictPNJs[pnj] = Personnage(nom=pnj, pj=EST_PNJ_HORS_JEU)
-
-    # si on veut charger un fichier
-    monGN = GN.load("archive Chalacta")
-
-    apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
-    doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
-    doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
-    monGN.forcerImportPersos(nomspersos)
-    # ajouterPersosSansFiche(monGN)
-    monGN.rebuildLinks(verbal=False)
-    monGN.save("archive Chalacta")
-    print("****************************")
-    print("****************************")
-    print("****************************")
-    listerErreurs(monGN)
+    # monGN = GN(folderIntriguesID=folderid,
+    #            folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles])
+    #
+    #
+    # for pnj in nomsPNJs:
+    #     monGN.dictPNJs[pnj] = Personnage(nom=pnj, pj=EST_PNJ_HORS_JEU)
+    #
+    # # si on veut charger un fichier
+    # monGN = GN.load("archive Chalacta")
+    #
+    # apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
+    # doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    # doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    # monGN.forcerImportPersos(nomspersos)
+    # # ajouterPersosSansFiche(monGN)
+    # monGN.rebuildLinks(verbal=False)
+    # monGN.save("archive Chalacta")
+    # print("****************************")
+    # print("****************************")
+    # print("****************************")
+    # listerErreurs(monGN)
     # trierScenes(monGN)
     # listerTrierPersos(monGN)
     # #écrit toutes les scènes qui sont dans le GN, sans ordre particulier
@@ -118,34 +118,13 @@ def main():
     # #test de la focntion de lecture des PJs
     # dumpPersosLus(monGN)
     # dumpSortedPersos(monGN)
+    # genererTableauIntrigues(monGN)
 
 
 def ajouterPersosSansFiche(monGN, nomspersos):
-    # print("début de l'ajout des personnages sans fiche")
-    # nomsLus = [x.nom for x in monGN.dictPJs.values()]
-    # #pour chaque perso de ma liste :
-    # # SI son nom est dans les persos > ne rien faire
-    # #SINON, lui créer une coquille vide
-    # persosSansCorrespondance=[]
-    # for perso in nomspersos:
-    #     if perso in nomsLus:
-    #         print(f"le personnage {perso} a une correspondance dans les persos lus")
-    #     else:
-    #         # persosSansCorrespondance.append(
-    #         #     [perso,
-    #         #      process.extractOne(perso, nomsLus)[0],
-    #         #      process.extractOne(perso, nomsLus)[1]])
-    #         scoreproche = process.extractOne(perso, nomsLus)
-    #         if scoreproche is not None and scoreproche[1] >=75:
-    #             print(f"{perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
-    #             #donc on ne fait rien
-    #         else:
-    #             monGN.dictPJs[perso] = Personnage(nom=perso + "_importe", pj=EST_PJ) #on met son nom en clef pour se souvenir qu'il a été généré
+
     monGN.forcerImportPersos(nomspersos)
 
-    # print(persosSansCorrespondance)
-    # for perso in persosSansCorrespondance:
-    #     print(perso)
     print(f"fin de l'ajout des personnages sans fiche. j'ai {len(monGN.dictPJs.values())} personnages en tout")
 
 def testEffacerIntrigue(monGN):
@@ -349,6 +328,7 @@ def trierScenes(monGN):
     #         print(s)
 
     for intrigue in monGN.intrigues.values():
+        print(f"intrigue {intrigue.nom} : ")
         triee = intrigue.getScenesTriees()
         for scene in triee:
             print(scene.getFormattedDate())
@@ -367,5 +347,27 @@ def listerErreurs(monGN):
     for intrigue in monGN.intrigues.values():
         print(f"pour {intrigue.nom} : ")
         print(intrigue.errorLog)
+
+
+def genererTableauIntrigues(monGN):
+    print("Intrigue; Orga Référent")
+    toPrint = monGN.intrigues.values()
+    toPrint = sorted(toPrint, key=lambda x: x.nom)
+    for intrigue in toPrint:
+        print(f"{intrigue.nom};{intrigue.orgaReferent.strip()};")
+
+
+def rogue():
+    iwant = ["Nexxar", "Mina Tarkin", "Edrik", "Nexxar", "Jak", "Trevek",
+             "Dio Muftak", "Osrabkosi", "Rebbanx", "Kar", "Edrik", "Wexley",
+             "Veert", "Desnash", "Vert", "Zev", "Ssor","FX - 4", "Kianstef", "Dhar",
+             "Desnash", "Dhar", "Jay", "Mosel", "FX - 4", "Timagua", "Veert", "Edrik",
+             "Wexley", "Tsvan", "Ssor", "Kael", "Syn", "Seika", "Jerima", "Thuorn"]
+    iwant = [x.strip() for x in iwant]
+    iwant = set(iwant)
+    for nom in iwant:
+        # print(str(nom))
+        score = process.extractOne(str(nom), nomspersos)
+        print(f"{nom} > {process.extractOne(nom, nomspersos)}")
 
 main()
