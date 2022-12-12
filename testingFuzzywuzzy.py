@@ -60,21 +60,23 @@ def main():
 
     # si on veut charger un fichier
     # monGN = GN.load("archive Chalacta")
- #todo refaire une passe sur la fconction de personnages entre ceux qui sont importés et les autres : limiter les versions ne processantone
+
     apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
     # doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
     doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
 
     ajouterPersosSansFiche(monGN)
 #todo : quand on cherche les joueurs, chercher aussi les "joueuses"
+#todo : ne pas importer les modeles de fiches de perso
     monGN.rebuildLinks(verbal=False)
     monGN.save("archive Chalacta")
 #todo : ajouter un wanrning quand on a moins de persos dans une scene qu'il n'y en avait au début > ca veutsurement dire que le perso n'est pas dans le tableau récap// marche aussi pour le nombre de cars est trop petit
     print("****************************")
     print("****************************")
     print("****************************")
+    listerTrierPersos(monGN)
     # #écrit toutes les scènes qui sont dans le GN, sans ordre particulier
-    dumpAllScenes(monGN)
+    # dumpAllScenes(monGN)
 
 #todo comprendre pourquoi les PNJs ont un plein lot de roles qui leurs sont affectés (ex : intrigue 40)
 
@@ -129,17 +131,22 @@ def ajouterPersosSansFiche(monGN):
         if perso in nomsLus:
             print(f"le personnage {perso} a une correspondance dans les persos lus")
         else:
-            persosSansCorrespondance.append(
-                [perso,
-                 process.extractOne(perso, nomsLus)[0],
-                 process.extractOne(perso, nomsLus)[1]])
-            #todo : si processone >= 75 >> on adapte, sinon on crée
-            monGN.dictPJs[perso] = Personnage(nom=perso, pj=EST_PJ) #on met son nom en clef pour se souvenir qu'il a été généré
+            # persosSansCorrespondance.append(
+            #     [perso,
+            #      process.extractOne(perso, nomsLus)[0],
+            #      process.extractOne(perso, nomsLus)[1]])
+            scoreproche = process.extractOne(perso, nomsLus)
+            if scoreproche[1] >=75:
+                print(f"{perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
+                #donc on ne fait rien
+            else:
+                #todo : si processone >= 75 >> on adapte, sinon on crée
+                monGN.dictPJs[perso] = Personnage(nom=perso, pj=EST_PJ) #on met son nom en clef pour se souvenir qu'il a été généré
 
-    print(persosSansCorrespondance)
-    for perso in persosSansCorrespondance:
-        print(perso)
-    print("fin de l'ajout des personnages sans fiche")
+    # print(persosSansCorrespondance)
+    # for perso in persosSansCorrespondance:
+    #     print(perso)
+    print(f"fin de l'ajout des personnages sans fiche. j'ai {len(monGN.dictPJs.values())} personnages en tout")
 
 def testEffacerIntrigue(monGN):
     listerRolesPerso(monGN, "Kyle Talus")
@@ -334,5 +341,12 @@ def dumpAllScenes(monGN):
         for key in sorted([str(x) for x in mesScenes.keys()], reverse=True):
             print(mesScenes[key])
 
+def listerTrierPersos(monGN):
+    touspj = []
+    for pj in monGN.dictPJs.values():
+        touspj.append(pj.nom)
+    touspj.sort()
+    for pj in touspj:
+        print(pj)
 
 main()
