@@ -224,7 +224,7 @@ class Intrigue:
         self.errorLog = ''
 
     def getScenesTriees(self):
-        return sorted(self.scenes, key=lambda scene: scene.getLongdigitsDate(), reverse=True)
+        return Scene.trierScenes(self.scenes)
 
 
 # relations
@@ -327,6 +327,9 @@ class Scene:
         toReturn += f"actif  : {self.actif} \n"
         return toReturn
 
+    @staticmethod
+    def trierScenes(scenesATrier):
+        return sorted(scenesATrier, key=lambda scene: scene.getLongdigitsDate(), reverse=True)
 
 # objet pour tout sauvegarder
 
