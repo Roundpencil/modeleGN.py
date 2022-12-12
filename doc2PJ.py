@@ -102,8 +102,7 @@ def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
 
             # print(f"j'ai ajouté : {monPJ.nom}")
 
-            # et on enregistre la date de dernière mise à jour de l'intrigue
-            monPJ.lastChange = datetime.datetime.now()
+
 
             # print(f'url intrigue = {monIntrigue.url}')
             # print(f"intrigue {monIntrigue.nom}, date de modification : {item['modifiedTime']}")
@@ -121,19 +120,23 @@ def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
 
 
 def extrairePJDeTexte(textePJ, nomDoc, idUrl, monGN):
-    nomPJ = re.sub(r"^\d+\s*-", '', nomDoc).strip() #todo à tester
+    if len(textePJ) < 800:
+        print(f"fiche {nomDoc} avec {len(textePJ)} caractères est vide")
+        return #dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
+
+    nomPJ = re.sub(r"^\d+\s*-", '', nomDoc).strip()
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
-    # print(f"Personnage en cours d'importation : {nomPJ}")
+    # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
     currentPJ = Personnage(nom=nomPJ, url=idUrl)
     monGN.dictPJs[idUrl] = currentPJ
 
     textePJLow = textePJ.lower()  # on passe en minuscule pour mieux trouver les chaines
 
-#todo : corriger le problème de lecture du nom des persos dans les titres en utilisant une regexp
-#todo : ou bien rajouter, avant réconciliation avec les persos, une focntion de correction des noms des objets persos lus dans les fiches avec la source des noms
     REFERENT = "orga référent"
     JOUEURV1 = "joueur v1"
     JOUEURV2 = "joueur v2"
+    JOUEUSE1 = "joueuse v1"
+    JOUEUSE2 = "joueuse v2"
     PITCH = "pitch perso"
     COSTUME = "indications costumes"
     FACTION1 = "faction principale"
@@ -145,7 +148,8 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl, monGN):
     INTRIGUES = "intrigues"
     RELATIONS = "relations avec les autres persos"
 
-    labels = [REFERENT, JOUEURV1, JOUEURV2, PITCH, COSTUME, FACTION1, FACTION2, BIO, PSYCHO, MOTIVATIONS, CHRONOLOGIE, RELATIONS, INTRIGUES]
+    labels = [REFERENT, JOUEURV1, JOUEURV2, PITCH, COSTUME, FACTION1, FACTION2,
+              BIO, PSYCHO, MOTIVATIONS, CHRONOLOGIE, RELATIONS, INTRIGUES, JOUEUSE1, JOUEUSE2]
 
     indexes = lecteurGoogle.identifierSectionsFiche(labels, textePJ)
 
@@ -167,6 +171,20 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl, monGN):
         print("Pas de joueur 2 avec le perso " + nomPJ)
     else:
         currentPJ.joueurs['V2'] = textePJ[indexes[JOUEURV2]["debut"]:indexes[JOUEURV2]["fin"]].splitlines()[
+                                      0][
+                                  len(JOUEURV1) + len(" : "):]
+
+    if indexes[JOUEUSE1]["debut"] == -1:
+        print("Pas de joueuse 1 avec le perso " + nomPJ)
+    else:
+        currentPJ.joueurs['V1'] = textePJ[indexes[JOUEUSE1]["debut"]:indexes[JOUEUSE1]["fin"]].splitlines()[
+                                      0][
+                                  len(JOUEURV1) + len(" : "):]
+
+    if indexes[JOUEUSE2]["debut"] == -1:
+        print("Pas de joueuse 2 avec le perso " + nomPJ)
+    else:
+        currentPJ.joueurs['V2'] = textePJ[indexes[JOUEUSE2]["debut"]:indexes[JOUEUSE2]["fin"]].splitlines()[
                                       0][
                                   len(JOUEURV1) + len(" : "):]
 
@@ -217,5 +235,8 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl, monGN):
     #rajouter les scènes en jeu après le tableau
     bottomText = textePJ.split("#####")[-1]
     currentPJ.textesAnnexes = bottomText
+
+    # et on enregistre la date de dernière mise à jour de l'intrigue
+    currentPJ.lastChange = datetime.datetime.now()
 
     return currentPJ

@@ -1,6 +1,8 @@
 import datetime
 import pickle
 import datetime
+import random
+
 from fuzzywuzzy import process
 
 EST_PJ = 6
@@ -162,7 +164,6 @@ class Intrigue:
     def addToErrorLog(self, text):
         self.errorLog += text + "\n"
 
-
     # vérifier que le personnge que l'on souhaite associer à un rôle n'est pas déjà associé à un autre rôle
     # dans la même intrigue
     # Si c'est le cas :
@@ -179,8 +180,8 @@ class Intrigue:
                 # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au sein d'une mêm intrigue
 
                 texteErreur = f"Erreur Association role > PJ : " \
-                          f"{roleAAssocier.nom} > {personnage.nom}, " \
-                          f"déjà associé au rôle {role.nom} dans {self.nom}"
+                              f"{roleAAssocier.nom} > {personnage.nom}, " \
+                              f"déjà associé au rôle {role.nom} dans {self.nom}"
                 self.addToErrorLog(texteErreur)
 
                 if verbal:  # et si on a demandé à ce que la fonction raconte sa vie, on détaille
@@ -222,6 +223,10 @@ class Intrigue:
         # print(f"intrigue effacée {self.nom}")
         self.errorLog = ''
 
+    def getScenesTriees(self):
+        return sorted(self.scenes, key=lambda scene: scene.getLongdigitsDate(), reverse=True)
+
+
 # relations
 class Relation:
     def __init__(self, perso1, perso2, description="Relation à définir"):
@@ -244,7 +249,7 @@ class Scene:
     def __init__(self, intrigue, titre, date="0", pitch="Pas de description simple", description="Description complète",
                  actif=True, resume="", niveau=3):
         self.intrigue = intrigue
-        self.date = date # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
+        self.date = date  # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
         # l'évènement
         self.titre = titre
         self.pitch = pitch
@@ -260,10 +265,16 @@ class Scene:
         return self.date
 
     def getLongdigitsDate(self, size=30):
+        # print(f"date : {self.date}")
         if type(self.date) == float or type(self.date) == int or str(self.date[1:]).isnumeric():
-            return "0"*(size-len(str(self.date * -1))) + str(self.date * -1)
+            # print(f"date est numérique")
+
+            refdate = str(int(self.date))[1:] + str(
+                random.randint(1000, 9999))  # permet d'éviter les évènements qui ont la meme date
+            return "0" * (size - len(str(refdate))) + str(refdate)
         else:
-            return str(self.date) + "0"*(size-len(str(self.date)))
+            # print(f"date n'est pas numérique")
+            return str(self.date) + "0" * (size - len(str(self.date)))
 
     def getFormattedDate(self):
         # print("date/type > {0}/{1}".format(self.date, type(self.date)))
@@ -381,10 +392,12 @@ class GN:
                 if estUnPNJ(role.pj):
                     score = process.extractOne(role.nom, nomsPnjs)
                     # role.perso = self.listePnjs[score[0]]
+                    # print(
+                    #     f"je m'appête à associer PNJ {role.nom}, identifié comme {score} à {self.dictPNJs[score[0]]} (taille du dictionnaire PNJ = {len(self.dictPNJs)}")
                     intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.dictPNJs[score[0]])
                     if score[1] < seuilAlerte:
-                        texteErreur =f"Warning association ({score[1]}) " \
-                                     f"- nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}"
+                        texteErreur = f"Warning association ({score[1]}) " \
+                                      f"- nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}"
                         intrigue.addToErrorLog(texteErreur)
                         if verbal:
                             print(texteErreur)
@@ -411,7 +424,6 @@ class GN:
                         if verbal:
                             # print(f"je paaaaaarle {score[1]}")
                             print(texteErreur)
-
 
         print("Fin de l'association automatique des rôles aux persos")
 
@@ -443,6 +455,30 @@ class GN:
         for intrigue in self.intrigues.values():
             for role in intrigue.roles.values():
                 role.perso = None
+
+    def forcerImportPersos(self, nomsPersos, suffixe="_imported"):
+        print("début de l'ajout des personnages sans fiche")
+        nomsLus = [x.nom for x in self.dictPJs.values()]
+        # pour chaque perso de ma liste :
+        # SI son nom est dans les persos > ne rien faire
+        # SINON, lui créer une coquille vide
+        persosSansCorrespondance = []
+        for perso in nomsPersos:
+            if perso in nomsLus:
+                print(f"le personnage {perso} a une correspondance dans les persos déjà présents")
+            else:
+                # persosSansCorrespondance.append(
+                #     [perso,
+                #      process.extractOne(perso, nomsLus)[0],
+                #      process.extractOne(perso, nomsLus)[1]])
+                scoreproche = process.extractOne(perso, nomsLus)
+                if scoreproche is not None and scoreproche[1] >= 75:
+                    print(f"{perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
+                    # donc on ne fait rien
+                else:
+                    print(f"{perso} a été créé (coquille vide)")
+                    self.dictPJs[perso + suffixe] = Personnage(nom=perso,
+                                                     pj=EST_PJ)  # on met son nom en clef pour se souvenir qu'il a été généré
 
 
 # objets

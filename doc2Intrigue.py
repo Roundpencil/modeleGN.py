@@ -445,9 +445,10 @@ def calculerJoursIlYA(baliseDate):
     else:
         jours = jours.group(0)[:-1]
 
+    # print(f"{maDate} > ans/jours/mois = {ans}/{mois}/{jours}")
+
     dateEnJours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(jours))
     return dateEnJours
-    # # print(f"{maDate} > ans/jours/mois = {ans}/{mois}/{jours}")
     # # print(str(-1 * (float(ans) * 365 + float(mois) * 30.5 + float(jours))))
     # if str(ans).isnumeric() and str(mois).isnumeric() and str(jours).isnumeric():
     #     nbJours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(jours))
@@ -498,5 +499,5 @@ def calculerJoursIlYA(baliseDate):
     #     return 0
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
