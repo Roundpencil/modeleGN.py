@@ -49,32 +49,31 @@ nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran
 def main():
     sys.setrecursionlimit(5000) #mis en place pour prévenir pickle de planter
 
-    rogue()
+
 
     # todo : ajouter un wanrning quand on a moins de persos dans une scene qu'il n'y en avait au début > ca veutsurement dire que le perso n'est pas dans le tableau récap// marche aussi pour le nombre de cars est trop petit
     # todo charger les relations depuis le tableau des relations
 
-    # monGN = GN(folderIntriguesID=folderid,
-    #            folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles])
-    #
-    #
-    # for pnj in nomsPNJs:
-    #     monGN.dictPNJs[pnj] = Personnage(nom=pnj, pj=EST_PNJ_HORS_JEU)
-    #
-    # # si on veut charger un fichier
-    # monGN = GN.load("archive Chalacta")
-    #
-    # apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
-    # doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
-    # doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
-    # monGN.forcerImportPersos(nomspersos)
-    # # ajouterPersosSansFiche(monGN)
-    # monGN.rebuildLinks(verbal=False)
-    # monGN.save("archive Chalacta")
-    # print("****************************")
-    # print("****************************")
-    # print("****************************")
-    # listerErreurs(monGN)
+    monGN = GN(folderIntriguesID=folderid,
+               folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles])
+
+
+    for pnj in nomsPNJs:
+        monGN.dictPNJs[pnj] = Personnage(nom=pnj, pj=EST_PNJ_HORS_JEU)
+
+    # si on veut charger un fichier
+    monGN = GN.load("archive Chalacta")
+
+    apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
+    doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    monGN.forcerImportPersos(nomspersos)
+    monGN.rebuildLinks(verbal=False)
+    monGN.save("archive Chalacta")
+    print("****************************")
+    print("****************************")
+    print("****************************")
+    listerErreurs(monGN)
     # trierScenes(monGN)
     # listerTrierPersos(monGN)
     # #écrit toutes les scènes qui sont dans le GN, sans ordre particulier
@@ -345,8 +344,12 @@ def listerTrierPersos(monGN):
 
 def listerErreurs(monGN):
     for intrigue in monGN.intrigues.values():
-        print(f"pour {intrigue.nom} : ")
-        print(intrigue.errorLog)
+        if len(intrigue.errorLog) > 1:
+            print("")
+            print("")
+            print(f"pour {intrigue.nom} : ")
+            print(intrigue.errorLog)
+            suggererTableauPersos(intrigue)
 
 
 def genererTableauIntrigues(monGN):
@@ -357,7 +360,7 @@ def genererTableauIntrigues(monGN):
         print(f"{intrigue.nom};{intrigue.orgaReferent.strip()};")
 
 
-def rogue():
+def rogue(): #utilisé pour nettoyer les tableaux de persos des grosses intrigues
     iwant = ["Nexxar", "Mina Tarkin", "Edrik", "Nexxar", "Jak", "Trevek",
              "Dio Muftak", "Osrabkosi", "Rebbanx", "Kar", "Edrik", "Wexley",
              "Veert", "Desnash", "Vert", "Zev", "Ssor","FX - 4", "Kianstef", "Dhar",
@@ -369,5 +372,26 @@ def rogue():
         # print(str(nom))
         score = process.extractOne(str(nom), nomspersos)
         print(f"{nom} > {process.extractOne(nom, nomspersos)}")
+
+def suggererTableauPersos(intrigue):
+    persosDansIntrigue = [x.perso for x in intrigue.roles.values()]
+    print("Tableau suggéré")
+    iwant = []
+    for scene in intrigue.scenes:
+        if scene.rawRoles is not None:
+            iwant += scene.rawRoles
+    iwant = [x.strip() for x in iwant]
+    iwant = set(iwant)
+    for nom in iwant:
+        # print(str(nom))
+        score = process.extractOne(str(nom), nomspersos)
+        toPrint=""
+        if score[0] in persosDansIntrigue:
+            toPrint += "[OK]"
+        else:
+            toPrint += "[XX]"
+        toPrint += f"{nom} > {process.extractOne(nom, nomspersos)}"
+        print(toPrint)
+
 
 main()

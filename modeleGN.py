@@ -265,6 +265,7 @@ class Scene:
         # 2, dans tous les personnages de l'intrigue (pour info, donc pour les autres)
         # 3 : personnages impactés uniquement
         # faut-il dire que role et personnages héritent l'un de l'autre? Ou bien d'un objet "protagoniste"?
+        self.rawRoles = None
 
     def get_date(self):
         return self.date

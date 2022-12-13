@@ -121,7 +121,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     # print("*****************************")
     currentIntrigue = Intrigue(nom=nomIntrigue, url=idUrl)
     monGN.intrigues[idUrl] = currentIntrigue
-    nomspersos = monGN.getNomsPersos()
+    # nomspersos = monGN.getNomsPersos()
 
     # on fait un dict du début de chaque label
     REFERENT = "orga référent"
@@ -193,16 +193,6 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
                             )
         currentIntrigue.roles[roleAAjouter.nom] = roleAAjouter
 
-        # fait partie de ce qu'on a rapatrié dans GN :
-        # check = currentIntrigue.associerRoleAPerso(roleAAjouter, monGN.personnages[nomNormalise[0]])
-
-        # if check == 0:  # dans ce cas, ce personnage n'était pas déjà associé à un rôle dans l'intrigue
-        #     currentIntrigue.roles[roleAAjouter.nom] = roleAAjouter
-        # else:
-        #     print("Erreur : impossible d'associer le personnage {0} au rôle {1} dans l'intrigue {2} : il est déjà "
-        #           "associé à un rôle".format(nomNormalise[0], sections[0].strip(), currentIntrigue))
-        #     # print("taille du nombre de roles dans l'intrigue {0}".format(len(currentIntrigue.roles)))
-        # # print("check pour {0} = {1}".format(roleAAjouter.nom, check))
 
     # gestion de la section PNJs
     if indexes[PNJS]["debut"] > -1:
@@ -214,8 +204,9 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
         for pnj in pnjs[1:]:  # on enlève la première ligne qui contient les titres
             # print(f"section pnj en cours de lecture : {pnj}")
             # print(f"taille = {len(pnj)}")
-            if len(pnj) < 18:
+            if len(pnj) < 14:
                 # dans ce cas, c'est une ligne vide
+                # print(f"pnj {pnj}  est vide")
                 continue
             sections = pnj.split("###")
             # 0 Nom duPNJ et / ou fonction :
@@ -249,6 +240,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
 
     # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de reférence des noms dans l'intrigue
     nomsRoles = currentIntrigue.getNomsRoles()
+    # print(f"pour {currentIntrigue.nom}, nomsRoles =  {nomsRoles}") #todo vérifier que les PNJs sortent bien dan la 27
 
     # gestion de la section Rerolls
     if indexes[REROLLS]["debut"] > -1:
@@ -343,6 +335,10 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
                 elif balise[0:10].lower() == '## resumé:':
                     sceneAAjouter.resume = balise[11:].strip()
 
+
+                elif balise[0:10].lower() == '## resumé:':
+                    sceneAAjouter.resume = balise[11:].strip()
+
                 else:
                     print("balise inconnue : " + balise + " dans l'intrigue " + nomIntrigue)
 
@@ -370,6 +366,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
 
 def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verbal=True, seuil=80):
     roles = listeNoms.split(",")
+    sceneAAjouter.rawRoles = roles
     # print("rôles trouvés en lecture brute : " + str(roles))
 
     # dans ce cas, on prend les noms du tableau, qui fon fois, et on s'en sert pour identifier
@@ -379,7 +376,7 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verba
         score = process.extractOne(nomRole.strip(), nomsRoles)
         # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nomRole.strip(), currentIntrigue.nom, score))
 
-        # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'tes peut etre trompé de perso
+        # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'est peut-être trompé de perso!
         if score is not None:
             if score[1] < seuil:
                 warningText = f"Warning association Scene ({score[1]}) - nom dans scène : {nomRole} > Role : {score[0]} dans {currentIntrigue.nom}/{sceneAAjouter.titre}"
