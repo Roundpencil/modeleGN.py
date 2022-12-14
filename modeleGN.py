@@ -312,7 +312,7 @@ class Scene:
             return dateTexte[0:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
 
         else:
-            print("la date <{0}> n'est pas un nombre".format(self.date))
+            # print("la date <{0}> n'est pas un nombre".format(self.date))
             return self.date
 
     def addRole(self, role):
@@ -322,7 +322,7 @@ class Scene:
         toReturn = ""
 
         toReturn += f"titre scène : {self.titre} \n"
-        toReturn += f"date  : {self.getFormattedDate()} - {self.getLongdigitsDate()}\n"
+        toReturn += f"date  : {self.getFormattedDate()} \n" # - {self.getLongdigitsDate()}\n"
         strRolesPersos = 'Roles (Perso) : '
         for role in self.roles:
             if role.perso is None:
@@ -332,8 +332,8 @@ class Scene:
         toReturn += f"roles  : {strRolesPersos} \n"
         toReturn += f"intrigue : {self.intrigue.nom} \n"
         toReturn += f"pitch  : {self.pitch} \n"
-        toReturn += f"description : {self.description} \n"
-        toReturn += f"actif  : {self.actif} \n"
+        toReturn += f"description : \n {self.description} \n"
+        # toReturn += f"actif  : {self.actif} \n"
         return toReturn
 
     @staticmethod
@@ -345,7 +345,7 @@ class Scene:
 
 class GN:
     def __init__(self, folderIntriguesID, folderPJID):
-        self.dictPJs = {}  # nom, personnage
+        self.dictPJs = {}  # idgoogle, personnage
         self.dictPNJs = {}  # nom, personnage
         self.intrigues = dict()  # clef : id google
         self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN

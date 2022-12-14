@@ -40,7 +40,7 @@ nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran
             'Rebelle 2', 'Nosfran ?', 'O-MR1', 'Katleen Clawool', 'Varina Leech', 'Kalie Hess (Décédée)',
             'Boba Fett (ou un mandalorien bien badass de l’enfer)', 'OMR-1', 'Lieira Sonn', 'esclave 1',
             'Bossk (ou un trando qui le représente)', 'Soontir Fel', 'FX4', 'Trerlil Irgann',
-            'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère', 'Shaani']
+            'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère', 'Shaani', 'Dhar']
 
 
 
@@ -52,6 +52,7 @@ def main():
 
 
     # todo charger les relations depuis le tableau des relations
+    #trouver comment remplacer les vt par des \n
 
     monGN = GN(folderIntriguesID=folderid,
                folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles])
@@ -72,7 +73,7 @@ def main():
     print("****************************")
     print("****************************")
     print("****************************")
-    listerErreurs(monGN)
+    # listerErreurs(monGN)
     # trierScenes(monGN)
     # listerTrierPersos(monGN)
     # #écrit toutes les scènes qui sont dans le GN, sans ordre particulier
@@ -81,8 +82,8 @@ def main():
     ## pour avoir tous les objets du jeu :
     # generecsvobjets(monGN)
 
-    # squelettePerso(monGN, "Kyle Talus")
-    # listerRolesPerso(monGN, "Kyle Talus")
+    squelettePerso(monGN, "Kyle Talus")
+    listerRolesPerso(monGN, "Kyle Talus")
     # listerPNJs(monGN)
     # genererCsvPNJs(monGN)
     # genererCsvObjets(monGN)
@@ -173,21 +174,41 @@ def listerDatesIntrigues(monGN):
 
 def listerRolesPerso(monGN, nomPerso):
     nomPerso = process.extractOne(nomPerso, nomspersos)[0]
-    for role in monGN.dictPJs[nomPerso].roles:
-        print("Role : {0}".format(role))
+    for perso in monGN.dictPJs.values():
+        if perso.nom == nomPerso:
+            # print(f"{nomPerso} trouvé")
+            for role in perso.roles:
+                print(role)
+            break
 
 
 def squelettePerso(monGN, nomPerso):
-    mesScenes = dict()
-    nomPerso = process.extractOne(nomPerso, nomspersos)[0]
-    for role in monGN.dictPJs[nomPerso].roles:
-        for scene in role.scenes:
-            mesScenes[str(scene.getLongdigitsDate())] = scene
+    # mesScenes = dict()
+    # nomPerso = process.extractOne(nomPerso, nomspersos)[0]
+    # for role in monGN.dictPJs[nomPerso].roles:
+    #     for scene in role.scenes:
+    #         mesScenes[str(scene.getLongdigitsDate())] = scene
+    #
+    # for key in sorted([str(x) for x in mesScenes.keys()], reverse=True):
+    #     print(
+    #         f"date : {mesScenes[key].getFormattedDate()} ({mesScenes[key].date}) : {mesScenes[key].titre} dans {mesScenes[key].intrigue.nom}")
+    #     print(f"{mesScenes[key].description}")
 
-    for key in sorted([str(x) for x in mesScenes.keys()], reverse=True):
-        print(
-            f"date : {mesScenes[key].getFormattedDate()} ({mesScenes[key].date}) : {mesScenes[key].titre} dans {mesScenes[key].intrigue.nom}")
-        print(f"{mesScenes[key].description}")
+    mesScenes = []
+    nomPerso = process.extractOne(nomPerso, nomspersos)[0]
+    for perso in monGN.dictPJs.values():
+        if perso.nom == nomPerso:
+            # print(f"{nomPerso} trouvé")
+            for role in perso.roles:
+                for scene in role.scenes:
+                    # print(f"{scene.titre} trouvée")
+                    mesScenes.append(scene)
+            break
+
+    # print(f"{nomPerso} trouvé")
+    mesScenes = Scene.trierScenes(mesScenes)
+    for scene in mesScenes:
+        print(scene)
 
 
 def listerPNJs(monGN):
@@ -326,10 +347,12 @@ def trierScenes(monGN):
     #         print(s)
 
     for intrigue in monGN.intrigues.values():
+        print()
+        print()
         print(f"intrigue {intrigue.nom} : ")
         triee = intrigue.getScenesTriees()
         for scene in triee:
-            print(scene.getFormattedDate())
+            print(scene)
 
 
 

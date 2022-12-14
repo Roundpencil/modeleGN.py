@@ -235,7 +235,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
 
     # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de reférence des noms dans l'intrigue
     nomsRoles = currentIntrigue.getNomsRoles()
-    # print(f"pour {currentIntrigue.nom}, nomsRoles =  {nomsRoles}") #todo vérifier que les PNJs sortent bien dan la 27
+    # print(f"pour {currentIntrigue.nom}, nomsRoles =  {nomsRoles}")
 
     # gestion de la section Rerolls
     if indexes[REROLLS]["debut"] > -1:
