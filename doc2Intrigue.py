@@ -17,11 +17,8 @@ from googleapiclient.errors import HttpError
 from fuzzywuzzy import process
 
 
-
 def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
-
     items = lecteurGoogle.genererListeItems(monGN, apiDrive=apiDrive, folderID=monGN.folderIntriguesID)
-
 
     if not items:
         print('No files found.')
@@ -114,7 +111,6 @@ def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
             # return #ajouté pour débugger
 
 
-
 def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue)
@@ -192,7 +188,6 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
                             niveauImplication=sections[1].strip()
                             )
         currentIntrigue.roles[roleAAjouter.nom] = roleAAjouter
-
 
     # gestion de la section PNJs
     if indexes[PNJS]["debut"] > -1:
@@ -329,14 +324,10 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
                 elif balise[0:11].lower() == '## niveau :':
                     sceneAAjouter.niveau = balise[12:].strip()
 
-                elif balise[0:11].lower() == '## resumé :':
+                elif balise[0:11].lower() == '## résumé :':
                     sceneAAjouter.resume = balise[12:].strip()
 
-                elif balise[0:10].lower() == '## resumé:':
-                    sceneAAjouter.resume = balise[11:].strip()
-
-
-                elif balise[0:10].lower() == '## resumé:':
+                elif balise[0:10].lower() == '## résumé:':
                     sceneAAjouter.resume = balise[11:].strip()
 
                 else:
@@ -362,8 +353,6 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     return currentIntrigue
 
 
-
-
 def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verbal=True, seuil=80):
     roles = listeNoms.split(",")
     sceneAAjouter.rawRoles = roles
@@ -372,6 +361,8 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verba
     # dans ce cas, on prend les noms du tableau, qui fon fois, et on s'en sert pour identifier
     # les noms de la scène
     for nomRole in roles:
+        if len(nomRole) < 2:
+            continue
         # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
         score = process.extractOne(nomRole.strip(), nomsRoles)
         # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nomRole.strip(), currentIntrigue.nom, score))
@@ -384,7 +375,6 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verba
                 if verbal:
                     print(warningText)
 
-
             # trouver le rôle à ajouter à la scène en lisant l'intrigue
             monRole = currentIntrigue.roles[score[0]]
             monRole.ajouterAScene(sceneAAjouter)
@@ -393,8 +383,6 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verba
 
 
 def extraireDateScene(baliseDate, sceneAAjouter):
-
-
     # réécrite pour merger les fontions il y a et quand :
 
     # est-ce que la date est écrite au format quand ? il y a ?
@@ -454,8 +442,6 @@ def calculerJoursIlYA(baliseDate):
     #     print(f"{baliseDate} n'est pas une date formatée")
     #     return 0
 
-
-
     # maDate = baliseDate
     # print(f"ma date avant stripping : {maDate}")
     # print(baliseDate.strip().lower()[0:6])
@@ -493,7 +479,6 @@ def calculerJoursIlYA(baliseDate):
     # else:
     #     print(f"{baliseDate} n'est pas une date formatée")
     #     return 0
-
 
 # if __name__ == '__main__':
 #     main()

@@ -28,13 +28,13 @@ nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran
             'Jaarush Adan', 'L’inquisiteur', 'Clawool', 'Yerraz', 'Droïdes mercenaires',
             'Quay Tolsite, agent des Pykes', 'FX-4', 'Oskrabkosi', 'Loomis Xent', 'Katlyn Clawwool', 'Tranche mitaines',
             'Rebelle 1',
-            'Boh Pragg chef de gare Kel dor Et Teezk un esclave rodien issu de la purge du cartel Rodien par Tagge',
+            'Boh Pragg chef de gare Kel dor','Teezk un esclave rodien issu de la purge du cartel Rodien par Tagge',
             'Nekma', 'Katlyn Clawool', 'Benjey Doroat', 'Droïde syndiqué', 'Seerdo', 'Sid Kashan', 'Nosfran Ratspik',
             'Membres du J.A.N', 'Caleadr Schlon', 'Zuckuss (ou Boush, ou une autre star)', 'B2B', 'Haaris',
             'Le fils de Kalitt', 'Trewek', 'Revos Vannak', 'Inquisiteurice', 'Varima', 'Eliana Zorn', 'Zev Jessk',
             'Katlyn Clawool', 'Mohadarr Bodfre', 'Ex esclave', 'Inquisiteur', 'XXXX Rhylee', 'Rak Stryn  le mandalo',
             'Yerraz le go faster', 'Apprenti de l’Inquisiteur', 'Témoin X', 'XXX Geska (frère de wirt)',
-            'Fraterr Millbra', 'Izzik Walo’s', 'Katlyn Clawool', 'Rosson & Yorshill', 'Rebelle 3', 'Drashk',
+            'Fraterr Millbra', 'Izzik Walo’s', 'Katlyn Clawool', 'Rosson', 'Yorshill', 'Rebelle 3', 'Drashk',
             'Baron Soontir Fel', 'esclave porcher, sbire de Hogg', 'Osrabkosi', '5ème frère',
             'La mère (Suwan) et la soeur (Ilanni) de Lexi', 'Darsha Viel', 'Jarus Adams (star tour)', 'Muic Wula',
             'Rebelle 2', 'Nosfran ?', 'O-MR1', 'Katleen Clawool', 'Varina Leech', 'Kalie Hess (Décédée)',
@@ -51,7 +51,6 @@ def main():
 
 
 
-    # todo : ajouter un wanrning quand on a moins de persos dans une scene qu'il n'y en avait au début > ca veutsurement dire que le perso n'est pas dans le tableau récap// marche aussi pour le nombre de cars est trop petit
     # todo charger les relations depuis le tableau des relations
 
     monGN = GN(folderIntriguesID=folderid,

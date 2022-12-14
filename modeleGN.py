@@ -119,7 +119,7 @@ class Role:
         toReturn = ""
         toReturn += "intrigue : " + self.intrigue.nom + "\n"
         toReturn += "nom dans l'intrigue : " + self.nom + "\n"
-        if self.perso == None:
+        if self.perso is None:
             toReturn += "perso : aucun" + "\n"
         else:
             toReturn += "perso : " + self.perso.nom + "\n"
@@ -181,7 +181,7 @@ class Intrigue:
         # pour chaque rôle qui fait partie des rôles de l'intrigue
         for role in self.roles.values():
             # si le personnage que l'on souhaite associer au rôle est déjà associé à un rôle dans l'intrigue
-            if role.perso == personnage:
+            if role.perso is personnage:
                 # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au sein d'une mêm intrigue
 
                 texteErreur = f"Erreur Association role > PJ : " \
@@ -217,14 +217,17 @@ class Intrigue:
             if role.perso is not None:
                 role.perso.roles.remove(role)
                 del role
+        # self.roles.clear()
 
         # se séparer de tous les objets
         for objet in self.objets:
             objet.inIntrigues.remove(self)
+        # self.objets.clear()
 
         # effacer toutes les scènes de l'intrigue
         for scene in self.scenes:
             del scene
+        # self.scenes.clear()
         # print(f"intrigue effacée {self.nom}")
         self.errorLog = ''
 
@@ -240,10 +243,10 @@ class Relation:
         self.description = description
 
     def partenaire(self, perso):
-        if perso == self.perso1:
+        if perso is self.perso1:
             return self.perso2
 
-        if perso == self.perso2:
+        if perso is self.perso2:
             return self.perso1
 
         raise Exception("Personnage inconnu dans cette relation")
