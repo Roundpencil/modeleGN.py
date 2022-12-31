@@ -113,7 +113,8 @@ def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
 
 def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     # print("texte intrigue en entrée : ")
-    # print(texteIntrigue)
+    # print(texteIntrigue.replace('\v', '\n'))
+    texteIntrigue = texteIntrigue.replace('\v', '\n') #todo : voir s'il faut le remonter, ou bien le remettre pour perso
     # print("*****************************")
     currentIntrigue = Intrigue(nom=nomIntrigue, url=idUrl)
     monGN.intrigues[idUrl] = currentIntrigue
@@ -403,82 +404,56 @@ def extraireIlYAScene(baliseDate, sceneAAjouter):
 
 
 def calculerJoursIlYA(baliseDate):
-    maDate = baliseDate
-    # print(f"ma date avant stripping : {maDate}")
-    # print(baliseDate.strip().lower()[0:6])
-    # #si il y a un "il y a" dans la balise, il faut le virer
-    # if baliseDate.strip().lower()[0:6] == 'il y a':
-    #     maDate = baliseDate[7:]
-    # print(f"ma date après stripping : {baliseDate} > {maDate}")
+    baliseDate = baliseDate.lower()
+    try:
+        maDate = baliseDate
+        # print(f"ma date avant stripping : {maDate}")
+        # print(baliseDate.strip().lower()[0:6])
+        # #si il y a un "il y a" dans la balise, il faut le virer
+        # if baliseDate.strip().lower()[0:6] == 'il y a':
+        #     maDate = baliseDate[7:]
+        # print(f"ma date après stripping : {baliseDate} > {maDate}")
 
-    ans = re.search(r"\d*\s*a", maDate)
-    if ans is None:
-        ans = 0
-    else:
-        ans = ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
-    # trouver s'il y a un nombres* m[ois]
-    mois = re.search('\d*\s*m', maDate)
-    if mois is None:
-        mois = 0
-    else:
-        mois = mois.group(0)[:-1]
-    # trouver s'il y a un nombres* j[ours]
-    jours = re.search('\d*\s*j', maDate)
-    if jours is None:
-        jours = 0
-    else:
-        jours = jours.group(0)[:-1]
+        ans = re.search(r"\d+\s*a", maDate)
 
-    # print(f"{maDate} > ans/jours/mois = {ans}/{mois}/{jours}")
+        # trouver s'il y a un nombres* m[ois]
+        mois = re.search('\d+\s*m', maDate)
 
-    dateEnJours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(jours))
-    return dateEnJours
-    # # print(str(-1 * (float(ans) * 365 + float(mois) * 30.5 + float(jours))))
-    # if str(ans).isnumeric() and str(mois).isnumeric() and str(jours).isnumeric():
-    #     nbJours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(jours))
-    #     print(f"{baliseDate} est une date formatée = ans/jours/mois = {ans}/{mois}/{jours} > {nbJours}")
-    #     return nbJours
-    # else:
-    #     print(f"{baliseDate} n'est pas une date formatée")
-    #     return 0
+        # trouver s'il y a un nombres* s[emaines]
+        semaines = re.search('\d+\s*s', maDate)
 
-    # maDate = baliseDate
-    # print(f"ma date avant stripping : {maDate}")
-    # print(baliseDate.strip().lower()[0:6])
-    # #si il y a un "il y a" dans la balise, il faut le virer
-    # if baliseDate.strip().lower()[0:6] == 'il y a':
-    #     maDate = baliseDate[7:]
-    # print(f"ma date après stripping : {baliseDate} > {maDate}")
-    #
-    # ans = re.search(r"\d*\s*a", maDate)
-    # if ans is None:
-    #     ans = 0
-    # else:
-    #     ans = ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
-    # # trouver s'il y a un nombres* m[ois]
-    # mois = re.search('\d*\s*m', maDate)
-    # if mois is None:
-    #     mois = 0
-    # else:
-    #     mois = mois.group(0)[:-1]
-    # # trouver s'il y a un nombres* j[ours]
-    # jours = re.search('\d*\s*j', maDate)
-    # if jours is None:
-    #     jours = 0
-    # else:
-    #     jours = jours.group(0)[:-1]
-    #
-    # # dateEnJours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(jours))
-    # # return dateEnJours
-    # # print(f"{maDate} > ans/jours/mois = {ans}/{mois}/{jours}")
-    # # print(str(-1 * (float(ans) * 365 + float(mois) * 30.5 + float(jours))))
-    # if str(ans).isnumeric() and str(mois).isnumeric() and str(jours).isnumeric():
-    #     nbJours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(jours))
-    #     print(f"{baliseDate} est une date formatée = ans/jours/mois = {ans}/{mois}/{jours} > {nbJours}")
-    #     return nbJours
-    # else:
-    #     print(f"{baliseDate} n'est pas une date formatée")
-    #     return 0
+        # trouver s'il y a un nombres* j[ours]
+        jours = re.search('\d+\s*j', maDate)
+
+        # print(f"{baliseDate} =  {ans} ans/ {jours} jours/ {mois} mois/ {semaines} semaines")
+
+        #travailler ce qu'on a trouvé comme valeurs
+        if ans is None:
+            ans = 0
+        else:
+            ans = ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
+
+        if mois is None:
+            mois = 0
+        else:
+            mois = mois.group(0)[:-1]
+
+        if semaines is None:
+            semaines = 0
+        else:
+            semaines = semaines.group(0)[:-1]
+        if jours is None:
+            jours = 0
+        else:
+            jours = jours.group(0)[:-1]
+
+        # print(f"{maDate} > ans/jours/mois = {ans}/{mois}/{jours}")
+
+        dateEnJours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(semaines) * 7 + float(jours))
+        return dateEnJours
+    except ValueError:
+        print(f"Erreur avec la date {baliseDate}")
+        return baliseDate.strip()
 
 # if __name__ == '__main__':
 #     main()

@@ -69,11 +69,29 @@ def main():
     doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
     monGN.forcerImportPersos(nomspersos)
     monGN.rebuildLinks(verbal=False)
-    monGN.save("archive Chalacta")
+    #todo  :ajouter une gestion des factions :
+    # un doc avec les factions : ### nom faction / ## pj :/ ## PNJS
+    # et un objet faction qui permet de les gérer
+    # et une chaine qui permet de lister les factrions qu'on veur ass=ocier dans les intrigues, luées depuis les scènes
+
+    # todo ajouter un attribut forcé/importé dans les persos pour faciliter le nettoyage et éviter les persos non
+    #  importés
+
+    # monGN.save("archive Chalacta")
     print("****************************")
     print("****************************")
     print("****************************")
-    # listerErreurs(monGN)
+
+    print("*********toutesleserreurs*******************")
+    # listerErreurs(monGN, -1)
+
+    print("*********touslesquelettes*******************")
+    tousLesSquelettesPerso(monGN)
+
+    print("*******dumpallscenes*********************")
+    # dumpAllScenes(monGN)
+
+
     # trierScenes(monGN)
     # listerTrierPersos(monGN)
     # #écrit toutes les scènes qui sont dans le GN, sans ordre particulier
@@ -82,8 +100,8 @@ def main():
     ## pour avoir tous les objets du jeu :
     # generecsvobjets(monGN)
 
-    squelettePerso(monGN, "Kyle Talus")
-    listerRolesPerso(monGN, "Kyle Talus")
+    # squelettePerso(monGN, "Kyle Talus")
+    # listerRolesPerso(monGN, "Greeta")
     # listerPNJs(monGN)
     # genererCsvPNJs(monGN)
     # genererCsvObjets(monGN)
@@ -103,7 +121,7 @@ def main():
     # afficherDatesScenes(monGN)
     # genererCsvOrgaIntrigue(monGN)
     # listerLesRoles(monGN)
-    # del monGN.intrigues['1gf3VUIophPUIgu6EPmubO0kPiOwAx9-3DacvVEfAgiw']
+
     # listerDatesIntrigues(monGN)
 
     ## test de la fonction d'effaçage'
@@ -117,6 +135,7 @@ def main():
     # #test de la focntion de lecture des PJs
     # dumpPersosLus(monGN)
     # dumpSortedPersos(monGN)
+
     # genererTableauIntrigues(monGN)
 
 
@@ -180,6 +199,31 @@ def listerRolesPerso(monGN, nomPerso):
             for role in perso.roles:
                 print(role)
             break
+
+
+def tousLesSquelettesPerso(monGN):
+    toutesScenes = ""
+    for perso in monGN.dictPJs.values():
+        toutesScenes += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
+        mesScenes = []
+        for role in perso.roles:
+            for scene in role.scenes:
+                # print(f"{scene.titre} trouvée")
+                mesScenes.append(scene)
+
+        # print(f"{nomPerso} trouvé")
+        mesScenes = Scene.trierScenes(mesScenes)
+        for scene in mesScenes:
+            # print(scene)
+            toutesScenes += str(scene) + '\n'
+        toutesScenes += '****************************************************** \n'
+
+        # print('****************************************************** \n')
+    print(toutesScenes)
+    with open('2022-12-31.txt', 'w', encoding="utf-8") as f:
+        f.write(toutesScenes)
+        f.close()
+
 
 
 def squelettePerso(monGN, nomPerso):
@@ -364,9 +408,9 @@ def listerTrierPersos(monGN):
     for pj in touspj:
         print(pj)
 
-def listerErreurs(monGN):
+def listerErreurs(monGN, tailleMinLog = 1):
     for intrigue in monGN.intrigues.values():
-        if len(intrigue.errorLog) > 1:
+        if len(intrigue.errorLog) > tailleMinLog:
             print("")
             print("")
             print(f"pour {intrigue.nom} : ")
@@ -398,16 +442,19 @@ def rogue(): #utilisé pour nettoyer les tableaux de persos des grosses intrigue
 def suggererTableauPersos(intrigue):
     persosDansIntrigue = [x.perso for x in intrigue.roles.values()]
     print("Tableau suggéré")
+    #créer un set de tous les rôles de chaque scène de l'intrigue
     iwant = []
     for scene in intrigue.scenes:
         if scene.rawRoles is not None:
             iwant += scene.rawRoles
     iwant = [x.strip() for x in iwant]
     iwant = set(iwant)
+
+    #pour chaque nom dans une scène, trouver le perso correspondant
     for nom in iwant:
         # print(str(nom))
         score = process.extractOne(str(nom), nomspersos)
-        toPrint=""
+        toPrint = ""
         if score[0] in persosDansIntrigue:
             toPrint += "[OK]"
         else:
@@ -415,5 +462,14 @@ def suggererTableauPersos(intrigue):
         toPrint += f"{nom} > {process.extractOne(nom, nomspersos)}"
         print(toPrint)
 
+    # rolesSansScenes = []
+    # for role in intrigue.roles.values():
+    #     if len(role.scenes()) < 1:
+    #         rolesSansScenes.append(role)
+    #
+    # if len(rolesSansScenes) > 0:
+    #     print("Roles sans Scènes : ")
+    #     for role in rolesSansScenes:
+    #         print(role.nom)
 
 main()

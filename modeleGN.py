@@ -166,8 +166,18 @@ class Intrigue:
     def __str__(self):
         return self.nom
 
+    def getErrorLog(self):
+        return self.errorLog
+
     def addToErrorLog(self, text):
         self.errorLog += text + "\n"
+        # une erreur :
+        # un endroit ou c'est détecté : tableau des intrigues, rôles, personnages
+
+
+    def clearErrorLog(self):
+        self.errorLog = ""
+
 
     # vérifier que le personnge que l'on souhaite associer à un rôle n'est pas déjà associé à un autre rôle
     # dans la même intrigue
@@ -331,8 +341,11 @@ class Scene:
                 strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
         toReturn += f"roles  : {strRolesPersos} \n"
         toReturn += f"intrigue : {self.intrigue.nom} \n"
-        toReturn += f"pitch  : {self.pitch} \n"
-        toReturn += f"description : \n {self.description} \n"
+        toReturn += f"url intrigue : {self.intrigue.getFullUrl()} \n"
+        # toReturn += f"pitch  : {self.pitch} \n"
+        # toReturn += f"description : \n {self.description} \n"
+        toReturn += f"\n {self.description} \n"
+
         # toReturn += f"actif  : {self.actif} \n"
         return toReturn
 
@@ -465,6 +478,9 @@ class GN:
             pnj.roles.clear()
 
         for intrigue in self.intrigues.values():
+            # intrigue.clearErrorLog()
+            # todo ne nettoyer que les erreurs générées par l'association...
+            #  quand on aura un objet erreur :)
             for role in intrigue.roles.values():
                 role.perso = None
 
