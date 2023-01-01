@@ -16,99 +16,187 @@ from googleapiclient.errors import HttpError
 
 from fuzzywuzzy import process
 
+def extraireIntrigue(monGN, apiDrive, apiDoc, singletest="-01"):
+    extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extraireIntrigueDeTexte, singletest)
+    #todo : une fois la focntion d'accélération écrite, mettre les persos dans la même fonction
+    #todo : ajouter une lecture de scène dans les persos "scenes"
+    # et créer un objet parent "conteneur de scène" dont héritent tout le monde
 
-def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
+
+def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, singletest="-01", ):
     items = lecteurGoogle.genererListeItems(monGN, apiDrive=apiDrive, folderID=monGN.folderIntriguesID)
 
     if not items:
         print('No files found.')
         return
 
-    for item in items:
-        try:
-            # print ("poung")
+    if int(singletest) > 0:
+        for item in items:
+            try:
+                # print ("poung")
 
-            # print ("ping")
-            # Retrieve the documents contents from the Docs service.
-            document = apiDoc.documents().get(documentId=item['id']).execute()
+                # print ("ping")
+                # Retrieve the documents contents from the Docs service.
+                document = apiDoc.documents().get(documentId=item['id']).execute()
 
-            print('Titre document : {}'.format(document.get('title')))
-            # print(document.get('title')[0:2])
-
-            if not document.get('title')[0:2].isdigit():
-                # print("... n'est pas une intrigue")
-                continue
-
-            # print("... est une intrigue !")
-
-            # si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
-            if int(singletest) > 0:
-                # Alors on se demande si c'est la bonne
+                # Alors on se demande si c'est le bon doc
                 if document.get('title')[0:2] != str(singletest):  # numéro de l'intrigue
                     # si ce n'est pas la bonne, pas la peine d'aller plus loin
                     continue
                 else:
                     print("intrigue {0} trouvée".format(singletest))
+                    if item['id'] in monGN.intrigues.keys():
+                        monGN.intrigues[item['id']].clear()
+                        del monGN.intrigues[item['id']]
+                    extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLastChange=False)
+            except HttpError as err:
+                print(f'An error occurred: {err}')
+                # return #ajouté pour débugger
 
-            # du coup on traite
+    else:
+        for item in items:
+            try:
+                # print ("poung")
 
-            # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
-            #   SI l'intrigue existe dans le GN ?
-            if item['id'] in monGN.intrigues.keys():
-                #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
-                # print("l'intrigue fait déjà partie du GN ! ")
-                # print(f"Variable / type : monGN.intrigues[item['id']].lastChange / {type(monGN.intrigues[item['id']].lastChange)} / {monGN.intrigues[item['id']].lastChange}")
-                # print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} / {item['modifiedTime']}")
+                # print ("ping")
+                # Retrieve the documents contents from the Docs service.
+                document = apiDoc.documents().get(documentId=item['id']).execute()
 
-                # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
-                if monGN.intrigues[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5],
-                                                                                        '%Y-%m-%dT%H:%M:%S'):
-                    print("et elle n'a pas changé depuis le dernier passage")
-                    # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
-                    # si c'était la plus vieille du GN, pas la peine de continuer
-                    if monGN.oldestUpdatedIntrigue == item['id']:
-                        print("et d'ailleurs c'était la plus vieille > j'ai fini !")
+                print('Titre document : {}'.format(document.get('title')))
+                # print(document.get('title')[0:2])
+
+                if not document.get('title')[0:2].isdigit():
+                    # print("... n'est pas une intrigue")
+                    continue
+
+                # print("... est une intrigue !")
+
+                # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
+                #   SI l'intrigue existe dans le GN ?
+                if item['id'] in monGN.intrigues.keys():
+                    #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
+                    # print("l'intrigue fait déjà partie du GN ! ")
+                    # print(f"Variable / type : monGN.intrigues[item['id']].lastChange / {type(monGN.intrigues[item['id']].lastChange)} / {monGN.intrigues[item['id']].lastChange}")
+                    # print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} / {item['modifiedTime']}")
+
+                    # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
+                    if monGN.intrigues[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5],
+                                                                                            '%Y-%m-%dT%H:%M:%S'):
+                        print("et elle n'a pas changé depuis le dernier passage")
+                        # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
+                        # si c'était la plus vieille du GN, pas la peine de continuer
+                        ### ancienne version, remplacée par stop dès qu'on a choppé une intrigue qui n'a pas bougé
+                        # if monGN.oldestUpdatedIntrigue == item['id']:
+                        #     print("et d'ailleurs c'était la plus vieille > j'ai fini !")
+                        #     break
+                        # else:
+                        #     # sinon on passe à l'intrigue suivante (sauf si on est dans singletest)
+                        #     if int(singletest) > 0:
+                        #         print("stop !")
+                        #         # alors si on est toujours là, c'est que c'était notre intrigue
+                        #         # pas la peine d'aller plus loin
+                        #         return
+                        #     continue
                         break
+                        # on a trouvé une intrigue qui n'a pas bougé :
+                        # toutes les suivantes qu'il nous remontera seront plus anciennes
+                        # don on arrête de parcourir
                     else:
-                        # sinon on passe à l'intrigue suivante (sauf si on est dans singletest)
-                        if int(singletest) > 0:
-                            print("stop !")
-                            # alors si on est toujours là, c'est que c'était notre intrigue
-                            # pas la peine d'aller plus loin
-                            return
-                        continue
-                else:
-                    # print("elle a changé depuis mon dernier passage : supprimons-la !")
-                    # dans ce cas il faut la supprimer car on va tout réécrire
-                    monGN.intrigues[item['id']].clear()
-                    del monGN.intrigues[item['id']]
+                        # print("elle a changé depuis mon dernier passage : supprimons-la !")
+                        # dans ce cas il faut la supprimer car on va tout réécrire
+                        monGN.intrigues[item['id']].clear()
+                        del monGN.intrigues[item['id']]
+                #puis, dans tous les cas, on la crée
+                extraireObjetsDeDocument(document, item, monGN, fonctionExtraction)
 
-            # print("et du coup, il est temps de créer un nouveau fichier")
-            # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
-            contenuDocument = document.get('body').get('content')
-            text = lecteurGoogle.read_structural_elements(contenuDocument)
+            except HttpError as err:
+                print(f'An error occurred: {err}')
+                # return #ajouté pour débugger
+    #
+    # for item in items:
+    #     try:
+    #         # print ("poung")
+    #
+    #         # print ("ping")
+    #         # Retrieve the documents contents from the Docs service.
+    #         document = apiDoc.documents().get(documentId=item['id']).execute()
+    #
+    #         print('Titre document : {}'.format(document.get('title')))
+    #         # print(document.get('title')[0:2])
+    #
+    #         if not document.get('title')[0:2].isdigit():
+    #             # print("... n'est pas une intrigue")
+    #             continue
+    #
+    #         # print("... est une intrigue !")
+    #
+    #         # si contient "-01" fera toutes les intrigues, sinon seule celle qui est spécifiée
+    #         if int(singletest) > 0:
+    #
+    #
+    #         # du coup on traite
+    #
+    #         # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
+    #         #   SI l'intrigue existe dans le GN ?
+    #         if item['id'] in monGN.intrigues.keys():
+    #             #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
+    #             # print("l'intrigue fait déjà partie du GN ! ")
+    #             # print(f"Variable / type : monGN.intrigues[item['id']].lastChange / {type(monGN.intrigues[item['id']].lastChange)} / {monGN.intrigues[item['id']].lastChange}")
+    #             # print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} / {item['modifiedTime']}")
+    #
+    #             # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
+    #             if monGN.intrigues[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5],
+    #                                                                                     '%Y-%m-%dT%H:%M:%S'):
+    #                 print("et elle n'a pas changé depuis le dernier passage")
+    #                 # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
+    #                 # si c'était la plus vieille du GN, pas la peine de continuer
+    #                 if monGN.oldestUpdatedIntrigue == item['id']:
+    #                     print("et d'ailleurs c'était la plus vieille > j'ai fini !")
+    #                     break
+    #                 else:
+    #                     # sinon on passe à l'intrigue suivante (sauf si on est dans singletest)
+    #                     if int(singletest) > 0:
+    #                         print("stop !")
+    #                         # alors si on est toujours là, c'est que c'était notre intrigue
+    #                         # pas la peine d'aller plus loin
+    #                         return
+    #                     continue
+    #             else:
+    #                 # print("elle a changé depuis mon dernier passage : supprimons-la !")
+    #                 # dans ce cas il faut la supprimer car on va tout réécrire
+    #                 monGN.intrigues[item['id']].clear()
+    #                 del monGN.intrigues[item['id']]
+    #
+    #         extraireObjetsDeDocument(document, item, monGN, fonctionExtraction)
+    #
+    #         if int(singletest) > 0:
+    #             print("stop !")
+    #             # alors si on est toujours là, c'est que c'était notre intrigue
+    #             # pas la peine d'aller plus loin
+    #             return
+    #         # print("here we go again")
+    #
+    #         # return #ajouté pour débugger
+    #     except HttpError as err:
+    #         print(f'An error occurred: {err}')
+    #         # return #ajouté pour débugger
 
-            # print(text) #test de la fonction récursive pour le texte
-            monIntrigue = extraireIntrigueDeTexte(text, document.get('title'), item["id"], monGN)
-            # monIntrigue.url = item["id"]
 
-            # et on enregistre la date de dernière mise à jour de l'intrigue
-            monIntrigue.lastChange = datetime.datetime.now()
+def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLastChange=True):
+    # print("et du coup, il est temps de créer un nouveau fichier")
+    # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
+    contenuDocument = document.get('body').get('content')
+    text = lecteurGoogle.read_structural_elements(contenuDocument)
+    # print(text) #test de la fonction récursive pour le texte
+    # monIntrigue = extraireIntrigueDeTexte(text, document.get('title'), item["id"], monGN)
+    monIntrigue = fonctionExtraction(text, document.get('title'), item["id"], monGN)
+    # monIntrigue.url = item["id"]
+    # et on enregistre la date de dernière mise à jour de l'intrigue
 
-            # print(f'url intrigue = {monIntrigue.url}')
-            # print(f"intrigue {monIntrigue.nom}, date de modification : {item['modifiedTime']}")
-
-            if int(singletest) > 0:
-                print("stop !")
-                # alors si on est toujours là, c'est que c'était notre intrigue
-                # pas la peine d'aller plus loin
-                return
-            # print("here we go again")
-
-            # return #ajouté pour débugger
-        except HttpError as err:
-            print(f'An error occurred: {err}')
-            # return #ajouté pour débugger
+    if saveLastChange:
+        monIntrigue.lastChange = datetime.datetime.now()
+    # print(f'url intrigue = {monIntrigue.url}')
+    # print(f"intrigue {monIntrigue.nom}, date de modification : {item['modifiedTime']}")
 
 
 def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):

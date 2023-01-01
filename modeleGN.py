@@ -341,10 +341,14 @@ class Scene:
                 strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
         toReturn += f"roles  : {strRolesPersos} \n"
         toReturn += f"intrigue : {self.intrigue.nom} \n"
+        toReturn += f"date mise à jour intrigue : {self.intrigue.lastChange} \n"
         toReturn += f"url intrigue : {self.intrigue.getFullUrl()} \n"
         # toReturn += f"pitch  : {self.pitch} \n"
         # toReturn += f"description : \n {self.description} \n"
         toReturn += f"\n {self.description} \n"
+        #todo : tester l'extract avec les dates
+        #todo : ajouter une date de dernier impact pour les pjs au début des intrigues concernées
+        # (et des scènes, par ricochet?)
 
         # toReturn += f"actif  : {self.actif} \n"
         return toReturn

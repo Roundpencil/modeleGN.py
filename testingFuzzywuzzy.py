@@ -65,7 +65,7 @@ def main():
     monGN = GN.load("archive Chalacta")
 
     apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
-    doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    doc2Intrigue.extraireIntrigue(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
     doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
     monGN.forcerImportPersos(nomspersos)
     monGN.rebuildLinks(verbal=False)
@@ -220,10 +220,11 @@ def tousLesSquelettesPerso(monGN):
 
         # print('****************************************************** \n')
     print(toutesScenes)
-    with open('2022-12-31.txt', 'w', encoding="utf-8") as f:
+    with open('2023-01-01.txt', 'w', encoding="utf-8") as f:
         f.write(toutesScenes)
         f.close()
 
+#todo : vérifier qu'en cas de balise inconnue on ontègre bien le texte
 
 
 def squelettePerso(monGN, nomPerso):
