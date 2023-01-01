@@ -42,7 +42,7 @@ def stringTypePJ(typePJ):
 class Personnage:
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
                  sexe="i", pj=EST_PJ, orgaReferent="", pitchJoueur="", indicationsCostume="", textesAnnexes="",
-                 url="", lastChange=datetime.datetime(year=2000, month=1, day=1)):
+                 url="", lastChange=datetime.datetime(year=2000, month=1, day=1), forced=False):
         self.nom = nom
         self.concept = concept
         self.driver = driver
@@ -63,7 +63,8 @@ class Personnage:
         # : des scènes ?
         self.textesAnnexes = textesAnnexes
         self.url = url
-        self.lastChange = lastChange
+        self.lastProcessing = lastChange
+        self.forced = forced
 
     def clear(self):
         for role in self.roles:
@@ -144,8 +145,8 @@ class Role:
 class Intrigue:
 
     def __init__(self, url, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", lastChange=0,
-                 scenesEnJeu=""):
+                 questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", lastProcessing=0,
+                 scenesEnJeu="", lastFileEdit = 0):
         self.nom = nom
         self.roles = {}  # nom, rôle
         self.scenes = set()
@@ -158,7 +159,8 @@ class Intrigue:
         # self.dateModification = datetime.datetime.now() #seul usage dans le projet d'après l'inspecteur, je vire
         self.url = url
         self.timeline = timeline
-        self.lastChange = lastChange
+        self.lastProcessing = lastProcessing
+        self.lastFileEdit = lastFileEdit
         self.scenesEnJeu = scenesEnJeu
         self.objets = set()
         self.errorLog = ""
@@ -341,7 +343,7 @@ class Scene:
                 strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
         toReturn += f"roles  : {strRolesPersos} \n"
         toReturn += f"intrigue : {self.intrigue.nom} \n"
-        toReturn += f"date mise à jour intrigue : {self.intrigue.lastChange} \n"
+        toReturn += f"dernière édition de l'intrigue : {self.intrigue.lastFileEdit} \n"
         toReturn += f"url intrigue : {self.intrigue.getFullUrl()} \n"
         # toReturn += f"pitch  : {self.pitch} \n"
         # toReturn += f"description : \n {self.description} \n"
@@ -386,7 +388,7 @@ class GN:
     def updateOldestUpdate(self):
         pairesDatesIdIntrigues = dict()
         for intrigue in self.intrigues.values():
-            pairesDatesIdIntrigues[intrigue.lastChange] = intrigue.url
+            pairesDatesIdIntrigues[intrigue.lastProcessing] = intrigue.url
         if len(pairesDatesIdIntrigues) > 0:
             self.oldestUpdateIntrigue = min(pairesDatesIdIntrigues.keys())
             self.oldestUpdatedIntrigue = pairesDatesIdIntrigues[self.oldestUpdateIntrigue]
@@ -394,7 +396,7 @@ class GN:
         pairesDatesIdPJ = dict()
         for pj in self.dictPJs.values():
             # print(pj.nom)
-            pairesDatesIdPJ[pj.lastChange] = pj.url
+            pairesDatesIdPJ[pj.lastProcessing] = pj.url
         # print(pairesDatesIdPJ)
         if len(pairesDatesIdPJ) > 0:
             self.oldestUpdatePJ = min(pairesDatesIdPJ.keys())
@@ -509,7 +511,7 @@ class GN:
                 else:
                     print(f"{perso} a été créé (coquille vide)")
                     self.dictPJs[perso + suffixe] = Personnage(nom=perso,
-                                                     pj=EST_PJ)  # on met son nom en clef pour se souvenir qu'il a été généré
+                                                     pj=EST_PJ, forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
 
 
 # objets

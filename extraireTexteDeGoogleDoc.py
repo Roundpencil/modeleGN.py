@@ -18,8 +18,7 @@ from fuzzywuzzy import process
 
 def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
     extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extraireIntrigueDeTexte, monGN.intrigues, monGN.folderIntriguesID, singletest)
-    #todo : ajouter une lecture de scène dans les persos "scenes"
-    # et créer un objet parent "conteneur de scène" dont héritent tout le monde
+
 
 def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
     extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extrairePJDeTexte, monGN.dictPJs, monGN.folderPJID, singletest)
@@ -41,8 +40,10 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                 # Retrieve the documents contents from the Docs service.
                 document = apiDoc.documents().get(documentId=item['id']).execute()
 
+                print('Titre document : {}'.format(document.get('title')))
+
                 # Alors on se demande si c'est le bon doc
-                if document.get('title')[0:2] != str(singletest):  # numéro de l'intrigue
+                if document.get('title')[0:3].strip() != str(singletest):  # numéro de l'intrigue
                     # si ce n'est pas la bonne, pas la peine d'aller plus loin
                     continue
                 else:
@@ -56,6 +57,8 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                         del dictIDs[item['id']]
 
                     extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLastChange=False)
+                    break
+                    #on a trouvé le bon doc, on arrête de chercher
             except HttpError as err:
                 print(f'An error occurred: {err}')
                 # return #ajouté pour débugger
@@ -92,7 +95,7 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                     # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
                     # if monGN.intrigues[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5],
                     #                                                                         '%Y-%m-%dT%H:%M:%S'):
-                    if dictIDs[item['id']].lastChange >= datetime.datetime.strptime(
+                    if dictIDs[item['id']].lastProcessing >= datetime.datetime.strptime(
                             item['modifiedTime'][:-5],
                             '%Y-%m-%dT%H:%M:%S'):
 
@@ -208,23 +211,26 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
     text = text.replace('\v', '\n') #pour nettoyer les backspace verticaux qui se glissent
 
     # print(text) #test de la fonction récursive pour le texte
-    # monIntrigue = extraireIntrigueDeTexte(text, document.get('title'), item["id"], monGN)
-    monIntrigue = fonctionExtraction(text, document.get('title'), item["id"], monGN)
-    # monIntrigue.url = item["id"]
+    # monObjet = extraireIntrigueDeTexte(text, document.get('title'), item["id"], monGN)
+    lastFileEdit = datetime.datetime.strptime(
+                            item['modifiedTime'][:-5],
+                            '%Y-%m-%dT%H:%M:%S')
+    monObjet = fonctionExtraction(text, document.get('title'), item["id"], lastFileEdit, monGN)
+    # monObjet.url = item["id"]
     # et on enregistre la date de dernière mise à jour de l'intrigue
 
     if saveLastChange:
-        monIntrigue.lastChange = datetime.datetime.now()
-    # print(f'url intrigue = {monIntrigue.url}')
-    # print(f"intrigue {monIntrigue.nom}, date de modification : {item['modifiedTime']}")
+        monObjet.lastProcessing = datetime.datetime.now()
+    # print(f'url intrigue = {monObjet.url}')
+    # print(f"intrigue {monObjet.nom}, date de modification : {item['modifiedTime']}")
 
 
-def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
+def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, monGN):
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue.replace('\v', '\n'))
     # texteIntrigue = texteIntrigue.replace('\v', '\n')
     # print("*****************************")
-    currentIntrigue = Intrigue(nom=nomIntrigue, url=idUrl)
+    currentIntrigue = Intrigue(nom=nomIntrigue, url=idUrl, lastFileEdit=lastFileEdit)
     monGN.intrigues[idUrl] = currentIntrigue
     # nomspersos = monGN.getNomsPersos()
 
@@ -563,7 +569,7 @@ def calculerJoursIlYA(baliseDate):
         print(f"Erreur avec la date {baliseDate}")
         return baliseDate.strip()
 
-def extrairePJDeTexte(textePJ, nomDoc, idUrl, monGN):
+def extrairePJDeTexte(textePJ, nomDoc, idUrl,lastFileEdit, monGN):
     if len(textePJ) < 800:
         print(f"fiche {nomDoc} avec {len(textePJ)} caractères est vide")
         return #dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
@@ -681,7 +687,7 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl, monGN):
     currentPJ.textesAnnexes = bottomText
 
     # et on enregistre la date de dernière mise à jour de l'intrigue
-    currentPJ.lastChange = datetime.datetime.now()
+    currentPJ.lastProcessing = datetime.datetime.now()
 
     return currentPJ
 # if __name__ == '__main__':

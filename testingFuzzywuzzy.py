@@ -67,14 +67,15 @@ def main():
     print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
 
     apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
-    # doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
-    # doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
 
     extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
     extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
 
     monGN.forcerImportPersos(nomspersos)
     monGN.rebuildLinks(verbal=False)
+    monGN.save("archive Chalacta")
+
+
     #todo  :ajouter une gestion des factions :
     # un doc avec les factions : ### nom faction / ## pj :/ ## PNJS
     # et un objet faction qui permet de les gérer
@@ -82,14 +83,16 @@ def main():
 
     # todo ajouter un attribut forcé/importé dans les persos pour faciliter le nettoyage et éviter les persos non
     #  importés
+    #todo : ajouter un truc qui permet de comparer, scène par scène les changements entre deux versions
 
-    monGN.save("archive Chalacta")
+    #todo : ajouter une lecture de scène dans les persos "scenes"
+    # et créer un objet parent "conteneur de scène" dont héritent tout le monde
     print("****************************")
     print("****************************")
     print("****************************")
 
     print("*********toutesleserreurs*******************")
-    # listerErreurs(monGN, -1)
+    listerErreurs(monGN, -1)
 
     print("*********touslesquelettes*******************")
     tousLesSquelettesPerso(monGN)
@@ -194,7 +197,7 @@ def listerLesRoles(monGN):
 
 def listerDatesIntrigues(monGN):
     for intrigue in monGN.intrigues.values():
-        print("{0} - {1} - {2}".format(intrigue.nom, intrigue.lastChange, intrigue.url))
+        print("{0} - {1} - {2}".format(intrigue.nom, intrigue.lastProcessing, intrigue.url))
 
 
 def listerRolesPerso(monGN, nomPerso):
@@ -225,7 +228,7 @@ def tousLesSquelettesPerso(monGN):
         toutesScenes += '****************************************************** \n'
 
         # print('****************************************************** \n')
-    print(toutesScenes)
+    # print(toutesScenes)
     with open('2023-01-01.txt', 'w', encoding="utf-8") as f:
         f.write(toutesScenes)
         f.close()
@@ -415,14 +418,18 @@ def listerTrierPersos(monGN):
     for pj in touspj:
         print(pj)
 
-def listerErreurs(monGN, tailleMinLog = 1):
+def listerErreurs(monGN, tailleMinLog = 1, verbal=False):
+    logErreur = ""
     for intrigue in monGN.intrigues.values():
         if len(intrigue.errorLog) > tailleMinLog:
-            print("")
-            print("")
-            print(f"pour {intrigue.nom} : ")
-            print(intrigue.errorLog)
-            suggererTableauPersos(intrigue)
+            logErreur += f"pour {intrigue.nom} : \n"
+            logErreur += intrigue.errorLog + '\n'
+            logErreur += suggererTableauPersos(intrigue)
+            logErreur += "\n \n"
+    with open('2023-01-01-erreurs.txt', 'w', encoding="utf-8") as f:
+        f.write(logErreur)
+        f.close()
+
 
 
 def genererTableauIntrigues(monGN):
@@ -446,9 +453,9 @@ def rogue(): #utilisé pour nettoyer les tableaux de persos des grosses intrigue
         score = process.extractOne(str(nom), nomspersos)
         print(f"{nom} > {process.extractOne(nom, nomspersos)}")
 
-def suggererTableauPersos(intrigue):
+def suggererTableauPersos(intrigue, verbal =False):
     persosDansIntrigue = [x.perso for x in intrigue.roles.values()]
-    print("Tableau suggéré")
+    # print("Tableau suggéré")
     #créer un set de tous les rôles de chaque scène de l'intrigue
     iwant = []
     for scene in intrigue.scenes:
@@ -457,17 +464,22 @@ def suggererTableauPersos(intrigue):
     iwant = [x.strip() for x in iwant]
     iwant = set(iwant)
 
+    toPrint = "Tableau suggéré : \n"
+
     #pour chaque nom dans une scène, trouver le perso correspondant
     for nom in iwant:
         # print(str(nom))
         score = process.extractOne(str(nom), nomspersos)
-        toPrint = ""
         if score[0] in persosDansIntrigue:
             toPrint += "[OK]"
         else:
             toPrint += "[XX]"
-        toPrint += f"{nom} > {process.extractOne(nom, nomspersos)}"
+        toPrint += f"{nom} > {process.extractOne(nom, nomspersos)} \n"
+
+    if verbal:
         print(toPrint)
+
+    return toPrint
 
     # rolesSansScenes = []
     # for role in intrigue.roles.values():
