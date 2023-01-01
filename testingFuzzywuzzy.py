@@ -64,6 +64,7 @@ def main():
 
     # si on veut charger un fichier
     monGN = GN.load("archive Chalacta")
+    print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
 
     apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
     # doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
@@ -82,7 +83,7 @@ def main():
     # todo ajouter un attribut forcé/importé dans les persos pour faciliter le nettoyage et éviter les persos non
     #  importés
 
-    # monGN.save("archive Chalacta")
+    monGN.save("archive Chalacta")
     print("****************************")
     print("****************************")
     print("****************************")
