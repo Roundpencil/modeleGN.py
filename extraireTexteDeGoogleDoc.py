@@ -18,7 +18,6 @@ from fuzzywuzzy import process
 
 def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
     extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extraireIntrigueDeTexte, monGN.intrigues, monGN.folderIntriguesID, singletest)
-    #todo : une fois la focntion d'accélération écrite, mettre les persos dans la même fonction
     #todo : ajouter une lecture de scène dans les persos "scenes"
     # et créer un objet parent "conteneur de scène" dont héritent tout le monde
 
@@ -206,6 +205,8 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
     # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
     contenuDocument = document.get('body').get('content')
     text = lecteurGoogle.read_structural_elements(contenuDocument)
+    text = text.replace('\v', '\n') #pour nettoyer les backspace verticaux qui se glissent
+
     # print(text) #test de la fonction récursive pour le texte
     # monIntrigue = extraireIntrigueDeTexte(text, document.get('title'), item["id"], monGN)
     monIntrigue = fonctionExtraction(text, document.get('title'), item["id"], monGN)
@@ -221,7 +222,7 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
 def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, monGN):
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue.replace('\v', '\n'))
-    texteIntrigue = texteIntrigue.replace('\v', '\n') #todo : voir s'il faut le remonter, ou bien le remettre pour perso
+    # texteIntrigue = texteIntrigue.replace('\v', '\n')
     # print("*****************************")
     currentIntrigue = Intrigue(nom=nomIntrigue, url=idUrl)
     monGN.intrigues[idUrl] = currentIntrigue

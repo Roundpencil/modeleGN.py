@@ -18,7 +18,6 @@ from fuzzywuzzy import process
 
 def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
     extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extraireIntrigueDeTexte, monGN.intrigues, monGN.folderIntriguesID, singletest)
-    #todo : une fois la focntion d'accélération écrite, mettre les persos dans la même fonction
     #todo : ajouter une lecture de scène dans les persos "scenes"
     # et créer un objet parent "conteneur de scène" dont héritent tout le monde
 

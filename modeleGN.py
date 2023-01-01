@@ -346,7 +346,6 @@ class Scene:
         # toReturn += f"pitch  : {self.pitch} \n"
         # toReturn += f"description : \n {self.description} \n"
         toReturn += f"\n {self.description} \n"
-        #todo : tester l'extract avec les dates
         #todo : ajouter une date de dernier impact pour les pjs au début des intrigues concernées
         # (et des scènes, par ricochet?)
 
