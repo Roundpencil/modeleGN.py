@@ -83,8 +83,8 @@ def read_structural_elements(elements):
             for row in table.get('tableRows'):
                 cells = row.get('tableCells')
                 for cell in cells:
-                    text += read_structural_elements(cell.get('content')) + "###"
-                text += "##"
+                    text += read_structural_elements(cell.get('content')) + "¤¤¤"
+                text += "¤¤"
         elif 'tableOfContents' in value:
             # The text in the TOC is also in a Structural Element.
             toc = value.get('tableOfContents')

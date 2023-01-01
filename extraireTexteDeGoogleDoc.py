@@ -276,13 +276,13 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
     # print("pitch lu dans l'intrigue après mise à jour : " + currentIntrigue.pitch)
 
     # gestion de la section PJ
-    pjs = texteIntrigue[indexes[PJS]["debut"]:indexes[PJS]["fin"]].split("#####")
+    pjs = texteIntrigue[indexes[PJS]["debut"]:indexes[PJS]["fin"]].split("¤¤¤¤¤")
     for pj in pjs[1:]:  # on commence en 1 pour éviter de prendre la première ligne
         # print("taille du prochain PJ : " +str(len(pj)))
         if len(pj) < 14:  # dans ce cas, c'est qu'un a une ligne du tableau vide
             # print("pas assez de caractères je me suis arrêté")
             continue  # il y a de fortes chances que le PJ ne contienne que des renvois à la ligne
-        sections = pj.split("###")
+        sections = pj.split("¤¤¤")
         # print("j'ai trouvé " + str(len(sections)) + " sections")
 
         if len(sections) < 4:  # testé pour éviter de se taper les lignes vides après le tableau
@@ -309,7 +309,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
         # print(f'bloc PNJs = {texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]]}')
         # print(f"dans l'intrigue {currentIntrigue.nom}")
 
-        pnjs = texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]].split('#####')
+        pnjs = texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]].split('¤¤¤¤¤')
         # faire un tableau avec une ligne par PNJ
         for pnj in pnjs[1:]:  # on enlève la première ligne qui contient les titres
             # print(f"section pnj en cours de lecture : {pnj}")
@@ -318,10 +318,10 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
                 # dans ce cas, c'est une ligne vide
                 # print(f"pnj {pnj}  est vide")
                 continue
-            sections = pnj.split("###")
+            sections = pnj.split("¤¤¤")
             # 0 Nom duPNJ et / ou fonction :
             # 1 Intervention:(Permanente ou Temporaire)
-            # 2 Type d’implication: (Active, Passive, Info,ou Objet)
+            # 2 Type d’implication: (Active, Passive, Info, ou Objet)
             # 3 Résumé de l’implication
             pnjAAjouter = Role(currentIntrigue, nom=sections[0].strip(), description=sections[3].strip(),
                                pj=modeleGN.EST_PNJ_HORS_JEU, niveauImplication=sections[2].strip(),
@@ -354,13 +354,13 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
 
     # gestion de la section Rerolls
     if indexes[REROLLS]["debut"] > -1:
-        rerolls = texteIntrigue[indexes[REROLLS]["debut"]:indexes[REROLLS]["fin"]].split('#####')
+        rerolls = texteIntrigue[indexes[REROLLS]["debut"]:indexes[REROLLS]["fin"]].split('¤¤¤¤¤')
         # faire un tableau avec une ligne par Reroll
         for reroll in rerolls[1:]:  # on enlève la première ligne qui contient les titres
             if len(reroll) < 14:
                 # dans ce cas, c'est une ligne vide
                 continue
-            sections = reroll.split("###")
+            sections = reroll.split("¤¤¤")
             # même sections que les PJs
             reRollAAjouter = Role(currentIntrigue, nom=sections[0].strip(), description=sections[3].strip(),
                                   pj=modeleGN.EST_REROLL, typeIntrigue=sections[2].strip(),
@@ -371,13 +371,13 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
 
     # gestion de la section Objets
     if indexes[OBJETS]["debut"] > -1:
-        objets = texteIntrigue[indexes[OBJETS]["debut"]:indexes[OBJETS]["fin"]].split('#####')
+        objets = texteIntrigue[indexes[OBJETS]["debut"]:indexes[OBJETS]["fin"]].split('¤¤¤¤¤')
         # faire un tableau avec une ligne par objet
         for objet in objets[1:]:  # on enlève la première ligne qui contient les titres
             if len(objet) < 14:
                 # dans ce cas, c'est une ligne vide
                 continue
-            sections = objet.split("###")
+            sections = objet.split("¤¤¤")
             # vérifier si nous sommes avec un objet RFID (4 colonnes) ou sans (3 colonnes)
             monObjet = None
             if len(sections) == 4:

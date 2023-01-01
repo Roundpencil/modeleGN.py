@@ -81,8 +81,6 @@ def main():
     # et un objet faction qui permet de les gérer
     # et une chaine qui permet de lister les factrions qu'on veur ass=ocier dans les intrigues, luées depuis les scènes
 
-    # todo ajouter un attribut forcé/importé dans les persos pour faciliter le nettoyage et éviter les persos non
-    #  importés
     #todo : ajouter un truc qui permet de comparer, scène par scène les changements entre deux versions
 
     #todo : ajouter une lecture de scène dans les persos "scenes"
@@ -90,12 +88,12 @@ def main():
     print("****************************")
     print("****************************")
     print("****************************")
-
+    prefixeFichiers = str(datetime.date.today())
     print("*********toutesleserreurs*******************")
-    listerErreurs(monGN, -1)
+    listerErreurs(monGN, prefixeFichiers)
 
     print("*********touslesquelettes*******************")
-    tousLesSquelettesPerso(monGN)
+    tousLesSquelettesPerso(monGN, prefixeFichiers)
 
     print("*******dumpallscenes*********************")
     # dumpAllScenes(monGN)
@@ -210,7 +208,7 @@ def listerRolesPerso(monGN, nomPerso):
             break
 
 
-def tousLesSquelettesPerso(monGN):
+def tousLesSquelettesPerso(monGN, prefixe):
     toutesScenes = ""
     for perso in monGN.dictPJs.values():
         toutesScenes += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
@@ -229,7 +227,7 @@ def tousLesSquelettesPerso(monGN):
 
         # print('****************************************************** \n')
     # print(toutesScenes)
-    with open('2023-01-01.txt', 'w', encoding="utf-8") as f:
+    with open(prefixe + ' - squelettes.txt', 'w', encoding="utf-8") as f:
         f.write(toutesScenes)
         f.close()
 
@@ -418,7 +416,7 @@ def listerTrierPersos(monGN):
     for pj in touspj:
         print(pj)
 
-def listerErreurs(monGN, tailleMinLog = 1, verbal=False):
+def listerErreurs(monGN, prefixe, tailleMinLog = 1, verbal=False):
     logErreur = ""
     for intrigue in monGN.intrigues.values():
         if len(intrigue.errorLog) > tailleMinLog:
@@ -426,7 +424,9 @@ def listerErreurs(monGN, tailleMinLog = 1, verbal=False):
             logErreur += intrigue.errorLog + '\n'
             logErreur += suggererTableauPersos(intrigue)
             logErreur += "\n \n"
-    with open('2023-01-01-erreurs.txt', 'w', encoding="utf-8") as f:
+    if verbal:
+        print(logErreur)
+    with open(prefixe + ' - problemes tableaux persos.txt', 'w', encoding="utf-8") as f:
         f.write(logErreur)
         f.close()
 
