@@ -562,5 +562,126 @@ def calculerJoursIlYA(baliseDate):
         print(f"Erreur avec la date {baliseDate}")
         return baliseDate.strip()
 
+def extrairePJDeTexte(textePJ, nomDoc, idUrl, monGN):
+    if len(textePJ) < 800:
+        print(f"fiche {nomDoc} avec {len(textePJ)} caractères est vide")
+        return #dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
+
+    nomPJ = re.sub(r"^\d+\s*-", '', nomDoc).strip()
+    # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
+    # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
+    currentPJ = Personnage(nom=nomPJ, url=idUrl)
+    monGN.dictPJs[idUrl] = currentPJ
+
+    textePJLow = textePJ.lower()  # on passe en minuscule pour mieux trouver les chaines
+
+    REFERENT = "orga référent"
+    JOUEURV1 = "joueur v1"
+    JOUEURV2 = "joueur v2"
+    JOUEUSE1 = "joueuse v1"
+    JOUEUSE2 = "joueuse v2"
+    PITCH = "pitch perso"
+    COSTUME = "indications costumes"
+    FACTION1 = "faction principale"
+    FACTION2 = "faction secondaire"
+    BIO = "bio résumée"
+    PSYCHO = "psychologie"
+    MOTIVATIONS = "motivations et objectifs"
+    CHRONOLOGIE = "chronologie "
+    INTRIGUES = "intrigues"
+    RELATIONS = "relations avec les autres persos"
+
+    labels = [REFERENT, JOUEURV1, JOUEURV2, PITCH, COSTUME, FACTION1, FACTION2,
+              BIO, PSYCHO, MOTIVATIONS, CHRONOLOGIE, RELATIONS, INTRIGUES, JOUEUSE1, JOUEUSE2]
+
+    indexes = lecteurGoogle.identifierSectionsFiche(labels, textePJ)
+
+    if indexes[REFERENT]["debut"] == -1:
+        print("pas de référént avec le perso " + nomPJ)
+    else:
+        currentPJ.orgaReferent = textePJ[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[
+                                     0][
+                                 len(REFERENT) + len(" : "):]
+
+    if indexes[JOUEURV1]["debut"] == -1:
+        print("Pas de joueur 1 avec le perso " + nomPJ)
+    else:
+        currentPJ.joueurs['V1'] = textePJ[indexes[JOUEURV1]["debut"]:indexes[JOUEURV1]["fin"]].splitlines()[
+                                      0][
+                                  len(JOUEURV1) + len(" : "):]
+
+    if indexes[JOUEURV2]["debut"] == -1:
+        print("Pas de joueur 2 avec le perso " + nomPJ)
+    else:
+        currentPJ.joueurs['V2'] = textePJ[indexes[JOUEURV2]["debut"]:indexes[JOUEURV2]["fin"]].splitlines()[
+                                      0][
+                                  len(JOUEURV1) + len(" : "):]
+
+    if indexes[JOUEUSE1]["debut"] == -1:
+        print("Pas de joueuse 1 avec le perso " + nomPJ)
+    else:
+        currentPJ.joueurs['V1'] = textePJ[indexes[JOUEUSE1]["debut"]:indexes[JOUEUSE1]["fin"]].splitlines()[
+                                      0][
+                                  len(JOUEURV1) + len(" : "):]
+
+    if indexes[JOUEUSE2]["debut"] == -1:
+        print("Pas de joueuse 2 avec le perso " + nomPJ)
+    else:
+        currentPJ.joueurs['V2'] = textePJ[indexes[JOUEUSE2]["debut"]:indexes[JOUEUSE2]["fin"]].splitlines()[
+                                      0][
+                                  len(JOUEURV1) + len(" : "):]
+
+    if indexes[PITCH]["debut"] == -1:
+        print("Pas de pitch  avec le perso " + nomPJ)
+    else:
+        currentPJ.pitch = textePJ[indexes[PITCH]["debut"]:indexes[PITCH]["fin"]].splitlines()[1:]
+
+    if indexes[COSTUME]["debut"] == -1:
+        print("Pas d'indication costume avec le perso " + nomPJ)
+    else:
+        currentPJ.indicationsCostume = textePJ[indexes[COSTUME]["debut"] + len(COSTUME) + len(" : "):
+                                               indexes[COSTUME]["fin"]]
+
+    if indexes[FACTION1]["debut"] == -1:
+        print("Pas de faction 1 avec le perso " + nomPJ)
+    else:
+        currentPJ.factions.append(textePJ[indexes[FACTION1]["debut"]:indexes[FACTION1]["fin"]].splitlines()[
+                                     0][
+                                 len(FACTION1) + len(" : "):])
+
+    if indexes[FACTION2]["debut"] == -1:
+        print("Pas de faction 2 avec le perso " + nomPJ)
+    else:
+        currentPJ.factions.append(textePJ[indexes[FACTION2]["debut"]:indexes[FACTION2]["fin"]].splitlines()[
+                                     0][
+                                 len(FACTION2) + len(" : "):])
+
+    if indexes[BIO]["debut"] == -1:
+        print("Pas de BIO avec le perso " + nomPJ)
+    else:
+        currentPJ.description = textePJ[indexes[BIO]["debut"]:
+                                         indexes[BIO]["fin"]].splitlines()[1:]
+
+    if indexes[PSYCHO]["debut"] == -1:
+        print("Pas de psycho avec le perso " + nomPJ)
+    else:
+        currentPJ.concept = textePJ[indexes[PSYCHO]["debut"]:
+                                         indexes[PSYCHO]["fin"]].splitlines()[1:]
+
+    if indexes[MOTIVATIONS]["debut"] == -1:
+        print("Pas de motivations avec le perso " + nomPJ)
+    else:
+        currentPJ.driver = textePJ[indexes[MOTIVATIONS]["debut"]:indexes[MOTIVATIONS]["fin"]].splitlines()[
+                                     0][
+                                 len(MOTIVATIONS) + len(" : "):]
+
+    #rajouter les scènes en jeu après le tableau
+    bottomText = textePJ.split("#####")[-1]
+    currentPJ.textesAnnexes = bottomText
+
+    # et on enregistre la date de dernière mise à jour de l'intrigue
+    currentPJ.lastChange = datetime.datetime.now()
+
+    return currentPJ
 # if __name__ == '__main__':
 #     main()

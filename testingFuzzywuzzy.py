@@ -1,9 +1,10 @@
 from fuzzywuzzy import process
 
-import doc2PJ
+import extraireTexteDeGoogleDoc
+# import doc2PJ
 import modeleGN
 from modeleGN import *
-import doc2Intrigue
+# import doc2Intrigue
 import lecteurGoogle
 import sys
 
@@ -65,8 +66,12 @@ def main():
     monGN = GN.load("archive Chalacta")
 
     apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
-    doc2Intrigue.extraireIntrigue(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
-    doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    # doc2Intrigue.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    # doc2PJ.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+
+    extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+
     monGN.forcerImportPersos(nomspersos)
     monGN.rebuildLinks(verbal=False)
     #todo  :ajouter une gestion des factions :
