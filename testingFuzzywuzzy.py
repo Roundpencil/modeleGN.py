@@ -13,7 +13,6 @@ folderSqueletteEmeric = "1hpo8HQ8GKjQG63Qm_QlEX7wQ58wZ9-Bw"
 folderSqueletteJu = "17ii8P23nkyEk37MqFZKS3K9xohKDg0X7"
 folderSqueletteCharles = "1uz_m0PEY8fxNFembqL7om3LMskE4e5Ee"
 
-
 nomspersos = ["Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa", "Dall Joval D'rasnov",
               "Desnash Rhylee", "Dophine Rhue", "Driss Ranner", "Edrik Vance", "Greeta Asty", "Hart Do", "Havok",
               "Hog'Gemod Ippolruna", "Isayjja Kahl", "Jaldine Gerams", "Jay Mozel", "Jerima D'rasnov", "Jish Zyld",
@@ -29,7 +28,7 @@ nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran
             'Jaarush Adan', 'L’inquisiteur', 'Clawool', 'Yerraz', 'Droïdes mercenaires',
             'Quay Tolsite, agent des Pykes', 'FX-4', 'Oskrabkosi', 'Loomis Xent', 'Katlyn Clawwool', 'Tranche mitaines',
             'Rebelle 1',
-            'Boh Pragg chef de gare Kel dor','Teezk un esclave rodien issu de la purge du cartel Rodien par Tagge',
+            'Boh Pragg chef de gare Kel dor', 'Teezk un esclave rodien issu de la purge du cartel Rodien par Tagge',
             'Nekma', 'Katlyn Clawool', 'Benjey Doroat', 'Droïde syndiqué', 'Seerdo', 'Sid Kashan', 'Nosfran Ratspik',
             'Membres du J.A.N', 'Caleadr Schlon', 'Zuckuss (ou Boush, ou une autre star)', 'B2B', 'Haaris',
             'Le fils de Kalitt', 'Trewek', 'Revos Vannak', 'Inquisiteurice', 'Varima', 'Eliana Zorn', 'Zev Jessk',
@@ -44,20 +43,11 @@ nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran
             'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère', 'Shaani', 'Dhar']
 
 
-
-
-
 def main():
-    sys.setrecursionlimit(5000) #mis en place pour prévenir pickle de planter
-
-
-
-    # todo charger les relations depuis le tableau des relations
-    #trouver comment remplacer les vt par des \n
+    sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
 
     monGN = GN(folderIntriguesID=folderid,
                folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles])
-
 
     for pnj in nomsPNJs:
         monGN.dictPNJs[pnj] = Personnage(nom=pnj, pj=EST_PNJ_HORS_JEU)
@@ -75,16 +65,22 @@ def main():
     monGN.rebuildLinks(verbal=False)
     monGN.save("archive Chalacta")
 
-
-    #todo  :ajouter une gestion des factions :
+    # todo charger les relations depuis le tableau des relations
+    # todo  :ajouter une gestion des factions :
     # un doc avec les factions : ### nom faction / ## pj :/ ## PNJS
     # et un objet faction qui permet de les gérer
     # et une chaine qui permet de lister les factrions qu'on veur ass=ocier dans les intrigues, luées depuis les scènes
 
-    #todo : ajouter un truc qui permet de comparer, scène par scène les changements entre deux versions
+    # todo : ajouter un truc qui permet de comparer, scène par scène les changements entre deux versions
+    # todo : génrer un troisième fichier, qui fait la liste des persos dont une intrigue à changé depuis date input
+    # PERSONNAGE a été impacté par un changement dans l'intrigue INTRIGUE depuis le DATEDEREFERNCE
+    # trié par orga de référence
 
-    #todo : ajouter une lecture de scène dans les persos "scenes"
+    # todo : ajouter une lecture de scène dans les persos "scenes"
     # et créer un objet parent "conteneur de scène" dont héritent tout le monde
+
+    # todo : vérifier qu'en cas de balise inconnue on ontègre bien le texte
+
     print("****************************")
     print("****************************")
     print("****************************")
@@ -98,6 +94,8 @@ def main():
     print("*******dumpallscenes*********************")
     # dumpAllScenes(monGN)
 
+    print("*******changelog*********************")
+    genererChangeLog(monGN, prefixeFichiers)
 
     # trierScenes(monGN)
     # listerTrierPersos(monGN)
@@ -147,10 +145,10 @@ def main():
 
 
 def ajouterPersosSansFiche(monGN, nomspersos):
-
     monGN.forcerImportPersos(nomspersos)
 
     print(f"fin de l'ajout des personnages sans fiche. j'ai {len(monGN.dictPJs.values())} personnages en tout")
+
 
 def testEffacerIntrigue(monGN):
     listerRolesPerso(monGN, "Kyle Talus")
@@ -227,11 +225,80 @@ def tousLesSquelettesPerso(monGN, prefixe):
 
         # print('****************************************************** \n')
     # print(toutesScenes)
-    with open(prefixe + ' - squelettes.txt', 'w', encoding="utf-8") as f:
-        f.write(toutesScenes)
-        f.close()
+    if prefixe is not None:
+        with open(prefixe + ' - squelettes.txt', 'w', encoding="utf-8") as f:
+            f.write(toutesScenes)
+            f.close()
 
-#todo : vérifier qu'en cas de balise inconnue on ontègre bien le texte
+    return toutesScenes
+
+
+def genererChangeLog(monGN, prefixe, dateReference=datetime.date.today() - datetime.timedelta(days=1), verbal=False):
+    # on crée un tableau avec tous lse changements :
+    # [orga referent | perso | titre intrigue | url intrigue | date changement intrigue]
+    # structure souhaitée :
+    # orga referent / persos / titre intrigue/ url intrigue | date changement intrigue
+
+    restitution = dict()
+    for intrigue in monGN.intrigues.values():
+        if intrigue.lastFileEdit.date() > dateReference:
+            for role in intrigue.roles.values():
+                if role.perso is not None:
+                    referent = role.perso.orgaReferent
+
+                    if len(referent) < 3:
+                        referent = "Orga sans nom"
+
+                    # print(f"je m'apprête à ajouter une ligne pour {referent} : {role.perso.nom} dans {intrigue.nom}")
+                    nomPerso = role.perso.nom
+                    nomIntrigue = intrigue.nom
+
+                    # on vérifie que le référent et le persos existent, sinon on initialise
+                    if referent not in restitution:
+                        restitution[referent] = dict()
+                    if nomPerso not in restitution[referent]:
+                        restitution[referent][nomPerso] = dict()
+                        restitution[referent][nomPerso] = []
+                    # if nomIntrigue not in restitution[referent][nomPerso]:
+                    #     restitution[referent][nomPerso][nomIntrigue] = \
+                    #         [intrigue.lastProcessing.strftime("%d/%m/%Y à %H:%M:%S"),
+                    #          intrigue.getFullUrl()]
+                    # # on utilise nomintrigue comem clef, car sinon, comme on rentre par les roles on va multiplier les entrées
+
+                    # et maintenant on remplit la liste
+                    restitution[referent][nomPerso].append([intrigue.nom,
+                                                            intrigue.getFullUrl(),
+                                                            intrigue.lastFileEdit.strftime("%d/%m/%Y à %H:%M:%S")])
+
+                    # print(restitution)
+                    # restitution.append([role.perso.orgaReferent,
+                    #                     role.perso.nom,
+                    #                     intrigue.titre,
+                    #                     intrigue.getFullUrl(),
+                    #                     intrigue.lastProcessing])
+    # print(restitution)
+    texte = ""
+    for nomOrga in restitution:
+        texte += f"{nomOrga}, ces personnages sont dans des intrigues qui ont été modifiées depuis {dateReference} : \n"
+        for perso in restitution[nomOrga]:
+            texte += f"\t pour {perso} : \n "
+            for element in restitution[nomOrga][perso]:
+                # texte += f"\t\t l'intrigue {restitution[nomOrga][perso][0]} \n " \
+                #          f"\t\t a été modifiée le {restitution[nomOrga][perso][2]} \n" \
+                #          f"\t\t (url : {restitution[nomOrga][perso][1]}) \n"
+                texte += f"\t\t l'intrigue {element[0]} \n " \
+                         f"\t\t a été modifiée le {element[2]} \n" \
+                         f"\t\t (url : {element[1]}) \n"
+
+    if verbal:
+        print(texte)
+
+    if prefixe is not None:
+        with open(prefixe + ' - changements.txt', 'w', encoding="utf-8") as f:
+            f.write(texte)
+            f.close()
+
+    return texte
 
 
 def squelettePerso(monGN, nomPerso):
@@ -356,16 +423,19 @@ def normaliserNomsPNJs(monGN):
 
     return nomsNormalises
 
+
 def generecsvobjets(monGn):
     for intrigue in monGn.intrigues.values():
         for objet in intrigue.objets:
-            print(f"{intrigue.nom};{intrigue.orgaReferent};{objet.description};{objet.fourniParJoueur};{objet.fourniParJoueur};{objet.rfid};{objet.specialEffect};")
+            print(
+                f"{intrigue.nom};{intrigue.orgaReferent};{objet.description};{objet.fourniParJoueur};{objet.fourniParJoueur};{objet.rfid};{objet.specialEffect};")
 
 
 def dumpPersosLus(monGN):
     for pj in monGN.dictPJs.values():
         # if pj.url != "":
-            print(pj)
+        print(pj)
+
 
 def dumpSortedPersos(monGN):
     tousLesPersos = [x.nom for x in monGN.dictPJs.values()]
@@ -407,7 +477,6 @@ def trierScenes(monGN):
             print(scene)
 
 
-
 def listerTrierPersos(monGN):
     touspj = []
     for pj in monGN.dictPJs.values():
@@ -416,7 +485,8 @@ def listerTrierPersos(monGN):
     for pj in touspj:
         print(pj)
 
-def listerErreurs(monGN, prefixe, tailleMinLog = 1, verbal=False):
+
+def listerErreurs(monGN, prefixe, tailleMinLog=1, verbal=False):
     logErreur = ""
     for intrigue in monGN.intrigues.values():
         if len(intrigue.errorLog) > tailleMinLog:
@@ -431,7 +501,6 @@ def listerErreurs(monGN, prefixe, tailleMinLog = 1, verbal=False):
         f.close()
 
 
-
 def genererTableauIntrigues(monGN):
     print("Intrigue; Orga Référent")
     toPrint = monGN.intrigues.values()
@@ -440,10 +509,10 @@ def genererTableauIntrigues(monGN):
         print(f"{intrigue.nom};{intrigue.orgaReferent.strip()};")
 
 
-def rogue(): #utilisé pour nettoyer les tableaux de persos des grosses intrigues
+def rogue():  # utilisé pour nettoyer les tableaux de persos des grosses intrigues
     iwant = ["Nexxar", "Mina Tarkin", "Edrik", "Nexxar", "Jak", "Trevek",
              "Dio Muftak", "Osrabkosi", "Rebbanx", "Kar", "Edrik", "Wexley",
-             "Veert", "Desnash", "Vert", "Zev", "Ssor","FX - 4", "Kianstef", "Dhar",
+             "Veert", "Desnash", "Vert", "Zev", "Ssor", "FX - 4", "Kianstef", "Dhar",
              "Desnash", "Dhar", "Jay", "Mosel", "FX - 4", "Timagua", "Veert", "Edrik",
              "Wexley", "Tsvan", "Ssor", "Kael", "Syn", "Seika", "Jerima", "Thuorn"]
     iwant = [x.strip() for x in iwant]
@@ -453,10 +522,11 @@ def rogue(): #utilisé pour nettoyer les tableaux de persos des grosses intrigue
         score = process.extractOne(str(nom), nomspersos)
         print(f"{nom} > {process.extractOne(nom, nomspersos)}")
 
-def suggererTableauPersos(intrigue, verbal =False):
+
+def suggererTableauPersos(intrigue, verbal=False):
     persosDansIntrigue = [x.perso for x in intrigue.roles.values()]
     # print("Tableau suggéré")
-    #créer un set de tous les rôles de chaque scène de l'intrigue
+    # créer un set de tous les rôles de chaque scène de l'intrigue
     iwant = []
     for scene in intrigue.scenes:
         if scene.rawRoles is not None:
@@ -466,7 +536,7 @@ def suggererTableauPersos(intrigue, verbal =False):
 
     toPrint = "Tableau suggéré : \n"
 
-    #pour chaque nom dans une scène, trouver le perso correspondant
+    # pour chaque nom dans une scène, trouver le perso correspondant
     for nom in iwant:
         # print(str(nom))
         score = process.extractOne(str(nom), nomspersos)
@@ -490,5 +560,6 @@ def suggererTableauPersos(intrigue, verbal =False):
     #     print("Roles sans Scènes : ")
     #     for role in rolesSansScenes:
     #         print(role.nom)
+
 
 main()

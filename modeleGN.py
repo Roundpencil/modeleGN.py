@@ -145,7 +145,7 @@ class Role:
 class Intrigue:
 
     def __init__(self, url, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", lastProcessing=0,
+                 questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", lastProcessing=None,
                  scenesEnJeu="", lastFileEdit = 0):
         self.nom = nom
         self.roles = {}  # nom, rôle
@@ -159,7 +159,10 @@ class Intrigue:
         # self.dateModification = datetime.datetime.now() #seul usage dans le projet d'après l'inspecteur, je vire
         self.url = url
         self.timeline = timeline
+        if lastProcessing is None:
+            lastProcessing = datetime.datetime.now() - datetime.timedelta(days=500*365)
         self.lastProcessing = lastProcessing
+
         self.lastFileEdit = lastFileEdit
         self.scenesEnJeu = scenesEnJeu
         self.objets = set()

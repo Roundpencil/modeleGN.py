@@ -117,7 +117,7 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                         break
                         # on a trouvé une intrigue qui n'a pas bougé :
                         # toutes les suivantes qu'il nous remontera seront plus anciennes
-                        # don on arrête de parcourir
+                        # donc on arrête de parcourir
                     else:
                         # print("elle a changé depuis mon dernier passage : supprimons-la !")
                         # dans ce cas il faut la supprimer car on va tout réécrire
