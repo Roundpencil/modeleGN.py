@@ -37,12 +37,64 @@ def stringTypePJ(typePJ):
     return f"Type de PJ inconnu ({typePJ})"
 
 
-# personnage
 
-class Personnage:
+class ConteneurDeScene:
+    def __init__(self, lastFileEdit, url):
+        self.scenes = set()
+        self.rolesContenus = {}  # nom, rôle
+        self.errorLog = ""
+        self.lastFileEdit = lastFileEdit
+        self.url = url
+
+    def getErrorLog(self):
+        return self.errorLog
+
+    def addToErrorLog(self, text):
+        self.errorLog += text + "\n"
+        # une erreur :
+        # un endroit ou c'est détecté : tableau des intrigues, rôles, personnages
+
+    def clearErrorLog(self):
+        self.errorLog = ""
+
+    def getNomsRoles(self):
+        return self.rolesContenus.keys()
+
+    def addScene(self, nomScene):
+        sceneAajouter = Scene(self, nomScene)
+        self.scenes.add(sceneAajouter)
+        return sceneAajouter
+
+    def getScenesTriees(self):
+        return Scene.trierScenes(self.scenes)
+
+    def clear(self):
+        # retirer l'intrigue du GN > à faire au niveau de l'appel
+        # casser toutes les relations role <> personnages
+        for role in self.rolesContenus.values():
+            # print(f"Role à dissocier  : {role.nom} de {role.perso}")
+            if role.perso is not None:
+                role.perso.rolesContenus.remove(role)
+                del role
+        # self.roles.clear()
+
+        # effacer toutes les scènes de l'intrigue
+        for scene in self.scenes:
+            del scene
+        # self.scenes.clear()
+        # print(f"intrigue effacée {self.nom}")
+        self.errorLog = ''
+
+    def getFullUrl(self):
+        return "https://docs.google.com/document/d/" + self.url
+
+# personnage
+class Personnage(ConteneurDeScene):
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
-                 sexe="i", pj=EST_PJ, orgaReferent="", pitchJoueur="", indicationsCostume="", textesAnnexes="",
-                 url="", lastChange=datetime.datetime(year=2000, month=1, day=1), forced=False):
+                 sexe="i", pj=EST_PJ, orgaReferent="", pitchJoueur="", indicationsCostume="", textesAnnexes="", url="",
+                 datesClefs="", lastChange=datetime.datetime(year=2000, month=1, day=1), forced=False,
+                 lastFileEdit=0):
+        super(Personnage, self).__init__(lastFileEdit=lastFileEdit, url=url)
         self.nom = nom
         self.concept = concept
         self.driver = driver
@@ -59,10 +111,11 @@ class Personnage:
         self.pitchJoueur = pitchJoueur
         self.indicationsCostume = indicationsCostume
         self.factions = []
+        self.datesClefs = datesClefs
         # trouver comment interpréter les textes en dessous des tableaux
         # : des scènes ?
         self.textesAnnexes = textesAnnexes
-        self.url = url
+        # self.url = url
         self.lastProcessing = lastChange
         self.forced = forced
 
@@ -74,8 +127,8 @@ class Personnage:
     def addrole(self, r):
         self.roles.add(r)
 
-    def __str__(self):
-        return "nom perso : " + self.nom
+    # def __str__(self):
+    #     return "nom perso : " + self.nom
 
     def __str__(self):
         toReturn = ""
@@ -101,9 +154,9 @@ class Personnage:
 # rôle
 class Role:
 
-    def __init__(self, intrigue, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ,
+    def __init__(self, conteneur, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ,
                  typeIntrigue="", niveauImplication="", perimetreIntervention=""):
-        self.intrigue = intrigue
+        self.conteneur = conteneur
         self.perso = perso
         self.nom = nom
         self.description = description
@@ -118,8 +171,8 @@ class Role:
 
     def __str__(self):
         toReturn = ""
-        toReturn += "intrigue : " + self.intrigue.nom + "\n"
-        toReturn += "nom dans l'intrigue : " + self.nom + "\n"
+        toReturn += "provenance : " + self.conteneur.nom + "\n"
+        toReturn += "nom dans provenance : " + self.nom + "\n"
         if self.perso is None:
             toReturn += "perso : aucun" + "\n"
         else:
@@ -142,14 +195,13 @@ class Role:
 
 
 # intrigue
-class Intrigue:
+class Intrigue(ConteneurDeScene):
 
     def __init__(self, url, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
                  questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", lastProcessing=None,
                  scenesEnJeu="", lastFileEdit = 0):
+        super(Intrigue, self).__init__(lastFileEdit=lastFileEdit, url=url)
         self.nom = nom
-        self.roles = {}  # nom, rôle
-        self.scenes = set()
         self.description = description
         self.pitch = pitch
         self.questions_ouvertes = questions_ouvertes
@@ -157,7 +209,7 @@ class Intrigue:
         self.resolution = resolution
         self.orgaReferent = orgaReferent
         # self.dateModification = datetime.datetime.now() #seul usage dans le projet d'après l'inspecteur, je vire
-        self.url = url
+        # self.url = url
         self.timeline = timeline
         if lastProcessing is None:
             lastProcessing = datetime.datetime.now() - datetime.timedelta(days=500*365)
@@ -166,35 +218,31 @@ class Intrigue:
         self.lastFileEdit = lastFileEdit
         self.scenesEnJeu = scenesEnJeu
         self.objets = set()
-        self.errorLog = ""
 
     def __str__(self):
         return self.nom
 
-    def getErrorLog(self):
-        return self.errorLog
 
-    def addToErrorLog(self, text):
-        self.errorLog += text + "\n"
-        # une erreur :
-        # un endroit ou c'est détecté : tableau des intrigues, rôles, personnages
+    def clear(self):
+        # retirer l'intrigue du GN > à faire au niveau de l'appel
+        super().clear()
 
-
-    def clearErrorLog(self):
-        self.errorLog = ""
-
+        # se séparer de tous les objets
+        for objet in self.objets:
+            objet.inIntrigues.remove(self)
+        # self.objets.clear()
 
     # vérifier que le personnge que l'on souhaite associer à un rôle n'est pas déjà associé à un autre rôle
-    # dans la même intrigue
+    # dans le même conteneur
     # Si c'est le cas :
-    #   renvoyer -1 : un même personnage ne peut être associé qu'à un seul rôle dans une intrigue
+    #   renvoyer -1 : un même personnage ne peut être associé qu'à un seul rôle dans un conteneur
     # Sinon :
     #   réaliser l'association entre le personnage et le rôle
     #   ajouter le rôle à la liste des rôles du personnage
     #   renvoyer 0
     def associerRoleAPerso(self, roleAAssocier, personnage, verbal=True):
         # pour chaque rôle qui fait partie des rôles de l'intrigue
-        for role in self.roles.values():
+        for role in self.rolesContenus.values():
             # si le personnage que l'on souhaite associer au rôle est déjà associé à un rôle dans l'intrigue
             if role.perso is personnage:
                 # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au sein d'une mêm intrigue
@@ -213,41 +261,8 @@ class Intrigue:
         personnage.roles.add(roleAAssocier)
         return 0
 
-    def getNomsRoles(self):
-        return self.roles.keys()
 
-    def getFullUrl(self):
-        return "https://docs.google.com/document/d/" + self.url
 
-    def addScene(self, nomScene):
-        sceneAajouter = Scene(self, nomScene)
-        self.scenes.add(sceneAajouter)
-        return sceneAajouter
-
-    def clear(self):
-        # retirer l'intrigue du GN > à faire au niveau de l'appel
-        # casser toutes les relations role <> personnages
-        for role in self.roles.values():
-            # print(f"Role à dissocier  : {role.nom} de {role.perso}")
-            if role.perso is not None:
-                role.perso.roles.remove(role)
-                del role
-        # self.roles.clear()
-
-        # se séparer de tous les objets
-        for objet in self.objets:
-            objet.inIntrigues.remove(self)
-        # self.objets.clear()
-
-        # effacer toutes les scènes de l'intrigue
-        for scene in self.scenes:
-            del scene
-        # self.scenes.clear()
-        # print(f"intrigue effacée {self.nom}")
-        self.errorLog = ''
-
-    def getScenesTriees(self):
-        return Scene.trierScenes(self.scenes)
 
 
 # relations
@@ -267,11 +282,12 @@ class Relation:
         raise Exception("Personnage inconnu dans cette relation")
 
 
+
 # Scènes
 class Scene:
-    def __init__(self, intrigue, titre, date="0", pitch="Pas de description simple", description="Description complète",
+    def __init__(self, conteneur, titre, date="0", pitch="Pas de description simple", description="Description complète",
                  actif=True, resume="", niveau=3):
-        self.intrigue = intrigue
+        self.conteneur = conteneur
         self.date = date  # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
         # l'évènement
         self.titre = titre
@@ -345,14 +361,13 @@ class Scene:
             else:
                 strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
         toReturn += f"roles  : {strRolesPersos} \n"
-        toReturn += f"intrigue : {self.intrigue.nom} \n"
-        toReturn += f"dernière édition de l'intrigue : {self.intrigue.lastFileEdit} \n"
-        toReturn += f"url intrigue : {self.intrigue.getFullUrl()} \n"
+        toReturn += f"provenance : {self.conteneur.nom} \n"
+        toReturn += f"dernière édition de l'intrigue : {self.conteneur.lastFileEdit} \n"
+        toReturn += f"url intrigue : {self.conteneur.getFullUrl()} \n"
         # toReturn += f"pitch  : {self.pitch} \n"
         # toReturn += f"description : \n {self.description} \n"
         toReturn += f"\n {self.description} \n"
-        #todo : ajouter une date de dernier impact pour les pjs au début des intrigues concernées
-        # (et des scènes, par ricochet?)
+
 
         # toReturn += f"actif  : {self.actif} \n"
         return toReturn
@@ -421,7 +436,7 @@ class GN:
     def associerPNJsARoles(self, seuilAlerte=90, verbal=True):
         nomsPnjs = self.getNomsPNJs()
         for intrigue in self.intrigues.values():
-            for role in intrigue.roles.values():
+            for role in intrigue.rolesContenus.values():
                 if estUnPNJ(role.pj):
                     score = process.extractOne(role.nom, nomsPnjs)
                     # role.perso = self.listePnjs[score[0]]
@@ -442,8 +457,30 @@ class GN:
         for pj in self.dictPJs.values():  # on crée un dictionnaire temporaire nom > pj pour faire les associations
             dictNomsPJ[pj.nom] = pj
 
+
+        #Associer les rôles sans passer par la case tableau d'assocaition pour les PJs
+        for pj in self.dictPJs.values():
+            print(f"je suis en train de chercher des roles dans le pj {pj.nom}")
+            print(f"noms de roles trouvés : {pj.rolesContenus}")
+            for role in pj.rolesContenus.values():
+                print(f"je suis en train d'essayer d'associer le rôle {role.nom} issu du personnage {pj.nom}")
+                score = process.extractOne(role.nom, nomsPjs)
+                # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
+                role.perso = dictNomsPJ[score[0]]
+                role.perso.roles.add(role)
+
+
+                if score[1] < seuilAlerte:
+                    texteErreur = f"Warning association ({score[1]}) - nom rôle : " \
+                                  f"{role.nom} > PJ : {score[0]} dans {pj.nom}"
+                    pj.addToErrorLog(texteErreur)
+                    if verbal:
+                        # print(f"je paaaaaarle {score[1]}")
+                        print(texteErreur)
+
+        #faire l'association dans les intrigues à partir du nom de l'intrigue
         for intrigue in self.intrigues.values():
-            for role in intrigue.roles.values():
+            for role in intrigue.rolesContenus.values():
                 if estUnPJ(role.pj):
                     score = process.extractOne(role.nom, nomsPjs)
                     # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
@@ -489,7 +526,7 @@ class GN:
             # intrigue.clearErrorLog()
             # todo ne nettoyer que les erreurs générées par l'association...
             #  quand on aura un objet erreur :)
-            for role in intrigue.roles.values():
+            for role in intrigue.rolesContenus.values():
                 role.perso = None
 
     def forcerImportPersos(self, nomsPersos, suffixe="_imported"):
@@ -513,8 +550,8 @@ class GN:
                     # donc on ne fait rien
                 else:
                     print(f"{perso} a été créé (coquille vide)")
-                    self.dictPJs[perso + suffixe] = Personnage(nom=perso,
-                                                     pj=EST_PJ, forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
+                    self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=EST_PJ,
+                                                               forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
 
 
 # objets

@@ -16,8 +16,10 @@ from googleapiclient.errors import HttpError
 
 from fuzzywuzzy import process
 
+
 def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
-    extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extraireIntrigueDeTexte, monGN.intrigues, monGN.folderIntriguesID, singletest)
+    extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extraireIntrigueDeTexte, monGN.intrigues, monGN.folderIntriguesID,
+                             singletest)
 
 
 def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
@@ -58,7 +60,7 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
 
                     extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLastChange=False)
                     break
-                    #on a trouvé le bon doc, on arrête de chercher
+                    # on a trouvé le bon doc, on arrête de chercher
             except HttpError as err:
                 print(f'An error occurred: {err}')
                 # return #ajouté pour débugger
@@ -127,7 +129,7 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                         dictIDs[item['id']].clear()
                         del dictIDs[item['id']]
 
-                #puis, dans tous les cas, on la crée
+                # puis, dans tous les cas, on la crée
                 extraireObjetsDeDocument(document, item, monGN, fonctionExtraction)
 
             except HttpError as err:
@@ -208,13 +210,13 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
     # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
     contenuDocument = document.get('body').get('content')
     text = lecteurGoogle.read_structural_elements(contenuDocument)
-    text = text.replace('\v', '\n') #pour nettoyer les backspace verticaux qui se glissent
+    text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
 
     # print(text) #test de la fonction récursive pour le texte
     # monObjet = extraireIntrigueDeTexte(text, document.get('title'), item["id"], monGN)
     lastFileEdit = datetime.datetime.strptime(
-                            item['modifiedTime'][:-5],
-                            '%Y-%m-%dT%H:%M:%S')
+        item['modifiedTime'][:-5],
+        '%Y-%m-%dT%H:%M:%S')
     monObjet = fonctionExtraction(text, document.get('title'), item["id"], lastFileEdit, monGN)
     # monObjet.url = item["id"]
     # et on enregistre la date de dernière mise à jour de l'intrigue
@@ -302,7 +304,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
                             typeIntrigue=sections[2].strip(),
                             niveauImplication=sections[1].strip()
                             )
-        currentIntrigue.roles[roleAAjouter.nom] = roleAAjouter
+        currentIntrigue.rolesContenus[roleAAjouter.nom] = roleAAjouter
 
     # gestion de la section PNJs
     if indexes[PNJS]["debut"] > -1:
@@ -346,11 +348,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
             # sinon PNJ hors-jeu est la valeur par défaut : ne rien faire
 
             # du coup, on peut l'ajouter aux intrigues
-            currentIntrigue.roles[pnjAAjouter.nom] = pnjAAjouter
-
-    # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de reférence des noms dans l'intrigue
-    nomsRoles = currentIntrigue.getNomsRoles()
-    # print(f"pour {currentIntrigue.nom}, nomsRoles =  {nomsRoles}")
+            currentIntrigue.rolesContenus[pnjAAjouter.nom] = pnjAAjouter
 
     # gestion de la section Rerolls
     if indexes[REROLLS]["debut"] > -1:
@@ -367,7 +365,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
                                   niveauImplication=sections[1].strip())
 
             # du coup, on peut l'ajouter aux intrigues
-            currentIntrigue.roles[reRollAAjouter.nom] = reRollAAjouter
+            currentIntrigue.rolesContenus[reRollAAjouter.nom] = reRollAAjouter
 
     # gestion de la section Objets
     if indexes[OBJETS]["debut"] > -1:
@@ -408,48 +406,8 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
 
     # gestion de la section Scènes
     if indexes[SCENES]["debut"] > -1:
-        scenes = texteIntrigue[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]].split("###")
-
-        for scene in scenes:
-            # print("taille de la scène : " + str(len(scene)))
-            if len(scene) < 10:
-                continue
-
-            titreScene = scene.splitlines()[0].strip()
-            sceneAAjouter = currentIntrigue.addScene(titreScene)
-            # print("titre de la scène ajoutée : " + sceneAAjouter.titre)
-
-            balises = re.findall(r'##.*', scene)
-            for balise in balises:
-                # print("balise : " + balise)
-                if balise[0:9].lower() == '## quand?':
-                    extraireDateScene(balise[10:], sceneAAjouter)
-                elif balise[0:10].lower() == '## quand ?':
-                    extraireDateScene(balise[11:], sceneAAjouter)
-                    # sceneAAjouter.date = balise[11:].strip()
-                    # # print("date de la scène : " + sceneAAjouter.date)
-                elif balise[0:9].lower() == '## il y a':
-                    extraireIlYAScene(balise[10:], sceneAAjouter)
-                elif balise[0:7].lower() == '## qui?':
-                    extraireQuiScene(balise[8:], currentIntrigue, nomsRoles, sceneAAjouter)
-
-                elif balise[0:8].lower() == '## qui ?':
-                    extraireQuiScene(balise[9:], currentIntrigue, nomsRoles, sceneAAjouter)
-
-                elif balise[0:11].lower() == '## niveau :':
-                    sceneAAjouter.niveau = balise[12:].strip()
-
-                elif balise[0:11].lower() == '## résumé :':
-                    sceneAAjouter.resume = balise[12:].strip()
-
-                elif balise[0:10].lower() == '## résumé:':
-                    sceneAAjouter.resume = balise[11:].strip()
-
-                else:
-                    print("balise inconnue : " + balise + " dans l'intrigue " + nomIntrigue)
-
-            sceneAAjouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
-            # print("texte de la scene apres insertion : " + sceneAAjouter.description)
+        texteScenes = texteIntrigue[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
+        texte2scenes(currentIntrigue, nomIntrigue, texteScenes)
 
     # gestion de la section Résolution
     if indexes[RESOLUTION]["debut"] > -1:
@@ -468,7 +426,59 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
     return currentIntrigue
 
 
-def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verbal=True, seuil=80):
+def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableauRolesExistant=True):
+    nomsRoles = None
+    if tableauRolesExistant:
+        # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de reférence des noms dans l'intrigue
+        nomsRoles = conteneur.getNomsRoles()
+        # print(f"pour {currentIntrigue.nom}, nomsRoles =  {nomsRoles}")
+
+    # print(f"Texte section scène : {texteScenes}")
+    scenes = texteScenes.split("###")
+    for scene in scenes:
+        # print("taille de la scène : " + str(len(scene)))
+        if len(scene) < 10:
+            continue
+
+        titreScene = scene.splitlines()[0].strip()
+        sceneAAjouter = conteneur.addScene(titreScene)
+        # print("titre de la scène ajoutée : " + sceneAAjouter.titre)
+
+        balises = re.findall(r'##.*', scene)
+        for balise in balises:
+            # print("balise : " + balise)
+            if balise[0:9].lower() == '## quand?':
+                extraireDateScene(balise[10:], sceneAAjouter)
+            elif balise[0:10].lower() == '## quand ?':
+                extraireDateScene(balise[11:], sceneAAjouter)
+                # sceneAAjouter.date = balise[11:].strip()
+                # # print("date de la scène : " + sceneAAjouter.date)
+            elif balise[0:9].lower() == '## il y a':
+                extraireIlYAScene(balise[10:], sceneAAjouter)
+            elif balise[0:7].lower() == '## qui?':
+                extraireQuiScene(balise[8:], conteneur, nomsRoles, sceneAAjouter)
+
+            elif balise[0:8].lower() == '## qui ?':
+                extraireQuiScene(balise[9:], conteneur, nomsRoles, sceneAAjouter)
+
+            elif balise[0:11].lower() == '## niveau :':
+                sceneAAjouter.niveau = balise[12:].strip()
+
+            elif balise[0:11].lower() == '## résumé :':
+                sceneAAjouter.resume = balise[12:].strip()
+
+            elif balise[0:10].lower() == '## résumé:':
+                sceneAAjouter.resume = balise[11:].strip()
+
+            else:
+                print("balise inconnue : " + balise + " dans le conteneur " + nomConteneur)
+                sceneAAjouter.description += balise
+
+        sceneAAjouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
+        # print("texte de la scene apres insertion : " + sceneAAjouter.description)
+
+
+def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True, seuil=80):
     roles = listeNoms.split(",")
     sceneAAjouter.rawRoles = roles
     # print("rôles trouvés en lecture brute : " + str(roles))
@@ -478,23 +488,47 @@ def extraireQuiScene(listeNoms, currentIntrigue, nomsRoles, sceneAAjouter, verba
     for nomRole in roles:
         if len(nomRole) < 2:
             continue
-        # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
-        score = process.extractOne(nomRole.strip(), nomsRoles)
-        # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nomRole.strip(), currentIntrigue.nom, score))
+        #SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles > on les crée sans se poser de questions
+        if nomsRoles is None:
+            # print("Je suis entrée dans une situation ou il n'y avait pas de référence des noms")
 
-        # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'est peut-être trompé de perso!
-        if score is not None:
-            if score[1] < seuil:
-                warningText = f"Warning association Scene ({score[1]}) - nom dans scène : {nomRole} > Role : {score[0]} dans {currentIntrigue.nom}/{sceneAAjouter.titre}"
-                currentIntrigue.addToErrorLog(warningText)
-                if verbal:
-                    print(warningText)
+            # on cherche s'il existe déjà un rôle avec ce nom dans le conteneur
+            roleAAjouter = None
+            nomRole = nomRole.strip()
+            if nomRole in conteneur.rolesContenus:
+                # print(f"nom trouvé dans le contenu : {nomRole}")
+                roleAAjouter = conteneur.rolesContenus[nomRole]
+            else:
+                # print(f"nouveau role créé dans le contenu : {nomRole}")
+                roleAAjouter = Role(conteneur, nom=nomRole)
+                conteneur.rolesContenus[roleAAjouter.nom] = roleAAjouter
 
-            # trouver le rôle à ajouter à la scène en lisant l'intrigue
-            monRole = currentIntrigue.roles[score[0]]
-            monRole.ajouterAScene(sceneAAjouter)
-        elif verbal:
-            print(f"Erreur, process renvoie None pour nom scène : {nomRole} dans {sceneAAjouter.titre}")
+            roleAAjouter.ajouterAScene(sceneAAjouter)
+
+            # print(f"le rôle {roleAAjouter.nom} est associé aux scènes {[s.titre for s in roleAAjouter.scenes]}")
+
+            # print(f"après opération d'ajout de role, les roles contienntn {conteneur.rolesContenus} ")
+
+
+        else:
+            #Sinon, il faut normaliser et extraire les rôles
+            #pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
+            score = process.extractOne(nomRole.strip(), nomsRoles)
+            # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nomRole.strip(), currentIntrigue.nom, score))
+
+            # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'est peut-être trompé de perso!
+            if score is not None:
+                if score[1] < seuil:
+                    warningText = f"Warning association Scene ({score[1]}) - nom dans scène : {nomRole} > Role : {score[0]} dans {conteneur.nom}/{sceneAAjouter.titre}"
+                    conteneur.addToErrorLog(warningText)
+                    if verbal:
+                        print(warningText)
+
+                # trouver le rôle à ajouter à la scène en lisant l'intrigue
+                monRole = conteneur.rolesContenus[score[0]]
+                monRole.ajouterAScene(sceneAAjouter)
+            elif verbal:
+                print(f"Erreur, process renvoie None pour nom scène : {nomRole} dans {sceneAAjouter.titre}")
 
 
 def extraireDateScene(baliseDate, sceneAAjouter):
@@ -541,7 +575,7 @@ def calculerJoursIlYA(baliseDate):
 
         # print(f"{baliseDate} =  {ans} ans/ {jours} jours/ {mois} mois/ {semaines} semaines")
 
-        #travailler ce qu'on a trouvé comme valeurs
+        # travailler ce qu'on a trouvé comme valeurs
         if ans is None:
             ans = 0
         else:
@@ -569,15 +603,16 @@ def calculerJoursIlYA(baliseDate):
         print(f"Erreur avec la date {baliseDate}")
         return baliseDate.strip()
 
-def extrairePJDeTexte(textePJ, nomDoc, idUrl,lastFileEdit, monGN):
+
+def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, monGN):
     if len(textePJ) < 800:
         print(f"fiche {nomDoc} avec {len(textePJ)} caractères est vide")
-        return #dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
+        return  # dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
 
     nomPJ = re.sub(r"^\d+\s*-", '', nomDoc).strip()
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
-    currentPJ = Personnage(nom=nomPJ, url=idUrl)
+    currentPJ = Personnage(nom=nomPJ, url=idUrl, lastFileEdit=lastFileEdit)
     monGN.dictPJs[idUrl] = currentPJ
 
     textePJLow = textePJ.lower()  # on passe en minuscule pour mieux trouver les chaines
@@ -594,17 +629,20 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl,lastFileEdit, monGN):
     BIO = "bio résumée"
     PSYCHO = "psychologie"
     MOTIVATIONS = "motivations et objectifs"
-    CHRONOLOGIE = "chronologie "
+    CHRONOLOGIE = "chronologie"
     INTRIGUES = "intrigues"
     RELATIONS = "relations avec les autres persos"
+    SCENES = "scènes"
 
     labels = [REFERENT, JOUEURV1, JOUEURV2, PITCH, COSTUME, FACTION1, FACTION2,
-              BIO, PSYCHO, MOTIVATIONS, CHRONOLOGIE, RELATIONS, INTRIGUES, JOUEUSE1, JOUEUSE2]
+              BIO, PSYCHO, MOTIVATIONS, CHRONOLOGIE, RELATIONS, INTRIGUES, JOUEUSE1, JOUEUSE2, SCENES]
 
     indexes = lecteurGoogle.identifierSectionsFiche(labels, textePJ)
 
+    # print(f"indexes : {indexes}")
+
     if indexes[REFERENT]["debut"] == -1:
-        print("pas de référént avec le perso " + nomPJ)
+        print("pas de référent avec le perso " + nomPJ)
     else:
         currentPJ.orgaReferent = textePJ[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[
                                      0][
@@ -653,36 +691,55 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl,lastFileEdit, monGN):
         print("Pas de faction 1 avec le perso " + nomPJ)
     else:
         currentPJ.factions.append(textePJ[indexes[FACTION1]["debut"]:indexes[FACTION1]["fin"]].splitlines()[
-                                     0][
-                                 len(FACTION1) + len(" : "):])
+                                      0][
+                                  len(FACTION1) + len(" : "):])
 
     if indexes[FACTION2]["debut"] == -1:
         print("Pas de faction 2 avec le perso " + nomPJ)
     else:
         currentPJ.factions.append(textePJ[indexes[FACTION2]["debut"]:indexes[FACTION2]["fin"]].splitlines()[
-                                     0][
-                                 len(FACTION2) + len(" : "):])
+                                      0][
+                                  len(FACTION2) + len(" : "):])
 
     if indexes[BIO]["debut"] == -1:
         print("Pas de BIO avec le perso " + nomPJ)
     else:
         currentPJ.description = textePJ[indexes[BIO]["debut"]:
-                                         indexes[BIO]["fin"]].splitlines()[1:]
+                                        indexes[BIO]["fin"]].splitlines()[1:]
 
     if indexes[PSYCHO]["debut"] == -1:
         print("Pas de psycho avec le perso " + nomPJ)
     else:
         currentPJ.concept = textePJ[indexes[PSYCHO]["debut"]:
-                                         indexes[PSYCHO]["fin"]].splitlines()[1:]
+                                    indexes[PSYCHO]["fin"]].splitlines()[1:]
 
     if indexes[MOTIVATIONS]["debut"] == -1:
         print("Pas de motivations avec le perso " + nomPJ)
     else:
         currentPJ.driver = textePJ[indexes[MOTIVATIONS]["debut"]:indexes[MOTIVATIONS]["fin"]].splitlines()[
-                                     0][
-                                 len(MOTIVATIONS) + len(" : "):]
+                               0][
+                           len(MOTIVATIONS) + len(" : "):]
 
-    #rajouter les scènes en jeu après le tableau
+    if indexes[CHRONOLOGIE]["debut"] == -1:
+        print("Pas de chronologie avec le perso " + nomPJ)
+    else:
+        currentPJ.datesClefs = textePJ[indexes[CHRONOLOGIE]["debut"]:indexes[CHRONOLOGIE]["fin"]].splitlines()[
+                                   0][
+                               len(CHRONOLOGIE) + len(" : "):]
+
+    if indexes[SCENES]["debut"] == -1:
+        print("Pas de scènes dans le perso " + nomPJ)
+    else:
+        # print(f"début balise scène : {indexes[SCENES]['debut']}, fin balise scènes : {indexes[SCENES]['fin']} ")
+        texteScenes = textePJ[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
+
+        # print(f"ping j'ai trouvé la balise scènes, elle contient : {texteScenes}")
+        texte2scenes(currentPJ, nomPJ, texteScenes, False)
+        # for scene in currentPJ.scenes:
+        #     print(f"Scene présente : {scene}")
+        # print(f"rôles contenus dans {nomPJ} : {currentPJ.rolesContenus}")
+
+    # rajouter les scènes en jeu après le tableau
     bottomText = textePJ.split("#####")[-1]
     currentPJ.textesAnnexes = bottomText
 

@@ -11,7 +11,9 @@ import sys
 folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"  # le folder des intrigues de Chalacta
 folderSqueletteEmeric = "1hpo8HQ8GKjQG63Qm_QlEX7wQ58wZ9-Bw"
 folderSqueletteJu = "17ii8P23nkyEk37MqFZKS3K9xohKDg0X7"
-folderSqueletteCharles = "1uz_m0PEY8fxNFembqL7om3LMskE4e5Ee"
+folderSqueletteCharles = "19Hv5Nce7zCVuxP4Ot8-Bex4v_p_nvsls"
+folderSquelettesPierre ='1Vn9j06k5ldMevL6DS6gnkeaS6yHTeyKR'
+folderSquelettesManu = "1i3BVGXYO8k9Wi1FHGJ4-vPN6K7vXPT1T"
 
 nomspersos = ["Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa", "Dall Joval D'rasnov",
               "Desnash Rhylee", "Dophine Rhue", "Driss Ranner", "Edrik Vance", "Greeta Asty", "Hart Do", "Havok",
@@ -47,14 +49,15 @@ def main():
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
 
     monGN = GN(folderIntriguesID=folderid,
-               folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles])
+               folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles, folderSquelettesPierre,
+                           folderSquelettesManu])
 
     for pnj in nomsPNJs:
         monGN.dictPNJs[pnj] = Personnage(nom=pnj, pj=EST_PNJ_HORS_JEU)
 
     # si on veut charger un fichier
-    monGN = GN.load("archive Chalacta")
-    print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
+    # monGN = GN.load("archive Chalacta")
+    # print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
 
     apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
 
@@ -65,21 +68,25 @@ def main():
     monGN.rebuildLinks(verbal=False)
     monGN.save("archive Chalacta")
 
-    # todo charger les relations depuis le tableau des relations
-    # todo  :ajouter une gestion des factions :
+
+    #todo : ajouter une lecture de scène dans les persos "scenes"
+    # et créer un objet parent "conteneur de scène" dont héritent tout le monde
+
+
+    #todo  :ajouter une gestion des factions :
     # un doc avec les factions : ### nom faction / ## pj :/ ## PNJS
     # et un objet faction qui permet de les gérer
     # et une chaine qui permet de lister les factrions qu'on veur ass=ocier dans les intrigues, luées depuis les scènes
 
-    # todo : ajouter un truc qui permet de comparer, scène par scène les changements entre deux versions
-    # todo : génrer un troisième fichier, qui fait la liste des persos dont une intrigue à changé depuis date input
-    # PERSONNAGE a été impacté par un changement dans l'intrigue INTRIGUE depuis le DATEDEREFERNCE
-    # trié par orga de référence
+    #todo : passer la gestion des dates via un objet date time, et mettre le GN en l'an 0?
 
-    # todo : ajouter une lecture de scène dans les persos "scenes"
-    # et créer un objet parent "conteneur de scène" dont héritent tout le monde
+    #todo charger les relations depuis le tableau des relations
 
-    # todo : vérifier qu'en cas de balise inconnue on ontègre bien le texte
+    #todo : ajouter un truc qui permet de comparer, scène par scène les changements entre deux versions
+
+    # todo : vérifier qu'en cas de balise inconnue on intègre bien le texte
+
+
 
     print("****************************")
     print("****************************")
@@ -164,7 +171,7 @@ def afficherLesPersos(monGN):
         # for clef in intrigue.roles.keys():
         #     print(clef + " a pour nom complet : " + str(intrigue.roles[clef].nom))
 
-        for role in intrigue.roles.values():
+        for role in intrigue.rolesContenus.values():
             print("pour le rôle " + role.nom)
             print("Personnage : " + role.perso.nom)
             texteScenes = ""
@@ -187,7 +194,7 @@ def genererCsvOrgaIntrigue(monGN):
 def listerLesRoles(monGN):
     for intrigue in monGN.intrigues:
         print(f"intrigue : {intrigue.nom} - url : {intrigue.url}")
-        for role in intrigue.roles.values():
+        for role in intrigue.rolesContenus.values():
             print(str(role))
 
 
@@ -201,7 +208,7 @@ def listerRolesPerso(monGN, nomPerso):
     for perso in monGN.dictPJs.values():
         if perso.nom == nomPerso:
             # print(f"{nomPerso} trouvé")
-            for role in perso.roles:
+            for role in perso.rolesContenus:
                 print(role)
             break
 
@@ -210,11 +217,20 @@ def tousLesSquelettesPerso(monGN, prefixe):
     toutesScenes = ""
     for perso in monGN.dictPJs.values():
         toutesScenes += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
+        toutesScenes += f"résumé de la bio : \n {perso.description} \n"
+        toutesScenes += f"Psychologie : \n {perso.concept} \n"
+        toutesScenes += f"Motivations et objectifs : \n {perso.driver} \n"
+        toutesScenes += f"Chronologie : \n {perso.datesClefs} \n"
+        toutesScenes += "\nScenes associées : \n"
+
         mesScenes = []
         for role in perso.roles:
             for scene in role.scenes:
                 # print(f"{scene.titre} trouvée")
                 mesScenes.append(scene)
+
+        # for scene in perso.scenes:
+        #     mesScenes.append(scene)
 
         # print(f"{nomPerso} trouvé")
         mesScenes = Scene.trierScenes(mesScenes)
@@ -242,7 +258,7 @@ def genererChangeLog(monGN, prefixe, dateReference=datetime.date.today() - datet
     restitution = dict()
     for intrigue in monGN.intrigues.values():
         if intrigue.lastFileEdit.date() > dateReference:
-            for role in intrigue.roles.values():
+            for role in intrigue.rolesContenus.values():
                 if role.perso is not None:
                     referent = role.perso.orgaReferent
 
@@ -288,7 +304,7 @@ def genererChangeLog(monGN, prefixe, dateReference=datetime.date.today() - datet
                 #          f"\t\t (url : {restitution[nomOrga][perso][1]}) \n"
                 texte += f"\t\t l'intrigue {element[0]} \n " \
                          f"\t\t a été modifiée le {element[2]} \n" \
-                         f"\t\t (url : {element[1]}) \n"
+                         f"\t\t (url : {element[1]}) \n\n"
 
     if verbal:
         print(texte)
@@ -318,7 +334,7 @@ def squelettePerso(monGN, nomPerso):
     for perso in monGN.dictPJs.values():
         if perso.nom == nomPerso:
             # print(f"{nomPerso} trouvé")
-            for role in perso.roles:
+            for role in perso.rolesContenus:
                 for scene in role.scenes:
                     # print(f"{scene.titre} trouvée")
                     mesScenes.append(scene)
@@ -333,7 +349,7 @@ def squelettePerso(monGN, nomPerso):
 def listerPNJs(monGN):
     toReturn = []
     for intrigue in monGN.intrigues.values():
-        for role in intrigue.roles.values():
+        for role in intrigue.rolesContenus.values():
             if role.estUnPNJ():
                 print(role)
                 toReturn.append(role.nom)
@@ -343,7 +359,7 @@ def listerPNJs(monGN):
 def genererCsvPNJs(monGN):
     print("nomRole;description;typePJ;niveau implication;details intervention;intrigue")
     for intrigue in monGN.intrigues.values():
-        for role in intrigue.roles.values():
+        for role in intrigue.rolesContenus.values():
             if role.estUnPNJ():
                 nompnj = role.nom.replace('\n', chr(10))
                 description = role.description.replace('\n', "***")
@@ -379,7 +395,7 @@ def tousLesRoles(monGN):
     tousLesRoles = []
     print(f"dernière modification GN : {monGN.oldestUpdate}/{monGN.intrigues[monGN.oldestUpdatedIntrigue]}")
     for intrigue in monGN.intrigues.values():
-        for role in intrigue.roles.values():
+        for role in intrigue.rolesContenus.values():
             if not modeleGN.estUnPNJ(role.pj) and role.pj != EST_REROLL:
                 tousLesRoles.append(role.nom)
         # print(f"date dernière MAJ {intrigue.dateModification}")
@@ -404,7 +420,7 @@ def normaliserNomsPNJs(monGN):
     nomsPNJs = []
     nomsNormalises = dict()
     for intrigue in monGN.intrigues.values():
-        for role in intrigue.roles.values():
+        for role in intrigue.rolesContenus.values():
             if role.estUnPNJ():
                 nomsPNJs.append(role.nom)
     nomsPNJs = list(set(nomsPNJs))
@@ -524,7 +540,7 @@ def rogue():  # utilisé pour nettoyer les tableaux de persos des grosses intrig
 
 
 def suggererTableauPersos(intrigue, verbal=False):
-    persosDansIntrigue = [x.perso for x in intrigue.roles.values()]
+    persosDansIntrigue = [x.perso for x in intrigue.rolesContenus.values()]
     # print("Tableau suggéré")
     # créer un set de tous les rôles de chaque scène de l'intrigue
     iwant = []

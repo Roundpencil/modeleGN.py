@@ -28,7 +28,7 @@ class ListeEvenementsModel(QtCore.QAbstractListModel):
         #            self.personnage = personnage
 
         for r in personnage.roles:
-            for e in r.intrigue.scenes:
+            for e in r.conteneur.scenes:
                 self.evenements.append(e)
 
             # TODO : trouver comment trier les évènements par date evenements.sort(key=get_date) > sorted(key)
@@ -37,7 +37,7 @@ class ListeEvenementsModel(QtCore.QAbstractListModel):
         if role == Qt.DisplayRole:
             # print("fetching evenements for printing")
             e = self.scenes[index.row()]
-            text = "(" + e.date + ") : " + e.pitch + "[" + e.intrigue.nom + "]"
+            text = "(" + e.date + ") : " + e.pitch + "[" + e.conteneur.nom + "]"
             return text
 
     def rowCount(self, index):
@@ -50,7 +50,7 @@ class ListeIntriguesModel(QtCore.QAbstractListModel):
         self.rolesIntrigues = []
         for r in personnage.roles:
             print("ajout d'un rôle")
-            self.rolesIntrigues.append([r, r.intrigue])
+            self.rolesIntrigues.append([r, r.conteneur])
             print("rôle ajouté")
 
     def data(self, index, role):
