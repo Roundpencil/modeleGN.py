@@ -14,8 +14,9 @@ folderSqueletteJu = "17ii8P23nkyEk37MqFZKS3K9xohKDg0X7"
 folderSqueletteCharles = "19Hv5Nce7zCVuxP4Ot8-Bex4v_p_nvsls"
 folderSquelettesPierre ='1Vn9j06k5ldMevL6DS6gnkeaS6yHTeyKR'
 folderSquelettesManu = "1i3BVGXYO8k9Wi1FHGJ4-vPN6K7vXPT1T"
+folderSquelettesAFaireRebelles = "1Jpq11Roo4QbgkmyLyxm4z3SfQPNOqSrh"
 
-nomspersos = ["Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa", "Dall Joval D'rasnov",
+nomspersos = ["A trouver", "Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa", "Dall Joval D'rasnov",
               "Desnash Rhylee", "Dophine Rhue", "Driss Ranner", "Edrik Vance", "Greeta Asty", "Hart Do", "Havok",
               "Hog'Gemod Ippolruna", "Isayjja Kahl", "Jaldine Gerams", "Jay Mozel", "Jerima D'rasnov", "Jish Zyld",
               "Jory Asty", "Kael Sin", "Kalitt", "Kess Horoby", "Kianstev Nacram", "Korrgaarr Gguurd'k", "KR3-NC0",
@@ -27,22 +28,23 @@ nomspersos = ["Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar 
               "Wor Monba", "Xabria", "Yulsa Nazdij", "Zaar Tamwi", "Zagrinn Vrask", "Zoln Ubri"]
 nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran ?', 'Kelar Veil',
             'Un des joueurs de Sabbacc (nom à trouver)', 'Lady Santhe ??', 'Tranche Mitaines', 'Tranche Mitaines',
-            'Jaarush Adan', 'L’inquisiteur', 'Clawool', 'Yerraz', 'Droïdes mercenaires',
-            'Quay Tolsite, agent des Pykes', 'FX-4', 'Oskrabkosi', 'Loomis Xent', 'Katlyn Clawwool', 'Tranche mitaines',
+            'Jaarush Adan', 'L’inquisiteur', 'Yerraz', 'Droïdes mercenaires',
+            'Quay Tolsite, agent des Pykes', 'FX-4', 'Oskrabkosi', 'Loomis Xent', 'Katlyn Clawool', 'Tranche mitaines',
             'Rebelle 1',
             'Boh Pragg chef de gare Kel dor', 'Teezk un esclave rodien issu de la purge du cartel Rodien par Tagge',
             'Nekma', 'Katlyn Clawool', 'Benjey Doroat', 'Droïde syndiqué', 'Seerdo', 'Sid Kashan', 'Nosfran Ratspik',
             'Membres du J.A.N', 'Caleadr Schlon', 'Zuckuss (ou Boush, ou une autre star)', 'B2B', 'Haaris',
             'Le fils de Kalitt', 'Trewek', 'Revos Vannak', 'Inquisiteurice', 'Varima', 'Eliana Zorn', 'Zev Jessk',
-            'Katlyn Clawool', 'Mohadarr Bodfre', 'Ex esclave', 'Inquisiteur', 'XXXX Rhylee', 'Rak Stryn  le mandalo',
+            'Mohadarr Bodfre', 'Ex esclave', 'Inquisiteur', 'XXXX Rhylee', 'Rak Stryn  le mandalo',
             'Yerraz le go faster', 'Apprenti de l’Inquisiteur', 'Témoin X', 'XXX Geska (frère de wirt)',
-            'Fraterr Millbra', 'Izzik Walo’s', 'Katlyn Clawool', 'Rosson', 'Yorshill', 'Rebelle 3', 'Drashk',
+            'Fraterr Millbra', 'Izzik Walo’s', 'Rosson', 'Yorshill', 'Rebelle 3', 'Drashk',
             'Baron Soontir Fel', 'esclave porcher, sbire de Hogg', 'Osrabkosi', '5ème frère',
             'La mère (Suwan) et la soeur (Ilanni) de Lexi', 'Darsha Viel', 'Jarus Adams (star tour)', 'Muic Wula',
-            'Rebelle 2', 'Nosfran ?', 'O-MR1', 'Katleen Clawool', 'Varina Leech', 'Kalie Hess (Décédée)',
+            'Rebelle 2', 'O-MR1', 'Varina Leech', 'Kalie Hess (Décédée)',
             'Boba Fett (ou un mandalorien bien badass de l’enfer)', 'OMR-1', 'Lieira Sonn', 'esclave 1',
             'Bossk (ou un trando qui le représente)', 'Soontir Fel', 'FX4', 'Trerlil Irgann',
-            'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère', 'Shaani', 'Dhar']
+            'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère', 'Shaani', 'Dhar', 'Seerdo',
+            'Aruk le hutt', 'Veert']
 
 
 def main():
@@ -50,41 +52,37 @@ def main():
 
     monGN = GN(folderIntriguesID=folderid,
                folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles, folderSquelettesPierre,
-                           folderSquelettesManu])
+                           folderSquelettesManu, folderSquelettesAFaireRebelles])
 
     for pnj in nomsPNJs:
         monGN.dictPNJs[pnj] = Personnage(nom=pnj, pj=EST_PNJ_HORS_JEU)
 
     # si on veut charger un fichier
-    # monGN = GN.load("archive Chalacta")
+    monGN = GN.load("archive Chalacta")
     # print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
 
     apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
 
-    extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="98")
     extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
 
     monGN.forcerImportPersos(nomspersos)
     monGN.rebuildLinks(verbal=False)
     monGN.save("archive Chalacta")
 
-
-    #todo : ajouter une lecture de scène dans les persos "scenes"
-    # et créer un objet parent "conteneur de scène" dont héritent tout le monde
-
-
     #todo  :ajouter une gestion des factions :
     # un doc avec les factions : ### nom faction / ## pj :/ ## PNJS
     # et un objet faction qui permet de les gérer
-    # et une chaine qui permet de lister les factrions qu'on veur ass=ocier dans les intrigues, luées depuis les scènes
+    # et une chaine qui permet de lister les factions qu'on veur ass=ocier dans les intrigues, lues depuis les scènes
 
-    #todo : passer la gestion des dates via un objet date time, et mettre le GN en l'an 0?
+    #todo : passer la gestion des dates via un objet date time, et ajouter une variable avec la date du GN (0 par défaut)
 
-    #todo charger les relations depuis le tableau des relations
 
     #todo : ajouter un truc qui permet de comparer, scène par scène les changements entre deux versions
+    #todo : ajouter des fiches relations, qui décrivent l'évolution des relations entre les personnages,
+    # et qui devraient servir de base pour les lire
 
-    # todo : vérifier qu'en cas de balise inconnue on intègre bien le texte
+    #todo générer les relations lues dans un tableau des relations
 
 
 
@@ -102,7 +100,8 @@ def main():
     # dumpAllScenes(monGN)
 
     print("*******changelog*********************")
-    genererChangeLog(monGN, prefixeFichiers)
+    genererChangeLog(monGN, prefixeFichiers, nbJours=3)
+    genererChangeLog(monGN, prefixeFichiers, nbJours=4)
 
     # trierScenes(monGN)
     # listerTrierPersos(monGN)
@@ -249,7 +248,9 @@ def tousLesSquelettesPerso(monGN, prefixe):
     return toutesScenes
 
 
-def genererChangeLog(monGN, prefixe, dateReference=datetime.date.today() - datetime.timedelta(days=1), verbal=False):
+def genererChangeLog(monGN, prefixe, nbJours=1, verbal=False):
+    dateReference = datetime.date.today() - datetime.timedelta(days=nbJours)
+
     # on crée un tableau avec tous lse changements :
     # [orga referent | perso | titre intrigue | url intrigue | date changement intrigue]
     # structure souhaitée :
@@ -259,8 +260,8 @@ def genererChangeLog(monGN, prefixe, dateReference=datetime.date.today() - datet
     for intrigue in monGN.intrigues.values():
         if intrigue.lastFileEdit.date() > dateReference:
             for role in intrigue.rolesContenus.values():
-                if role.perso is not None:
-                    referent = role.perso.orgaReferent
+                if role.perso is not None and modeleGN.estUnPJ(role.perso.pj):
+                    referent = role.perso.orgaReferent.strip()
 
                     if len(referent) < 3:
                         referent = "Orga sans nom"
@@ -273,7 +274,7 @@ def genererChangeLog(monGN, prefixe, dateReference=datetime.date.today() - datet
                     if referent not in restitution:
                         restitution[referent] = dict()
                     if nomPerso not in restitution[referent]:
-                        restitution[referent][nomPerso] = dict()
+                        # restitution[referent][nomPerso] = dict()
                         restitution[referent][nomPerso] = []
                     # if nomIntrigue not in restitution[referent][nomPerso]:
                     #     restitution[referent][nomPerso][nomIntrigue] = \
@@ -310,7 +311,7 @@ def genererChangeLog(monGN, prefixe, dateReference=datetime.date.today() - datet
         print(texte)
 
     if prefixe is not None:
-        with open(prefixe + ' - changements.txt', 'w', encoding="utf-8") as f:
+        with open(prefixe + ' - changements - ' + str(nbJours) + 'j.txt', 'w', encoding="utf-8") as f:
             f.write(texte)
             f.close()
 

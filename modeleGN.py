@@ -37,7 +37,11 @@ def stringTypePJ(typePJ):
     return f"Type de PJ inconnu ({typePJ})"
 
 
-
+#une superclasse qui représente un fichier qui content des scènes, avec es rtôles associés
+#donc y compris les propriétés du fichier où elle se trouve (notamment date de changement)
+#Attention, personnage hérite de cette classe, et contient donc deu types de rôles :
+# ceux qui sont liés au personnes (roles)
+# et la contenance de ceux qui sont associées à ses propres scènes (via cette classe, donc)
 class ConteneurDeScene:
     def __init__(self, lastFileEdit, url):
         self.scenes = set()
@@ -74,7 +78,7 @@ class ConteneurDeScene:
         for role in self.rolesContenus.values():
             # print(f"Role à dissocier  : {role.nom} de {role.perso}")
             if role.perso is not None:
-                role.perso.rolesContenus.remove(role)
+                role.perso.roles.remove(role)
                 del role
         # self.roles.clear()
 
@@ -149,6 +153,12 @@ class Personnage(ConteneurDeScene):
         toReturn += f"factions = {self.factions} \n"
         toReturn += f"textesAnnexes = {self.textesAnnexes} \n"
         return toReturn
+
+    def estUnPNJ(self):
+        return self.pj == EST_PNJ_HORS_JEU or self.pj == EST_PNJ_TEMPORAIRE or self.pj == EST_PNJ_INFILTRE or self.pj == EST_PNJ_PERMANENT
+
+    def estUnPJ(self):
+        return self.pj == EST_PJ
 
 
 # rôle
@@ -460,10 +470,10 @@ class GN:
 
         #Associer les rôles sans passer par la case tableau d'assocaition pour les PJs
         for pj in self.dictPJs.values():
-            print(f"je suis en train de chercher des roles dans le pj {pj.nom}")
-            print(f"noms de roles trouvés : {pj.rolesContenus}")
+            # print(f"je suis en train de chercher des roles dans le pj {pj.nom}")
+            # print(f"noms de roles trouvés : {pj.rolesContenus}")
             for role in pj.rolesContenus.values():
-                print(f"je suis en train d'essayer d'associer le rôle {role.nom} issu du personnage {pj.nom}")
+                # print(f"je suis en train d'essayer d'associer le rôle {role.nom} issu du personnage {pj.nom}")
                 score = process.extractOne(role.nom, nomsPjs)
                 # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
                 role.perso = dictNomsPJ[score[0]]

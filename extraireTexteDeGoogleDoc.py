@@ -221,7 +221,7 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
     # monObjet.url = item["id"]
     # et on enregistre la date de dernière mise à jour de l'intrigue
 
-    if saveLastChange:
+    if monObjet is not None and saveLastChange:
         monObjet.lastProcessing = datetime.datetime.now()
     # print(f'url intrigue = {monObjet.url}')
     # print(f"intrigue {monObjet.nom}, date de modification : {item['modifiedTime']}")
@@ -527,8 +527,12 @@ def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True
                 # trouver le rôle à ajouter à la scène en lisant l'intrigue
                 monRole = conteneur.rolesContenus[score[0]]
                 monRole.ajouterAScene(sceneAAjouter)
-            elif verbal:
-                print(f"Erreur, process renvoie None pour nom scène : {nomRole} dans {sceneAAjouter.titre}")
+            else:
+                texteErreur = f"Erreur, process renvoie None pour nom scène : {nomRole} dans {sceneAAjouter.titre}"
+                if verbal:
+                    print(texteErreur)
+                conteneur.errorLog += texteErreur + '\n'
+
 
 
 def extraireDateScene(baliseDate, sceneAAjouter):
@@ -605,6 +609,7 @@ def calculerJoursIlYA(baliseDate):
 
 
 def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, monGN):
+    print(f"Lecture de {nomDoc}")
     if len(textePJ) < 800:
         print(f"fiche {nomDoc} avec {len(textePJ)} caractères est vide")
         return  # dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
