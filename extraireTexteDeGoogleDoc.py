@@ -97,11 +97,12 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                     # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
                     # if monGN.intrigues[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5],
                     #                                                                         '%Y-%m-%dT%H:%M:%S'):
+                    # if dictIDs[item['id']].lastProcessing >= item['modifiedTime']:
                     if dictIDs[item['id']].lastProcessing >= datetime.datetime.strptime(
                             item['modifiedTime'][:-5],
                             '%Y-%m-%dT%H:%M:%S'):
 
-                        print("et elle n'a pas changé depuis le dernier passage")
+                        print(f"et elle n'a pas changé (dernier changement : {datetime.datetime.strptime(item['modifiedTime'][:-5],'%Y-%m-%dT%H:%M:%S')} / {item['modifiedTime'][:-5]}) depuis le dernier passage ({dictIDs[item['id']].lastProcessing})")
                         # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
                         # si c'était la plus vieille du GN, pas la peine de continuer
                         ### ancienne version, remplacée par stop dès qu'on a choppé une intrigue qui n'a pas bougé
@@ -721,16 +722,12 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, monGN):
     if indexes[MOTIVATIONS]["debut"] == -1:
         print("Pas de motivations avec le perso " + nomPJ)
     else:
-        currentPJ.driver = textePJ[indexes[MOTIVATIONS]["debut"]:indexes[MOTIVATIONS]["fin"]].splitlines()[
-                               0][
-                           len(MOTIVATIONS) + len(" : "):]
+        currentPJ.driver = textePJ[indexes[MOTIVATIONS]["debut"]:indexes[MOTIVATIONS]["fin"]].splitlines()[1:]
 
     if indexes[CHRONOLOGIE]["debut"] == -1:
         print("Pas de chronologie avec le perso " + nomPJ)
     else:
-        currentPJ.datesClefs = textePJ[indexes[CHRONOLOGIE]["debut"]:indexes[CHRONOLOGIE]["fin"]].splitlines()[
-                                   0][
-                               len(CHRONOLOGIE) + len(" : "):]
+        currentPJ.datesClefs = textePJ[indexes[CHRONOLOGIE]["debut"]:indexes[CHRONOLOGIE]["fin"]].splitlines()[1:]
 
     if indexes[SCENES]["debut"] == -1:
         print("Pas de scènes dans le perso " + nomPJ)

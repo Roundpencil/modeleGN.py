@@ -1,4 +1,4 @@
-from fuzzywuzzy import process
+from fuzzywuzzy import process, fuzz
 
 import extraireTexteDeGoogleDoc
 # import doc2PJ
@@ -12,11 +12,12 @@ folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"  # le folder des intrigues de Cha
 folderSqueletteEmeric = "1hpo8HQ8GKjQG63Qm_QlEX7wQ58wZ9-Bw"
 folderSqueletteJu = "17ii8P23nkyEk37MqFZKS3K9xohKDg0X7"
 folderSqueletteCharles = "19Hv5Nce7zCVuxP4Ot8-Bex4v_p_nvsls"
-folderSquelettesPierre ='1Vn9j06k5ldMevL6DS6gnkeaS6yHTeyKR'
+folderSquelettesPierre = '1Vn9j06k5ldMevL6DS6gnkeaS6yHTeyKR'
 folderSquelettesManu = "1i3BVGXYO8k9Wi1FHGJ4-vPN6K7vXPT1T"
 folderSquelettesAFaireRebelles = "1Jpq11Roo4QbgkmyLyxm4z3SfQPNOqSrh"
 
-nomspersos = ["A trouver", "Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa", "Dall Joval D'rasnov",
+nomspersos = ["A trouver", "Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa",
+              "Dall Joval D'rasnov",
               "Desnash Rhylee", "Dophine Rhue", "Driss Ranner", "Edrik Vance", "Greeta Asty", "Hart Do", "Havok",
               "Hog'Gemod Ippolruna", "Isayjja Kahl", "Jaldine Gerams", "Jay Mozel", "Jerima D'rasnov", "Jish Zyld",
               "Jory Asty", "Kael Sin", "Kalitt", "Kess Horoby", "Kianstev Nacram", "Korrgaarr Gguurd'k", "KR3-NC0",
@@ -26,25 +27,48 @@ nomspersos = ["A trouver", "Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Bra
               "Slayke Jontab", "Sol Preeda - Soree", "Tarik Koma", "Teysa Cio", "Thuorn Hermon", "Timagua", "Trevek",
               "Tristan Wrenn", "Tsvan Kessig", "Val Krendel", "Valin​ Hess", "Vauber Brasell", "Wexley Ello",
               "Wor Monba", "Xabria", "Yulsa Nazdij", "Zaar Tamwi", "Zagrinn Vrask", "Zoln Ubri"]
-nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran ?', 'Kelar Veil',
-            'Un des joueurs de Sabbacc (nom à trouver)', 'Lady Santhe ??', 'Tranche Mitaines', 'Tranche Mitaines',
-            'Jaarush Adan', 'L’inquisiteur', 'Yerraz', 'Droïdes mercenaires',
-            'Quay Tolsite, agent des Pykes', 'FX-4', 'Oskrabkosi', 'Loomis Xent', 'Katlyn Clawool', 'Tranche mitaines',
-            'Rebelle 1',
-            'Boh Pragg chef de gare Kel dor', 'Teezk un esclave rodien issu de la purge du cartel Rodien par Tagge',
-            'Nekma', 'Katlyn Clawool', 'Benjey Doroat', 'Droïde syndiqué', 'Seerdo', 'Sid Kashan', 'Nosfran Ratspik',
-            'Membres du J.A.N', 'Caleadr Schlon', 'Zuckuss (ou Boush, ou une autre star)', 'B2B', 'Haaris',
-            'Le fils de Kalitt', 'Trewek', 'Revos Vannak', 'Inquisiteurice', 'Varima', 'Eliana Zorn', 'Zev Jessk',
-            'Mohadarr Bodfre', 'Ex esclave', 'Inquisiteur', 'XXXX Rhylee', 'Rak Stryn  le mandalo',
-            'Yerraz le go faster', 'Apprenti de l’Inquisiteur', 'Témoin X', 'XXX Geska (frère de wirt)',
-            'Fraterr Millbra', 'Izzik Walo’s', 'Rosson', 'Yorshill', 'Rebelle 3', 'Drashk',
-            'Baron Soontir Fel', 'esclave porcher, sbire de Hogg', 'Osrabkosi', '5ème frère',
-            'La mère (Suwan) et la soeur (Ilanni) de Lexi', 'Darsha Viel', 'Jarus Adams (star tour)', 'Muic Wula',
-            'Rebelle 2', 'O-MR1', 'Varina Leech', 'Kalie Hess (Décédée)',
-            'Boba Fett (ou un mandalorien bien badass de l’enfer)', 'OMR-1', 'Lieira Sonn', 'esclave 1',
-            'Bossk (ou un trando qui le représente)', 'Soontir Fel', 'FX4', 'Trerlil Irgann',
-            'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère', 'Shaani', 'Dhar', 'Seerdo',
-            'Aruk le hutt', 'Veert']
+# nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran ?', 'Kelar Veil',
+#             'Un des joueurs de Sabbacc (nom à trouver)', 'Lady Santhe ??', 'Tranche Mitaines', 'Tranche Mitaines',
+#             'Jaarush Adan', 'L’inquisiteur', 'Yerraz', 'Droïdes mercenaires',
+#             'Quay Tolsite, agent des Pykes', 'FX-4', 'Oskrabkosi', 'Loomis Xent', 'Katlyn Clawool', 'Tranche mitaines',
+#             'Rebelle 1',
+#             'Boh Pragg chef de gare Kel dor', 'Teezk un esclave rodien issu de la purge du cartel Rodien par Tagge',
+#             'Nekma', 'Katlyn Clawool', 'Benjey Doroat', 'Droïde syndiqué', 'Seerdo', 'Sid Kashan', 'Nosfran Ratspik',
+#             'Membres du J.A.N', 'Caleadr Schlon', 'Zuckuss (ou Boush, ou une autre star)', 'B2B', 'Haaris',
+#             'Le fils de Kalitt', 'Trewek', 'Revos Vannak', 'Inquisiteurice', 'Varima', 'Eliana Zorn', 'Zev Jessk',
+#             'Mohadarr Bodfre', 'Ex esclave', 'Inquisiteur', 'XXXX Rhylee', 'Rak Stryn  le mandalo',
+#             'Yerraz le go faster', 'Apprenti de l’Inquisiteur', 'Témoin X', 'XXX Geska (frère de wirt)',
+#             'Fraterr Millbra', 'Izzik Walo’s', 'Rosson', 'Yorshill', 'Rebelle 3', 'Drashk',
+#             'Baron Soontir Fel', 'esclave porcher, sbire de Hogg', 'Osrabkosi', '5ème frère',
+#             'La mère (Suwan) et la soeur (Ilanni) de Lexi', 'Darsha Viel', 'Jarus Adams (star tour)', 'Muic Wula',
+#             'Rebelle 2', 'O-MR1', 'Varina Leech', 'Kalie Hess (Décédée)',
+#             'Boba Fett (ou un mandalorien bien badass de l’enfer)', 'OMR-1', 'Lieira Sonn', 'esclave 1',
+#             'Bossk (ou un trando qui le représente)', 'Soontir Fel', 'FX4', 'Trerlil Irgann',
+#             'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère', 'Shaani', 'Dhar', 'Seerdo',
+#             'Aruk le hutt', 'Veert']
+
+nomsPNJs = ['3eme Frère', 'Agent tu BSI Mort à définir', 'Airnanu D’rasnov', 'Apprenti de l’Inquisiteur',
+            'Apprenti(PNJ)', 'Aruk Le Hutt',
+            'B2B', 'Baron Soontir Fell', 'Benjey Doroat', 'Boba Fett (ou un mandalorien bien badass de l’enfer)',
+            'Boh Pragg chef de gare en fuite, traqué va conduire le frère de Zagrinn sur Chalacta',
+            'Bossk (ou un trando qui le représente)', 'Caleadr Schlon', 'Choom Poorf', 'Dakkuk Druhvud',
+            'Darsha Viel', 'Darshan Kurgan', 'Dhar', 'Drashk', 'Drit Caarson', 'Droïde syndiqué', 'Droïdes mercenaires',
+            'Eliana Zorn', 'esclave 1', 'Ex esclave', 'Ex-IngéCom(PNJ)',
+            'Famille à libérer et gardes troopers chargés du transfert', 'Fraterr Millbra', 'FX-4', 'Haaris',
+            'Inquisiteur : 5ème frère', 'Inquisiteurice', 'Izzik Walo’s', 'Jaarush Adan', 'Jabba', 'Jade', 'Jax',
+            'Kalie Hess', 'Katleen Clawool', 'Kelar Veil, dit l’Apprenti', 'Khaljab Welall, agent de l’Aube Ecarlate',
+            'La mère (Suwan) et la soeur (Ilanni) de Lexi', 'Lady Santhe ??', 'Laki Novak', 'Le fils de Kalitt',
+            'Le peuple Rakata',
+            'Lieira Sonn', 'Loomis Kent (éboueurs)', 'Lor San Tekka', 'Magg', 'Membres du J.A.N', 'Mohadarr Bodfre',
+            'Muic Wula', 'Nekma', 'Nombreux PNJs errants en forêt peuvent être embusqués et dangereux',
+            'Nosfran Ratspik',
+            'OMR-1', 'Orson Krennic', 'Oskrabkosi', 'Quay Tolsite, agent des Pykes', 'Rebelle 1', 'Rebelle 2',
+            'Rebelle 3',
+            'Revos Vannak', 'Rosson', 'Seerdo', 'Shaani', 'Sid Kashan', 'Ssor', 'Teezk esclave en cavale', 'Témoin X',
+            'Tranche Mitaines', 'Trerlil Irgann', 'Trewek', 'Un des joueurs de Sabacc (nom à trouver)', 'Urr’Orruk',
+            'Vangos Heff', 'Varima', 'Varina Leech', 'Veert', 'XXXX Rhylee', 'Yerraz le go faster', 'Yorshill',
+            'Zev Jessk',
+            'Zuckuss (ou Boush, ou une autre star)']
 
 
 def main():
@@ -63,28 +87,27 @@ def main():
 
     apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
 
-    extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="98")
+    extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
     extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
 
     monGN.forcerImportPersos(nomspersos)
     monGN.rebuildLinks(verbal=False)
     monGN.save("archive Chalacta")
 
-    #todo  :ajouter une gestion des factions :
+    #todo : faire en sorte qu'on puisse ajouter des PNJ on the go
+    # appel dans la foulée de dedupe PNJ pour faire le ménage?
+    # todo  :ajouter une gestion des factions :
     # un doc avec les factions : ### nom faction / ## pj :/ ## PNJS
     # et un objet faction qui permet de les gérer
     # et une chaine qui permet de lister les factions qu'on veur ass=ocier dans les intrigues, lues depuis les scènes
 
-    #todo : passer la gestion des dates via un objet date time, et ajouter une variable avec la date du GN (0 par défaut)
+    # todo : passer la gestion des dates via un objet date time, et ajouter une variable avec la date du GN (0 par défaut)
 
-
-    #todo : ajouter un truc qui permet de comparer, scène par scène les changements entre deux versions
-    #todo : ajouter des fiches relations, qui décrivent l'évolution des relations entre les personnages,
+    # todo : ajouter un truc qui permet de comparer, scène par scène les changements entre deux versions
+    # todo : ajouter des fiches relations, qui décrivent l'évolution des relations entre les personnages,
     # et qui devraient servir de base pour les lire
 
-    #todo générer les relations lues dans un tableau des relations
-
-
+    # todo générer les relations lues dans un tableau des relations
 
     print("****************************")
     print("****************************")
@@ -95,7 +118,7 @@ def main():
 
     print("*********touslesquelettes*******************")
     tousLesSquelettesPerso(monGN, prefixeFichiers)
-
+    tousLesSquelettesPNJ(monGN, prefixeFichiers)
     print("*******dumpallscenes*********************")
     # dumpAllScenes(monGN)
 
@@ -114,17 +137,18 @@ def main():
     # squelettePerso(monGN, "Kyle Talus")
     # listerRolesPerso(monGN, "Greeta")
     # listerPNJs(monGN)
-    # genererCsvPNJs(monGN)
+    genererCsvPNJs(monGN)
     # genererCsvObjets(monGN)
 
     # #lister les correspondaces entre les roles et les noms standards
     # mesroles = tousLesRoles(monGN)
     # fuzzyWuzzyme(mesroles, nomspersos)
 
-    # # print(normaliserNomsPNJs(monGN))
+    # print(normaliserNomsPNJs(monGN))
     # #génération d'un premier tableau de noms de PNJs à partir de ce qu'on lit dans les intrigues
     # nomsPNSnormalisés = normaliserNomsPNJs(monGN)
     # print([ nomsPNSnormalisés[k][0] for k in nomsPNSnormalisés])
+    # dedupePNJs(monGN)
 
     # print(getAllRole(GN))
 
@@ -216,6 +240,50 @@ def tousLesSquelettesPerso(monGN, prefixe):
     toutesScenes = ""
     for perso in monGN.dictPJs.values():
         toutesScenes += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
+        toutesScenes += f"résumé de la bio : \n"
+        for item in perso.description:
+            toutesScenes += f"{item} \n"
+        toutesScenes += f"Psychologie : "
+        for item in perso.concept:
+            toutesScenes += f"{item} \n"
+        toutesScenes += f"Motivations et objectifs : \n"
+        for item in perso.driver:
+            toutesScenes += f"{item} \n"
+        toutesScenes += f"Chronologie : \n "
+        for item in perso.datesClefs:
+            toutesScenes += f"{item} \n"
+        toutesScenes += "\n *** Scenes associées : *** \n"
+
+        mesScenes = []
+        for role in perso.roles:
+            for scene in role.scenes:
+                # print(f"{scene.titre} trouvée")
+                mesScenes.append(scene)
+
+        # for scene in perso.scenes:
+        #     mesScenes.append(scene)
+
+        # print(f"{nomPerso} trouvé")
+        mesScenes = Scene.trierScenes(mesScenes)
+        for scene in mesScenes:
+            # print(scene)
+            toutesScenes += str(scene) + '\n'
+        toutesScenes += '****************************************************** \n'
+
+        # print('****************************************************** \n')
+    # print(toutesScenes)
+    if prefixe is not None:
+        with open(prefixe + ' - squelettes.txt', 'w', encoding="utf-8") as f:
+            f.write(toutesScenes)
+            f.close()
+
+    return toutesScenes
+
+
+def tousLesSquelettesPNJ(monGN: GN, prefixe):
+    toutesScenes = ""
+    for perso in monGN.dictPNJs.values():
+        toutesScenes += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
         toutesScenes += f"résumé de la bio : \n {perso.description} \n"
         toutesScenes += f"Psychologie : \n {perso.concept} \n"
         toutesScenes += f"Motivations et objectifs : \n {perso.driver} \n"
@@ -241,7 +309,7 @@ def tousLesSquelettesPerso(monGN, prefixe):
         # print('****************************************************** \n')
     # print(toutesScenes)
     if prefixe is not None:
-        with open(prefixe + ' - squelettes.txt', 'w', encoding="utf-8") as f:
+        with open(prefixe + ' - squelettes PNJs.txt', 'w', encoding="utf-8") as f:
             f.write(toutesScenes)
             f.close()
 
@@ -357,8 +425,9 @@ def listerPNJs(monGN):
     return toReturn
 
 
-def genererCsvPNJs(monGN):
-    print("nomRole;description;typePJ;niveau implication;details intervention;intrigue")
+def genererCsvPNJs(monGN: GN):
+    output = "nom PNJ;description;typePJ;niveau implication;details intervention;intrigue;" \
+             "nom dans l'intrigue;indice de confiance normalisation\n"
     for intrigue in monGN.intrigues.values():
         for role in intrigue.rolesContenus.values():
             if role.estUnPNJ():
@@ -366,13 +435,18 @@ def genererCsvPNJs(monGN):
                 description = role.description.replace('\n', "***")
                 niveauImplication = role.niveauImplication.replace('\n', chr(10))
                 perimetreIntervention = role.perimetreIntervention.replace('\n', chr(10))
-                print(f"{nompnj};"
-                      f"{description};"
-                      f"{stringTypePJ(role.pj)};"
-                      f"{niveauImplication};"
-                      f"{perimetreIntervention};"
-                      f"{intrigue.nom}")
-
+                score = process.extractOne(nompnj, nomsPNJs)
+                typeDansGN = monGN.dictPNJs[score[0]].pj
+                output+= f"{score[0]};" \
+                      f"{description};"\
+                      f"{stringTypePJ(typeDansGN)};"\
+                      f"{niveauImplication};"\
+                      f"{perimetreIntervention};"\
+                      f"{intrigue.nom}; "\
+                      f"{nompnj}; "\
+                      f"{score[1]}"\
+                    "\n"
+    print(output)
 
 def genererCsvObjets(monGN):
     print("description;Avec FX?;FX;Débute Où?;fourni par Qui?;utilisé où?")
@@ -567,6 +641,19 @@ def suggererTableauPersos(intrigue, verbal=False):
         print(toPrint)
 
     return toPrint
+
+
+def dedupePNJs(monGN):
+    nomsPNJs = []
+    nomsNormalises = dict()
+    for intrigue in monGN.intrigues.values():
+        for role in intrigue.rolesContenus.values():
+            if role.estUnPNJ():
+                nomsPNJs.append(role.nom)
+    nomsPNJs = list(set(nomsPNJs))
+    extract = process.dedupe(nomsPNJs, threshold=89)
+    for v in extract:
+        print(v)
 
     # rolesSansScenes = []
     # for role in intrigue.roles.values():
