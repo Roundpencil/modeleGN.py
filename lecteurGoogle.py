@@ -22,7 +22,7 @@ os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre de
 
 
 # crée deux lecteurs, apiDrive et ApiDoc, pour pouvoir lire plus facilement les fichiers par la suite
-def creerLecteursGoogleAPIs():
+def creer_lecteurs_google_apis():
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first

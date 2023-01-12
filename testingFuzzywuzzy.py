@@ -1,3 +1,7 @@
+import argparse
+import configparser
+import csv
+
 from fuzzywuzzy import process, fuzz
 
 import extraireTexteDeGoogleDoc
@@ -15,6 +19,7 @@ folderSqueletteCharles = "19Hv5Nce7zCVuxP4Ot8-Bex4v_p_nvsls"
 folderSquelettesPierre = '1Vn9j06k5ldMevL6DS6gnkeaS6yHTeyKR'
 folderSquelettesManu = "1i3BVGXYO8k9Wi1FHGJ4-vPN6K7vXPT1T"
 folderSquelettesAFaireRebelles = "1Jpq11Roo4QbgkmyLyxm4z3SfQPNOqSrh"
+# folderSquelettesImperiaux = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"
 
 nomspersos = ["A trouver", "Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa",
               "Dall Joval D'rasnov",
@@ -74,6 +79,46 @@ nomsPNJs = ['3eme Frère', 'Agent tu BSI Mort à définir', 'Airnanu D’rasnov'
 def main():
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
 
+    # dans cette fonction main j'aimerais rajouter des arguments optionnels :
+    # "-init" fait que la fonction gn.load n'est pas appelée
+    # "-nosave" fait que la focntion GN.save n'est pas appelée
+    # "-intrigue=x" fait que la fonction extraireintrigue est appelée avec x au lieu de "-01"
+    # "-perso=x" fait que la fonction extrairePJs est appelée avec x au lieu de "-01"
+    # "-verbal" fait que la fonction rebuildLinks est appelée avec True au lieu de False
+    # todo : rajouter tous les parsings et modifier les commentaires
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-init", action="store_true", help="skip loading the gn from file")
+    parser.add_argument("-nosave", action="store_true", help="skip saving the gn to file")
+    parser.add_argument("-intrigue", type=str, default="-01", help="folder id for extracting intrigues")
+    parser.add_argument("-perso", type=str, default="-01", help="folder id for extracting characters")
+    parser.add_argument("-verbal", action="store_true", help="verbose output")
+    args = parser.parse_args()
+
+
+    # init configuration
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+
+    #todo tester
+    try:
+        #todo : mettre à jour la lecture en fcontion des sections du fichier
+        folderid = config.get('folders', 'intrigue').split(',')
+        foldersPJs = config.get('folders', 'PJs').split(',')
+        associationType = config.get('others', 'associationType')
+        PJsheetType = config.get('others', 'PJsheetType')
+        archiveName = config.get('others', 'archiveName')
+        folder_id = config.get('parametres', 'folder_id')
+        type_association = config.get('parametres', 'type_association')
+        type_fiche = config.get('parametres', 'type_fiche')
+        nom_fichier_sauvegarde = config.get('parametres', 'nom_fichier_sauvegarde')
+    except configparser.Error as e:
+        # Erreur lors de la lecture d'un paramètre dans le fichier de configuration
+        print("Erreur lors de la lecture du fichier de configuration : {}".format(e))
+        return
+
+    #todo :tester
+
     monGN = GN(folderIntriguesID=folderid,
                folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles, folderSquelettesPierre,
                            folderSquelettesManu, folderSquelettesAFaireRebelles])
@@ -81,11 +126,11 @@ def main():
     for pnj in nomsPNJs:
         monGN.dictPNJs[pnj] = Personnage(nom=pnj, pj=EST_PNJ_HORS_JEU)
 
-    # si on veut charger un fichier
-    monGN = GN.load("archive Chalacta")
-    # print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
+    if not args.init:
+        monGN = GN.load("archive Chalacta")
+        # print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
 
-    apiDrive, apiDoc = lecteurGoogle.creerLecteursGoogleAPIs()
+    apiDrive, apiDoc = lecteurGoogle.creer_lecteurs_google_apis()
 
     extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
     extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
@@ -94,16 +139,12 @@ def main():
     monGN.rebuildLinks(verbal=False)
     monGN.save("archive Chalacta")
 
-    #todo : faire en sorte qu'on puisse ajouter des PNJ on the go
+    # todo : faire en sorte qu'on puisse ajouter des PNJ on the go
     # appel dans la foulée de dedupe PNJ pour faire le ménage?
-    # todo  :ajouter une gestion des factions :
-    # un doc avec les factions : ### nom faction / ## pj :/ ## PNJS
-    # et un objet faction qui permet de les gérer
-    # et une chaine qui permet de lister les factions qu'on veur ass=ocier dans les intrigues, lues depuis les scènes
+
 
     # todo : passer la gestion des dates via un objet date time, et ajouter une variable avec la date du GN (0 par défaut)
 
-    # todo : ajouter un truc qui permet de comparer, scène par scène les changements entre deux versions
     # todo : ajouter des fiches relations, qui décrivent l'évolution des relations entre les personnages,
     # et qui devraient servir de base pour les lire
 
@@ -437,16 +478,17 @@ def genererCsvPNJs(monGN: GN):
                 perimetreIntervention = role.perimetreIntervention.replace('\n', chr(10))
                 score = process.extractOne(nompnj, nomsPNJs)
                 typeDansGN = monGN.dictPNJs[score[0]].pj
-                output+= f"{score[0]};" \
-                      f"{description};"\
-                      f"{stringTypePJ(typeDansGN)};"\
-                      f"{niveauImplication};"\
-                      f"{perimetreIntervention};"\
-                      f"{intrigue.nom}; "\
-                      f"{nompnj}; "\
-                      f"{score[1]}"\
-                    "\n"
+                output += f"{score[0]};" \
+                          f"{description};" \
+                          f"{stringTypePJ(typeDansGN)};" \
+                          f"{niveauImplication};" \
+                          f"{perimetreIntervention};" \
+                          f"{intrigue.nom}; " \
+                          f"{nompnj}; " \
+                          f"{score[1]}" \
+                          "\n"
     print(output)
+
 
 def genererCsvObjets(monGN):
     print("description;Avec FX?;FX;Débute Où?;fourni par Qui?;utilisé où?")
@@ -664,6 +706,124 @@ def dedupePNJs(monGN):
     #     print("Roles sans Scènes : ")
     #     for role in rolesSansScenes:
     #         print(role.nom)
+
+
+# todo : tester en remplacement de la fonction de forçage existante
+def charger_personnages_forces(gn, chemin_fichier):
+    try:
+        with open(chemin_fichier, 'r') as f:
+            for ligne in f:
+                nom = ligne.strip()
+                personnage = Personnage(nom=nom, forced=True)
+                gn.dictPJs[nom] = personnage
+    except FileNotFoundError:
+        print(f"Le fichier {chemin_fichier} n'a pas été trouvé.")
+
+
+# todo : tester et intégrer pour permettre l'association
+def generer_csv_association(roles_dict, filename):
+    # Ouvrir un fichier CSV en mode écriture
+    with open(filename, 'w', newline='') as csvfile:
+        # Créer un objet CSV writer
+        writer = csv.writer(csvfile, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        # Écrire les en-têtes de colonnes
+        writer.writerow(['nom', 'description', 'pipr', 'pipi', 'sexe', 'personnage'])
+        # Pour chaque rôle dans le dictionnaire de rôles
+        for role in roles_dict.values():
+            # Récupérer les valeurs de chaque champ
+            nom = role.nom
+            description = role.description
+            pipr = role.pipr
+            pipi = role.pipi
+            sexe = role.sexe
+            personnage = role.perso if role.perso else ""
+            # Écrire les valeurs dans le fichier CSV
+            writer.writerow([nom, description, pipr, pipi, sexe, personnage])
+    print("Fichier CSV généré avec succès: {}".format(filename))
+
+
+# todo : tester l'association manuelle
+def lire_association_roles_depuis_csv(roles_list, filename):
+    try:
+        # Ouvrir le fichier CSV en mode lecture
+        with open(filename, 'r', newline='') as csvfile:
+            # Créer un objet CSV reader
+            reader = csv.reader(csvfile, delimiter=';', quotechar='"')
+            # Vérifier les en-têtes de colonnes
+            headers = next(reader)
+            if headers != ['nom', 'description', 'pipr', 'pipi', 'sexe', 'personnage']:
+                raise ValueError("Le fichier CSV ne contient pas les bonnes entêtes de colonnes")
+            # Pour chaque ligne du fichier CSV
+            for row in reader:
+                nom = row[0]
+                personnage = row[5]
+                #todo : faire l'association via un objet GN, ou bien utiliser self.perso si on est dans GN :)
+                # et mettre à jour les paramètres du GN en fcontion de ceux du programme > ca se joue à quel niveau?
+                # qu'est-ce qui est propriété de quoi? peut-on changer d'association en cours de vie de gn?
+
+                # Trouver le rôle correspondant dans la liste de rôles
+                role = next((role for role in roles_list if role.nom == nom), None)
+                if role:
+                    # Mettre à jour le champ perso de ce rôle
+                    role.perso = personnage
+            print("Les informations de personnages ont été mises à jour.")
+    except FileNotFoundError:
+        print(f"Le fichier {filename} n'existe pas.")
+    except ValueError as e:
+        print(e)
+    except Exception as e:
+        print(f"Une erreur est survenue lors de la lecture du fichier: {e}")
+
+
+# pour mon programme, j'aimerais utiliser un fichier de paramètres qui est lu à chaque démarrage. Ce fichier doit
+# être éditable par un être humain, qui devra y comprendre à quoi correspond chaque paramètre.
+
+# Ce fichier contient : - une liste d'identifiants de noms de fichiers à lire, qui remplace "[folderSqueletteJu,
+# folderSqueletteEmeric, folderSqueletteCharles, folderSquelettesPierre, folderSquelettesManu,
+# folderSquelettesAFaireRebelles]" dans mon programme - une chaine de caractères qui décrit le "type d'association",
+# qui peut être manuel ou automatique - une chaine de caractères qui décrit le "type de fiche personnage",
+# qui contiendra toujours"Chalacta" - une chaîne de caractère qui contient le nom du fichier qui sera lu (qui est
+# aujourd'hui "archive chalacta") et où le programme stoquera les résultats quand il terminera
+
+# Pour utiliser un fichier de paramètres, vous pourriez utiliser la bibliothèque "configparser" qui permet de lire et
+# d'écrire des fichiers de configuration en format INI. Vous pourriez créer un fichier de configuration avec
+# différents sections pour stocker vos paramètres, et utiliser la méthode ConfigParser.read() pour lire le fichier
+# lorsque vous lancez votre programme.
+# Le fichier de paramètres pourrait ressembler à ceci :
+
+# folder_ids = ["id1", "id2", "id3"]
+# association_type = "automatique"
+# fiche_personnage_type = "Chalacta"
+# nom_fichier_sauvegarde = "archive Chalacta"
+
+# Ce serait un fichier texte simple, où chaque ligne contient une variable et sa valeur correspondante. Le format est
+# libre, l'important c'est que cela soit compréhensible et modifiable facilement par un être humain. D'autre format
+# comme le json ou yaml pourraient être utilisé pour des usages plus complexe et offrir une meilleur lisibilité.
+
+#todo: integrer au code (quitte à virer la fonction et reprendre le code)  et tester
+
+def lire_parametres():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+
+    folder_id = config.get('Folders', 'id')
+    association_type = config.get('Association', 'type')
+    fiche_type = config.get('Fiche', 'type')
+    file_name = config.get('File', 'name')
+
+
+# et pour écrire dans le fichier :
+def ecrire_parametres():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+
+    config.set('Folders', 'id', new_id)
+    config.set('Association', 'type', new_association_type)
+    config.set('Fiche', 'type', new_fiche_type)
+    config.set('File', 'name', new_file_name)
+
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
 
 
 main()

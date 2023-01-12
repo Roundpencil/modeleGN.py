@@ -43,11 +43,11 @@ def stringTypePJ(typePJ):
 # ceux qui sont liés au personnes (roles)
 # et la contenance de ceux qui sont associées à ses propres scènes (via cette classe, donc)
 class ConteneurDeScene:
-    def __init__(self, lastFileEdit, url):
+    def __init__(self, derniere_edition_fichier, url):
         self.scenes = set()
         self.rolesContenus = {}  # nom, rôle
         self.errorLog = ""
-        self.lastFileEdit = lastFileEdit
+        self.lastFileEdit = derniere_edition_fichier
         self.url = url
 
     def getErrorLog(self):
@@ -92,13 +92,23 @@ class ConteneurDeScene:
     def getFullUrl(self):
         return "https://docs.google.com/document/d/" + self.url
 
+    def updater_dates_maj_scenes(self, conteneur_de_reference: ConteneurDeScene):
+        for ma_scene in self.scenes:
+            # On va chercher si cette scène existe déjà dans l'objet intrigue précédent
+            for sa_scene in conteneur_de_reference.scenes:
+                if ma_scene.titre == sa_scene.titre:
+                    if ma_scene.description == sa_scene.description:
+                        ma_scene.derniere_mise_a_jour = sa_scene.derniere_mise_a_jour
+                    break
+                #todo : appeler cette focntion dans le lecteur d'objets google pour updater
+
 # personnage
 class Personnage(ConteneurDeScene):
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
                  sexe="i", pj=EST_PJ, orgaReferent="", pitchJoueur="", indicationsCostume="", textesAnnexes="", url="",
                  datesClefs="", lastChange=datetime.datetime(year=2000, month=1, day=1), forced=False,
-                 lastFileEdit=0):
-        super(Personnage, self).__init__(lastFileEdit=lastFileEdit, url=url)
+                 derniere_edition_fichier=0):
+        super(Personnage, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
         self.nom = nom
         self.concept = concept
         self.driver = driver
@@ -209,8 +219,8 @@ class Intrigue(ConteneurDeScene):
 
     def __init__(self, url, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
                  questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", lastProcessing=None,
-                 scenesEnJeu="", lastFileEdit = 0):
-        super(Intrigue, self).__init__(lastFileEdit=lastFileEdit, url=url)
+                 derniere_edition_fichier = 0):
+        super(Intrigue, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
         self.nom = nom
         self.description = description
         self.pitch = pitch
@@ -225,8 +235,7 @@ class Intrigue(ConteneurDeScene):
             lastProcessing = datetime.datetime.now() - datetime.timedelta(days=500*365)
         self.lastProcessing = lastProcessing
 
-        self.lastFileEdit = lastFileEdit
-        self.scenesEnJeu = scenesEnJeu
+        self.lastFileEdit = derniere_edition_fichier
         self.objets = set()
 
     def __str__(self):
@@ -241,6 +250,7 @@ class Intrigue(ConteneurDeScene):
         for objet in self.objets:
             objet.inIntrigues.remove(self)
         # self.objets.clear()
+
 
     # vérifier que le personnge que l'on souhaite associer à un rôle n'est pas déjà associé à un autre rôle
     # dans le même conteneur
@@ -270,6 +280,7 @@ class Intrigue(ConteneurDeScene):
         personnage.pj = max(personnage.pj, roleAAssocier.pj)
         personnage.roles.add(roleAAssocier)
         return 0
+
 
 
 
@@ -310,6 +321,7 @@ class Scene:
         # 3 : personnages impactés uniquement
         # faut-il dire que role et personnages héritent l'un de l'autre? Ou bien d'un objet "protagoniste"?
         self.rawRoles = None
+        self.derniere_mise_a_jour = datetime.datetime.now()
 
     def get_date(self):
         return self.date
@@ -388,11 +400,50 @@ class Scene:
 
 # objet pour tout sauvegarder
 
+#todo : tester
+def lire_factions_depuis_fichier(fichier: str):
+    factions = dict()
+    try:
+        with open(fichier, "r") as file:
+            lines = file.readlines()
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Fichier introuvable : {fichier}")
+    current_faction = None
+    for line in lines:
+        if line.startswith("### "):
+            faction_name = line.replace("### ", "")
+            faction_name = faction_name.strip()
+            current_faction = Faction(faction_name)
+            factions[faction_name] = current_faction
+        elif line.startswith("## "):
+            line = line.replace("## ", "")
+            personnages_names = line.strip().split(",")
+            for perso_name in personnages_names:
+                perso_name = perso_name.strip()
+                try:
+                    current_faction.ajouter_personnage(perso_name)
+                except Exception as e:
+                    print(f"Impossible d'ajouter le personnage {perso_name} : {e}")
+    return factions
+
+class Faction:
+    def __init__(self, nom:str):
+        self.nom = nom
+        self.personnages = set()
+
+    def ajouter_personnage(self, nom:str):
+        personnage = nomVersPersonnage(nom)
+        self.personnages.add(personnage)
+
+    def __str__(self):
+        list_perso = [p.nom for p in self.personnages]
+        return f"Faction {self.nom} avec les personnages {list_perso}"
 
 class GN:
     def __init__(self, folderIntriguesID, folderPJID):
         self.dictPJs = {}  # idgoogle, personnage
         self.dictPNJs = {}  # nom, personnage
+        self.factions = dict() #nom, Faction
         self.intrigues = dict()  # clef : id google
         self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatePJ = None  # contient al dernière date d'update d'une intrigue dans le GN
@@ -408,6 +459,39 @@ class GN:
         else:
             self.folderPJID = [folderPJID]
         print(f"PJID = {self.folderPJID}")
+
+    def nom_vers_personnage(self, nom: str, chercher_pj=True, chercher_pnj=True) -> Personnage:
+        if chercher_pnj:
+            if nom in self.dictPNJs:
+                return self.dictPNJs[nom]
+        if chercher_pj:
+            if nom in self.dictPJs:
+                return self.dictPJs[nom]
+        raise ValueError(f"Le personnage {nom} n'a pas été trouvé")
+
+#todo : tester les factions
+
+    def charger_factions_depuis_fichier(self, fichier: str):
+        factions_dict = lire_factions_depuis_fichier(fichier)
+        for nom, faction in factions_dict.items():
+            self.ajouter_faction(faction)
+
+    def ajouter_faction(self, faction: Faction):
+        self.factions[faction.nom] = faction
+
+    def rechercher_faction(self, nom: str) -> Faction:
+        if nom in self.factions:
+            return self.factions[nom]
+        else:
+            raise ValueError(f"La faction {nom} n'a pas été trouvée")
+
+#todo : tester et utiliser dans main
+    def effacer_personnages_forces(self):
+        for personnage in list(self.dictPJs.values()) + list(self.dictPNJs.values()):
+            if personnage.forced:
+                self.dictPJs.pop(personnage.nom, None)
+                self.dictPNJs.pop(personnage.nom, None)
+                personnage.clear()
 
     # permet de mettre à jour la date d'intrigue la plus ancienne
     # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
@@ -511,7 +595,7 @@ class GN:
     def load(filename):
         monfichier = open(filename, 'rb')
         return pickle.load(monfichier)
-        monfichier.close()
+
 
     # apres une importation recrée
     # tous les liens entre les PJs,
@@ -574,3 +658,5 @@ class Objet:
         self.rfid = len(specialEffect) > 0
         self.specialEffect = specialEffect
         self.inIntrigues = set()
+
+
