@@ -17,24 +17,27 @@ from googleapiclient.errors import HttpError
 from fuzzywuzzy import process
 
 
-def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01"):
+def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01", verbal=False):
     extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extraireIntrigueDeTexte, monGN.intrigues, monGN.folderIntriguesID,
-                             singletest)
+                             singletest, verbal=verbal)
 
 
-def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
-    extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extrairePJDeTexte, monGN.dictPJs, monGN.folderPJID, singletest)
+def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01", verbal=False):
+    extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extrairePJDeTexte, monGN.dictPJs, monGN.folderPJID, singletest,
+                             verbal=verbal)
 
+
+# todo : insérer la méthode  qui envoie les suqelettes etc dans un document google
 
 def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictIDs: dict, folderArray,
-                             singletest="-01"):
+                             singletest="-01", verbal=False):
     items = lecteurGoogle.genererListeItems(monGN, apiDrive=apiDrive, folderID=folderArray)
 
     if not items:
         print('No files found.')
         return
 
-    print(f"singletest : {type(singletest)} = {singletest}")
+    # print(f"singletest : {type(singletest)} = {singletest}")
     if int(singletest) > 0:
         for item in items:
             try:
@@ -47,11 +50,13 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                 print('Titre document : {}'.format(document.get('title')))
 
                 # Alors on se demande si c'est le bon doc
-                if document.get('title')[0:3].strip() != str(singletest):  # numéro de l'intrigue
-                    # si ce n'est pas la bonne, pas la peine d'aller plus loin
+                # if document.get('title')[0:3].strip() != str(singletest):  # numéro de l'intrigue
+                #     # si ce n'est pas la bonne, pas la peine d'aller plus loin
+                #     continue
+                if ref_du_doc(document.get('title')) != str(singletest):
                     continue
                 else:
-                    print("intrigue {0} trouvée".format(singletest))
+                    print(f"j'ai trouvé le doc #{singletest} : {document.get('title')}")
                     # if item['id'] in monGN.intrigues.keys():
                     #     monGN.intrigues[item['id']].clear()
                     #     del monGN.intrigues[item['id']]
@@ -62,7 +67,7 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                         objet_de_reference = dictIDs.pop(item['id'])
 
                     nouvelObjet = extraireObjetsDeDocument(document, item, monGN, fonctionExtraction,
-                                                           saveLastChange=False)
+                                                           saveLastChange=False, verbal=verbal)
                     if objet_de_reference is not None:
                         nouvelObjet.updater_dates_maj_scenes(objet_de_reference)
                         # todo : à tester
@@ -86,10 +91,12 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                 print('Titre document : {}'.format(document.get('title')))
                 # print(document.get('title')[0:2])
 
-                if not document.get('title')[0:2].isdigit():
-                    # print("... n'est pas une intrigue")
+                # if not document.get('title')[0:2].isdigit():
+                #     # print("... n'est pas une intrigue")
+                #     continue
+                if ref_du_doc(document.get('title')) == -1:
                     continue
-                # todo : passer sur 3 digit / spliiter autour d'un tiret
+                # todo : tester
 
                 # print("... est une intrigue !")
 
@@ -124,7 +131,7 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                         # donc on arrête de parcourir
                     else:
                         # print("elle a changé depuis mon dernier passage : supprimons-la !")
-                        # dans ce cas il faut la supprimer car on va tout réécrire
+                        # dans ce cas, il faut la supprimer, car on va tout réécrire
                         # monGN.intrigues[item['id']].clear()
                         # del monGN.intrigues[item['id']]
 
@@ -132,7 +139,7 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                         objet_de_reference = dictIDs.pop(item['id'])
 
                 # puis, dans tous les cas, on la crée
-                nouvelObjet = extraireObjetsDeDocument(document, item, monGN, fonctionExtraction)
+                nouvelObjet = extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, verbal=verbal)
                 if objet_de_reference is not None:
                     nouvelObjet.updater_dates_maj_scenes(objet_de_reference)
                     # todo : à tester
@@ -142,7 +149,7 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                 # return #ajouté pour débugger
 
 
-def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLastChange=True):
+def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLastChange=True, verbal=False):
     # print("et du coup, il est temps de créer un nouveau fichier")
     # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
     contenuDocument = document.get('body').get('content')
@@ -154,7 +161,7 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
     lastFileEdit = datetime.datetime.strptime(
         item['modifiedTime'][:-5],
         '%Y-%m-%dT%H:%M:%S')
-    monObjet = fonctionExtraction(text, document.get('title'), item["id"], lastFileEdit, monGN)
+    monObjet = fonctionExtraction(text, document.get('title'), item["id"], lastFileEdit, monGN, verbal)
     # monObjet.url = item["id"]
     # et on enregistre la date de dernière mise à jour de l'intrigue
 
@@ -165,14 +172,14 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
     return monObjet
 
 
-def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, monGN):
+def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, monGN, verbal=False):
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue.replace('\v', '\n'))
     # texteIntrigue = texteIntrigue.replace('\v', '\n')
     # print("*****************************")
     currentIntrigue = Intrigue(nom=nomIntrigue, url=idUrl, derniere_edition_fichier=lastFileEdit)
     monGN.intrigues[idUrl] = currentIntrigue
-    # noms_persos = monGN.getNomsPersos()
+    # noms_persos = monGN.noms_pjs()
 
     # on fait un dict du début de chaque label
     REFERENT = "orga référent"
@@ -418,7 +425,7 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
 
 def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True, seuil=80):
     roles = listeNoms.split(",")
-    sceneAAjouter.rawRoles = roles
+    sceneAAjouter.noms_roles_lus = roles
     # print("rôles trouvés en lecture brute : " + str(roles))
 
     # dans ce cas, on prend les noms du tableau, qui fon fois, et on s'en sert pour identifier
@@ -545,7 +552,7 @@ def calculerJoursIlYA(baliseDate):
         return baliseDate.strip()
 
 
-def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, monGN):
+def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, monGN, verbal=False):
     print(f"Lecture de {nomDoc}")
     if len(textePJ) < 800:
         print(f"fiche {nomDoc} avec {len(textePJ)} caractères est vide")
@@ -591,82 +598,95 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, monGN):
                                  len(REFERENT) + len(" : "):]
 
     if indexes[JOUEURV1]["debut"] == -1:
-        print("Pas de joueur 1 avec le perso " + nomPJ)
+        if verbal:
+            print("Pas de joueur 1 avec le perso " + nomPJ)
     else:
         currentPJ.joueurs['V1'] = textePJ[indexes[JOUEURV1]["debut"]:indexes[JOUEURV1]["fin"]].splitlines()[
                                       0][
                                   len(JOUEURV1) + len(" : "):]
 
     if indexes[JOUEURV2]["debut"] == -1:
-        print("Pas de joueur 2 avec le perso " + nomPJ)
+        if verbal:
+            print("Pas de joueur 2 avec le perso " + nomPJ)
     else:
         currentPJ.joueurs['V2'] = textePJ[indexes[JOUEURV2]["debut"]:indexes[JOUEURV2]["fin"]].splitlines()[
                                       0][
                                   len(JOUEURV1) + len(" : "):]
 
     if indexes[JOUEUSE1]["debut"] == -1:
-        print("Pas de joueuse 1 avec le perso " + nomPJ)
+        if verbal:
+            print("Pas de joueuse 1 avec le perso " + nomPJ)
     else:
         currentPJ.joueurs['V1'] = textePJ[indexes[JOUEUSE1]["debut"]:indexes[JOUEUSE1]["fin"]].splitlines()[
                                       0][
                                   len(JOUEURV1) + len(" : "):]
 
     if indexes[JOUEUSE2]["debut"] == -1:
-        print("Pas de joueuse 2 avec le perso " + nomPJ)
+        if verbal:
+            print("Pas de joueuse 2 avec le perso " + nomPJ)
     else:
         currentPJ.joueurs['V2'] = textePJ[indexes[JOUEUSE2]["debut"]:indexes[JOUEUSE2]["fin"]].splitlines()[
                                       0][
                                   len(JOUEURV1) + len(" : "):]
 
     if indexes[PITCH]["debut"] == -1:
-        print("Pas de pitch  avec le perso " + nomPJ)
+        if verbal:
+            print("Pas de pitch  avec le perso " + nomPJ)
     else:
         currentPJ.pitch = textePJ[indexes[PITCH]["debut"]:indexes[PITCH]["fin"]].splitlines()[1:]
 
     if indexes[COSTUME]["debut"] == -1:
-        print("Pas d'indication costume avec le perso " + nomPJ)
+        if verbal:
+            print("Pas d'indication costume avec le perso " + nomPJ)
     else:
         currentPJ.indicationsCostume = textePJ[indexes[COSTUME]["debut"] + len(COSTUME) + len(" : "):
                                                indexes[COSTUME]["fin"]]
 
     if indexes[FACTION1]["debut"] == -1:
-        print("Pas de faction 1 avec le perso " + nomPJ)
+        if verbal:
+            print("Pas de faction 1 avec le perso " + nomPJ)
     else:
         currentPJ.factions.append(textePJ[indexes[FACTION1]["debut"]:indexes[FACTION1]["fin"]].splitlines()[
                                       0][
                                   len(FACTION1) + len(" : "):])
 
     if indexes[FACTION2]["debut"] == -1:
-        print("Pas de faction 2 avec le perso " + nomPJ)
+        if verbal:
+            print("Pas de faction 2 avec le perso " + nomPJ)
     else:
         currentPJ.factions.append(textePJ[indexes[FACTION2]["debut"]:indexes[FACTION2]["fin"]].splitlines()[
                                       0][
                                   len(FACTION2) + len(" : "):])
 
     if indexes[BIO]["debut"] == -1:
-        print("Pas de BIO avec le perso " + nomPJ)
+        if verbal:
+            print("Pas de BIO avec le perso " + nomPJ)
     else:
         currentPJ.description = textePJ[indexes[BIO]["debut"]:
                                         indexes[BIO]["fin"]].splitlines()[1:]
 
     if indexes[PSYCHO]["debut"] == -1:
-        print("Pas de psycho avec le perso " + nomPJ)
+        if verbal:
+            print("Pas de psycho avec le perso " + nomPJ)
     else:
         currentPJ.concept = textePJ[indexes[PSYCHO]["debut"]:
                                     indexes[PSYCHO]["fin"]].splitlines()[1:]
 
     if indexes[MOTIVATIONS]["debut"] == -1:
-        print("Pas de motivations avec le perso " + nomPJ)
+        if verbal:
+            print("Pas de motivations avec le perso " + nomPJ)
     else:
         currentPJ.driver = textePJ[indexes[MOTIVATIONS]["debut"]:indexes[MOTIVATIONS]["fin"]].splitlines()[1:]
 
     if indexes[CHRONOLOGIE]["debut"] == -1:
-        print("Pas de chronologie avec le perso " + nomPJ)
+        if verbal:
+            print("Pas de chronologie avec le perso " + nomPJ)
     else:
         currentPJ.datesClefs = textePJ[indexes[CHRONOLOGIE]["debut"]:indexes[CHRONOLOGIE]["fin"]].splitlines()[1:]
 
     if indexes[SCENES]["debut"] == -1:
-        print("Pas de scènes dans le perso " + nomPJ)
+        if verbal:
+            print("Pas de scènes dans le perso " + nomPJ)
     else:
         # print(f"début balise scène : {indexes[SCENES]['debut']}, fin balise scènes : {indexes[SCENES]['fin']} ")
         texteScenes = textePJ[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
@@ -709,6 +729,15 @@ def lire_factions_depuis_fichier(mon_GN: GN, fichier: str):
                     current_faction.ajouter_personnage(perso_name)
                 except Exception as e:
                     print(f"Impossible d'ajouter le personnage {perso_name} : {e}")
+
+
+def ref_du_doc(s):
+    match = re.match(r'^(\d+)\s*-.*$', s)
+    if match:
+        return int(match.group(1))
+    else:
+        return -1
+
 
 # if __name__ == '__main__':
 #     main()

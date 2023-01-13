@@ -320,7 +320,7 @@ class Scene:
         # 2, dans tous les personnages de l'intrigue (pour info, donc pour les autres)
         # 3 : personnages impactés uniquement
         # faut-il dire que role et personnages héritent l'un de l'autre? Ou bien d'un objet "protagoniste"?
-        self.rawRoles = None
+        self.noms_roles_lus = None
         self.derniere_mise_a_jour = datetime.datetime.now()
 
     def get_date(self):
@@ -458,7 +458,6 @@ class GN:
         else:
             raise ValueError(f"La faction {nom} n'a pas été trouvée")
 
-    #todo : tester
     def effacer_personnages_forces(self):
         print(list(self.dictPJs.values()) + list(self.dictPNJs.values()))
         for personnage in self.dictPJs.values():
@@ -495,22 +494,22 @@ class GN:
             self.oldestUpdatedPJ = pairesDatesIdPJ[self.oldestUpdatePJ]
 
     def save(self, filename):
-        for prop, value in vars(self).items():
-            print(prop, ":", type(value))
+        # for prop, value in vars(self).items():
+        #     print(prop, ":", type(value))
 
         filehandler = open(filename, "wb")
         pickle.dump(self, filehandler)
         filehandler.close()
 
-    def getNomsPersos(self):
+    def noms_pjs(self):
         # return self.dictPJs.keys()
         return [x.nom for x in self.dictPJs.values()]
 
-    def getNomsPNJs(self):
+    def noms_pnjs(self):
         return self.dictPNJs.keys()
 
     def associerPNJsARoles(self, seuilAlerte=90, verbal=True):
-        nomsPnjs = self.getNomsPNJs()
+        nomsPnjs = self.noms_pnjs()
         for intrigue in self.intrigues.values():
             for role in intrigue.rolesContenus.values():
                 if estUnPNJ(role.pj):
@@ -528,7 +527,7 @@ class GN:
 
     def associerPJsARoles(self, seuilAlerte=70, verbal=True):
         print("Début de l'association automatique des rôles aux persos")
-        nomsPjs = self.getNomsPersos()
+        nomsPjs = self.noms_pjs()
         dictNomsPJ = dict()
         for pj in self.dictPJs.values():  # on crée un dictionnaire temporaire nom > pj pour faire les associations
             dictNomsPJ[pj.nom] = pj
@@ -600,14 +599,14 @@ class GN:
 
         for intrigue in self.intrigues.values():
             # intrigue.clearErrorLog()
-            # todo ne nettoyer que les erreurs générées par l'association...
-            #  quand on aura un objet erreur :)
+            # todo ne nettoyer que les erreurs générées par l'association...quand on aura un objet erreur :)
             for role in intrigue.rolesContenus.values():
                 role.perso = None
 
-    def forcerImportPersos(self, nomsPersos, suffixe="_imported", verbal=True):
+    def forcerImportPersos(self, nomsPersos, suffixe="_imported", verbal=False ):
         print("début de l'ajout des personnages sans fiche")
         nomsLus = [x.nom for x in self.dictPJs.values()]
+        print(f"noms lus = {nomsLus}")
         # pour chaque perso de ma liste :
         # SI son nom est dans les persos > ne rien faire
         # SINON, lui créer une coquille vide
@@ -621,7 +620,8 @@ class GN:
                 #      process.extractOne(perso, nomsLus)[0],
                 #      process.extractOne(perso, nomsLus)[1]])
                 scoreproche = process.extractOne(perso, nomsLus)
-                if scoreproche is not None and scoreproche[1] >= 75: #todo : trouver pouruqoi je ne vois plus les assocaitions
+                # print(f"avant assicoation, {perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
+                if scoreproche is not None and scoreproche[1] >= 75:
                     if verbal:
                         print(f"{perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
                     # donc on ne fait rien

@@ -80,18 +80,14 @@ def main():
     try:
         dossier_intrigues = config.get('dossiers', 'intrigues').split(',')
 
-        prefix = "base_persos_"
-
-        # dossiers_persos = {key.replace(prefix, ''): config.get("dossiers", key) for key in config.options("dossiers") if
-        #                    key.startswith(prefix)}
-        # dossier_pjs = dossiers_persos.values()
-
-        dossier_pjs = [config.get("dossiers", key) for key in config.options("dossiers") if key.startswith(prefix)]
-
+        dossier_pjs = [config.get("dossiers", key)
+                       for key in config.options("dossiers") if key.startswith("base_persos_")]
 
         fichier_faction = config.get('dossiers', 'fichier_faction')
 
-        noms_persos = config.get('pjs_a_importer', 'noms_persos').split(',')
+        noms_persos = [nom_p.strip()
+                       for nom_p in config.get('pjs_a_importer', 'noms_persos').split(',')]
+
         nom_fichier_pnjs = config.get('pjs_a_importer', 'nom_fichier_pnjs')
         # print(nom_fichier_pnjs)
         association_auto = config.getboolean('globaux', 'association_auto')
@@ -108,17 +104,17 @@ def main():
     monGN = GN(folderIntriguesID=dossier_intrigues,
                folderPJID=dossier_pjs)
 
-    # print(f"1 - pnj dans ce GN : {monGN.getNomsPNJs()}")
+    # print(f"1 - pnj dans ce GN : {monGN.noms_pnjs()}")
 
     charger_PNJs(monGN, nom_fichier_pnjs)
 
-    # print(f"2 - pnj dans ce GN : {monGN.getNomsPNJs()}")
+    # print(f"2 - pnj dans ce GN : {monGN.noms_pnjs()}")
 
     if not args.init:
         monGN = GN.load(nom_fichier_sauvegarde)
         # print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
 
-    # print(f"3 - pnj dans ce GN : {monGN.getNomsPNJs()}")
+    # print(f"3 - pnj dans ce GN : {monGN.noms_pnjs()}")
 
     apiDrive, apiDoc = lecteurGoogle.creer_lecteurs_google_apis()
 
@@ -138,6 +134,8 @@ def main():
     if not args.nosave:
         monGN.save(nom_fichier_sauvegarde)
 
+    #todo : faire évoluer changelog pour se concentrer sur les scènes / afficher les scènes concernées
+
     # todo: appel dans la foulée de dedupe PNJ pour faire le ménage?
 
     # todo : passer la gestion des dates via un objet date time, et ajouter une variable avec la date du GN (0 par défaut)
@@ -152,7 +150,7 @@ def main():
     print("****************************")
     prefixeFichiers = str(datetime.date.today())
     print("*********toutesleserreurs*******************")
-    listerErreurs(monGN, prefixeFichiers)
+    lister_erreurs(monGN, prefixeFichiers)
 
     print("*********touslesquelettes*******************")
     tousLesSquelettesPerso(monGN, prefixeFichiers)
@@ -464,7 +462,7 @@ def listerPNJs(monGN):
 
 
 def genererCsvPNJs(monGN: GN):
-    noms_pnjs = monGN.getNomsPNJs()
+    noms_pnjs = monGN.noms_pnjs()
     output = "nom PNJ;description;typePJ;niveau implication;details intervention;intrigue;" \
              "nom dans l'intrigue;indice de confiance normalisation\n"
     for intrigue in monGN.intrigues.values():
@@ -617,13 +615,13 @@ def listerTrierPersos(monGN):
         print(pj)
 
 
-def listerErreurs(monGN, prefixe, tailleMinLog=1, verbal=False):
+def lister_erreurs(monGN, prefixe, tailleMinLog=1, verbal=False):
     logErreur = ""
     for intrigue in monGN.intrigues.values():
         if len(intrigue.errorLog) > tailleMinLog:
             logErreur += f"pour {intrigue.nom} : \n"
             logErreur += intrigue.errorLog + '\n'
-            logErreur += suggererTableauPersos(intrigue)
+            logErreur += suggerer_tableau_persos(monGN, intrigue)
             logErreur += "\n \n"
     if verbal:
         print(logErreur)
@@ -653,29 +651,45 @@ def rogue():  # utilisé pour nettoyer les tableaux de persos des grosses intrig
         score = process.extractOne(str(nom), noms_persos)
         print(f"{nom} > {process.extractOne(nom, noms_persos)}")
 
+#todo : utiliser l'objet CSV pour générer les CSV
 
-def suggererTableauPersos(intrigue, verbal=False):
-    persosDansIntrigue = [x.perso for x in intrigue.rolesContenus.values()]
+def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal:bool=False):
+    noms_persos = mon_gn.noms_pjs()
+    noms_pnjs = mon_gn.noms_pnjs()
+    noms_roles_dans_intrigue = [x.perso.nom for x in intrigue.rolesContenus.values() if x.perso is not None]
     # print("Tableau suggéré")
     # créer un set de tous les rôles de chaque scène de l'intrigue
     iwant = []
     for scene in intrigue.scenes:
-        if scene.rawRoles is not None:
-            iwant += scene.rawRoles
+        if scene.noms_roles_lus is not None:
+            iwant += scene.noms_roles_lus
     iwant = [x.strip() for x in iwant]
     iwant = set(iwant)
 
+    tableau_sortie = []
     toPrint = "Tableau suggéré : \n"
+
 
     # pour chaque nom dans une scène, trouver le perso correspondant
     for nom in iwant:
         # print(str(nom))
-        score = process.extractOne(str(nom), noms_persos)
-        if score[0] in persosDansIntrigue:
-            toPrint += "[OK]"
+        score_pj = process.extractOne(str(nom), noms_persos)
+        score_pnj = process.extractOne(str(nom), noms_pnjs)
+        if score_pj[0] in noms_roles_dans_intrigue or score_pnj[0] in noms_roles_dans_intrigue:
+            prefixe = "[OK]"
         else:
-            toPrint += "[XX]"
-        toPrint += f"{nom} > {process.extractOne(nom, noms_persos)} \n"
+            prefixe = "[XX]"
+
+        if score_pj[1] > score_pnj[1]:
+            meilleur_nom = f"{score_pj[0]} pour {nom} ({score_pj[1]} % de certitude)"
+        else:
+            meilleur_nom = f"{score_pnj[0]} pour {nom} ({score_pnj[1]} % de certitude)"
+
+        tableau_sortie.append([prefixe, meilleur_nom])
+        tableau_sortie = sorted(tableau_sortie)
+
+    for e in tableau_sortie:
+        toPrint += f"{e[0]} {e[1]} \n"
 
     if verbal:
         print(toPrint)

@@ -136,7 +136,7 @@ def genererListeItems(monGN, apiDrive, folderID):
 
     requete = ""
     for id in folderid:
-        requete += f"'{id}' in parents or"
+        requete += f"'{id}' in parents or "
     requete = requete[:-3]
     print(f"requete = {requete}")
 
