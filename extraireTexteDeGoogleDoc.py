@@ -26,13 +26,15 @@ def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01"):
     extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extrairePJDeTexte, monGN.dictPJs, monGN.folderPJID, singletest)
 
 
-def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictIDs: dict, folderArray, singletest="-01", ):
+def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictIDs: dict, folderArray,
+                             singletest="-01"):
     items = lecteurGoogle.genererListeItems(monGN, apiDrive=apiDrive, folderID=folderArray)
 
     if not items:
         print('No files found.')
         return
 
+    print(f"singletest : {type(singletest)} = {singletest}")
     if int(singletest) > 0:
         for item in items:
             try:
@@ -54,11 +56,17 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                     #     monGN.intrigues[item['id']].clear()
                     #     del monGN.intrigues[item['id']]
 
+                    objet_de_reference = None
                     if item['id'] in dictIDs.keys():
                         dictIDs[item['id']].clear()
-                        del dictIDs[item['id']]
+                        objet_de_reference = dictIDs.pop(item['id'])
 
-                    extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLastChange=False)
+                    nouvelObjet = extraireObjetsDeDocument(document, item, monGN, fonctionExtraction,
+                                                           saveLastChange=False)
+                    if objet_de_reference is not None:
+                        nouvelObjet.updater_dates_maj_scenes(objet_de_reference)
+                        # todo : à tester
+
                     break
                     # on a trouvé le bon doc, on arrête de chercher
             except HttpError as err:
@@ -81,9 +89,11 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                 if not document.get('title')[0:2].isdigit():
                     # print("... n'est pas une intrigue")
                     continue
-                #todo : passer sur 3 digit / spliiter autour d'un tiret
+                # todo : passer sur 3 digit / spliiter autour d'un tiret
 
                 # print("... est une intrigue !")
+
+                objet_de_reference = None
 
                 # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
                 #   SI l'intrigue existe dans le GN ?
@@ -103,7 +113,8 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                             item['modifiedTime'][:-5],
                             '%Y-%m-%dT%H:%M:%S'):
 
-                        print(f"et elle n'a pas changé (dernier changement : {datetime.datetime.strptime(item['modifiedTime'][:-5],'%Y-%m-%dT%H:%M:%S')} / {item['modifiedTime'][:-5]}) depuis le dernier passage ({dictIDs[item['id']].lastProcessing})")
+                        print(
+                            f"et elle n'a pas changé (dernier changement : {datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')} / {item['modifiedTime'][:-5]}) depuis le dernier passage ({dictIDs[item['id']].lastProcessing})")
                         # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
                         # si c'était la plus vieille du GN, pas la peine de continuer
 
@@ -118,17 +129,17 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                         # del monGN.intrigues[item['id']]
 
                         dictIDs[item['id']].clear()
-                        del dictIDs[item['id']]
-
-
+                        objet_de_reference = dictIDs.pop(item['id'])
 
                 # puis, dans tous les cas, on la crée
-                extraireObjetsDeDocument(document, item, monGN, fonctionExtraction)
+                nouvelObjet = extraireObjetsDeDocument(document, item, monGN, fonctionExtraction)
+                if objet_de_reference is not None:
+                    nouvelObjet.updater_dates_maj_scenes(objet_de_reference)
+                    # todo : à tester
 
             except HttpError as err:
                 print(f'An error occurred: {err}')
                 # return #ajouté pour débugger
-
 
 
 def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLastChange=True):
@@ -151,6 +162,7 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
         monObjet.lastProcessing = datetime.datetime.now()
     # print(f'url intrigue = {monObjet.url}')
     # print(f"intrigue {monObjet.nom}, date de modification : {item['modifiedTime']}")
+    return monObjet
 
 
 def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, monGN):
@@ -160,7 +172,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
     # print("*****************************")
     currentIntrigue = Intrigue(nom=nomIntrigue, url=idUrl, derniere_edition_fichier=lastFileEdit)
     monGN.intrigues[idUrl] = currentIntrigue
-    # nomspersos = monGN.getNomsPersos()
+    # noms_persos = monGN.getNomsPersos()
 
     # on fait un dict du début de chaque label
     REFERENT = "orga référent"
@@ -219,7 +231,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
         # déplacé dans l'objet GN à faire tourner en fin de traitement, notamment si changement des Persos depuis le
         # dernier run
         # print("perso découpé avant ajout : " + str(sections)) nomNormalise = process.extractOne(str(
-        # sections[0]).strip(), nomspersos) # print("nom normalisé pour " + str(sections[0].strip()) + " : " +
+        # sections[0]).strip(), noms_persos) # print("nom normalisé pour " + str(sections[0].strip()) + " : " +
         # nomNormalise[0] + " - " + str(nomNormalise[1])) if nomNormalise[1] < 70: print("WARNING : indice de
         # confiance faible ({0}) pour l'association du personnage {1}, trouvé dans le " "tableau, avec le personnage
         # {2} dans l'intrigue {3}".format(nomNormalise[1], str(sections[0]).strip(), nomNormalise[0], nomIntrigue))
@@ -414,7 +426,7 @@ def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True
     for nomRole in roles:
         if len(nomRole) < 2:
             continue
-        #SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles > on les crée sans se poser de questions
+        # SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles > on les crée sans se poser de questions
         if nomsRoles is None:
             # print("Je suis entrée dans une situation ou il n'y avait pas de référence des noms")
 
@@ -437,8 +449,8 @@ def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True
 
 
         else:
-            #Sinon, il faut normaliser et extraire les rôles
-            #pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
+            # Sinon, il faut normaliser et extraire les rôles
+            # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
             score = process.extractOne(nomRole.strip(), nomsRoles)
             # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nomRole.strip(), currentIntrigue.nom, score))
 
@@ -458,7 +470,6 @@ def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True
                 if verbal:
                     print(texteErreur)
                 conteneur.errorLog += texteErreur + '\n'
-
 
 
 def extraireDateScene(baliseDate, sceneAAjouter):
@@ -674,5 +685,30 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, monGN):
     currentPJ.lastProcessing = datetime.datetime.now()
 
     return currentPJ
+
+
+def lire_factions_depuis_fichier(mon_GN: GN, fichier: str):
+    try:
+        with open(fichier, "r") as file:
+            lines = file.readlines()
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Fichier introuvable : {fichier}")
+    current_faction = None
+    for line in lines:
+        if line.startswith("### "):
+            faction_name = line.replace("### ", "")
+            faction_name = faction_name.strip()
+            current_faction = Faction(faction_name)
+            mon_GN.factions[faction_name] = current_faction
+        elif line.startswith("## "):
+            line = line.replace("## ", "")
+            personnages_names = line.strip().split(",")
+            for perso_name in personnages_names:
+                perso_name = perso_name.strip()
+                try:
+                    current_faction.ajouter_personnage(perso_name)
+                except Exception as e:
+                    print(f"Impossible d'ajouter le personnage {perso_name} : {e}")
+
 # if __name__ == '__main__':
 #     main()

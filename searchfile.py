@@ -41,7 +41,7 @@ def main():
         # Call the Drive v3 API
         results = service.files().list(
             #pageSize=10, fields="nextPageToken, files(id, name)").execute()
-            #pageSize = 10, q = folderid + " in parents", fields = "nextPageToken, files(id, name)").execute()
+            #pageSize = 10, q = dossier_intrigues + " in parents", fields = "nextPageToken, files(id, name)").execute()
             pageSize = 100, q = "'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents", fields = "nextPageToken, files(id, name)").execute()
             #pageSize = 10, fields = "*").execute()
         items = results.get('files', [])

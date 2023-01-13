@@ -92,7 +92,7 @@ class ConteneurDeScene:
     def getFullUrl(self):
         return "https://docs.google.com/document/d/" + self.url
 
-    def updater_dates_maj_scenes(self, conteneur_de_reference: ConteneurDeScene):
+    def updater_dates_maj_scenes(self, conteneur_de_reference):
         for ma_scene in self.scenes:
             # On va chercher si cette scène existe déjà dans l'objet intrigue précédent
             for sa_scene in conteneur_de_reference.scenes:
@@ -100,7 +100,7 @@ class ConteneurDeScene:
                     if ma_scene.description == sa_scene.description:
                         ma_scene.derniere_mise_a_jour = sa_scene.derniere_mise_a_jour
                     break
-                #todo : appeler cette focntion dans le lecteur d'objets google pour updater
+
 
 # personnage
 class Personnage(ConteneurDeScene):
@@ -399,33 +399,6 @@ class Scene:
         return sorted(scenesATrier, key=lambda scene: scene.getLongdigitsDate(), reverse=True)
 
 # objet pour tout sauvegarder
-
-#todo : tester
-def lire_factions_depuis_fichier(fichier: str):
-    factions = dict()
-    try:
-        with open(fichier, "r") as file:
-            lines = file.readlines()
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Fichier introuvable : {fichier}")
-    current_faction = None
-    for line in lines:
-        if line.startswith("### "):
-            faction_name = line.replace("### ", "")
-            faction_name = faction_name.strip()
-            current_faction = Faction(faction_name)
-            factions[faction_name] = current_faction
-        elif line.startswith("## "):
-            line = line.replace("## ", "")
-            personnages_names = line.strip().split(",")
-            for perso_name in personnages_names:
-                perso_name = perso_name.strip()
-                try:
-                    current_faction.ajouter_personnage(perso_name)
-                except Exception as e:
-                    print(f"Impossible d'ajouter le personnage {perso_name} : {e}")
-    return factions
-
 class Faction:
     def __init__(self, nom:str):
         self.nom = nom
@@ -485,13 +458,19 @@ class GN:
         else:
             raise ValueError(f"La faction {nom} n'a pas été trouvée")
 
-#todo : tester et utiliser dans main
+    #todo : tester
     def effacer_personnages_forces(self):
-        for personnage in list(self.dictPJs.values()) + list(self.dictPNJs.values()):
+        print(list(self.dictPJs.values()) + list(self.dictPNJs.values()))
+        for personnage in self.dictPJs.values():
             if personnage.forced:
-                self.dictPJs.pop(personnage.nom, None)
                 self.dictPNJs.pop(personnage.nom, None)
                 personnage.clear()
+        # print(list(self.dictPJs.values()) + list(self.dictPNJs.values()))
+        # for personnage in list(self.dictPJs.values()) + list(self.dictPNJs.values()):
+        #     if personnage.forced:
+        #         self.dictPJs.pop(personnage.nom, None)
+        #         self.dictPNJs.pop(personnage.nom, None)
+        #         personnage.clear()
 
     # permet de mettre à jour la date d'intrigue la plus ancienne
     # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
@@ -516,6 +495,9 @@ class GN:
             self.oldestUpdatedPJ = pairesDatesIdPJ[self.oldestUpdatePJ]
 
     def save(self, filename):
+        for prop, value in vars(self).items():
+            print(prop, ":", type(value))
+
         filehandler = open(filename, "wb")
         pickle.dump(self, filehandler)
         filehandler.close()
@@ -534,8 +516,8 @@ class GN:
                 if estUnPNJ(role.pj):
                     score = process.extractOne(role.nom, nomsPnjs)
                     # role.perso = self.listePnjs[score[0]]
-                    # print(
-                    #     f"je m'appête à associer PNJ {role.nom}, identifié comme {score} à {self.dictPNJs[score[0]]} (taille du dictionnaire PNJ = {len(self.dictPNJs)}")
+                    print(f"je m'appête à associer PNJ {role.nom}, identifié comme {score} ")
+                    print(f"à {self.dictPNJs[score[0]]} (taille du dictionnaire PNJ = {len(self.dictPNJs)}")
                     intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.dictPNJs[score[0]])
                     if score[1] < seuilAlerte:
                         texteErreur = f"Warning association ({score[1]}) " \
@@ -623,7 +605,7 @@ class GN:
             for role in intrigue.rolesContenus.values():
                 role.perso = None
 
-    def forcerImportPersos(self, nomsPersos, suffixe="_imported"):
+    def forcerImportPersos(self, nomsPersos, suffixe="_imported", verbal=True):
         print("début de l'ajout des personnages sans fiche")
         nomsLus = [x.nom for x in self.dictPJs.values()]
         # pour chaque perso de ma liste :
@@ -639,11 +621,13 @@ class GN:
                 #      process.extractOne(perso, nomsLus)[0],
                 #      process.extractOne(perso, nomsLus)[1]])
                 scoreproche = process.extractOne(perso, nomsLus)
-                if scoreproche is not None and scoreproche[1] >= 75:
-                    print(f"{perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
+                if scoreproche is not None and scoreproche[1] >= 75: #todo : trouver pouruqoi je ne vois plus les assocaitions
+                    if verbal:
+                        print(f"{perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
                     # donc on ne fait rien
                 else:
-                    print(f"{perso} a été créé (coquille vide)")
+                    if verbal:
+                        print(f"{perso} a été créé (coquille vide)")
                     self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=EST_PJ,
                                                                forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
 

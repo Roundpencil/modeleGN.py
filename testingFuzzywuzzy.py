@@ -12,26 +12,10 @@ from modeleGN import *
 import lecteurGoogle
 import sys
 
-folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"  # le folder des intrigues de Chalacta
-folderSqueletteEmeric = "1hpo8HQ8GKjQG63Qm_QlEX7wQ58wZ9-Bw"
-folderSqueletteJu = "17ii8P23nkyEk37MqFZKS3K9xohKDg0X7"
-folderSqueletteCharles = "19Hv5Nce7zCVuxP4Ot8-Bex4v_p_nvsls"
-folderSquelettesPierre = '1Vn9j06k5ldMevL6DS6gnkeaS6yHTeyKR'
-folderSquelettesManu = "1i3BVGXYO8k9Wi1FHGJ4-vPN6K7vXPT1T"
-folderSquelettesAFaireRebelles = "1Jpq11Roo4QbgkmyLyxm4z3SfQPNOqSrh"
+
 # folderSquelettesImperiaux = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"
 
-nomspersos = ["A trouver", "Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Brance", "Bynar Siwa",
-              "Dall Joval D'rasnov",
-              "Desnash Rhylee", "Dophine Rhue", "Driss Ranner", "Edrik Vance", "Greeta Asty", "Hart Do", "Havok",
-              "Hog'Gemod Ippolruna", "Isayjja Kahl", "Jaldine Gerams", "Jay Mozel", "Jerima D'rasnov", "Jish Zyld",
-              "Jory Asty", "Kael Sin", "Kalitt", "Kess Horoby", "Kianstev Nacram", "Korrgaarr Gguurd'k", "KR3-NC0",
-              "Kyle Talus", "Kyrielle Viszla", "Lars Duskon", "Lexi Ipolruna", "Mano Tori", "Mina Tarkin",
-              "Naka Kushir", "Naam Poorf", "Nemko Var", "Nexxar Graam", "NT 346/bredan", "Oni Lux", "Pregda Snorn",
-              "Rhebanxx Kar", "Rika Sant", "Rimo Twil", "Saryth D'rasnov", "Seika Poorf", "Sirudan Bonte",
-              "Slayke Jontab", "Sol Preeda - Soree", "Tarik Koma", "Teysa Cio", "Thuorn Hermon", "Timagua", "Trevek",
-              "Tristan Wrenn", "Tsvan Kessig", "Val Krendel", "Valin​ Hess", "Vauber Brasell", "Wexley Ello",
-              "Wor Monba", "Xabria", "Yulsa Nazdij", "Zaar Tamwi", "Zagrinn Vrask", "Zoln Ubri"]
+
 # nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran ?', 'Kelar Veil',
 #             'Un des joueurs de Sabbacc (nom à trouver)', 'Lady Santhe ??', 'Tranche Mitaines', 'Tranche Mitaines',
 #             'Jaarush Adan', 'L’inquisiteur', 'Yerraz', 'Droïdes mercenaires',
@@ -52,96 +36,109 @@ nomspersos = ["A trouver", "Anko Siwa", "Ashaya Asty", "Aved - 4V-3D", "Axel Bra
 #             'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère', 'Shaani', 'Dhar', 'Seerdo',
 #             'Aruk le hutt', 'Veert']
 
-nomsPNJs = ['3eme Frère', 'Agent tu BSI Mort à définir', 'Airnanu D’rasnov', 'Apprenti de l’Inquisiteur',
-            'Apprenti(PNJ)', 'Aruk Le Hutt',
-            'B2B', 'Baron Soontir Fell', 'Benjey Doroat', 'Boba Fett (ou un mandalorien bien badass de l’enfer)',
-            'Boh Pragg chef de gare en fuite, traqué va conduire le frère de Zagrinn sur Chalacta',
-            'Bossk (ou un trando qui le représente)', 'Caleadr Schlon', 'Choom Poorf', 'Dakkuk Druhvud',
-            'Darsha Viel', 'Darshan Kurgan', 'Dhar', 'Drashk', 'Drit Caarson', 'Droïde syndiqué', 'Droïdes mercenaires',
-            'Eliana Zorn', 'esclave 1', 'Ex esclave', 'Ex-IngéCom(PNJ)',
-            'Famille à libérer et gardes troopers chargés du transfert', 'Fraterr Millbra', 'FX-4', 'Haaris',
-            'Inquisiteur : 5ème frère', 'Inquisiteurice', 'Izzik Walo’s', 'Jaarush Adan', 'Jabba', 'Jade', 'Jax',
-            'Kalie Hess', 'Katleen Clawool', 'Kelar Veil, dit l’Apprenti', 'Khaljab Welall, agent de l’Aube Ecarlate',
-            'La mère (Suwan) et la soeur (Ilanni) de Lexi', 'Lady Santhe ??', 'Laki Novak', 'Le fils de Kalitt',
-            'Le peuple Rakata',
-            'Lieira Sonn', 'Loomis Kent (éboueurs)', 'Lor San Tekka', 'Magg', 'Membres du J.A.N', 'Mohadarr Bodfre',
-            'Muic Wula', 'Nekma', 'Nombreux PNJs errants en forêt peuvent être embusqués et dangereux',
-            'Nosfran Ratspik',
-            'OMR-1', 'Orson Krennic', 'Oskrabkosi', 'Quay Tolsite, agent des Pykes', 'Rebelle 1', 'Rebelle 2',
-            'Rebelle 3',
-            'Revos Vannak', 'Rosson', 'Seerdo', 'Shaani', 'Sid Kashan', 'Ssor', 'Teezk esclave en cavale', 'Témoin X',
-            'Tranche Mitaines', 'Trerlil Irgann', 'Trewek', 'Un des joueurs de Sabacc (nom à trouver)', 'Urr’Orruk',
-            'Vangos Heff', 'Varima', 'Varina Leech', 'Veert', 'XXXX Rhylee', 'Yerraz le go faster', 'Yorshill',
-            'Zev Jessk',
-            'Zuckuss (ou Boush, ou une autre star)']
+# nomsPNJs = ['3eme Frère', 'Agent tu BSI Mort à définir', 'Airnanu D’rasnov', 'Apprenti de l’Inquisiteur',
+#             'Apprenti(PNJ)', 'Aruk Le Hutt',
+#             'B2B', 'Baron Soontir Fell', 'Benjey Doroat', 'Boba Fett (ou un mandalorien bien badass de l’enfer)',
+#             'Boh Pragg chef de gare en fuite, traqué va conduire le frère de Zagrinn sur Chalacta',
+#             'Bossk (ou un trando qui le représente)', 'Caleadr Schlon', 'Choom Poorf', 'Dakkuk Druhvud',
+#             'Darsha Viel', 'Darshan Kurgan', 'Dhar', 'Drashk', 'Drit Caarson', 'Droïde syndiqué', 'Droïdes mercenaires',
+#             'Eliana Zorn', 'esclave 1', 'Ex esclave', 'Ex-IngéCom(PNJ)',
+#             'Famille à libérer et gardes troopers chargés du transfert', 'Fraterr Millbra', 'FX-4', 'Haaris',
+#             'Inquisiteur : 5ème frère', 'Inquisiteurice', 'Izzik Walo’s', 'Jaarush Adan', 'Jabba', 'Jade', 'Jax',
+#             'Kalie Hess', 'Katleen Clawool', 'Kelar Veil, dit l’Apprenti', 'Khaljab Welall, agent de l’Aube Ecarlate',
+#             'La mère (Suwan) et la soeur (Ilanni) de Lexi', 'Lady Santhe ??', 'Laki Novak', 'Le fils de Kalitt',
+#             'Le peuple Rakata',
+#             'Lieira Sonn', 'Loomis Kent (éboueurs)', 'Lor San Tekka', 'Magg', 'Membres du J.A.N', 'Mohadarr Bodfre',
+#             'Muic Wula', 'Nekma', 'Nombreux PNJs errants en forêt peuvent être embusqués et dangereux',
+#             'Nosfran Ratspik',
+#             'OMR-1', 'Orson Krennic', 'Oskrabkosi', 'Quay Tolsite, agent des Pykes', 'Rebelle 1', 'Rebelle 2',
+#             'Rebelle 3',
+#             'Revos Vannak', 'Rosson', 'Seerdo', 'Shaani', 'Sid Kashan', 'Ssor', 'Teezk esclave en cavale', 'Témoin X',
+#             'Tranche Mitaines', 'Trerlil Irgann', 'Trewek', 'Un des joueurs de Sabacc (nom à trouver)', 'Urr’Orruk',
+#             'Vangos Heff', 'Varima', 'Varina Leech', 'Veert', 'XXXX Rhylee', 'Yerraz le go faster', 'Yorshill',
+#             'Zev Jessk',
+#             'Zuckuss (ou Boush, ou une autre star)']
 
 
 def main():
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
 
-    # dans cette fonction main j'aimerais rajouter des arguments optionnels :
-    # "-init" fait que la fonction gn.load n'est pas appelée
-    # "-nosave" fait que la focntion GN.save n'est pas appelée
-    # "-intrigue=x" fait que la fonction extraireintrigue est appelée avec x au lieu de "-01"
-    # "-perso=x" fait que la fonction extrairePJs est appelée avec x au lieu de "-01"
-    # "-verbal" fait que la fonction rebuildLinks est appelée avec True au lieu de False
-    # todo : rajouter tous les parsings et modifier les commentaires
-
     parser = argparse.ArgumentParser()
-    parser.add_argument("-init", action="store_true", help="skip loading the gn from file")
-    parser.add_argument("-nosave", action="store_true", help="skip saving the gn to file")
-    parser.add_argument("-intrigue", type=str, default="-01", help="folder id for extracting intrigues")
-    parser.add_argument("-perso", type=str, default="-01", help="folder id for extracting characters")
-    parser.add_argument("-verbal", action="store_true", help="verbose output")
+    parser.add_argument("-init", action="store_true", help="fait que la fonction gn.load n'est pas appelée")
+    parser.add_argument("-nosave", action="store_true", help="fait que la focntion GN.save n'est pas appelée")
+    parser.add_argument("-intrigue", type=str, default="-01", help="si une seule intrigue doit être lue")
+    parser.add_argument("-perso", type=str, default="-01", help="si un seul perso doit être lu")
+    parser.add_argument("-verbal", action="store_true", help="si on veut afficher toutes les erreurs")
     args = parser.parse_args()
-
 
     # init configuration
     config = configparser.ConfigParser()
     config.read('config.ini')
 
-    #todo tester
+    # print(args.intrigue)
+    # todo tester
     try:
-        #todo : mettre à jour la lecture en fcontion des sections du fichier
-        folderid = config.get('folders', 'intrigue').split(',')
-        foldersPJs = config.get('folders', 'PJs').split(',')
-        associationType = config.get('others', 'associationType')
-        PJsheetType = config.get('others', 'PJsheetType')
-        archiveName = config.get('others', 'archiveName')
-        folder_id = config.get('parametres', 'folder_id')
-        type_association = config.get('parametres', 'type_association')
-        type_fiche = config.get('parametres', 'type_fiche')
-        nom_fichier_sauvegarde = config.get('parametres', 'nom_fichier_sauvegarde')
+        dossier_intrigues = config.get('dossiers', 'intrigues').split(',')
+
+        prefix = "base_persos_"
+
+        # dossiers_persos = {key.replace(prefix, ''): config.get("dossiers", key) for key in config.options("dossiers") if
+        #                    key.startswith(prefix)}
+        # dossier_pjs = dossiers_persos.values()
+
+        dossier_pjs = [config.get("dossiers", key) for key in config.options("dossiers") if key.startswith(prefix)]
+
+
+        fichier_faction = config.get('dossiers', 'fichier_faction')
+
+        noms_persos = config.get('pjs_a_importer', 'noms_persos').split(',')
+        nom_fichier_pnjs = config.get('pjs_a_importer', 'nom_fichier_pnjs')
+        # print(nom_fichier_pnjs)
+        association_auto = config.getboolean('globaux', 'association_auto')
+        type_fiche = config.get('globaux', 'type_fiche')
+
+        nom_fichier_sauvegarde = config.get('sauvegarde', 'nom_fichier_sauvegarde')
     except configparser.Error as e:
         # Erreur lors de la lecture d'un paramètre dans le fichier de configuration
         print("Erreur lors de la lecture du fichier de configuration : {}".format(e))
         return
 
-    #todo :tester
+    # todo :tester
 
-    monGN = GN(folderIntriguesID=folderid,
-               folderPJID=[folderSqueletteJu, folderSqueletteEmeric, folderSqueletteCharles, folderSquelettesPierre,
-                           folderSquelettesManu, folderSquelettesAFaireRebelles])
+    monGN = GN(folderIntriguesID=dossier_intrigues,
+               folderPJID=dossier_pjs)
 
-    for pnj in nomsPNJs:
-        monGN.dictPNJs[pnj] = Personnage(nom=pnj, pj=EST_PNJ_HORS_JEU)
+    # print(f"1 - pnj dans ce GN : {monGN.getNomsPNJs()}")
+
+    charger_PNJs(monGN, nom_fichier_pnjs)
+
+    # print(f"2 - pnj dans ce GN : {monGN.getNomsPNJs()}")
 
     if not args.init:
-        monGN = GN.load("archive Chalacta")
+        monGN = GN.load(nom_fichier_sauvegarde)
         # print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
+
+    # print(f"3 - pnj dans ce GN : {monGN.getNomsPNJs()}")
 
     apiDrive, apiDoc = lecteurGoogle.creer_lecteurs_google_apis()
 
-    extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
-    extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    monGN.effacer_personnages_forces()
 
-    monGN.forcerImportPersos(nomspersos)
-    monGN.rebuildLinks(verbal=False)
-    monGN.save("archive Chalacta")
+    # extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    # extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
 
-    # todo : faire en sorte qu'on puisse ajouter des PNJ on the go
-    # appel dans la foulée de dedupe PNJ pour faire le ménage?
+    extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.intrigue)
+    extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.perso)
+    extraireTexteDeGoogleDoc.lire_factions_depuis_fichier(monGN, fichier_faction)
+    # todo : lire les factions depuis un google doc
 
+    monGN.forcerImportPersos(noms_persos)
+    monGN.rebuildLinks(args.verbal)
+
+    if not args.nosave:
+        monGN.save(nom_fichier_sauvegarde)
+
+    # todo: appel dans la foulée de dedupe PNJ pour faire le ménage?
 
     # todo : passer la gestion des dates via un objet date time, et ajouter une variable avec la date du GN (0 par défaut)
 
@@ -183,7 +180,7 @@ def main():
 
     # #lister les correspondaces entre les roles et les noms standards
     # mesroles = tousLesRoles(monGN)
-    # fuzzyWuzzyme(mesroles, nomspersos)
+    # fuzzyWuzzyme(mesroles, noms_persos)
 
     # print(normaliserNomsPNJs(monGN))
     # #génération d'un premier tableau de noms de PNJs à partir de ce qu'on lit dans les intrigues
@@ -268,7 +265,7 @@ def listerDatesIntrigues(monGN):
 
 
 def listerRolesPerso(monGN, nomPerso):
-    nomPerso = process.extractOne(nomPerso, nomspersos)[0]
+    nomPerso = process.extractOne(nomPerso, noms_persos)[0]
     for perso in monGN.dictPJs.values():
         if perso.nom == nomPerso:
             # print(f"{nomPerso} trouvé")
@@ -429,7 +426,7 @@ def genererChangeLog(monGN, prefixe, nbJours=1, verbal=False):
 
 def squelettePerso(monGN, nomPerso):
     # mesScenes = dict()
-    # nomPerso = process.extractOne(nomPerso, nomspersos)[0]
+    # nomPerso = process.extractOne(nomPerso, noms_persos)[0]
     # for role in monGN.dictPJs[nomPerso].roles:
     #     for scene in role.scenes:
     #         mesScenes[str(scene.getLongdigitsDate())] = scene
@@ -440,7 +437,7 @@ def squelettePerso(monGN, nomPerso):
     #     print(f"{mesScenes[key].description}")
 
     mesScenes = []
-    nomPerso = process.extractOne(nomPerso, nomspersos)[0]
+    nomPerso = process.extractOne(nomPerso, noms_persos)[0]
     for perso in monGN.dictPJs.values():
         if perso.nom == nomPerso:
             # print(f"{nomPerso} trouvé")
@@ -467,6 +464,7 @@ def listerPNJs(monGN):
 
 
 def genererCsvPNJs(monGN: GN):
+    noms_pnjs = monGN.getNomsPNJs()
     output = "nom PNJ;description;typePJ;niveau implication;details intervention;intrigue;" \
              "nom dans l'intrigue;indice de confiance normalisation\n"
     for intrigue in monGN.intrigues.values():
@@ -476,7 +474,7 @@ def genererCsvPNJs(monGN: GN):
                 description = role.description.replace('\n', "***")
                 niveauImplication = role.niveauImplication.replace('\n', chr(10))
                 perimetreIntervention = role.perimetreIntervention.replace('\n', chr(10))
-                score = process.extractOne(nompnj, nomsPNJs)
+                score = process.extractOne(nompnj, noms_pnjs)
                 typeDansGN = monGN.dictPNJs[score[0]].pj
                 output += f"{score[0]};" \
                           f"{description};" \
@@ -575,7 +573,7 @@ def dumpSortedPersos(monGN):
     tousLesPersos.sort()
     print(tousLesPersos)
     print(len(tousLesPersos))
-    print(len(nomspersos))
+    print(len(noms_persos))
 
 
 def dumpAllScenes(monGN):
@@ -652,8 +650,8 @@ def rogue():  # utilisé pour nettoyer les tableaux de persos des grosses intrig
     iwant = set(iwant)
     for nom in iwant:
         # print(str(nom))
-        score = process.extractOne(str(nom), nomspersos)
-        print(f"{nom} > {process.extractOne(nom, nomspersos)}")
+        score = process.extractOne(str(nom), noms_persos)
+        print(f"{nom} > {process.extractOne(nom, noms_persos)}")
 
 
 def suggererTableauPersos(intrigue, verbal=False):
@@ -672,12 +670,12 @@ def suggererTableauPersos(intrigue, verbal=False):
     # pour chaque nom dans une scène, trouver le perso correspondant
     for nom in iwant:
         # print(str(nom))
-        score = process.extractOne(str(nom), nomspersos)
+        score = process.extractOne(str(nom), noms_persos)
         if score[0] in persosDansIntrigue:
             toPrint += "[OK]"
         else:
             toPrint += "[XX]"
-        toPrint += f"{nom} > {process.extractOne(nom, nomspersos)} \n"
+        toPrint += f"{nom} > {process.extractOne(nom, noms_persos)} \n"
 
     if verbal:
         print(toPrint)
@@ -708,14 +706,18 @@ def dedupePNJs(monGN):
     #         print(role.nom)
 
 
-# todo : tester en remplacement de la fonction de forçage existante
-def charger_personnages_forces(gn, chemin_fichier):
+# todo : tester
+
+# for pnj in nomsPNJs:
+#     monGN.dictPNJs[pnj] = Personnage(nom=pnj, pj=EST_PNJ_HORS_JEU)
+
+def charger_PNJs(gn, chemin_fichier):
     try:
         with open(chemin_fichier, 'r') as f:
             for ligne in f:
                 nom = ligne.strip()
-                personnage = Personnage(nom=nom, forced=True)
-                gn.dictPJs[nom] = personnage
+                gn.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
+                # print(f"{gn.dictPNJs[nom]}")
     except FileNotFoundError:
         print(f"Le fichier {chemin_fichier} n'a pas été trouvé.")
 
@@ -757,7 +759,7 @@ def lire_association_roles_depuis_csv(roles_list, filename):
             for row in reader:
                 nom = row[0]
                 personnage = row[5]
-                #todo : faire l'association via un objet GN, ou bien utiliser self.perso si on est dans GN :)
+                # todo : faire l'association via un objet GN, ou bien utiliser self.perso si on est dans GN :)
                 # et mettre à jour les paramètres du GN en fcontion de ceux du programme > ca se joue à quel niveau?
                 # qu'est-ce qui est propriété de quoi? peut-on changer d'association en cours de vie de gn?
 
@@ -773,43 +775,6 @@ def lire_association_roles_depuis_csv(roles_list, filename):
         print(e)
     except Exception as e:
         print(f"Une erreur est survenue lors de la lecture du fichier: {e}")
-
-
-# pour mon programme, j'aimerais utiliser un fichier de paramètres qui est lu à chaque démarrage. Ce fichier doit
-# être éditable par un être humain, qui devra y comprendre à quoi correspond chaque paramètre.
-
-# Ce fichier contient : - une liste d'identifiants de noms de fichiers à lire, qui remplace "[folderSqueletteJu,
-# folderSqueletteEmeric, folderSqueletteCharles, folderSquelettesPierre, folderSquelettesManu,
-# folderSquelettesAFaireRebelles]" dans mon programme - une chaine de caractères qui décrit le "type d'association",
-# qui peut être manuel ou automatique - une chaine de caractères qui décrit le "type de fiche personnage",
-# qui contiendra toujours"Chalacta" - une chaîne de caractère qui contient le nom du fichier qui sera lu (qui est
-# aujourd'hui "archive chalacta") et où le programme stoquera les résultats quand il terminera
-
-# Pour utiliser un fichier de paramètres, vous pourriez utiliser la bibliothèque "configparser" qui permet de lire et
-# d'écrire des fichiers de configuration en format INI. Vous pourriez créer un fichier de configuration avec
-# différents sections pour stocker vos paramètres, et utiliser la méthode ConfigParser.read() pour lire le fichier
-# lorsque vous lancez votre programme.
-# Le fichier de paramètres pourrait ressembler à ceci :
-
-# folder_ids = ["id1", "id2", "id3"]
-# association_type = "automatique"
-# fiche_personnage_type = "Chalacta"
-# nom_fichier_sauvegarde = "archive Chalacta"
-
-# Ce serait un fichier texte simple, où chaque ligne contient une variable et sa valeur correspondante. Le format est
-# libre, l'important c'est que cela soit compréhensible et modifiable facilement par un être humain. D'autre format
-# comme le json ou yaml pourraient être utilisé pour des usages plus complexe et offrir une meilleur lisibilité.
-
-#todo: integrer au code (quitte à virer la fonction et reprendre le code)  et tester
-
-def lire_parametres():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-
-    folder_id = config.get('Folders', 'id')
-    association_type = config.get('Association', 'type')
-    fiche_type = config.get('Fiche', 'type')
-    file_name = config.get('File', 'name')
 
 
 # et pour écrire dans le fichier :
