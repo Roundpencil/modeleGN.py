@@ -4,6 +4,8 @@ import datetime
 import os.path
 import re
 
+import fuzzywuzzy.process
+
 import modeleGN
 from modeleGN import *
 import lecteurGoogle
@@ -26,8 +28,6 @@ def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01", verbal=False):
     extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extrairePJDeTexte, monGN.dictPJs, monGN.folderPJID, singletest,
                              verbal=verbal)
 
-
-# todo : insérer la méthode  qui envoie les suqelettes etc dans un document google
 
 def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictIDs: dict, folderArray,
                              singletest="-01", verbal=False):
@@ -53,7 +53,7 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                 # if document.get('title')[0:3].strip() != str(singletest):  # numéro de l'intrigue
                 #     # si ce n'est pas la bonne, pas la peine d'aller plus loin
                 #     continue
-                if ref_du_doc(document.get('title')) != str(singletest):
+                if ref_du_doc(document.get('title')) != int(singletest):
                     continue
                 else:
                     print(f"j'ai trouvé le doc #{singletest} : {document.get('title')}")
@@ -96,7 +96,6 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                 #     continue
                 if ref_du_doc(document.get('title')) == -1:
                     continue
-                # todo : tester
 
                 # print("... est une intrigue !")
 
@@ -707,12 +706,39 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, monGN, verbal=False)
     return currentPJ
 
 
-def lire_factions_depuis_fichier(mon_GN: GN, fichier: str):
+def ref_du_doc(s):
+    match = re.match(r'^(\d+)\s*-.*$', s)
+    if match:
+        return int(match.group(1))
+    else:
+        return -1
+
+
+def extraire_factions(mon_GN: GN, apiDoc, verbal=False):
+    if not hasattr(mon_GN, 'factions'):
+        mon_GN.factions = dict()
+
+    if not hasattr(mon_GN, 'fichier_factions'):
+        mon_GN.fichier_factions = None
+
+    if mon_GN.fichier_factions is None:
+        return -1
+
     try:
-        with open(fichier, "r") as file:
-            lines = file.readlines()
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Fichier introuvable : {fichier}")
+        document = apiDoc.documents().get(documentId=mon_GN.fichier_factions).execute()
+        contenuDocument = document.get('body').get('content')
+        text = lecteurGoogle.read_structural_elements(contenuDocument)
+        text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
+
+    except HttpError as err:
+        print(f'An error occurred: {err}')
+        return
+
+    # à ce stade, j'ai lu les factions et je peux dépouiller
+    # print(f"clefs dictionnaire : {mon_GN.dictPJs.keys()}")
+    lines = text.splitlines()
+    noms_persos = list(mon_GN.noms_pjs()) + list(mon_GN.noms_pnjs())
+    temp_dict = {mon_GN.dictPJs[x].nom: x for x in mon_GN.dictPJs}
     current_faction = None
     for line in lines:
         if line.startswith("### "):
@@ -725,19 +751,137 @@ def lire_factions_depuis_fichier(mon_GN: GN, fichier: str):
             personnages_names = line.strip().split(",")
             for perso_name in personnages_names:
                 perso_name = perso_name.strip()
-                try:
-                    current_faction.ajouter_personnage(perso_name)
-                except Exception as e:
-                    print(f"Impossible d'ajouter le personnage {perso_name} : {e}")
+                score = fuzzywuzzy.process.extractOne(perso_name, noms_persos)
+                if verbal:
+                    print(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
+                if temp_dict.get(score[0]):
+                    personnages_a_ajouter = mon_GN.dictPJs[temp_dict.get(score[0])]
+                else:
+                    personnages_a_ajouter = mon_GN.dictPNJs[score[0]]
+
+                current_faction.personnages.add(personnages_a_ajouter)
+    return 0
 
 
-def ref_du_doc(s):
-    match = re.match(r'^(\d+)\s*-.*$', s)
-    if match:
-        return int(match.group(1))
-    else:
-        return -1
+def inserer_squelettes_dans_drive(parent_id: str, api_doc, api_drive, text: str, nom_fichier, titre=False):
+    id = add_doc(api_drive, nom_fichier, parent_id)
+    write_to_doc(api_doc, id, text, titre=titre)
+    format_titles(api_doc, id)
 
 
-# if __name__ == '__main__':
-#     main()
+def check_if_doc_exists(service, file_id):
+    try:
+        # check if the file exists
+        service.files().get(fileId=file_id).execute()
+        return True
+    except HttpError as error:
+        if error.resp.status == 404:
+            print(F'File not found: {file_id}')
+        else:
+            print(F'An error occurred: {error}')
+        return False
+
+
+def is_document_being_edited(service, file_id):
+    try:
+        # get the document
+        doc = service.documents().get(documentId=file_id).execute()
+        # check if the document is being edited
+        if doc.get('isWriting') == True:
+            print("Document is currently being edited")
+            return True
+        else:
+            print("Document is not currently being edited")
+            return False
+    except HttpError as error:
+        print(F'An error occurred: {error}')
+        return None
+
+
+def add_doc(service, nom_fichier, parent):
+    try:
+        # create the metadata for the new document
+        file_metadata = {
+            'name': nom_fichier,
+            'parents': [parent],
+            'mimeType': 'application/vnd.google-apps.document'
+        }
+
+        # create the document
+        file = service.files().create(body=file_metadata, fields='id').execute()
+        print(F'File ID pour {nom_fichier}: {file.get("id")}')
+        return file.get("id")
+
+    except HttpError as error:
+        print(F'An error occurred: {error}')
+        file = None
+
+
+def write_to_doc(service, file_id, text, titre=False):
+    try:
+        requests = [{
+            'insertText': {
+                'location': {
+                    'index': 1
+                },
+                'text': text
+            }
+        }]
+        # Execute the request.
+        result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
+        return result
+    except HttpError as error:
+        print(F'An error occurred: {error}')
+        return None
+
+
+def format_titles(service, file_id):
+    try:
+        # get the document
+        doc = service.documents().get(documentId=file_id).execute()
+
+        # initialize the request list
+        requests = []
+
+        # loop through the paragraphs of the document
+        for para in doc.get('body').get('content'):
+            # check if the paragraph is a text run and starts with "titre scène"
+            if 'paragraph' in para and para.get('paragraph').get('elements')[0].get('textRun').get(
+                    'content').startswith("titre scène"):
+                # create the update request
+                requests.append({
+                    'updateTextStyle': {
+                        'range': {
+                            'startIndex': para.get('startIndex'),
+                            'endIndex': para.get('endIndex')
+                        },
+                        'textStyle': {
+                            'bold': True,
+                            'fontSize': {
+                                'magnitude': 12,
+                                'unit': 'PT'
+                            }
+                        },
+                        'fields': 'bold,fontSize'
+                    }
+                })
+        # execute the requests
+        result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
+        return result
+    except HttpError as error:
+        print(F'An error occurred: {error}')
+        return None
+
+
+def creer_dossier(service_drive, id_dossier_parent, nom_dossier):
+    try:
+        # Création de l'objet dossier
+        nouveau_dossier = {'name': nom_dossier, 'parents': [id_dossier_parent], 'mimeType': 'application/vnd.google-apps.folder'}
+        # Ajout du nouveau dossier
+        dossier_cree = service_drive.files().create(body=nouveau_dossier, fields='id').execute()
+        # Récupération de l'id du nouveau dossier
+        id_dossier = dossier_cree.get('id')
+        return id_dossier
+    except HttpError as error:
+        print(F'An error occurred: {error}')
+        return None

@@ -5,59 +5,12 @@ import csv
 from fuzzywuzzy import process, fuzz
 
 import extraireTexteDeGoogleDoc
-# import doc2PJ
 import modeleGN
 from modeleGN import *
-# import doc2Intrigue
 import lecteurGoogle
 import sys
 
-
-# folderSquelettesImperiaux = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"
-
-
-# nomsPNJs = ['Loomis Kent (éboueurs)', 'Agent tu BSI Mort à définir', 'Nosfran ?', 'Kelar Veil',
-#             'Un des joueurs de Sabbacc (nom à trouver)', 'Lady Santhe ??', 'Tranche Mitaines', 'Tranche Mitaines',
-#             'Jaarush Adan', 'L’inquisiteur', 'Yerraz', 'Droïdes mercenaires',
-#             'Quay Tolsite, agent des Pykes', 'FX-4', 'Oskrabkosi', 'Loomis Xent', 'Katlyn Clawool', 'Tranche mitaines',
-#             'Rebelle 1',
-#             'Boh Pragg chef de gare Kel dor', 'Teezk un esclave rodien issu de la purge du cartel Rodien par Tagge',
-#             'Nekma', 'Katlyn Clawool', 'Benjey Doroat', 'Droïde syndiqué', 'Seerdo', 'Sid Kashan', 'Nosfran Ratspik',
-#             'Membres du J.A.N', 'Caleadr Schlon', 'Zuckuss (ou Boush, ou une autre star)', 'B2B', 'Haaris',
-#             'Le fils de Kalitt', 'Trewek', 'Revos Vannak', 'Inquisiteurice', 'Varima', 'Eliana Zorn', 'Zev Jessk',
-#             'Mohadarr Bodfre', 'Ex esclave', 'Inquisiteur', 'XXXX Rhylee', 'Rak Stryn  le mandalo',
-#             'Yerraz le go faster', 'Apprenti de l’Inquisiteur', 'Témoin X', 'XXX Geska (frère de wirt)',
-#             'Fraterr Millbra', 'Izzik Walo’s', 'Rosson', 'Yorshill', 'Rebelle 3', 'Drashk',
-#             'Baron Soontir Fel', 'esclave porcher, sbire de Hogg', 'Osrabkosi', '5ème frère',
-#             'La mère (Suwan) et la soeur (Ilanni) de Lexi', 'Darsha Viel', 'Jarus Adams (star tour)', 'Muic Wula',
-#             'Rebelle 2', 'O-MR1', 'Varina Leech', 'Kalie Hess (Décédée)',
-#             'Boba Fett (ou un mandalorien bien badass de l’enfer)', 'OMR-1', 'Lieira Sonn', 'esclave 1',
-#             'Bossk (ou un trando qui le représente)', 'Soontir Fel', 'FX4', 'Trerlil Irgann',
-#             'Khaljab Welall, agent de l’Aube Ecarlate', 'Inquisiteur : 5ème frère', 'Shaani', 'Dhar', 'Seerdo',
-#             'Aruk le hutt', 'Veert']
-
-# nomsPNJs = ['3eme Frère', 'Agent tu BSI Mort à définir', 'Airnanu D’rasnov', 'Apprenti de l’Inquisiteur',
-#             'Apprenti(PNJ)', 'Aruk Le Hutt',
-#             'B2B', 'Baron Soontir Fell', 'Benjey Doroat', 'Boba Fett (ou un mandalorien bien badass de l’enfer)',
-#             'Boh Pragg chef de gare en fuite, traqué va conduire le frère de Zagrinn sur Chalacta',
-#             'Bossk (ou un trando qui le représente)', 'Caleadr Schlon', 'Choom Poorf', 'Dakkuk Druhvud',
-#             'Darsha Viel', 'Darshan Kurgan', 'Dhar', 'Drashk', 'Drit Caarson', 'Droïde syndiqué', 'Droïdes mercenaires',
-#             'Eliana Zorn', 'esclave 1', 'Ex esclave', 'Ex-IngéCom(PNJ)',
-#             'Famille à libérer et gardes troopers chargés du transfert', 'Fraterr Millbra', 'FX-4', 'Haaris',
-#             'Inquisiteur : 5ème frère', 'Inquisiteurice', 'Izzik Walo’s', 'Jaarush Adan', 'Jabba', 'Jade', 'Jax',
-#             'Kalie Hess', 'Katleen Clawool', 'Kelar Veil, dit l’Apprenti', 'Khaljab Welall, agent de l’Aube Ecarlate',
-#             'La mère (Suwan) et la soeur (Ilanni) de Lexi', 'Lady Santhe ??', 'Laki Novak', 'Le fils de Kalitt',
-#             'Le peuple Rakata',
-#             'Lieira Sonn', 'Loomis Kent (éboueurs)', 'Lor San Tekka', 'Magg', 'Membres du J.A.N', 'Mohadarr Bodfre',
-#             'Muic Wula', 'Nekma', 'Nombreux PNJs errants en forêt peuvent être embusqués et dangereux',
-#             'Nosfran Ratspik',
-#             'OMR-1', 'Orson Krennic', 'Oskrabkosi', 'Quay Tolsite, agent des Pykes', 'Rebelle 1', 'Rebelle 2',
-#             'Rebelle 3',
-#             'Revos Vannak', 'Rosson', 'Seerdo', 'Shaani', 'Sid Kashan', 'Ssor', 'Teezk esclave en cavale', 'Témoin X',
-#             'Tranche Mitaines', 'Trerlil Irgann', 'Trewek', 'Un des joueurs de Sabacc (nom à trouver)', 'Urr’Orruk',
-#             'Vangos Heff', 'Varima', 'Varina Leech', 'Veert', 'XXXX Rhylee', 'Yerraz le go faster', 'Yorshill',
-#             'Zev Jessk',
-#             'Zuckuss (ou Boush, ou une autre star)']
+from googleapiclient.errors import HttpError
 
 
 def main():
@@ -75,15 +28,16 @@ def main():
     config = configparser.ConfigParser()
     config.read('config.ini')
 
-    # print(args.intrigue)
-    # todo tester
+
     try:
         dossier_intrigues = config.get('dossiers', 'intrigues').split(',')
 
         dossier_pjs = [config.get("dossiers", key)
                        for key in config.options("dossiers") if key.startswith("base_persos_")]
 
-        fichier_faction = config.get('dossiers', 'fichier_faction')
+        fichier_factions = config.get('dossiers', 'fichier_faction')
+        id_factions = config.get('dossiers', 'id_factions')
+        dossier_output_squelettes_pjs = config.get('dossiers', 'dossier_output_squelettes_pjs')
 
         noms_persos = [nom_p.strip()
                        for nom_p in config.get('pjs_a_importer', 'noms_persos').split(',')]
@@ -99,10 +53,10 @@ def main():
         print("Erreur lors de la lecture du fichier de configuration : {}".format(e))
         return
 
-    # todo :tester
-
     monGN = GN(folderIntriguesID=dossier_intrigues,
-               folderPJID=dossier_pjs)
+               folderPJID=dossier_pjs,
+               fichier_factions=id_factions,
+               dossier_outputs_drive=dossier_output_squelettes_pjs)
 
     # print(f"1 - pnj dans ce GN : {monGN.noms_pnjs()}")
 
@@ -113,6 +67,8 @@ def main():
     if not args.init:
         monGN = GN.load(nom_fichier_sauvegarde)
         # print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
+        # monGN.fichier_factions = "1lDKglitWeg6RsybhLgNsPUa-DqN5POPyOpIo2u9VvvA"
+        monGN.dossier_outputs_drive = dossier_output_squelettes_pjs
 
     # print(f"3 - pnj dans ce GN : {monGN.noms_pnjs()}")
 
@@ -120,13 +76,14 @@ def main():
 
     monGN.effacer_personnages_forces()
 
-    # extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
-    # extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest="-01")
+    # extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, api_drive=api_drive, singletest="-01")
+    # extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, api_drive=api_drive, singletest="-01")
 
     extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.intrigue)
     extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.perso)
-    extraireTexteDeGoogleDoc.lire_factions_depuis_fichier(monGN, fichier_faction)
-    # todo : lire les factions depuis un google doc
+    extraireTexteDeGoogleDoc.extraire_factions(monGN, apiDoc=apiDoc)
+    # extraireTexteDeGoogleDoc.lire_factions_depuis_fichier(monGN, fichier_faction)
+
 
     monGN.forcerImportPersos(noms_persos)
     monGN.rebuildLinks(args.verbal)
@@ -134,16 +91,29 @@ def main():
     if not args.nosave:
         monGN.save(nom_fichier_sauvegarde)
 
-    #todo : faire évoluer changelog pour se concentrer sur les scènes / afficher les scènes concernées
+    # todo : une focntion qui force la lecture sans tout refaire
+    #  principe : sauter la boucle
+    #  et l'option qui va avec dans l'appel au programme
+
 
     # todo: appel dans la foulée de dedupe PNJ pour faire le ménage?
+    # todo : utiliser l'objet CSV pour générer les CSV
 
     # todo : passer la gestion des dates via un objet date time, et ajouter une variable avec la date du GN (0 par défaut)
 
     # todo : ajouter des fiches relations, qui décrivent l'évolution des relations entre les personnages,
-    # et qui devraient servir de base pour les lire
+    #  et qui devraient servir de base pour les lire
 
     # todo générer les relations lues dans un tableau des relations
+
+    # todo : tester et débugger la fonction de mise à jour des fiches
+    #  Mettre à jour la version de change log > un fichier par jour PRECISEMMENT
+    #  Se concentrer sur les scènes / afficher les scènes concernées en premier / uniquement ?
+
+    # todo : coder la lecture de la balise faction dans une scène,
+    #  qui ajouter des dummy roles dans la scène quand ils sont lus?
+    #  qu'il faudra nettoyer avant chaque association dans cleanupall
+    #  qui forcera lors de l'association l'ajout de la scène au personnage? comment gérer les rôles?
 
     print("****************************")
     print("****************************")
@@ -153,6 +123,7 @@ def main():
     lister_erreurs(monGN, prefixeFichiers)
 
     print("*********touslesquelettes*******************")
+    generer_squelettes_dans_drive(monGN, apiDoc, apiDrive)
     tousLesSquelettesPerso(monGN, prefixeFichiers)
     tousLesSquelettesPNJ(monGN, prefixeFichiers)
     print("*******dumpallscenes*********************")
@@ -173,7 +144,7 @@ def main():
     # squelettePerso(monGN, "Kyle Talus")
     # listerRolesPerso(monGN, "Greeta")
     # listerPNJs(monGN)
-    genererCsvPNJs(monGN)
+    genererCsvPNJs(monGN, verbal=False)
     # genererCsvObjets(monGN)
 
     # #lister les correspondaces entre les roles et les noms standards
@@ -272,7 +243,8 @@ def listerRolesPerso(monGN, nomPerso):
             break
 
 
-def tousLesSquelettesPerso(monGN, prefixe):
+
+def tousLesSquelettesPerso(monGN, prefixe=None):
     toutesScenes = ""
     for perso in monGN.dictPJs.values():
         toutesScenes += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
@@ -314,6 +286,114 @@ def tousLesSquelettesPerso(monGN, prefixe):
             f.close()
 
     return toutesScenes
+
+
+def squelettes_persos_en_kit(monGN):
+    squelettes_persos = {}
+    for perso in monGN.dictPJs.values():
+        texte_intro = ""
+        texte_intro += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
+        texte_intro += f"résumé de la bio : \n"
+        for item in perso.description:
+            texte_intro += f"{item} \n"
+        texte_intro += f"Psychologie : "
+        for item in perso.concept:
+            texte_intro += f"{item} \n"
+        texte_intro += f"Motivations et objectifs : \n"
+        for item in perso.driver:
+            texte_intro += f"{item} \n"
+        texte_intro += f"Chronologie : \n "
+        for item in perso.datesClefs:
+            texte_intro += f"{item} \n"
+        texte_intro += "\n *** Scenes associées : *** \n"
+
+        mes_scenes = []
+        for role in perso.roles:
+            for scene in role.scenes:
+                # print(f"{scene.titre} trouvée")
+                mes_scenes.append(scene)
+
+        mes_scenes = Scene.trierScenes(mes_scenes)
+        # for scene in mesScenes:
+        #     # print(scene)
+        #     texte_intro += str(scene) + '\n'
+        texte_intro += '****************************************************** \n'
+        # squelettes_persos[perso.nom] = dict()
+        # squelettes_persos[perso.nom]['intro'] = texte_intro
+        # squelettes_persos[perso.nom]['scenes'] = mes_scenes
+
+        squelettes_persos[perso.nom] = {'intro': texte_intro, 'scenes': mes_scenes}
+    return squelettes_persos
+
+
+def squelettes_par_perso(monGN):
+    squelettes_persos = {}
+    for perso in monGN.dictPJs.values():
+        texte_perso = ""
+        texte_perso += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
+        texte_perso += f"résumé de la bio : \n"
+        for item in perso.description:
+            texte_perso += f"{item} \n"
+        texte_perso += f"Psychologie : "
+        for item in perso.concept:
+            texte_perso += f"{item} \n"
+        texte_perso += f"Motivations et objectifs : \n"
+        for item in perso.driver:
+            texte_perso += f"{item} \n"
+        texte_perso += f"Chronologie : \n "
+        for item in perso.datesClefs:
+            texte_perso += f"{item} \n"
+        texte_perso += "\n *** Scenes associées : *** \n"
+
+        mes_scenes = []
+        for role in perso.roles:
+            for scene in role.scenes:
+                # print(f"{scene.titre} trouvée")
+                mes_scenes.append(scene)
+
+        mes_scenes = Scene.trierScenes(mes_scenes)
+        for scene in mes_scenes:
+            # print(scene)
+            texte_perso += str(scene) + '\n'
+        texte_perso += '****************************************************** \n'
+        squelettes_persos[perso.nom] = texte_perso
+
+    return squelettes_persos
+
+def reverse_generer_squelettes_dans_drive(mon_GN:GN, api_doc, api_drive):
+    d = squelettes_persos_en_kit(mon_GN)
+    for nom_perso in d:
+        # créer le fichier et récupérer l'ID
+        nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
+        id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, mon_GN.dossier_outputs_drive)
+
+        #ajouter le texte de l'intro
+        texte_intro = d[nom_perso]["intro"]
+        extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, texte_intro, titre=False)
+
+        #ajouter toutes les scènes
+        for scene in d[nom_perso]["scenes"]:
+            description_scene = scene.dict_text()
+
+            #ajouter le titre
+            extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, description_scene["titre"], titre=True)
+            # ajouter les entetes
+            extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, description_scene["en-tete"], titre=False)
+            # ajouter le texte
+            extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, description_scene["corps"], titre=True)
+
+def generer_squelettes_dans_drive(mon_GN:GN, api_doc, api_drive):
+    parent = mon_GN.dossier_outputs_drive
+    nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes PJ'
+    nouveau_dossier = extraireTexteDeGoogleDoc.creer_dossier(api_drive, parent, nom_dossier)
+
+    d = squelettes_par_perso(mon_GN)
+    for nom_perso in d:
+        # créer le fichier et récupérer l'ID
+        nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
+        texte = d[nom_perso]
+
+        extraireTexteDeGoogleDoc.inserer_squelettes_dans_drive(nouveau_dossier, api_doc, api_drive, texte, nom_fichier)
 
 
 def tousLesSquelettesPNJ(monGN: GN, prefixe):
@@ -423,17 +503,6 @@ def genererChangeLog(monGN, prefixe, nbJours=1, verbal=False):
 
 
 def squelettePerso(monGN, nomPerso):
-    # mesScenes = dict()
-    # nomPerso = process.extractOne(nomPerso, noms_persos)[0]
-    # for role in monGN.dictPJs[nomPerso].roles:
-    #     for scene in role.scenes:
-    #         mesScenes[str(scene.getLongdigitsDate())] = scene
-    #
-    # for key in sorted([str(x) for x in mesScenes.keys()], reverse=True):
-    #     print(
-    #         f"date : {mesScenes[key].getFormattedDate()} ({mesScenes[key].date}) : {mesScenes[key].titre} dans {mesScenes[key].intrigue.nom}")
-    #     print(f"{mesScenes[key].description}")
-
     mesScenes = []
     nomPerso = process.extractOne(nomPerso, noms_persos)[0]
     for perso in monGN.dictPJs.values():
@@ -461,7 +530,7 @@ def listerPNJs(monGN):
     return toReturn
 
 
-def genererCsvPNJs(monGN: GN):
+def genererCsvPNJs(monGN: GN, verbal=False):
     noms_pnjs = monGN.noms_pnjs()
     output = "nom PNJ;description;typePJ;niveau implication;details intervention;intrigue;" \
              "nom dans l'intrigue;indice de confiance normalisation\n"
@@ -483,7 +552,9 @@ def genererCsvPNJs(monGN: GN):
                           f"{nompnj}; " \
                           f"{score[1]}" \
                           "\n"
-    print(output)
+    if verbal:
+        print(output)
+
 
 
 def genererCsvObjets(monGN):
@@ -638,22 +709,7 @@ def genererTableauIntrigues(monGN):
         print(f"{intrigue.nom};{intrigue.orgaReferent.strip()};")
 
 
-def rogue():  # utilisé pour nettoyer les tableaux de persos des grosses intrigues
-    iwant = ["Nexxar", "Mina Tarkin", "Edrik", "Nexxar", "Jak", "Trevek",
-             "Dio Muftak", "Osrabkosi", "Rebbanx", "Kar", "Edrik", "Wexley",
-             "Veert", "Desnash", "Vert", "Zev", "Ssor", "FX - 4", "Kianstef", "Dhar",
-             "Desnash", "Dhar", "Jay", "Mosel", "FX - 4", "Timagua", "Veert", "Edrik",
-             "Wexley", "Tsvan", "Ssor", "Kael", "Syn", "Seika", "Jerima", "Thuorn"]
-    iwant = [x.strip() for x in iwant]
-    iwant = set(iwant)
-    for nom in iwant:
-        # print(str(nom))
-        score = process.extractOne(str(nom), noms_persos)
-        print(f"{nom} > {process.extractOne(nom, noms_persos)}")
-
-#todo : utiliser l'objet CSV pour générer les CSV
-
-def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal:bool=False):
+def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
     noms_persos = mon_gn.noms_pjs()
     noms_pnjs = mon_gn.noms_pnjs()
     noms_roles_dans_intrigue = [x.perso.nom for x in intrigue.rolesContenus.values() if x.perso is not None]
@@ -668,7 +724,6 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal:bool=False):
 
     tableau_sortie = []
     toPrint = "Tableau suggéré : \n"
-
 
     # pour chaque nom dans une scène, trouver le perso correspondant
     for nom in iwant:
@@ -720,10 +775,7 @@ def dedupePNJs(monGN):
     #         print(role.nom)
 
 
-# todo : tester
 
-# for pnj in nomsPNJs:
-#     monGN.dictPNJs[pnj] = Personnage(nom=pnj, pj=EST_PNJ_HORS_JEU)
 
 def charger_PNJs(gn, chemin_fichier):
     try:
@@ -736,7 +788,6 @@ def charger_PNJs(gn, chemin_fichier):
         print(f"Le fichier {chemin_fichier} n'a pas été trouvé.")
 
 
-# todo : tester et intégrer pour permettre l'association
 def generer_csv_association(roles_dict, filename):
     # Ouvrir un fichier CSV en mode écriture
     with open(filename, 'w', newline='') as csvfile:
@@ -758,7 +809,7 @@ def generer_csv_association(roles_dict, filename):
     print("Fichier CSV généré avec succès: {}".format(filename))
 
 
-# todo : tester l'association manuelle
+
 def lire_association_roles_depuis_csv(roles_list, filename):
     try:
         # Ouvrir le fichier CSV en mode lecture
@@ -773,7 +824,7 @@ def lire_association_roles_depuis_csv(roles_list, filename):
             for row in reader:
                 nom = row[0]
                 personnage = row[5]
-                # todo : faire l'association via un objet GN, ou bien utiliser self.perso si on est dans GN :)
+
                 # et mettre à jour les paramètres du GN en fcontion de ceux du programme > ca se joue à quel niveau?
                 # qu'est-ce qui est propriété de quoi? peut-on changer d'association en cours de vie de gn?
 
@@ -790,19 +841,33 @@ def lire_association_roles_depuis_csv(roles_list, filename):
     except Exception as e:
         print(f"Une erreur est survenue lors de la lecture du fichier: {e}")
 
+# à voir ce qu'on fait de cette fonction
+def lire_factions_depuis_fichier(mon_GN: GN, fichier: str):
+    try:
+        with open(fichier, "r") as file:
+            lines = file.readlines()
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Fichier introuvable : {fichier}")
+    current_faction = None
+    for line in lines:
+        if line.startswith("### "):
+            faction_name = line.replace("### ", "")
+            faction_name = faction_name.strip()
+            current_faction = Faction(faction_name)
+            mon_GN.factions[faction_name] = current_faction
+        elif line.startswith("## "):
+            line = line.replace("## ", "")
+            personnages_names = line.strip().split(",")
+            for perso_name in personnages_names:
+                perso_name = perso_name.strip()
+                try:
+                    current_faction.ajouter_personnage(perso_name)
+                except Exception as e:
+                    print(f"Impossible d'ajouter le personnage {perso_name} : {e}")
 
-# et pour écrire dans le fichier :
-def ecrire_parametres():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-
-    config.set('Folders', 'id', new_id)
-    config.set('Association', 'type', new_association_type)
-    config.set('Fiche', 'type', new_fiche_type)
-    config.set('File', 'name', new_file_name)
-
-    with open('config.ini', 'w') as configfile:
-        config.write(configfile)
-
+def split_text_reverse(text: str, taille_chunk: int):
+    lines = text.split("\n")[::-1]
+    for i in range(len(lines) - 1, -1, -1 * taille_chunk):
+        yield "\n".join(lines[i - 1000 if i - taille_chunk >= 0 else 0:i])
 
 main()

@@ -16,7 +16,8 @@ from googleapiclient.errors import HttpError
 from fuzzywuzzy import process
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/documents.readonly']
+# SCOPES = ['https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/documents.readonly https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/documents']
+SCOPES = ['https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/documents']
 
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre des tokens dans la déclaration
 
@@ -42,8 +43,8 @@ def creer_lecteurs_google_apis():
             token.write(creds.to_json())
 
     try:
-        apiDrive = build('drive', 'v3', credentials=creds)
-        lecteurDoc = build('docs', 'v1', credentials=creds)
+        apiDrive = build('drive', 'v3', credentials=creds, static_discovery=False)
+        lecteurDoc = build('docs', 'v1', credentials=creds, static_discovery=False) #todo : à tester
 
     except HttpError as error:
         print(f'An error occurred: {error}')

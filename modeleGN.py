@@ -37,9 +37,9 @@ def stringTypePJ(typePJ):
     return f"Type de PJ inconnu ({typePJ})"
 
 
-#une superclasse qui représente un fichier qui content des scènes, avec es rtôles associés
-#donc y compris les propriétés du fichier où elle se trouve (notamment date de changement)
-#Attention, personnage hérite de cette classe, et contient donc deu types de rôles :
+# une superclasse qui représente un fichier qui content des scènes, avec es rtôles associés
+# donc y compris les propriétés du fichier où elle se trouve (notamment date de changement)
+# Attention, personnage hérite de cette classe, et contient donc deu types de rôles :
 # ceux qui sont liés au personnes (roles)
 # et la contenance de ceux qui sont associées à ses propres scènes (via cette classe, donc)
 class ConteneurDeScene:
@@ -219,7 +219,7 @@ class Intrigue(ConteneurDeScene):
 
     def __init__(self, url, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
                  questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", lastProcessing=None,
-                 derniere_edition_fichier = 0):
+                 derniere_edition_fichier=0):
         super(Intrigue, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
         self.nom = nom
         self.description = description
@@ -232,7 +232,7 @@ class Intrigue(ConteneurDeScene):
         # self.url = url
         self.timeline = timeline
         if lastProcessing is None:
-            lastProcessing = datetime.datetime.now() - datetime.timedelta(days=500*365)
+            lastProcessing = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
         self.lastProcessing = lastProcessing
 
         self.lastFileEdit = derniere_edition_fichier
@@ -240,7 +240,6 @@ class Intrigue(ConteneurDeScene):
 
     def __str__(self):
         return self.nom
-
 
     def clear(self):
         # retirer l'intrigue du GN > à faire au niveau de l'appel
@@ -250,7 +249,6 @@ class Intrigue(ConteneurDeScene):
         for objet in self.objets:
             objet.inIntrigues.remove(self)
         # self.objets.clear()
-
 
     # vérifier que le personnge que l'on souhaite associer à un rôle n'est pas déjà associé à un autre rôle
     # dans le même conteneur
@@ -282,10 +280,6 @@ class Intrigue(ConteneurDeScene):
         return 0
 
 
-
-
-
-
 # relations
 class Relation:
     def __init__(self, perso1, perso2, description="Relation à définir"):
@@ -303,10 +297,10 @@ class Relation:
         raise Exception("Personnage inconnu dans cette relation")
 
 
-
 # Scènes
 class Scene:
-    def __init__(self, conteneur, titre, date="0", pitch="Pas de description simple", description="Description complète",
+    def __init__(self, conteneur, titre, date="0", pitch="Pas de description simple",
+                 description="Description complète",
                  actif=True, resume="", niveau=3):
         self.conteneur = conteneur
         self.date = date  # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
@@ -375,7 +369,7 @@ class Scene:
         toReturn = ""
 
         toReturn += f"titre scène : {self.titre} \n"
-        toReturn += f"date  : {self.getFormattedDate()} \n" # - {self.getLongdigitsDate()}\n"
+        toReturn += f"date  : {self.getFormattedDate()} \n"  # - {self.getLongdigitsDate()}\n"
         strRolesPersos = 'Roles (Perso) : '
         for role in self.roles:
             if role.perso is None:
@@ -384,39 +378,61 @@ class Scene:
                 strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
         toReturn += f"roles  : {strRolesPersos} \n"
         toReturn += f"provenance : {self.conteneur.nom} \n"
+        toReturn += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
         toReturn += f"dernière édition de l'intrigue : {self.conteneur.lastFileEdit} \n"
         toReturn += f"url intrigue : {self.conteneur.getFullUrl()} \n"
         # toReturn += f"pitch  : {self.pitch} \n"
         # toReturn += f"description : \n {self.description} \n"
         toReturn += f"\n {self.description} \n"
 
-
         # toReturn += f"actif  : {self.actif} \n"
+        return toReturn
+
+    def dict_text(self):
+        toReturn = dict()
+
+        toReturn["titre"] = f"titre scène : {self.titre} - date {self.getFormattedDate()} \n"
+
+        texte_entete = ""
+        strRolesPersos = 'Roles (Perso) : '
+        for role in self.roles:
+            if role.perso is None:
+                strRolesPersos += f"{role.nom} (pas de perso affecté) / "
+            else:
+                strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
+        texte_entete += f"roles  : {strRolesPersos} \n"
+        texte_entete += f"provenance : {self.conteneur.nom} \n"
+        texte_entete += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
+        texte_entete += f"dernière édition de l'intrigue : {self.conteneur.lastFileEdit} \n"
+        texte_entete += f"url intrigue : {self.conteneur.getFullUrl()} \n"
+        toReturn["en-tete"] = texte_entete
+
+        toReturn["corps"] = f"\n {self.description} \n"
+
+        # texte_entete += f"actif  : {self.actif} \n"
         return toReturn
 
     @staticmethod
     def trierScenes(scenesATrier):
         return sorted(scenesATrier, key=lambda scene: scene.getLongdigitsDate(), reverse=True)
 
+
 # objet pour tout sauvegarder
 class Faction:
-    def __init__(self, nom:str):
+    def __init__(self, nom: str):
         self.nom = nom
         self.personnages = set()
-
-    def ajouter_personnage(self, nom:str):
-        personnage = nomVersPersonnage(nom)
-        self.personnages.add(personnage)
 
     def __str__(self):
         list_perso = [p.nom for p in self.personnages]
         return f"Faction {self.nom} avec les personnages {list_perso}"
 
+
 class GN:
-    def __init__(self, folderIntriguesID, folderPJID):
+    def __init__(self, folderIntriguesID, folderPJID, dossier_outputs_drive, fichier_factions=None):
         self.dictPJs = {}  # idgoogle, personnage
         self.dictPNJs = {}  # nom, personnage
-        self.factions = dict() #nom, Faction
+        self.factions = dict()  # nom, Faction
         self.intrigues = dict()  # clef : id google
         self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatePJ = None  # contient al dernière date d'update d'une intrigue dans le GN
@@ -431,7 +447,9 @@ class GN:
             self.folderPJID = folderPJID
         else:
             self.folderPJID = [folderPJID]
-        print(f"PJID = {self.folderPJID}")
+        # print(f"PJID = {self.folderPJID}")
+        self.fichier_factions = fichier_factions
+        self.dossier_outputs_drive = dossier_outputs_drive
 
     def nom_vers_personnage(self, nom: str, chercher_pj=True, chercher_pnj=True) -> Personnage:
         if chercher_pnj:
@@ -442,7 +460,7 @@ class GN:
                 return self.dictPJs[nom]
         raise ValueError(f"Le personnage {nom} n'a pas été trouvé")
 
-#todo : tester les factions
+    # todo : tester les factions
 
     def charger_factions_depuis_fichier(self, fichier: str):
         factions_dict = lire_factions_depuis_fichier(fichier)
@@ -515,8 +533,8 @@ class GN:
                 if estUnPNJ(role.pj):
                     score = process.extractOne(role.nom, nomsPnjs)
                     # role.perso = self.listePnjs[score[0]]
-                    print(f"je m'appête à associer PNJ {role.nom}, identifié comme {score} ")
-                    print(f"à {self.dictPNJs[score[0]]} (taille du dictionnaire PNJ = {len(self.dictPNJs)}")
+                    # print(f"je m'apprête à associer PNJ {role.nom}, identifié comme {score} ")
+                    # print(f"\t à {self.dictPNJs[score[0]].nom} (taille du dictionnaire PNJ = {len(self.dictPNJs)}")
                     intrigue.associerRoleAPerso(roleAAssocier=role, personnage=self.dictPNJs[score[0]])
                     if score[1] < seuilAlerte:
                         texteErreur = f"Warning association ({score[1]}) " \
@@ -532,8 +550,7 @@ class GN:
         for pj in self.dictPJs.values():  # on crée un dictionnaire temporaire nom > pj pour faire les associations
             dictNomsPJ[pj.nom] = pj
 
-
-        #Associer les rôles sans passer par la case tableau d'assocaition pour les PJs
+        # Associer les rôles sans passer par la case tableau d'assocaition pour les PJs
         for pj in self.dictPJs.values():
             # print(f"je suis en train de chercher des roles dans le pj {pj.nom}")
             # print(f"noms de roles trouvés : {pj.rolesContenus}")
@@ -544,7 +561,6 @@ class GN:
                 role.perso = dictNomsPJ[score[0]]
                 role.perso.roles.add(role)
 
-
                 if score[1] < seuilAlerte:
                     texteErreur = f"Warning association ({score[1]}) - nom rôle : " \
                                   f"{role.nom} > PJ : {score[0]} dans {pj.nom}"
@@ -553,7 +569,7 @@ class GN:
                         # print(f"je paaaaaarle {score[1]}")
                         print(texteErreur)
 
-        #faire l'association dans les intrigues à partir du nom de l'intrigue
+        # faire l'association dans les intrigues à partir du nom de l'intrigue
         for intrigue in self.intrigues.values():
             for role in intrigue.rolesContenus.values():
                 if estUnPJ(role.pj):
@@ -576,7 +592,6 @@ class GN:
     def load(filename):
         monfichier = open(filename, 'rb')
         return pickle.load(monfichier)
-
 
     # apres une importation recrée
     # tous les liens entre les PJs,
@@ -603,7 +618,7 @@ class GN:
             for role in intrigue.rolesContenus.values():
                 role.perso = None
 
-    def forcerImportPersos(self, nomsPersos, suffixe="_imported", verbal=False ):
+    def forcerImportPersos(self, nomsPersos, suffixe="_imported", verbal=False):
         print("début de l'ajout des personnages sans fiche")
         nomsLus = [x.nom for x in self.dictPJs.values()]
         print(f"noms lus = {nomsLus}")
@@ -612,7 +627,7 @@ class GN:
         # SINON, lui créer une coquille vide
         persosSansCorrespondance = []
         for perso in nomsPersos:
-            if perso in nomsLus:
+            if perso in nomsLus and verbal:
                 print(f"le personnage {perso} a une correspondance dans les persos déjà présents")
             else:
                 # persosSansCorrespondance.append(
@@ -642,5 +657,3 @@ class Objet:
         self.rfid = len(specialEffect) > 0
         self.specialEffect = specialEffect
         self.inIntrigues = set()
-
-
