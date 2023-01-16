@@ -16,18 +16,35 @@ from googleapiclient.errors import HttpError
 def main():
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
 
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("-init", action="store_true", help="fait que la fonction gn.load n'est pas appelée")
+    # parser.add_argument("-nosave", action="store_true", help="fait que la fonction GN.save n'est pas appelée")
+    # parser.add_argument("-intrigue", type=str, default="-01", help="si une seule intrigue doit être lue")
+    # parser.add_argument("-perso", type=str, default="-01", help="si un seul perso doit être lu")
+    # parser.add_argument("-verbal", action="store_true", help="si on veut afficher toutes les erreurs")
+    # parser.add_argument("-allpjs", action="store_true", help="si on veut reparcourir tous les pjs")
+    # parser.add_argument("-allintrigues", action="store_true", help="si on veut reparcourir toutes les intrigues")
+    # args = parser.parse_args()
     parser = argparse.ArgumentParser()
+
+    group1 = parser.add_mutually_exclusive_group()
+    group1.add_argument("-intrigue", type=str, default="-01", help="si une seule intrigue doit être lue")
+    group1.add_argument("-allintrigues", action="store_true", help="si on veut reparcourir toutes les intrigues")
+
+    group2 = parser.add_mutually_exclusive_group()
+    group2.add_argument("-perso", type=str, default="-01", help="si un seul perso doit être lu")
+    group2.add_argument("-allpjs", action="store_true", help="si on veut reparcourir tous les pjs")
+
+    parser.add_argument("-noexportdrive", action="store_true", help="pour ne pas provoquer l'export drive")
     parser.add_argument("-init", action="store_true", help="fait que la fonction gn.load n'est pas appelée")
     parser.add_argument("-nosave", action="store_true", help="fait que la focntion GN.save n'est pas appelée")
-    parser.add_argument("-intrigue", type=str, default="-01", help="si une seule intrigue doit être lue")
-    parser.add_argument("-perso", type=str, default="-01", help="si un seul perso doit être lu")
     parser.add_argument("-verbal", action="store_true", help="si on veut afficher toutes les erreurs")
+
     args = parser.parse_args()
 
     # init configuration
     config = configparser.ConfigParser()
     config.read('config.ini')
-
 
     try:
         dossier_intrigues = config.get('dossiers', 'intrigues').split(',')
@@ -64,11 +81,14 @@ def main():
 
     # print(f"2 - pnj dans ce GN : {monGN.noms_pnjs()}")
 
-    if not args.init:
-        monGN = GN.load(nom_fichier_sauvegarde)
-        # print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
-        # monGN.fichier_factions = "1lDKglitWeg6RsybhLgNsPUa-DqN5POPyOpIo2u9VvvA"
-        monGN.dossier_outputs_drive = dossier_output_squelettes_pjs
+    try:
+        if not args.init:
+            monGN = GN.load(nom_fichier_sauvegarde)
+            # print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
+            # monGN.fichier_factions = "1lDKglitWeg6RsybhLgNsPUa-DqN5POPyOpIo2u9VvvA"
+            monGN.dossier_outputs_drive = dossier_output_squelettes_pjs
+    except:
+        print(f"impossible d'ouvrir {nom_fichier_sauvegarde} : ré-lecture à zéro de toutes les infos")
 
     # print(f"3 - pnj dans ce GN : {monGN.noms_pnjs()}")
 
@@ -79,11 +99,12 @@ def main():
     # extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, api_drive=api_drive, singletest="-01")
     # extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, api_drive=api_drive, singletest="-01")
 
-    extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.intrigue)
-    extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.perso)
+    extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.intrigue,
+                                               fast=(not args.allintrigues))
+    extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.perso,
+                                         fast=(not args.allpjs))
     extraireTexteDeGoogleDoc.extraire_factions(monGN, apiDoc=apiDoc)
     # extraireTexteDeGoogleDoc.lire_factions_depuis_fichier(monGN, fichier_faction)
-
 
     monGN.forcerImportPersos(noms_persos)
     monGN.rebuildLinks(args.verbal)
@@ -91,10 +112,8 @@ def main():
     if not args.nosave:
         monGN.save(nom_fichier_sauvegarde)
 
-    # todo : une focntion qui force la lecture sans tout refaire
-    #  principe : sauter la boucle
-    #  et l'option qui va avec dans l'appel au programme
-
+    # todo : tester et débugger la fonction de mise à jour des fiches
+    #  générer une version des fiches de pjs, sur le drive, avec les scènes classées par date de changement
 
     # todo: appel dans la foulée de dedupe PNJ pour faire le ménage?
     # todo : utiliser l'objet CSV pour générer les CSV
@@ -105,10 +124,6 @@ def main():
     #  et qui devraient servir de base pour les lire
 
     # todo générer les relations lues dans un tableau des relations
-
-    # todo : tester et débugger la fonction de mise à jour des fiches
-    #  Mettre à jour la version de change log > un fichier par jour PRECISEMMENT
-    #  Se concentrer sur les scènes / afficher les scènes concernées en premier / uniquement ?
 
     # todo : coder la lecture de la balise faction dans une scène,
     #  qui ajouter des dummy roles dans la scène quand ils sont lus?
@@ -123,7 +138,8 @@ def main():
     lister_erreurs(monGN, prefixeFichiers)
 
     print("*********touslesquelettes*******************")
-    generer_squelettes_dans_drive(monGN, apiDoc, apiDrive)
+    if not args.noexportdrive:
+        generer_squelettes_dans_drive(monGN, apiDoc, apiDrive)
     tousLesSquelettesPerso(monGN, prefixeFichiers)
     tousLesSquelettesPNJ(monGN, prefixeFichiers)
     print("*******dumpallscenes*********************")
@@ -144,7 +160,7 @@ def main():
     # squelettePerso(monGN, "Kyle Talus")
     # listerRolesPerso(monGN, "Greeta")
     # listerPNJs(monGN)
-    genererCsvPNJs(monGN, verbal=False)
+    # genererCsvPNJs(monGN, verbal=False)
     # genererCsvObjets(monGN)
 
     # #lister les correspondaces entre les roles et les noms standards
@@ -241,7 +257,6 @@ def listerRolesPerso(monGN, nomPerso):
             for role in perso.rolesContenus:
                 print(role)
             break
-
 
 
 def tousLesSquelettesPerso(monGN, prefixe=None):
@@ -360,29 +375,31 @@ def squelettes_par_perso(monGN):
 
     return squelettes_persos
 
-def reverse_generer_squelettes_dans_drive(mon_GN:GN, api_doc, api_drive):
+
+def reverse_generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive):
     d = squelettes_persos_en_kit(mon_GN)
     for nom_perso in d:
         # créer le fichier et récupérer l'ID
         nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
         id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, mon_GN.dossier_outputs_drive)
 
-        #ajouter le texte de l'intro
+        # ajouter le texte de l'intro
         texte_intro = d[nom_perso]["intro"]
         extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, texte_intro, titre=False)
 
-        #ajouter toutes les scènes
+        # ajouter toutes les scènes
         for scene in d[nom_perso]["scenes"]:
             description_scene = scene.dict_text()
 
-            #ajouter le titre
+            # ajouter le titre
             extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, description_scene["titre"], titre=True)
             # ajouter les entetes
             extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, description_scene["en-tete"], titre=False)
             # ajouter le texte
             extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, description_scene["corps"], titre=True)
 
-def generer_squelettes_dans_drive(mon_GN:GN, api_doc, api_drive):
+
+def generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive):
     parent = mon_GN.dossier_outputs_drive
     nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes PJ'
     nouveau_dossier = extraireTexteDeGoogleDoc.creer_dossier(api_drive, parent, nom_dossier)
@@ -554,7 +571,6 @@ def genererCsvPNJs(monGN: GN, verbal=False):
                           "\n"
     if verbal:
         print(output)
-
 
 
 def genererCsvObjets(monGN):
@@ -775,8 +791,6 @@ def dedupePNJs(monGN):
     #         print(role.nom)
 
 
-
-
 def charger_PNJs(gn, chemin_fichier):
     try:
         with open(chemin_fichier, 'r') as f:
@@ -807,7 +821,6 @@ def generer_csv_association(roles_dict, filename):
             # Écrire les valeurs dans le fichier CSV
             writer.writerow([nom, description, pipr, pipi, sexe, personnage])
     print("Fichier CSV généré avec succès: {}".format(filename))
-
 
 
 def lire_association_roles_depuis_csv(roles_list, filename):
@@ -841,6 +854,7 @@ def lire_association_roles_depuis_csv(roles_list, filename):
     except Exception as e:
         print(f"Une erreur est survenue lors de la lecture du fichier: {e}")
 
+
 # à voir ce qu'on fait de cette fonction
 def lire_factions_depuis_fichier(mon_GN: GN, fichier: str):
     try:
@@ -865,9 +879,11 @@ def lire_factions_depuis_fichier(mon_GN: GN, fichier: str):
                 except Exception as e:
                     print(f"Impossible d'ajouter le personnage {perso_name} : {e}")
 
+
 def split_text_reverse(text: str, taille_chunk: int):
     lines = text.split("\n")[::-1]
     for i in range(len(lines) - 1, -1, -1 * taille_chunk):
         yield "\n".join(lines[i - 1000 if i - taille_chunk >= 0 else 0:i])
+
 
 main()

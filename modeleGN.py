@@ -1,4 +1,3 @@
-import datetime
 import pickle
 import datetime
 import random
@@ -66,6 +65,7 @@ class ConteneurDeScene:
 
     def addScene(self, nomScene):
         sceneAajouter = Scene(self, nomScene)
+        sceneAajouter.derniere_mise_a_jour = self.lastFileEdit
         self.scenes.add(sceneAajouter)
         return sceneAajouter
 
@@ -94,11 +94,21 @@ class ConteneurDeScene:
 
     def updater_dates_maj_scenes(self, conteneur_de_reference):
         for ma_scene in self.scenes:
+            print(f"*** je suis en train de lire la scène {ma_scene.titre} dans l'élément {self.getFullUrl()}")
             # On va chercher si cette scène existe déjà dans l'objet intrigue précédent
             for sa_scene in conteneur_de_reference.scenes:
+                # print(f"je suis en train la comparer à la scène {sa_scene.titre} "
+                #       f"dans l'élément {conteneur_de_reference.getFullUrl()}")
                 if ma_scene.titre == sa_scene.titre:
+                    print(f"Les deux scènes ont le même titre !")
                     if ma_scene.description == sa_scene.description:
+                        print(f"et la même description !")
+                        print(f"dernières mises à jour : ma_scene : {ma_scene.derniere_mise_a_jour} / sa_scène : {sa_scene.derniere_mise_a_jour}")
                         ma_scene.derniere_mise_a_jour = sa_scene.derniere_mise_a_jour
+                        print(f"et, après update : ma_scene : {ma_scene.derniere_mise_a_jour} / sa_scène : {sa_scene.derniere_mise_a_jour}")
+                    else:
+                        print("mais pas la même description !")
+
                     break
 
 
@@ -368,18 +378,18 @@ class Scene:
     def __str__(self):
         toReturn = ""
 
-        toReturn += f"titre scène : {self.titre} \n"
-        toReturn += f"date  : {self.getFormattedDate()} \n"  # - {self.getLongdigitsDate()}\n"
+        toReturn += f"titre scène : {self.titre} - date  : {self.getFormattedDate()} \n"
         strRolesPersos = 'Roles (Perso) : '
         for role in self.roles:
             if role.perso is None:
                 strRolesPersos += f"{role.nom} (pas de perso affecté) / "
             else:
                 strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
-        toReturn += f"roles  : {strRolesPersos} \n"
+        toReturn += f"roles  : {strRolesPersos[:-2]} \n"
         toReturn += f"provenance : {self.conteneur.nom} \n"
-        toReturn += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
-        toReturn += f"dernière édition de l'intrigue : {self.conteneur.lastFileEdit} \n"
+        # toReturn += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
+        toReturn += f"dernières éditions : intrigue : {self.conteneur.lastFileEdit}  " \
+                    f"/ scène : {self.derniere_mise_a_jour} \n"
         toReturn += f"url intrigue : {self.conteneur.getFullUrl()} \n"
         # toReturn += f"pitch  : {self.pitch} \n"
         # toReturn += f"description : \n {self.description} \n"
@@ -388,29 +398,29 @@ class Scene:
         # toReturn += f"actif  : {self.actif} \n"
         return toReturn
 
-    def dict_text(self):
-        toReturn = dict()
-
-        toReturn["titre"] = f"titre scène : {self.titre} - date {self.getFormattedDate()} \n"
-
-        texte_entete = ""
-        strRolesPersos = 'Roles (Perso) : '
-        for role in self.roles:
-            if role.perso is None:
-                strRolesPersos += f"{role.nom} (pas de perso affecté) / "
-            else:
-                strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
-        texte_entete += f"roles  : {strRolesPersos} \n"
-        texte_entete += f"provenance : {self.conteneur.nom} \n"
-        texte_entete += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
-        texte_entete += f"dernière édition de l'intrigue : {self.conteneur.lastFileEdit} \n"
-        texte_entete += f"url intrigue : {self.conteneur.getFullUrl()} \n"
-        toReturn["en-tete"] = texte_entete
-
-        toReturn["corps"] = f"\n {self.description} \n"
-
-        # texte_entete += f"actif  : {self.actif} \n"
-        return toReturn
+    # def dict_text(self):
+    #     toReturn = dict()
+    #
+    #     toReturn["titre"] = f"titre scène : {self.titre} - date {self.getFormattedDate()} \n"
+    #
+    #     texte_entete = ""
+    #     strRolesPersos = 'Roles (Perso) : '
+    #     for role in self.roles:
+    #         if role.perso is None:
+    #             strRolesPersos += f"{role.nom} (pas de perso affecté) / "
+    #         else:
+    #             strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
+    #     texte_entete += f"roles  : {strRolesPersos} \n"
+    #     texte_entete += f"provenance : {self.conteneur.nom} \n"
+    #     texte_entete += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
+    #     texte_entete += f"dernière édition de l'intrigue : {self.conteneur.lastFileEdit} \n"
+    #     texte_entete += f"url intrigue : {self.conteneur.getFullUrl()} \n"
+    #     toReturn["en-tete"] = texte_entete
+    #
+    #     toReturn["corps"] = f"\n {self.description} \n"
+    #
+    #     # texte_entete += f"actif  : {self.actif} \n"
+    #     return toReturn
 
     @staticmethod
     def trierScenes(scenesATrier):

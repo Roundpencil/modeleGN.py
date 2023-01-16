@@ -19,18 +19,18 @@ from googleapiclient.errors import HttpError
 from fuzzywuzzy import process
 
 
-def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01", verbal=False):
+def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
     extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extraireIntrigueDeTexte, monGN.intrigues, monGN.folderIntriguesID,
-                             singletest, verbal=verbal)
+                             singletest, verbal=verbal, fast=fast)
 
 
-def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01", verbal=False):
+def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
     extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extrairePJDeTexte, monGN.dictPJs, monGN.folderPJID, singletest,
-                             verbal=verbal)
+                             verbal=verbal, fast=fast)
 
 
 def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictIDs: dict, folderArray,
-                             singletest="-01", verbal=False):
+                             singletest="-01", verbal=False, fast=True):
     items = lecteurGoogle.genererListeItems(monGN, apiDrive=apiDrive, folderID=folderArray)
 
     if not items:
@@ -70,7 +70,6 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                                                            saveLastChange=False, verbal=verbal)
                     if objet_de_reference is not None:
                         nouvelObjet.updater_dates_maj_scenes(objet_de_reference)
-                        # todo : à tester
 
                     break
                     # on a trouvé le bon doc, on arrête de chercher
@@ -115,12 +114,13 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                     # if monGN.intrigues[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5],
                     #                                                                         '%Y-%m-%dT%H:%M:%S'):
                     # if dictIDs[item['id']].lastProcessing >= item['modifiedTime']:
-                    if dictIDs[item['id']].lastProcessing >= datetime.datetime.strptime(
-                            item['modifiedTime'][:-5],
-                            '%Y-%m-%dT%H:%M:%S'):
+                    if fast and \
+                            dictIDs[item['id']].lastProcessing >= datetime.datetime.strptime(
+                        item['modifiedTime'][:-5],
+                        '%Y-%m-%dT%H:%M:%S'):
 
                         print(
-                            f"et elle n'a pas changé (dernier changement : {datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')} / {item['modifiedTime'][:-5]}) depuis le dernier passage ({dictIDs[item['id']].lastProcessing})")
+                            f"et elle n'a pas changé (dernier changement : {datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')}) depuis le dernier passage ({dictIDs[item['id']].lastProcessing})")
                         # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
                         # si c'était la plus vieille du GN, pas la peine de continuer
 
@@ -134,14 +134,14 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                         # monGN.intrigues[item['id']].clear()
                         # del monGN.intrigues[item['id']]
 
-                        dictIDs[item['id']].clear()
+
                         objet_de_reference = dictIDs.pop(item['id'])
 
                 # puis, dans tous les cas, on la crée
                 nouvelObjet = extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, verbal=verbal)
                 if objet_de_reference is not None:
                     nouvelObjet.updater_dates_maj_scenes(objet_de_reference)
-                    # todo : à tester
+                    objet_de_reference.clear()
 
             except HttpError as err:
                 print(f'An error occurred: {err}')
@@ -876,7 +876,8 @@ def format_titles(service, file_id):
 def creer_dossier(service_drive, id_dossier_parent, nom_dossier):
     try:
         # Création de l'objet dossier
-        nouveau_dossier = {'name': nom_dossier, 'parents': [id_dossier_parent], 'mimeType': 'application/vnd.google-apps.folder'}
+        nouveau_dossier = {'name': nom_dossier, 'parents': [id_dossier_parent],
+                           'mimeType': 'application/vnd.google-apps.folder'}
         # Ajout du nouveau dossier
         dossier_cree = service_drive.files().create(body=nouveau_dossier, fields='id').execute()
         # Récupération de l'id du nouveau dossier
