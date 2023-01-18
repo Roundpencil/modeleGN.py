@@ -1,6 +1,7 @@
 import argparse
 import configparser
 import csv
+import pandas as pd
 
 from fuzzywuzzy import process, fuzz
 
@@ -16,15 +17,7 @@ from googleapiclient.errors import HttpError
 def main():
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
 
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("-init", action="store_true", help="fait que la fonction gn.load n'est pas appelée")
-    # parser.add_argument("-nosave", action="store_true", help="fait que la fonction GN.save n'est pas appelée")
-    # parser.add_argument("-intrigue", type=str, default="-01", help="si une seule intrigue doit être lue")
-    # parser.add_argument("-perso", type=str, default="-01", help="si un seul perso doit être lu")
-    # parser.add_argument("-verbal", action="store_true", help="si on veut afficher toutes les erreurs")
-    # parser.add_argument("-allpjs", action="store_true", help="si on veut reparcourir tous les pjs")
-    # parser.add_argument("-allintrigues", action="store_true", help="si on veut reparcourir toutes les intrigues")
-    # args = parser.parse_args()
+
     parser = argparse.ArgumentParser()
 
     group1 = parser.add_mutually_exclusive_group()
@@ -36,6 +29,7 @@ def main():
     group2.add_argument("-allpjs", action="store_true", help="si on veut reparcourir tous les pjs")
 
     parser.add_argument("-noexportdrive", action="store_true", help="pour ne pas provoquer l'export drive")
+    parser.add_argument("-nochangelog", action="store_true", help="pour ne pas provoquer la création des changelogs")
     parser.add_argument("-init", action="store_true", help="fait que la fonction gn.load n'est pas appelée")
     parser.add_argument("-nosave", action="store_true", help="fait que la focntion GN.save n'est pas appelée")
     parser.add_argument("-verbal", action="store_true", help="si on veut afficher toutes les erreurs")
@@ -92,12 +86,12 @@ def main():
 
     # print(f"3 - pnj dans ce GN : {monGN.noms_pnjs()}")
 
-    apiDrive, apiDoc = lecteurGoogle.creer_lecteurs_google_apis()
+    apiDrive, apiDoc, apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
 
     monGN.effacer_personnages_forces()
 
-    # extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, api_drive=api_drive, singletest="-01")
-    # extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, api_drive=api_drive, singletest="-01")
+    # extraireTexteDeGoogleDoc.extraireIntrigues(monGN, service=service, service=service, singletest="-01")
+    # extraireTexteDeGoogleDoc.extrairePJs(monGN, service=service, service=service, singletest="-01")
 
     extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.intrigue,
                                                fast=(not args.allintrigues))
@@ -146,9 +140,15 @@ def main():
     # dumpAllScenes(monGN)
 
     print("*******changelog*********************")
-    genererChangeLog(monGN, prefixeFichiers, nbJours=3)
-    genererChangeLog(monGN, prefixeFichiers, nbJours=4)
+    if not args.nochangelog:
+        generer_tableau_changelog_sur_drive(monGN, apiDrive, apiSheets, dossier_output_squelettes_pjs)
+        genererChangeLog(monGN, prefixeFichiers, nbJours=3)
+        genererChangeLog(monGN, prefixeFichiers, nbJours=4)
 
+    print("******* statut intrigues *********************")
+    creer_table_intrigues_sur_drive(monGN, apiSheets, apiDrive, dossier_output_squelettes_pjs)
+
+    # ajouter_champs_modifie_par(monGN, nom_fichier_sauvegarde)
     # trierScenes(monGN)
     # listerTrierPersos(monGN)
     # #écrit toutes les scènes qui sont dans le GN, sans ordre particulier
@@ -886,4 +886,98 @@ def split_text_reverse(text: str, taille_chunk: int):
         yield "\n".join(lines[i - 1000 if i - taille_chunk >= 0 else 0:i])
 
 
+def ajouter_champs_modifie_par(mon_gn: GN, nom_fichier=None):
+    for conteneur in list(mon_gn.intrigues.values()) + list(mon_gn.dictPJs.values()):
+        conteneur.modifie_par = ""
+        for scene in conteneur.scenes:
+            scene.modifie_par = ""
+
+    if nom_fichier is not None:
+        mon_gn.save(nom_fichier)
+        print(f"fichier sauvegardé sous {nom_fichier}")
+
+
+def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, dossier_output:str):
+
+    dict_orgas_persos = dict()
+    tableau_scene_orgas = []
+    tous_les_conteneurs = list(mon_gn.dictPJs.values()) + list(mon_gn.intrigues.values())
+    toutes_les_scenes = []
+    for conteneur in tous_les_conteneurs:
+        for scene in conteneur.scenes:
+            toutes_les_scenes.append(scene)
+
+
+    toutes_les_scenes = sorted(toutes_les_scenes, key=lambda scene: scene.derniere_mise_a_jour, reverse=True)
+
+    # print(f"taille de toutes les scènes = {len(toutes_les_scenes)}"
+    #       f"taille de tous les conteneurs = {len(tous_les_conteneurs)}")
+
+    for ma_scene in toutes_les_scenes:
+        for role in ma_scene.roles:
+            if role.estUnPNJ():
+                continue
+            if role.perso is None:
+                continue
+            if len(role.perso.orgaReferent) < 3:
+                orga_referent = "Orga sans nom"
+            else:
+                orga_referent = role.perso.orgaReferent.strip()
+            if orga_referent not in dict_orgas_persos:
+                # dict_orgas_persos[role.perso.orgaReferent].append(role.perso.nom)
+                dict_orgas_persos[orga_referent] = set()
+            # else:
+            #     # dict_orgas_persos[role.perso.orgaReferent] = [role.perso.nom]
+            dict_orgas_persos[orga_referent].add(role.perso.nom)
+
+    # à ce stade là on a :
+    # les scènes triées dans l'ordre de dernière modif #todo : créer la méthode)
+    # tous les orgas dans un set
+    for ma_scene in toutes_les_scenes:
+        dict_scene = dict()
+        dict_scene['nom_scene'] = ma_scene.titre
+        dict_scene['date'] = ma_scene.derniere_mise_a_jour.strftime("%Y-%m-%d %H:%M:%S")
+        dict_scene['qui'] = ma_scene.modifie_par
+        dict_scene['document'] = ma_scene.conteneur.getFullUrl()
+        dict_orgas = dict()
+        # dict_scene['dict_orgas'] = dict_orgas
+        for role in ma_scene.roles:
+            if role.estUnPNJ():
+                continue
+            if role.perso is None:
+                continue
+            orga_referent = role.perso.orgaReferent.strip()
+            if len(orga_referent) < 3:
+                orga_referent = "Orga sans nom"
+            if orga_referent not in dict_orgas:
+                dict_orgas[orga_referent] = [role.perso.nom]
+            else:
+                dict_orgas[orga_referent] += [role.perso.nom]
+        tableau_scene_orgas.append([dict_scene, dict_orgas])
+
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Changelog'
+
+    id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_output)
+    extraireTexteDeGoogleDoc.exporter_changelog(tableau_scene_orgas, id, dict_orgas_persos, api_sheets)
+
+def creer_table_intrigues_sur_drive(mon_gn:GN, api_sheets, api_drive, dossier_export):
+    table_intrigues = [
+        ["nom intrigue", "nombre de scenes", "dernière édition", "modifié par", "Orga referent", "statut", "url"]]
+    for intrigue in mon_gn.intrigues.values():
+        table_intrigues.append([intrigue.nom,
+                                len(intrigue.scenes),
+                                intrigue.lastFileEdit.strftime("%Y-%m-%d %H:%M:%S"),
+                                intrigue.modifie_par,
+                                intrigue.orgaReferent,
+                                intrigue.questions_ouvertes,
+                                intrigue.getFullUrl()])
+
+    # Create a DataFrame from the table_intrigues data
+    df = pd.DataFrame(table_intrigues[1:], columns=table_intrigues[0])
+
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Etat des intrigues'
+    id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_export)
+    # extraireTexteDeGoogleDoc.exporter_table_intrigue(service, nom_fichier, dossier_export, df)
+    # extraireTexteDeGoogleDoc.ecrire_dataframe_google_sheets(api_sheets, df, id)
+    extraireTexteDeGoogleDoc.ecrire_dataframe_google_sheets(api_sheets, table_intrigues, id)
 main()

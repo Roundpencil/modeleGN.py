@@ -1,14 +1,21 @@
 from __future__ import print_function
 
+import csv
 import datetime
 import os.path
 import re
+import io
 
 import fuzzywuzzy.process
+from googleapiclient.http import MediaIoBaseUpload
 
 import modeleGN
 from modeleGN import *
 import lecteurGoogle
+
+import pandas as pd
+import gspread
+import df2gspread as d2g
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -134,7 +141,6 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                         # monGN.intrigues[item['id']].clear()
                         # del monGN.intrigues[item['id']]
 
-
                         objet_de_reference = dictIDs.pop(item['id'])
 
                 # puis, dans tous les cas, on la crée
@@ -160,7 +166,14 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
     lastFileEdit = datetime.datetime.strptime(
         item['modifiedTime'][:-5],
         '%Y-%m-%dT%H:%M:%S')
-    monObjet = fonctionExtraction(text, document.get('title'), item["id"], lastFileEdit, monGN, verbal)
+    print(f"clef présentes : {item['lastModifyingUser'].keys()}")
+    try:
+        derniere_modification_par = item['lastModifyingUser']['emailAddress']  # todo lastmodified
+    except:
+        derniere_modification_par = "Utilisateur inconnu"
+
+    monObjet = fonctionExtraction(text, document.get('title'), item["id"], lastFileEdit, derniere_modification_par,
+                                  monGN, verbal)
     # monObjet.url = item["id"]
     # et on enregistre la date de dernière mise à jour de l'intrigue
 
@@ -171,12 +184,14 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
     return monObjet
 
 
-def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, monGN, verbal=False):
+def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, derniere_modification_par, monGN,
+                            verbal=False):
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue.replace('\v', '\n'))
     # texteIntrigue = texteIntrigue.replace('\v', '\n')
     # print("*****************************")
     currentIntrigue = Intrigue(nom=nomIntrigue, url=idUrl, derniere_edition_fichier=lastFileEdit)
+    currentIntrigue.modifie_par = derniere_modification_par
     monGN.intrigues[idUrl] = currentIntrigue
     # noms_persos = monGN.noms_pjs()
 
@@ -211,8 +226,12 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, mon
         # print("Orga référent : " + currentIntrigue.orgaReferent)
 
     # gestion de la section à faire
-    currentIntrigue.questions_ouvertes = ''.join(
-        texteIntrigue[indexes[TODO]["debut"]:indexes[TODO]["fin"]].splitlines()[1:])
+    if indexes[TODO]["debut"] == -1:
+        print("problème état de l'intrigue avec l'intrigue " + nomIntrigue)
+    else:
+        # currentIntrigue.questions_ouvertes = ''.join(
+        #     texteIntrigue[indexes[TODO]["debut"]:indexes[TODO]["fin"]].splitlines()[1:])
+        currentIntrigue.questions_ouvertes = texteIntrigue[indexes[TODO]["debut"] + len(TODO):indexes[TODO]["fin"]]
 
     # gestion de la section Résumé
     currentIntrigue.pitch = ''.join(
@@ -386,6 +405,7 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
 
         titreScene = scene.splitlines()[0].strip()
         sceneAAjouter = conteneur.addScene(titreScene)
+        sceneAAjouter.modifie_par = conteneur.modifie_par
         # print("titre de la scène ajoutée : " + sceneAAjouter.titre)
 
         balises = re.findall(r'##.*', scene)
@@ -551,7 +571,7 @@ def calculerJoursIlYA(baliseDate):
         return baliseDate.strip()
 
 
-def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, monGN, verbal=False):
+def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, derniere_modification_par, monGN, verbal=False):
     print(f"Lecture de {nomDoc}")
     if len(textePJ) < 800:
         print(f"fiche {nomDoc} avec {len(textePJ)} caractères est vide")
@@ -561,6 +581,7 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, monGN, verbal=False)
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
     currentPJ = Personnage(nom=nomPJ, url=idUrl, derniere_edition_fichier=lastFileEdit)
+    currentPJ.modifie_par = derniere_modification_par
     monGN.dictPJs[idUrl] = currentPJ
 
     textePJLow = textePJ.lower()  # on passe en minuscule pour mieux trouver les chaines
@@ -886,3 +907,180 @@ def creer_dossier(service_drive, id_dossier_parent, nom_dossier):
     except HttpError as error:
         print(F'An error occurred: {error}')
         return None
+
+
+def creer_google_sheet(api_drive, nom_sheet: str, parent_folder_id: str):
+    # Create a new document
+    body = {
+        'name': nom_sheet,
+        'parents': [parent_folder_id],
+        'mimeType': 'application/vnd.google-apps.spreadsheet'
+    }
+    new_doc = api_drive.files().create(body=body).execute()
+    return new_doc.get("id")
+
+
+from googleapiclient.discovery import build
+
+
+# def ecrire_sheet_changelog(api_sheet, id_sheet, tableau_scene_orgas, set_orgas):  # todo : jamais utilisée
+#     # Requête pour ajouter une nouvelle feuille de calcul "tous"
+#     request = {
+#         'requests': [{
+#             'addSheet': {
+#                 'properties': {
+#                     'title': 'tous'
+#                 }
+#             }
+#         }]
+#     }
+#
+#     # Ajouter une feuille par élément du set
+#     for org in set_orgas:
+#         request['requests'].append({
+#             'addSheet': {
+#                 'properties': {
+#                     'title': org
+#                 }
+#             }
+#         })
+#
+#     # Exécuter la requête
+#     response = api_sheet.spreadsheets().batchUpdate(spreadsheetId=id_sheet, body=request).execute()
+#
+#     print(f"set orgas = {set_orgas}")
+#     # Récupérer les propriétés des feuilles de calcul créées
+#     worksheets_created = []
+#     for reply in response['replies']:
+#         worksheets_created.append(reply['addSheet']['properties']['title'])
+#
+#     # Afficher la réponse
+#     print(response)
+
+#
+#
+#
+#
+# new_doc_link = f'"https://drive.google.com/drive/folders/{id_sheet}"'
+#
+#
+# # Add a worksheet to the new document
+# worksheet = client.open_by_url(new_doc_link).add_worksheet(title="<NEW_WORKSHEET_NAME>", rows=1, cols=len(set_orga)+4)
+#
+# # Write the headers
+# worksheet.append_row(["nom_scene", "date", "qui", "document"] + list(set_orga))
+#
+# # Write the values
+# values = [nom_scene, date, qui, document]
+# for org in set_orga:
+#     if org in dict_orga:
+#         values.append(dict_orga[org])
+#     else:
+#         values.append("")
+# worksheet.append_row(values)
+
+
+# tableau_scene_orgas, id, dict_orgas_persos, api_sheets
+def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, service):
+    # create the "tous" worksheet
+    tous_worksheet = service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={
+        "requests": [
+            {
+                "addSheet": {
+                    "properties": {
+                        "title": "tous"
+                    }
+                }
+            }
+        ]
+    }).execute()
+    tous_worksheet_id = tous_worksheet['replies'][0]['addSheet']['properties']['sheetId']
+
+    # create a worksheet for each value in dict_orgas_persos
+    for orga in dict_orgas_persos:
+        service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={
+            "requests": [
+                {
+                    "addSheet": {
+                        "properties": {
+                            "title": orga
+                        }
+                    }
+                }
+            ]
+        }).execute()
+
+    # write data to the "tous" worksheet
+    values = [["nom_scene", "date", "qui", "document"] + list(dict_orgas_persos.keys())]
+    print(f"en-tetes = {values}")
+
+    for scene_orgas in tableau_scenes_orgas:
+        dict_scene, dict_orgas = scene_orgas
+        row = [dict_scene["nom_scene"], dict_scene["date"], dict_scene["qui"], dict_scene["document"]]
+
+        for orga in dict_orgas_persos:
+            if orga in dict_orgas:
+                nom_persos = ", ".join([perso for perso in dict_orgas[orga]])
+                row.append(nom_persos)
+            else:
+                row.append("")
+        values.append(row)
+
+    body = {
+        'range': 'tous!A1',
+        'values': values,
+        'majorDimension': 'ROWS'
+    }
+    result = service.spreadsheets().values().update(
+        spreadsheetId=spreadsheet_id, range='tous!A1',
+        valueInputOption='RAW', body=body).execute()
+
+    # write data to the worksheets for each value in dict_orgas_persos
+    for orga in dict_orgas_persos:
+        print(f"fiche orga en cours de création = {orga}")
+
+        # persos = []
+        # for orga_set in dict_orgas_persos.values():
+        #     persos.extend(orga_set)
+        persos = [p for p in dict_orgas_persos[orga]]
+        values = [["nom_scene", "date", "qui", "document"] + persos]
+        print(f"en-tetes = {values}")
+        for scene_orgas in tableau_scenes_orgas:
+            dict_scene, dict_orgas = scene_orgas
+            row = [dict_scene["nom_scene"], dict_scene["date"], dict_scene["qui"], dict_scene["document"]]
+
+            for perso in dict_orgas_persos[orga]:
+                if orga not in dict_orgas or perso not in dict_orgas[
+                    orga]:  # todo : pour acclerer le code or ga pas dans orga, passer à la ligne suivante
+                    row.append("")
+                else:
+                    row.append("x")
+            values.append(row)
+        body = {
+            'range': f'{orga}!A1',
+            'values': values,
+            'majorDimension': 'ROWS'
+        }
+        result = service.spreadsheets().values().update(
+            spreadsheetId=spreadsheet_id, range=f'{orga}!A1',
+            valueInputOption='RAW', body=body).execute()
+
+def ecrire_dataframe_google_sheets(service, table, spreadsheet_id):
+# def ecrire_dataframe_google_sheets(service, df, spreadsheet_id):
+    try:
+        body = {
+            'range': 'A1',
+            'values': table,
+            # 'values': [df.columns.values.tolist()],
+            'majorDimension': 'ROWS'
+        }
+        # print(f"service = {service}")
+
+        result = service.spreadsheets().values().update(
+            spreadsheetId=spreadsheet_id, range='A1',
+            valueInputOption='RAW', body=body).execute()
+
+    except HttpError as error:
+        print(f'An error occurred: {error}')
+        result = None
+    return result

@@ -47,6 +47,7 @@ class ConteneurDeScene:
         self.rolesContenus = {}  # nom, rôle
         self.errorLog = ""
         self.lastFileEdit = derniere_edition_fichier
+        self.modifie_par = ""
         self.url = url
 
     def getErrorLog(self):
@@ -105,6 +106,7 @@ class ConteneurDeScene:
                         print(f"et la même description !")
                         print(f"dernières mises à jour : ma_scene : {ma_scene.derniere_mise_a_jour} / sa_scène : {sa_scene.derniere_mise_a_jour}")
                         ma_scene.derniere_mise_a_jour = sa_scene.derniere_mise_a_jour
+                        ma_scene.modifie_par = sa_scene.modifie_par
                         print(f"et, après update : ma_scene : {ma_scene.derniere_mise_a_jour} / sa_scène : {sa_scene.derniere_mise_a_jour}")
                     else:
                         print("mais pas la même description !")
@@ -326,6 +328,7 @@ class Scene:
         # faut-il dire que role et personnages héritent l'un de l'autre? Ou bien d'un objet "protagoniste"?
         self.noms_roles_lus = None
         self.derniere_mise_a_jour = datetime.datetime.now()
+        self.modifie_par = ""
 
     def get_date(self):
         return self.date

@@ -17,12 +17,13 @@ from fuzzywuzzy import process
 
 # If modifying these scopes, delete the file token.json.
 # SCOPES = ['https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/documents.readonly https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/documents']
-SCOPES = ['https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/documents']
+SCOPES = [
+    'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/documents https://www.googleapis.com/auth/spreadsheets']
 
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre des tokens dans la déclaration
 
 
-# crée deux lecteurs, apiDrive et ApiDoc, pour pouvoir lire plus facilement les fichiers par la suite
+# crée deux lecteurs, service et ApiDoc, pour pouvoir lire plus facilement les fichiers par la suite
 def creer_lecteurs_google_apis():
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -43,13 +44,18 @@ def creer_lecteurs_google_apis():
             token.write(creds.to_json())
 
     try:
-        apiDrive = build('drive', 'v3', credentials=creds, static_discovery=False)
-        lecteurDoc = build('docs', 'v1', credentials=creds, static_discovery=False) #todo : à tester
+        # apiDrive = build('drive', 'v3', credentials=creds, static_discovery=False)
+        # lecteurDoc = build('docs', 'v1', credentials=creds, static_discovery=False)
+        # lecteur_sheets = build('sheets', 'v4', credentials=creds, static_discovery=False)
+
+        apiDrive = build('drive', 'v3', credentials=creds)
+        lecteurDoc = build('docs', 'v1', credentials=creds)
+        lecteur_sheets = build('sheets', 'v4', credentials=creds)
 
     except HttpError as error:
         print(f'An error occurred: {error}')
 
-    return apiDrive, lecteurDoc
+    return apiDrive, lecteurDoc, lecteur_sheets
 
 
 def read_paragraph_element(element):
@@ -146,12 +152,12 @@ def genererListeItems(monGN, apiDrive, folderID):
 
     try:
         # Call the Drive v3 API
-        # results = apiDrive.files().list(
+        # results = service.files().list(
         #     pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
         #     fields="nextPageToken, files(id, name, modifiedTime)").execute()
         results = apiDrive.files().list(
             pageSize=100, q=requete,
-            fields="nextPageToken, files(id, name, modifiedTime)").execute()
+            fields="nextPageToken, files(id, name, modifiedTime, lastModifyingUser)").execute()  # todo last modifsying
 
         items = results.get('files',
                             [])  # le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues
@@ -160,3 +166,5 @@ def genererListeItems(monGN, apiDrive, folderID):
     except HttpError as err:
         print(f'An error occurred: {err}')
         return None
+
+
