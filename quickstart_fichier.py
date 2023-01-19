@@ -40,7 +40,7 @@ def main():
     try:
         service = build('docs', 'v1', credentials=creds)
 
-        # Retrieve the documents contents from the Docs service.
+        # Retrieve the documents contents from the Docs api_doc.
         document = service.documents().get(documentId=DOCUMENT_ID).execute()
 
         print('The title of the document is: {}'.format(document.get('title')))

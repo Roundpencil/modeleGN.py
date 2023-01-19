@@ -1,17 +1,12 @@
 import argparse
 import configparser
 import csv
-import pandas as pd
-
-from fuzzywuzzy import process, fuzz
-
-import extraireTexteDeGoogleDoc
-import modeleGN
-from modeleGN import *
-import lecteurGoogle
 import sys
 
-from googleapiclient.errors import HttpError
+import extraireTexteDeGoogleDoc
+import lecteurGoogle
+import modeleGN
+from modeleGN import *
 
 
 def main():
@@ -28,6 +23,8 @@ def main():
     group2.add_argument("-perso", type=str, default="-01", help="si un seul perso doit être lu")
     group2.add_argument("-allpjs", action="store_true", help="si on veut reparcourir tous les pjs")
 
+    parser.add_argument("-nofichiererreurs", action="store_true", help="pour ne pas générer la table des intrigues")
+    parser.add_argument("-notableintrigues", action="store_true", help="pour ne pas générer la table des intrigues")
     parser.add_argument("-noexportdrive", action="store_true", help="pour ne pas provoquer l'export drive")
     parser.add_argument("-nochangelog", action="store_true", help="pour ne pas provoquer la création des changelogs")
     parser.add_argument("-init", action="store_true", help="fait que la fonction gn.load n'est pas appelée")
@@ -90,8 +87,8 @@ def main():
 
     monGN.effacer_personnages_forces()
 
-    # extraireTexteDeGoogleDoc.extraireIntrigues(monGN, service=service, service=service, singletest="-01")
-    # extraireTexteDeGoogleDoc.extrairePJs(monGN, service=service, service=service, singletest="-01")
+    # extraireTexteDeGoogleDoc.extraireIntrigues(monGN, api_doc=api_doc, api_doc=api_doc, singletest="-01")
+    # extraireTexteDeGoogleDoc.extrairePJs(monGN, api_doc=api_doc, api_doc=api_doc, singletest="-01")
 
     extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.intrigue,
                                                fast=(not args.allintrigues))
@@ -129,7 +126,9 @@ def main():
     print("****************************")
     prefixeFichiers = str(datetime.date.today())
     print("*********toutesleserreurs*******************")
-    lister_erreurs(monGN, prefixeFichiers)
+    if not args.nofichiererreurs:
+        texte_erreurs = lister_erreurs(monGN, prefixeFichiers)
+        ecrire_erreurs_dans_drive(texte_erreurs, apiDoc, apiDrive, dossier_output_squelettes_pjs)
 
     print("*********touslesquelettes*******************")
     if not args.noexportdrive:
@@ -146,7 +145,8 @@ def main():
         genererChangeLog(monGN, prefixeFichiers, nbJours=4)
 
     print("******* statut intrigues *********************")
-    creer_table_intrigues_sur_drive(monGN, apiSheets, apiDrive, dossier_output_squelettes_pjs)
+    if not args.notableintrigues:
+        creer_table_intrigues_sur_drive(monGN, apiSheets, apiDrive, dossier_output_squelettes_pjs)
 
     # ajouter_champs_modifie_par(monGN, nom_fichier_sauvegarde)
     # trierScenes(monGN)
@@ -706,7 +706,7 @@ def lister_erreurs(monGN, prefixe, tailleMinLog=1, verbal=False):
     logErreur = ""
     for intrigue in monGN.intrigues.values():
         if len(intrigue.errorLog) > tailleMinLog:
-            logErreur += f"pour {intrigue.nom} : \n"
+            logErreur += f"Pour {intrigue.nom} : \n"
             logErreur += intrigue.errorLog + '\n'
             logErreur += suggerer_tableau_persos(monGN, intrigue)
             logErreur += "\n \n"
@@ -715,6 +715,7 @@ def lister_erreurs(monGN, prefixe, tailleMinLog=1, verbal=False):
     with open(prefixe + ' - problemes tableaux persos.txt', 'w', encoding="utf-8") as f:
         f.write(logErreur)
         f.close()
+    return logErreur
 
 
 def genererTableauIntrigues(monGN):
@@ -800,59 +801,6 @@ def charger_PNJs(gn, chemin_fichier):
                 # print(f"{gn.dictPNJs[nom]}")
     except FileNotFoundError:
         print(f"Le fichier {chemin_fichier} n'a pas été trouvé.")
-
-
-def generer_csv_association(roles_dict, filename):
-    # Ouvrir un fichier CSV en mode écriture
-    with open(filename, 'w', newline='') as csvfile:
-        # Créer un objet CSV writer
-        writer = csv.writer(csvfile, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        # Écrire les en-têtes de colonnes
-        writer.writerow(['nom', 'description', 'pipr', 'pipi', 'sexe', 'personnage'])
-        # Pour chaque rôle dans le dictionnaire de rôles
-        for role in roles_dict.values():
-            # Récupérer les valeurs de chaque champ
-            nom = role.nom
-            description = role.description
-            pipr = role.pipr
-            pipi = role.pipi
-            sexe = role.sexe
-            personnage = role.perso if role.perso else ""
-            # Écrire les valeurs dans le fichier CSV
-            writer.writerow([nom, description, pipr, pipi, sexe, personnage])
-    print("Fichier CSV généré avec succès: {}".format(filename))
-
-
-def lire_association_roles_depuis_csv(roles_list, filename):
-    try:
-        # Ouvrir le fichier CSV en mode lecture
-        with open(filename, 'r', newline='') as csvfile:
-            # Créer un objet CSV reader
-            reader = csv.reader(csvfile, delimiter=';', quotechar='"')
-            # Vérifier les en-têtes de colonnes
-            headers = next(reader)
-            if headers != ['nom', 'description', 'pipr', 'pipi', 'sexe', 'personnage']:
-                raise ValueError("Le fichier CSV ne contient pas les bonnes entêtes de colonnes")
-            # Pour chaque ligne du fichier CSV
-            for row in reader:
-                nom = row[0]
-                personnage = row[5]
-
-                # et mettre à jour les paramètres du GN en fcontion de ceux du programme > ca se joue à quel niveau?
-                # qu'est-ce qui est propriété de quoi? peut-on changer d'association en cours de vie de gn?
-
-                # Trouver le rôle correspondant dans la liste de rôles
-                role = next((role for role in roles_list if role.nom == nom), None)
-                if role:
-                    # Mettre à jour le champ perso de ce rôle
-                    role.perso = personnage
-            print("Les informations de personnages ont été mises à jour.")
-    except FileNotFoundError:
-        print(f"Le fichier {filename} n'existe pas.")
-    except ValueError as e:
-        print(e)
-    except Exception as e:
-        print(f"Une erreur est survenue lors de la lecture du fichier: {e}")
 
 
 # à voir ce qu'on fait de cette fonction
@@ -962,7 +910,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, dossi
 
 def creer_table_intrigues_sur_drive(mon_gn:GN, api_sheets, api_drive, dossier_export):
     table_intrigues = [
-        ["nom intrigue", "nombre de scenes", "dernière édition", "modifié par", "Orga referent", "statut", "url"]]
+        ["nom intrigue", "nombre de scenes", "dernière édition", "modifié par", "Orga referent", "statut", "Problèmes", "url"]]
     for intrigue in mon_gn.intrigues.values():
         table_intrigues.append([intrigue.nom,
                                 len(intrigue.scenes),
@@ -970,14 +918,20 @@ def creer_table_intrigues_sur_drive(mon_gn:GN, api_sheets, api_drive, dossier_ex
                                 intrigue.modifie_par,
                                 intrigue.orgaReferent,
                                 intrigue.questions_ouvertes,
+                                len(intrigue.errorLog.splitlines()),
                                 intrigue.getFullUrl()])
-
-    # Create a DataFrame from the table_intrigues data
-    df = pd.DataFrame(table_intrigues[1:], columns=table_intrigues[0])
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Etat des intrigues'
     id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_export)
-    # extraireTexteDeGoogleDoc.exporter_table_intrigue(service, nom_fichier, dossier_export, df)
-    # extraireTexteDeGoogleDoc.ecrire_dataframe_google_sheets(api_sheets, df, id)
-    extraireTexteDeGoogleDoc.ecrire_dataframe_google_sheets(api_sheets, table_intrigues, id)
+    # extraireTexteDeGoogleDoc.exporter_table_intrigue(api_doc, nom_fichier, dossier_export, df)
+    # extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, df, id)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_intrigues, id)
+
+def ecrire_erreurs_dans_drive(texte_erreurs, apiDoc, apiDrive, parent):
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- Listes des erreurs dans les tableaux des persos'
+    id = extraireTexteDeGoogleDoc.add_doc(apiDrive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.write_to_doc(apiDoc, id, texte_erreurs)
+    extraireTexteDeGoogleDoc.formatter_fichier_erreurs(apiDoc, id)
+
 main()

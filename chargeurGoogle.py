@@ -56,7 +56,7 @@ def main():
                 lecteurDoc = build('docs', 'v1', credentials=creds)
 
                 # print ("ping")
-                # Retrieve the documents contents from the Docs service.
+                # Retrieve the documents contents from the Docs api_doc.
                 document = lecteurDoc.documents().get(documentId=item['id']).execute()
                 # print ("pong")
 

@@ -3,7 +3,7 @@
 # This content may violate our content policy. If you believe this to be in error, please submit your feedback — your input will aid our research in this area.
 
 # Bien sûr! Pour lire les valeurs d'un document Google Sheets, vous pouvez utiliser l'API Google Sheets. Vous devrez d'abord installer l'API et créer des identifiants de développeur pour obtenir une clé d'accès.
-# Une fois que vous avez accès à l'API, vous pouvez utiliser des méthodes pour lire les données d'une feuille de calcul spécifique. Par exemple, pour lire toutes les valeurs d'une feuille de calcul, vous pouvez utiliser la méthode get de la classe service.spreadsheets() de l'API, en spécifiant l'ID de la feuille de calcul et la plage de cellules à lire.
+# Une fois que vous avez accès à l'API, vous pouvez utiliser des méthodes pour lire les données d'une feuille de calcul spécifique. Par exemple, pour lire toutes les valeurs d'une feuille de calcul, vous pouvez utiliser la méthode get de la classe api_doc.spreadsheets() de l'API, en spécifiant l'ID de la feuille de calcul et la plage de cellules à lire.
 
 # Voici un exemple de fonction "update_roles_from_drive" qui lira les valeurs d'un document Google Sheets pour mettre à jour les rôles d'une intrigue:
 
@@ -15,7 +15,7 @@ def update_roles_from_drive(intrigue, spreadsheet_id, credentials_path):
     # Charger les identifiants d'accès à l'API depuis le fichier json
     credentials = Credentials.from_authorized_user_info(info=json.load(open(credentials_path)))
 
-    # Construire le service Sheets
+    # Construire le api_doc Sheets
     sheets_service = build('sheets', 'v4', credentials=credentials)
 
     # Lire les valeurs de la feuille de calcul
@@ -112,7 +112,7 @@ def generate_drive_association(spreadsheet_id, sheet_name, gn: GN):
         # On récupère les secrets pour l'accès à l'API google
         secrets = openai_secret_manager.get_secret("google")
 
-        # On utilise les secrets pour construire un service Sheets
+        # On utilise les secrets pour construire un api_doc Sheets
         sheets_service = build('sheets', 'v4', credentials=secrets)
 
         # On utilise l'ID du document et le nom de la feuille pour accéder aux données
@@ -135,3 +135,56 @@ def generate_drive_association(spreadsheet_id, sheet_name, gn: GN):
         print(f"An error occurred: {error}")
 
 # Ce code utilise l'ID du document et le nom de la feuille pour accéder aux données du document et parcourt les lignes pour générer des associations en utilisant la fonction gn.associer_role_a_perso . N'oubliez pas d'ajouter les bibliothèques google-api-python-client et google-auth-httplib2 pour utiliser ces fonctions
+
+
+def generer_csv_association(roles_dict, filename):
+    # Ouvrir un fichier CSV en mode écriture
+    with open(filename, 'w', newline='') as csvfile:
+        # Créer un objet CSV writer
+        writer = csv.writer(csvfile, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        # Écrire les en-têtes de colonnes
+        writer.writerow(['nom', 'description', 'pipr', 'pipi', 'sexe', 'personnage'])
+        # Pour chaque rôle dans le dictionnaire de rôles
+        for role in roles_dict.values():
+            # Récupérer les valeurs de chaque champ
+            nom = role.nom
+            description = role.description
+            pipr = role.pipr
+            pipi = role.pipi
+            sexe = role.sexe
+            personnage = role.perso if role.perso else ""
+            # Écrire les valeurs dans le fichier CSV
+            writer.writerow([nom, description, pipr, pipi, sexe, personnage])
+    print("Fichier CSV généré avec succès: {}".format(filename))
+
+
+def lire_association_roles_depuis_csv(roles_list, filename):
+    try:
+        # Ouvrir le fichier CSV en mode lecture
+        with open(filename, 'r', newline='') as csvfile:
+            # Créer un objet CSV reader
+            reader = csv.reader(csvfile, delimiter=';', quotechar='"')
+            # Vérifier les en-têtes de colonnes
+            headers = next(reader)
+            if headers != ['nom', 'description', 'pipr', 'pipi', 'sexe', 'personnage']:
+                raise ValueError("Le fichier CSV ne contient pas les bonnes entêtes de colonnes")
+            # Pour chaque ligne du fichier CSV
+            for row in reader:
+                nom = row[0]
+                personnage = row[5]
+
+                # et mettre à jour les paramètres du GN en fcontion de ceux du programme > ca se joue à quel niveau?
+                # qu'est-ce qui est propriété de quoi? peut-on changer d'association en cours de vie de gn?
+
+                # Trouver le rôle correspondant dans la liste de rôles
+                role = next((role for role in roles_list if role.nom == nom), None)
+                if role:
+                    # Mettre à jour le champ perso de ce rôle
+                    role.perso = personnage
+            print("Les informations de personnages ont été mises à jour.")
+    except FileNotFoundError:
+        print(f"Le fichier {filename} n'existe pas.")
+    except ValueError as e:
+        print(e)
+    except Exception as e:
+        print(f"Une erreur est survenue lors de la lecture du fichier: {e}")

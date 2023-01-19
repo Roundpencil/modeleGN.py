@@ -1,29 +1,14 @@
 from __future__ import print_function
 
-import csv
-import datetime
-import os.path
 import re
-import io
 
 import fuzzywuzzy.process
-from googleapiclient.http import MediaIoBaseUpload
-
-import modeleGN
-from modeleGN import *
-import lecteurGoogle
-
-import pandas as pd
-import gspread
-import df2gspread as d2g
-
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
+from fuzzywuzzy import process
 from googleapiclient.errors import HttpError
 
-from fuzzywuzzy import process
+import lecteurGoogle
+import modeleGN
+from modeleGN import *
 
 
 def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
@@ -51,7 +36,7 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                 # print ("poung")
 
                 # print ("ping")
-                # Retrieve the documents contents from the Docs service.
+                # Retrieve the documents contents from the Docs api_doc.
                 document = apiDoc.documents().get(documentId=item['id']).execute()
 
                 print('Titre document : {}'.format(document.get('title')))
@@ -91,7 +76,7 @@ def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictID
                 # print ("poung")
 
                 # print ("ping")
-                # Retrieve the documents contents from the Docs service.
+                # Retrieve the documents contents from the Docs api_doc.
                 document = apiDoc.documents().get(documentId=item['id']).execute()
 
                 print('Titre document : {}'.format(document.get('title')))
@@ -787,7 +772,7 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=False):
 def inserer_squelettes_dans_drive(parent_id: str, api_doc, api_drive, text: str, nom_fichier, titre=False):
     id = add_doc(api_drive, nom_fichier, parent_id)
     write_to_doc(api_doc, id, text, titre=titre)
-    format_titles(api_doc, id)
+    formatter_titres_scenes_dans_squelettes(api_doc, id)
 
 
 def check_if_doc_exists(service, file_id):
@@ -856,7 +841,7 @@ def write_to_doc(service, file_id, text, titre=False):
         return None
 
 
-def format_titles(service, file_id):
+def formatter_titres_scenes_dans_squelettes(service, file_id):
     try:
         # get the document
         doc = service.documents().get(documentId=file_id).execute()
@@ -918,66 +903,6 @@ def creer_google_sheet(api_drive, nom_sheet: str, parent_folder_id: str):
     }
     new_doc = api_drive.files().create(body=body).execute()
     return new_doc.get("id")
-
-
-from googleapiclient.discovery import build
-
-
-# def ecrire_sheet_changelog(api_sheet, id_sheet, tableau_scene_orgas, set_orgas):  # todo : jamais utilisée
-#     # Requête pour ajouter une nouvelle feuille de calcul "tous"
-#     request = {
-#         'requests': [{
-#             'addSheet': {
-#                 'properties': {
-#                     'title': 'tous'
-#                 }
-#             }
-#         }]
-#     }
-#
-#     # Ajouter une feuille par élément du set
-#     for org in set_orgas:
-#         request['requests'].append({
-#             'addSheet': {
-#                 'properties': {
-#                     'title': org
-#                 }
-#             }
-#         })
-#
-#     # Exécuter la requête
-#     response = api_sheet.spreadsheets().batchUpdate(spreadsheetId=id_sheet, body=request).execute()
-#
-#     print(f"set orgas = {set_orgas}")
-#     # Récupérer les propriétés des feuilles de calcul créées
-#     worksheets_created = []
-#     for reply in response['replies']:
-#         worksheets_created.append(reply['addSheet']['properties']['title'])
-#
-#     # Afficher la réponse
-#     print(response)
-
-#
-#
-#
-#
-# new_doc_link = f'"https://drive.google.com/drive/folders/{id_sheet}"'
-#
-#
-# # Add a worksheet to the new document
-# worksheet = client.open_by_url(new_doc_link).add_worksheet(title="<NEW_WORKSHEET_NAME>", rows=1, cols=len(set_orga)+4)
-#
-# # Write the headers
-# worksheet.append_row(["nom_scene", "date", "qui", "document"] + list(set_orga))
-#
-# # Write the values
-# values = [nom_scene, date, qui, document]
-# for org in set_orga:
-#     if org in dict_orga:
-#         values.append(dict_orga[org])
-#     else:
-#         values.append("")
-# worksheet.append_row(values)
 
 
 # tableau_scene_orgas, id, dict_orgas_persos, api_sheets
@@ -1050,8 +975,7 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
             row = [dict_scene["nom_scene"], dict_scene["date"], dict_scene["qui"], dict_scene["document"]]
 
             for perso in dict_orgas_persos[orga]:
-                if orga not in dict_orgas or perso not in dict_orgas[
-                    orga]:  # todo : pour acclerer le code or ga pas dans orga, passer à la ligne suivante
+                if orga not in dict_orgas or perso not in dict_orgas[orga]:
                     row.append("")
                 else:
                     row.append("x")
@@ -1065,16 +989,16 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
             spreadsheetId=spreadsheet_id, range=f'{orga}!A1',
             valueInputOption='RAW', body=body).execute()
 
-def ecrire_dataframe_google_sheets(service, table, spreadsheet_id):
-# def ecrire_dataframe_google_sheets(service, df, spreadsheet_id):
+
+def ecrire_table_google_sheets(service, table, spreadsheet_id):
+    # def ecrire_table_google_sheets(api_doc, df, spreadsheet_id):
     try:
         body = {
             'range': 'A1',
             'values': table,
-            # 'values': [df.columns.values.tolist()],
             'majorDimension': 'ROWS'
         }
-        # print(f"service = {service}")
+        # print(f"api_doc = {api_doc}")
 
         result = service.spreadsheets().values().update(
             spreadsheetId=spreadsheet_id, range='A1',
@@ -1084,3 +1008,153 @@ def ecrire_dataframe_google_sheets(service, table, spreadsheet_id):
         print(f'An error occurred: {error}')
         result = None
     return result
+
+
+def formatter_fichier_erreurs(api_doc, doc_id):
+    # Récupère le contenu complet du document
+    doc = api_doc.documents().get(documentId=doc_id).execute()
+    requests = []
+
+    # Parcours toutes les lignes du document pour trouver les lignes qui commencent par "Pour"
+    for line in doc.get('body').get('content'):
+        if 'paragraph' in line:
+            # Récupère le contenu de la ligne
+            text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
+            if text.startswith("Pour "):
+                # Si la ligne commence par "Pour ", on ajoute une requête pour mettre le texte en gras
+                requests.append({
+                    'updateTextStyle': {
+                        'range': {
+                            'startIndex': line.get('startIndex'),
+                            'endIndex': line.get('endIndex')
+                        },
+                        'textStyle': {
+                            'bold': True,
+                            'fontSize': {
+                                'magnitude': 12,
+                                'unit': 'PT'
+                            }
+                        },
+                        'fields': 'bold, fontSize'
+                    }
+                })
+
+    # Parcours toutes les lignes du document pour trouver les lignes avec Erreur
+    for line in doc.get('body').get('content'):
+        if 'paragraph' in line:
+            # Récupère le contenu de la ligne
+            text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
+            if text.startswith("Erreur"):
+                # Si la ligne commence par "Erreur", on ajoute une requête pour mettre le texte en rouge
+                requests.append({
+                    'updateTextStyle': {
+                        'range': {
+                            'startIndex': line.get('startIndex'),
+                            'endIndex': line.get('endIndex')
+                        },
+                        'textStyle': {
+                            'foregroundColor': {
+                                'color': {
+                                    'rgbColor': {
+                                        'blue': 0.0,
+                                        'green': 0.0,
+                                        'red': 1.0
+                                    }
+                                }
+                            }
+                        },
+                        'fields': 'foregroundColor'
+                    }
+                })
+
+
+    # Parcours toutes les lignes du document pour trouver les lignes avec Warning
+    for line in doc.get('body').get('content'):
+        if 'paragraph' in line:
+            # Récupère le contenu de la ligne
+            text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
+            if text.startswith("Warning"):
+                # Si la ligne commence par "Warning", on ajoute une requête pour mettre le texte en orange
+                requests.append({
+                    'updateTextStyle': {
+                        'range': {
+                            'startIndex': line.get('startIndex'),
+                            'endIndex': line.get('endIndex')
+                        },
+                        'textStyle': {
+                            'foregroundColor': {
+                                'color': {
+                                    'rgbColor': {
+                                        'blue': 0.0,
+                                        'green': 0.5,
+                                        'red': 1.0
+                                    }
+                                }
+                            }
+                        },
+                        'fields': 'foregroundColor'
+                    }
+                })
+
+    # Parcours toutes les lignes du document pour trouver les lignes avec [XX]
+    for line in doc.get('body').get('content'):
+        if 'paragraph' in line:
+            # Récupère le contenu de la ligne
+            text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
+            if text.startswith("[XX]"):
+                # Si la ligne commence par "[XX]", on ajoute une requête pour mettre le texte en vert
+                requests.append({
+                    'updateTextStyle': {
+                        'range': {
+                            'startIndex': line.get('startIndex'),
+                            'endIndex': line.get('endIndex')
+                        },
+                        'textStyle': {
+                            'foregroundColor': {
+                                'color': {
+                                    'rgbColor': {
+                                        'blue': 0.0,
+                                        'green': 0.5,
+                                        'red': 1.0
+                                    }
+                                }
+                            }
+                        },
+                        'fields': 'foregroundColor'
+                    }
+                })
+
+    # Parcours toutes les lignes du document pour trouver les lignes avec [OK]
+    for line in doc.get('body').get('content'):
+        if 'paragraph' in line:
+            # Récupère le contenu de la ligne
+            text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
+            if text.startswith("[OK]"):
+                # Si la ligne commence par "[OK]", on ajoute une requête pour mettre le texte en vert
+                requests.append({
+                    'updateTextStyle': {
+                        'range': {
+                            'startIndex': line.get('startIndex'),
+                            'endIndex': line.get('endIndex')
+                        },
+                        'textStyle': {
+                            'foregroundColor': {
+                                'color': {
+                                    'rgbColor': {
+                                        'blue': 0.035,
+                                        'green': 0.224,
+                                        'red': 0.027
+                                    }
+                                }
+                            }
+                        },
+                        'fields': 'foregroundColor'
+                    }
+                })
+
+    # Envoie toutes les requêtes en une seule fois pour mettre à jour le document
+    result = api_doc.documents().batchUpdate(documentId=doc_id, body={'requests': requests}).execute()
+    return result
+
+
+

@@ -23,7 +23,7 @@ SCOPES = [
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre des tokens dans la déclaration
 
 
-# crée deux lecteurs, service et ApiDoc, pour pouvoir lire plus facilement les fichiers par la suite
+# crée deux lecteurs, api_doc et ApiDoc, pour pouvoir lire plus facilement les fichiers par la suite
 def creer_lecteurs_google_apis():
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -152,7 +152,7 @@ def genererListeItems(monGN, apiDrive, folderID):
 
     try:
         # Call the Drive v3 API
-        # results = service.files().list(
+        # results = api_doc.files().list(
         #     pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
         #     fields="nextPageToken, files(id, name, modifiedTime)").execute()
         results = apiDrive.files().list(
