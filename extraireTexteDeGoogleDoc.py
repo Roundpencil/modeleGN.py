@@ -1015,6 +1015,143 @@ def formatter_fichier_erreurs(api_doc, doc_id):
     doc = api_doc.documents().get(documentId=doc_id).execute()
     requests = []
 
+    # # Parcours toutes les lignes du document pour trouver les lignes qui commencent par "Pour"
+    # for line in doc.get('body').get('content'):
+    #     if 'paragraph' in line:
+    #         # Récupère le contenu de la ligne
+    #         text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
+    #         if text.startswith("Pour "):
+    #             # Si la ligne commence par "Pour ", on ajoute une requête pour mettre le texte en gras
+    #             requests.append({
+    #                 'updateTextStyle': {
+    #                     'range': {
+    #                         'startIndex': line.get('startIndex'),
+    #                         'endIndex': line.get('endIndex')
+    #                     },
+    #                     'textStyle': {
+    #                         'bold': True,
+    #                         'fontSize': {
+    #                             'magnitude': 12,
+    #                             'unit': 'PT'
+    #                         }
+    #                     },
+    #                     'fields': 'bold, fontSize'
+    #                 }
+    #             })
+    #
+    # # Parcours toutes les lignes du document pour trouver les lignes avec Erreur
+    # for line in doc.get('body').get('content'):
+    #     if 'paragraph' in line:
+    #         # Récupère le contenu de la ligne
+    #         text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
+    #         if text.startswith("Erreur"):
+    #             # Si la ligne commence par "Erreur", on ajoute une requête pour mettre le texte en rouge
+    #             requests.append({
+    #                 'updateTextStyle': {
+    #                     'range': {
+    #                         'startIndex': line.get('startIndex'),
+    #                         'endIndex': line.get('endIndex')
+    #                     },
+    #                     'textStyle': {
+    #                         'foregroundColor': {
+    #                             'color': {
+    #                                 'rgbColor': {
+    #                                     'blue': 0.0,
+    #                                     'green': 0.0,
+    #                                     'red': 1.0
+    #                                 }
+    #                             }
+    #                         }
+    #                     },
+    #                     'fields': 'foregroundColor'
+    #                 }
+    #             })
+    #
+    #
+    # # Parcours toutes les lignes du document pour trouver les lignes avec Warning
+    # for line in doc.get('body').get('content'):
+    #     if 'paragraph' in line:
+    #         # Récupère le contenu de la ligne
+    #         text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
+    #         if text.startswith("Warning"):
+    #             # Si la ligne commence par "Warning", on ajoute une requête pour mettre le texte en orange
+    #             requests.append({
+    #                 'updateTextStyle': {
+    #                     'range': {
+    #                         'startIndex': line.get('startIndex'),
+    #                         'endIndex': line.get('endIndex')
+    #                     },
+    #                     'textStyle': {
+    #                         'foregroundColor': {
+    #                             'color': {
+    #                                 'rgbColor': {
+    #                                     'blue': 0.0,
+    #                                     'green': 0.5,
+    #                                     'red': 1.0
+    #                                 }
+    #                             }
+    #                         }
+    #                     },
+    #                     'fields': 'foregroundColor'
+    #                 }
+    #             })
+    #
+    # # Parcours toutes les lignes du document pour trouver les lignes avec [XX]
+    # for line in doc.get('body').get('content'):
+    #     if 'paragraph' in line:
+    #         # Récupère le contenu de la ligne
+    #         text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
+    #         if text.startswith("[XX]"):
+    #             # Si la ligne commence par "[XX]", on ajoute une requête pour mettre le texte en vert
+    #             requests.append({
+    #                 'updateTextStyle': {
+    #                     'range': {
+    #                         'startIndex': line.get('startIndex'),
+    #                         'endIndex': line.get('endIndex')
+    #                     },
+    #                     'textStyle': {
+    #                         'foregroundColor': {
+    #                             'color': {
+    #                                 'rgbColor': {
+    #                                     'blue': 0.0,
+    #                                     'green': 0.5,
+    #                                     'red': 1.0
+    #                                 }
+    #                             }
+    #                         }
+    #                     },
+    #                     'fields': 'foregroundColor'
+    #                 }
+    #             })
+    #
+    # # Parcours toutes les lignes du document pour trouver les lignes avec [OK]
+    # for line in doc.get('body').get('content'):
+    #     if 'paragraph' in line:
+    #         # Récupère le contenu de la ligne
+    #         text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
+    #         if text.startswith("[OK]"):
+    #             # Si la ligne commence par "[OK]", on ajoute une requête pour mettre le texte en vert
+    #             requests.append({
+    #                 'updateTextStyle': {
+    #                     'range': {
+    #                         'startIndex': line.get('startIndex'),
+    #                         'endIndex': line.get('endIndex')
+    #                     },
+    #                     'textStyle': {
+    #                         'foregroundColor': {
+    #                             'color': {
+    #                                 'rgbColor': {
+    #                                     'blue': 0.035,
+    #                                     'green': 0.224,
+    #                                     'red': 0.027
+    #                                 }
+    #                             }
+    #                         }
+    #                     },
+    #                     'fields': 'foregroundColor'
+    #                 }
+    #             })
+
     # Parcours toutes les lignes du document pour trouver les lignes qui commencent par "Pour"
     for line in doc.get('body').get('content'):
         if 'paragraph' in line:
@@ -1038,13 +1175,7 @@ def formatter_fichier_erreurs(api_doc, doc_id):
                         'fields': 'bold, fontSize'
                     }
                 })
-
-    # Parcours toutes les lignes du document pour trouver les lignes avec Erreur
-    for line in doc.get('body').get('content'):
-        if 'paragraph' in line:
-            # Récupère le contenu de la ligne
-            text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
-            if text.startswith("Erreur"):
+            elif text.startswith("Erreur"):
                 # Si la ligne commence par "Erreur", on ajoute une requête pour mettre le texte en rouge
                 requests.append({
                     'updateTextStyle': {
@@ -1066,14 +1197,7 @@ def formatter_fichier_erreurs(api_doc, doc_id):
                         'fields': 'foregroundColor'
                     }
                 })
-
-
-    # Parcours toutes les lignes du document pour trouver les lignes avec Warning
-    for line in doc.get('body').get('content'):
-        if 'paragraph' in line:
-            # Récupère le contenu de la ligne
-            text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
-            if text.startswith("Warning"):
+            elif text.startswith("Warning"):
                 # Si la ligne commence par "Warning", on ajoute une requête pour mettre le texte en orange
                 requests.append({
                     'updateTextStyle': {
@@ -1095,13 +1219,7 @@ def formatter_fichier_erreurs(api_doc, doc_id):
                         'fields': 'foregroundColor'
                     }
                 })
-
-    # Parcours toutes les lignes du document pour trouver les lignes avec [XX]
-    for line in doc.get('body').get('content'):
-        if 'paragraph' in line:
-            # Récupère le contenu de la ligne
-            text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
-            if text.startswith("[XX]"):
+            elif text.startswith("[XX]"):
                 # Si la ligne commence par "[XX]", on ajoute une requête pour mettre le texte en vert
                 requests.append({
                     'updateTextStyle': {
@@ -1123,13 +1241,7 @@ def formatter_fichier_erreurs(api_doc, doc_id):
                         'fields': 'foregroundColor'
                     }
                 })
-
-    # Parcours toutes les lignes du document pour trouver les lignes avec [OK]
-    for line in doc.get('body').get('content'):
-        if 'paragraph' in line:
-            # Récupère le contenu de la ligne
-            text = line.get('paragraph').get('elements')[0].get('textRun').get('content')
-            if text.startswith("[OK]"):
+            elif text.startswith("[OK]"):
                 # Si la ligne commence par "[OK]", on ajoute une requête pour mettre le texte en vert
                 requests.append({
                     'updateTextStyle': {

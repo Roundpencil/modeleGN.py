@@ -12,7 +12,6 @@ from modeleGN import *
 def main():
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
 
-
     parser = argparse.ArgumentParser()
 
     group1 = parser.add_mutually_exclusive_group()
@@ -132,7 +131,9 @@ def main():
 
     print("*********touslesquelettes*******************")
     if not args.noexportdrive:
-        generer_squelettes_dans_drive(monGN, apiDoc, apiDrive)
+        generer_squelettes_dans_drive(monGN, apiDoc, apiDrive, pj=True)
+        generer_squelettes_dans_drive(monGN, apiDoc, apiDrive, pj=False)
+
     tousLesSquelettesPerso(monGN, prefixeFichiers)
     tousLesSquelettesPNJ(monGN, prefixeFichiers)
     print("*******dumpallscenes*********************")
@@ -341,9 +342,15 @@ def squelettes_persos_en_kit(monGN):
     return squelettes_persos
 
 
-def squelettes_par_perso(monGN):
+def squelettes_par_perso(monGN, pj=True):
     squelettes_persos = {}
-    for perso in monGN.dictPJs.values():
+    if pj:
+        liste_persos_source = monGN.dictPJs.values()
+    else:
+        liste_persos_source = monGN.dictPNJs.values()
+
+    for perso in liste_persos_source:
+    # for perso in monGN.dictPJs.values():
         texte_perso = ""
         texte_perso += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
         texte_perso += f"résumé de la bio : \n"
@@ -373,6 +380,7 @@ def squelettes_par_perso(monGN):
         texte_perso += '****************************************************** \n'
         squelettes_persos[perso.nom] = texte_perso
 
+
     return squelettes_persos
 
 
@@ -399,12 +407,16 @@ def reverse_generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive):
             extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, description_scene["corps"], titre=True)
 
 
-def generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive):
+def generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive, pj=True):
     parent = mon_GN.dossier_outputs_drive
-    nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes PJ'
+    if pj:
+        pj_pnj = "PJ"
+    else:
+        pj_pnj = "PNJ"
+    nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes {pj_pnj}'
     nouveau_dossier = extraireTexteDeGoogleDoc.creer_dossier(api_drive, parent, nom_dossier)
 
-    d = squelettes_par_perso(mon_GN)
+    d = squelettes_par_perso(mon_GN, pj=pj)
     for nom_perso in d:
         # créer le fichier et récupérer l'ID
         nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
@@ -845,8 +857,7 @@ def ajouter_champs_modifie_par(mon_gn: GN, nom_fichier=None):
         print(f"fichier sauvegardé sous {nom_fichier}")
 
 
-def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, dossier_output:str):
-
+def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, dossier_output: str):
     dict_orgas_persos = dict()
     tableau_scene_orgas = []
     tous_les_conteneurs = list(mon_gn.dictPJs.values()) + list(mon_gn.intrigues.values())
@@ -854,7 +865,6 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, dossi
     for conteneur in tous_les_conteneurs:
         for scene in conteneur.scenes:
             toutes_les_scenes.append(scene)
-
 
     toutes_les_scenes = sorted(toutes_les_scenes, key=lambda scene: scene.derniere_mise_a_jour, reverse=True)
 
@@ -908,9 +918,11 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, dossi
     id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_output)
     extraireTexteDeGoogleDoc.exporter_changelog(tableau_scene_orgas, id, dict_orgas_persos, api_sheets)
 
-def creer_table_intrigues_sur_drive(mon_gn:GN, api_sheets, api_drive, dossier_export):
+
+def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive, dossier_export):
     table_intrigues = [
-        ["nom intrigue", "nombre de scenes", "dernière édition", "modifié par", "Orga referent", "statut", "Problèmes", "url"]]
+        ["nom intrigue", "nombre de scenes", "dernière édition", "modifié par", "Orga referent", "statut", "Problèmes",
+         "url"]]
     for intrigue in mon_gn.intrigues.values():
         table_intrigues.append([intrigue.nom,
                                 len(intrigue.scenes),
@@ -927,11 +939,13 @@ def creer_table_intrigues_sur_drive(mon_gn:GN, api_sheets, api_drive, dossier_ex
     # extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, df, id)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_intrigues, id)
 
+
 def ecrire_erreurs_dans_drive(texte_erreurs, apiDoc, apiDrive, parent):
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Listes des erreurs dans les tableaux des persos'
     id = extraireTexteDeGoogleDoc.add_doc(apiDrive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.write_to_doc(apiDoc, id, texte_erreurs)
     extraireTexteDeGoogleDoc.formatter_fichier_erreurs(apiDoc, id)
+
 
 main()
