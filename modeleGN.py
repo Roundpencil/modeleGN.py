@@ -1,6 +1,7 @@
 import pickle
 import datetime
 import random
+import re
 
 from fuzzywuzzy import process
 
@@ -95,21 +96,22 @@ class ConteneurDeScene:
 
     def updater_dates_maj_scenes(self, conteneur_de_reference):
         for ma_scene in self.scenes:
-            print(f"*** je suis en train de lire la scène {ma_scene.titre} dans l'élément {self.getFullUrl()}")
+            # print(f"*** je suis en train de lire la scène {ma_scene.titre} dans l'élément {self.getFullUrl()}")
             # On va chercher si cette scène existe déjà dans l'objet intrigue précédent
             for sa_scene in conteneur_de_reference.scenes:
                 # print(f"je suis en train la comparer à la scène {sa_scene.titre} "
                 #       f"dans l'élément {conteneur_de_reference.getFullUrl()}")
                 if ma_scene.titre == sa_scene.titre:
-                    print(f"Les deux scènes ont le même titre !")
+                    # print(f"Les deux scènes ont le même titre !")
                     if ma_scene.description == sa_scene.description:
-                        print(f"et la même description !")
-                        print(f"dernières mises à jour : ma_scene : {ma_scene.derniere_mise_a_jour} / sa_scène : {sa_scene.derniere_mise_a_jour}")
+                        # print(f"et la même description !")
+                        # print(f"dernières mises à jour : ma_scene : {ma_scene.derniere_mise_a_jour} / sa_scène : {sa_scene.derniere_mise_a_jour}")
                         ma_scene.derniere_mise_a_jour = sa_scene.derniere_mise_a_jour
                         ma_scene.modifie_par = sa_scene.modifie_par
-                        print(f"et, après update : ma_scene : {ma_scene.derniere_mise_a_jour} / sa_scène : {sa_scene.derniere_mise_a_jour}")
+                        # print(f"et, après update : ma_scene : {ma_scene.derniere_mise_a_jour} / sa_scène : {sa_scene.derniere_mise_a_jour}")
                     else:
-                        print("mais pas la même description !")
+                        # print("mais pas la même description !")
+                        pass
 
                     break
 
@@ -335,7 +337,10 @@ class Scene:
 
     def getLongdigitsDate(self, size=30):
         # print(f"date : {self.date}")
-        if type(self.date) == float or type(self.date) == int or str(self.date[1:]).isnumeric():
+        # if type(self.date) == float or type(self.date) == int or str(self.date[1:]).isnumeric():
+        if type(self.date) == float or type(self.date) == int or re.match(r"^-\d+$", self.date):
+
+
             # print(f"date est numérique")
 
             refdate = str(int(self.date))[1:] + str(
@@ -475,10 +480,10 @@ class GN:
 
     # todo : tester les factions
 
-    def charger_factions_depuis_fichier(self, fichier: str):
-        factions_dict = lire_factions_depuis_fichier(fichier)
-        for nom, faction in factions_dict.items():
-            self.ajouter_faction(faction)
+    # def charger_factions_depuis_fichier(self, fichier: str):
+    #     factions_dict = lire_factions_depuis_fichier(fichier)
+    #     for nom, faction in factions_dict.items():
+    #         self.ajouter_faction(faction)
 
     def ajouter_faction(self, faction: Faction):
         self.factions[faction.nom] = faction

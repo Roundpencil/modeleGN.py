@@ -22,6 +22,7 @@ def main():
     group2.add_argument("-perso", type=str, default="-01", help="si un seul perso doit être lu")
     group2.add_argument("-allpjs", action="store_true", help="si on veut reparcourir tous les pjs")
 
+    parser.add_argument("-initfile", type=str, default="config.init", help="pour spécifier le fichier d'init à charger")
     parser.add_argument("-nofichiererreurs", action="store_true", help="pour ne pas générer la table des intrigues")
     parser.add_argument("-notableintrigues", action="store_true", help="pour ne pas générer la table des intrigues")
     parser.add_argument("-noexportdrive", action="store_true", help="pour ne pas provoquer l'export drive")
@@ -40,9 +41,8 @@ def main():
         dossier_intrigues = config.get('dossiers', 'intrigues').split(',')
 
         dossier_pjs = [config.get("dossiers", key)
-                       for key in config.options("dossiers") if key.startswith("base_persos_")]
+                       for key in config.options("dossiers") if key.startswith("base_persos")]
 
-        fichier_factions = config.get('dossiers', 'fichier_faction')
         id_factions = config.get('dossiers', 'id_factions')
         dossier_output_squelettes_pjs = config.get('dossiers', 'dossier_output_squelettes_pjs')
 
@@ -65,45 +65,42 @@ def main():
                fichier_factions=id_factions,
                dossier_outputs_drive=dossier_output_squelettes_pjs)
 
-    # print(f"1 - pnj dans ce GN : {monGN.noms_pnjs()}")
+    # print(f"1 - pnj dans ce GN : {mon_gn.noms_pnjs()}")
 
     charger_PNJs(monGN, nom_fichier_pnjs)
 
-    # print(f"2 - pnj dans ce GN : {monGN.noms_pnjs()}")
+    # print(f"2 - pnj dans ce GN : {mon_gn.noms_pnjs()}")
 
     try:
         if not args.init:
             monGN = GN.load(nom_fichier_sauvegarde)
-            # print(f"Derniere version avant mise à jour : {monGN.oldestUpdateIntrigue}")
-            # monGN.fichier_factions = "1lDKglitWeg6RsybhLgNsPUa-DqN5POPyOpIo2u9VvvA"
+            # print(f"Derniere version avant mise à jour : {mon_gn.oldestUpdateIntrigue}")
+            # mon_gn.fichier_factions = "1lDKglitWeg6RsybhLgNsPUa-DqN5POPyOpIo2u9VvvA"
             monGN.dossier_outputs_drive = dossier_output_squelettes_pjs
     except:
         print(f"impossible d'ouvrir {nom_fichier_sauvegarde} : ré-lecture à zéro de toutes les infos")
 
-    # print(f"3 - pnj dans ce GN : {monGN.noms_pnjs()}")
+    # print(f"3 - pnj dans ce GN : {mon_gn.noms_pnjs()}")
 
     apiDrive, apiDoc, apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
 
     monGN.effacer_personnages_forces()
 
-    # extraireTexteDeGoogleDoc.extraireIntrigues(monGN, api_doc=api_doc, api_doc=api_doc, singletest="-01")
-    # extraireTexteDeGoogleDoc.extrairePJs(monGN, api_doc=api_doc, api_doc=api_doc, singletest="-01")
+    # extraireTexteDeGoogleDoc.extraireIntrigues(mon_gn, api_doc=api_doc, api_doc=api_doc, singletest="-01")
+    # extraireTexteDeGoogleDoc.extrairePJs(mon_gn, api_doc=api_doc, api_doc=api_doc, singletest="-01")
 
     extraireTexteDeGoogleDoc.extraireIntrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.intrigue,
                                                fast=(not args.allintrigues))
     extraireTexteDeGoogleDoc.extrairePJs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.perso,
                                          fast=(not args.allpjs))
     extraireTexteDeGoogleDoc.extraire_factions(monGN, apiDoc=apiDoc)
-    # extraireTexteDeGoogleDoc.lire_factions_depuis_fichier(monGN, fichier_faction)
+    # extraireTexteDeGoogleDoc.lire_factions_depuis_fichier(mon_gn, fichier_faction)
 
     monGN.forcerImportPersos(noms_persos)
     monGN.rebuildLinks(args.verbal)
 
     if not args.nosave:
         monGN.save(nom_fichier_sauvegarde)
-
-    # todo : tester et débugger la fonction de mise à jour des fiches
-    #  générer une version des fiches de pjs, sur le drive, avec les scènes classées par date de changement
 
     # todo: appel dans la foulée de dedupe PNJ pour faire le ménage?
     # todo : utiliser l'objet CSV pour générer les CSV
@@ -137,7 +134,7 @@ def main():
     tousLesSquelettesPerso(monGN, prefixeFichiers)
     tousLesSquelettesPNJ(monGN, prefixeFichiers)
     print("*******dumpallscenes*********************")
-    # dumpAllScenes(monGN)
+    # dumpAllScenes(mon_gn)
 
     print("*******changelog*********************")
     if not args.nochangelog:
@@ -149,67 +146,59 @@ def main():
     if not args.notableintrigues:
         creer_table_intrigues_sur_drive(monGN, apiSheets, apiDrive, dossier_output_squelettes_pjs)
 
-    # ajouter_champs_modifie_par(monGN, nom_fichier_sauvegarde)
-    # trierScenes(monGN)
-    # listerTrierPersos(monGN)
+    # ajouter_champs_modifie_par(mon_gn, nom_fichier_sauvegarde)
+    # trierScenes(mon_gn)
+    # listerTrierPersos(mon_gn)
     # #écrit toutes les scènes qui sont dans le GN, sans ordre particulier
-    # dumpAllScenes(monGN)
+    # dumpAllScenes(mon_gn)
 
     ## pour avoir tous les objets du jeu :
-    # generecsvobjets(monGN)
+    # generecsvobjets(mon_gn)
 
-    # squelettePerso(monGN, "Kyle Talus")
-    # listerRolesPerso(monGN, "Greeta")
-    # listerPNJs(monGN)
-    # genererCsvPNJs(monGN, verbal=False)
-    # genererCsvObjets(monGN)
+    # squelettePerso(mon_gn, "Kyle Talus")
+    # listerRolesPerso(mon_gn, "Greeta")
+    # listerPNJs(mon_gn)
+    # genererCsvPNJs(mon_gn, verbal=False)
+    # genererCsvObjets(mon_gn)
 
     # #lister les correspondaces entre les roles et les noms standards
-    # mesroles = tousLesRoles(monGN)
+    # mesroles = tousLesRoles(mon_gn)
     # fuzzyWuzzyme(mesroles, noms_persos)
 
-    # print(normaliserNomsPNJs(monGN))
+    # print(normaliserNomsPNJs(mon_gn))
     # #génération d'un premier tableau de noms de PNJs à partir de ce qu'on lit dans les intrigues
-    # nomsPNSnormalisés = normaliserNomsPNJs(monGN)
+    # nomsPNSnormalisés = normaliserNomsPNJs(mon_gn)
     # print([ nomsPNSnormalisés[k][0] for k in nomsPNSnormalisés])
-    # dedupePNJs(monGN)
+    # dedupePNJs(mon_gn)
 
     # print(getAllRole(GN))
 
-    # afficherLesPersos(monGN)
-    # afficherDatesScenes(monGN)
-    # genererCsvOrgaIntrigue(monGN)
-    # listerLesRoles(monGN)
+    # afficherLesPersos(mon_gn)
+    # afficherDatesScenes(mon_gn)
+    # genererCsvOrgaIntrigue(mon_gn)
+    # listerLesRoles(mon_gn)
 
-    # listerDatesIntrigues(monGN)
+    # listerDatesIntrigues(mon_gn)
 
     ## test de la fonction d'effaçage'
-    # testEffacerIntrigue(monGN)
+    # testEffacerIntrigue(mon_gn)
 
-    # print(" l'intrigue la plus ancienne est {0}, c'est {1}, maj : {2}".format(monGN.idOldestUpdate, monGN.intrigues[monGN.idOldestUpdate], monGN.oldestUpdate))
+    # print(" l'intrigue la plus ancienne est {0}, c'est {1}, maj : {2}".format(mon_gn.idOldestUpdate, mon_gn.intrigues[mon_gn.idOldestUpdate], mon_gn.oldestUpdate))
 
     # test de la focntion de rapprochement des PNJs
-    # fuzzyWuzzyme(listerPNJs(monGN), nomsPNJs)
+    # fuzzyWuzzyme(listerPNJs(mon_gn), nomsPNJs)
 
     # #test de la focntion de lecture des PJs
-    # dumpPersosLus(monGN)
-    # dumpSortedPersos(monGN)
+    # dumpPersosLus(mon_gn)
+    # dumpSortedPersos(mon_gn)
 
-    # genererTableauIntrigues(monGN)
+    # genererTableauIntrigues(mon_gn)
 
 
 def ajouterPersosSansFiche(monGN, nomspersos):
     monGN.forcerImportPersos(nomspersos)
 
     print(f"fin de l'ajout des personnages sans fiche. j'ai {len(monGN.dictPJs.values())} personnages en tout")
-
-
-def testEffacerIntrigue(monGN):
-    listerRolesPerso(monGN, "Kyle Talus")
-    monGN.intrigues["1p5ndWGUb3uCJ1iSSkPpHrDAzwY8iBdK8Lf9CLpP9Diw"].clear()
-    del monGN.intrigues["1p5ndWGUb3uCJ1iSSkPpHrDAzwY8iBdK8Lf9CLpP9Diw"]
-    print("J'ai effacé l'intrigue Rox et Rouky")
-    listerRolesPerso(monGN, "Kyle Talus")
 
 
 def afficherLesPersos(monGN):
@@ -250,14 +239,14 @@ def listerDatesIntrigues(monGN):
         print("{0} - {1} - {2}".format(intrigue.nom, intrigue.lastProcessing, intrigue.url))
 
 
-def listerRolesPerso(monGN, nomPerso):
-    nomPerso = process.extractOne(nomPerso, noms_persos)[0]
-    for perso in monGN.dictPJs.values():
-        if perso.nom == nomPerso:
-            # print(f"{nomPerso} trouvé")
-            for role in perso.rolesContenus:
-                print(role)
-            break
+# def listerRolesPerso(monGN, nomPerso):
+#     nomPerso = process.extractOne(nomPerso, noms_persos)[0]
+#     for perso in monGN.dictPJs.values():
+#         if perso.nom == nomPerso:
+#             # print(f"{nomPerso} trouvé")
+#             for role in perso.rolesContenus:
+#                 print(role)
+#             break
 
 
 def tousLesSquelettesPerso(monGN, prefixe=None):
@@ -350,7 +339,7 @@ def squelettes_par_perso(monGN, pj=True):
         liste_persos_source = monGN.dictPNJs.values()
 
     for perso in liste_persos_source:
-    # for perso in monGN.dictPJs.values():
+        # for perso in mon_gn.dictPJs.values():
         texte_perso = ""
         texte_perso += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
         texte_perso += f"résumé de la bio : \n"
@@ -379,7 +368,6 @@ def squelettes_par_perso(monGN, pj=True):
             texte_perso += str(scene) + '\n'
         texte_perso += '****************************************************** \n'
         squelettes_persos[perso.nom] = texte_perso
-
 
     return squelettes_persos
 
@@ -531,22 +519,22 @@ def genererChangeLog(monGN, prefixe, nbJours=1, verbal=False):
     return texte
 
 
-def squelettePerso(monGN, nomPerso):
-    mesScenes = []
-    nomPerso = process.extractOne(nomPerso, noms_persos)[0]
-    for perso in monGN.dictPJs.values():
-        if perso.nom == nomPerso:
-            # print(f"{nomPerso} trouvé")
-            for role in perso.rolesContenus:
-                for scene in role.scenes:
-                    # print(f"{scene.titre} trouvée")
-                    mesScenes.append(scene)
-            break
-
-    # print(f"{nomPerso} trouvé")
-    mesScenes = Scene.trierScenes(mesScenes)
-    for scene in mesScenes:
-        print(scene)
+# def squelettePerso(monGN, nomPerso):
+#     mesScenes = []
+#     nomPerso = process.extractOne(nomPerso, noms_persos)[0]
+#     for perso in monGN.dictPJs.values():
+#         if perso.nom == nomPerso:
+#             # print(f"{nomPerso} trouvé")
+#             for role in perso.rolesContenus:
+#                 for scene in role.scenes:
+#                     # print(f"{scene.titre} trouvée")
+#                     mesScenes.append(scene)
+#             break
+#
+#     # print(f"{nomPerso} trouvé")
+#     mesScenes = Scene.trierScenes(mesScenes)
+#     for scene in mesScenes:
+#         print(scene)
 
 
 def listerPNJs(monGN):
@@ -665,12 +653,12 @@ def dumpPersosLus(monGN):
         print(pj)
 
 
-def dumpSortedPersos(monGN):
-    tousLesPersos = [x.nom for x in monGN.dictPJs.values()]
-    tousLesPersos.sort()
-    print(tousLesPersos)
-    print(len(tousLesPersos))
-    print(len(noms_persos))
+# def dumpSortedPersos(monGN):
+#     tousLesPersos = [x.nom for x in monGN.dictPJs.values()]
+#     tousLesPersos.sort()
+#     print(tousLesPersos)
+#     print(len(tousLesPersos))
+#     print(len(noms_persos))
 
 
 def dumpAllScenes(monGN):
@@ -689,7 +677,7 @@ def dumpAllScenes(monGN):
 
 
 def trierScenes(monGN):
-    # for intrigue in monGN.intrigues.values():
+    # for intrigue in mon_gn.intrigues.values():
     #     print(f"{str(intrigue)}")
     #     print(f" a {len(intrigue.scenes)} scenes")
     #     scenesTriees = sorted(intrigue.scenes, key=lambda scene: scene.getLongdigitsDate(), reverse=True)
@@ -944,8 +932,102 @@ def ecrire_erreurs_dans_drive(texte_erreurs, apiDoc, apiDrive, parent):
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Listes des erreurs dans les tableaux des persos'
     id = extraireTexteDeGoogleDoc.add_doc(apiDrive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.write_to_doc(apiDoc, id, texte_erreurs)
-    extraireTexteDeGoogleDoc.formatter_fichier_erreurs(apiDoc, id)
+    result = extraireTexteDeGoogleDoc.write_to_doc(apiDoc, id, texte_erreurs)
+    if result:
+        extraireTexteDeGoogleDoc.formatter_fichier_erreurs(apiDoc, id)
 
 
-main()
+# ***************** début de l'ajout des fonctions pour faire tourner la GUI ***********************************
+
+def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, noms_persos,
+                         nom_fichier_sauvegarde: str, dossier_output_squelettes_pjs: str,
+                         fichier_erreurs: bool = True, export_drive: bool = True,
+                         changelog: bool = True, table_intrigues: bool = True,
+                         singletest_perso: str = "-01", singletest_intrigue: str = "-01",
+                         fast_intrigues: bool = True, fast_persos: bool = True, verbal: bool = False):
+    if api_doc is None or api_sheets is None or api_drive is None:
+        api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
+
+    mon_gn.effacer_personnages_forces()
+
+    extraireTexteDeGoogleDoc.extraireIntrigues(mon_gn,
+                                               apiDrive=api_drive,
+                                               apiDoc=api_doc,
+                                               singletest=singletest_intrigue,
+                                               fast=fast_intrigues)
+    extraireTexteDeGoogleDoc.extrairePJs(mon_gn,
+                                         apiDrive=api_drive,
+                                         apiDoc=api_doc,
+                                         singletest=singletest_perso,
+                                         fast=fast_persos)
+    extraireTexteDeGoogleDoc.extraire_factions(mon_gn, apiDoc=api_doc)
+
+    mon_gn.forcerImportPersos(noms_persos)
+    mon_gn.rebuildLinks(verbal)
+
+    mon_gn.save(nom_fichier_sauvegarde)
+
+    print("****************************")
+    print("****************************")
+    print("****************************")
+    prefixeFichiers = str(datetime.date.today())
+    print("*********toutesleserreurs*******************")
+    if fichier_erreurs:
+        texte_erreurs = lister_erreurs(mon_gn, prefixeFichiers)
+        ecrire_erreurs_dans_drive(texte_erreurs, api_doc, api_drive, dossier_output_squelettes_pjs)
+
+    print("*********touslesquelettes*******************")
+    if export_drive:
+        generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=True)
+        generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=False)
+
+    tousLesSquelettesPerso(mon_gn, prefixeFichiers)
+    tousLesSquelettesPNJ(mon_gn, prefixeFichiers)
+    print("*******dumpallscenes*********************")
+    # dumpAllScenes(mon_gn)
+
+    print("*******changelog*********************")
+    if changelog:
+        generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets, dossier_output_squelettes_pjs)
+        genererChangeLog(mon_gn, prefixeFichiers, nbJours=3)
+        genererChangeLog(mon_gn, prefixeFichiers, nbJours=4)
+
+    print("******* statut intrigues *********************")
+    if table_intrigues:
+        creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive, dossier_output_squelettes_pjs)
+
+
+def charger_fichier_init(fichier_init: str):
+    # init configuration
+    config = configparser.ConfigParser()
+    config.read(fichier_init)
+    resultat_ok = False
+    try:
+        dossier_intrigues = config.get('dossiers', 'intrigues').split(',')
+
+        dossier_pjs = [config.get("dossiers", key)
+                       for key in config.options("dossiers") if key.startswith("base_persos")]
+
+        id_factions = config.get('dossiers', 'id_factions')
+        dossier_output_squelettes_pjs = config.get('dossiers', 'dossier_output_squelettes_pjs')
+
+        noms_persos = [nom_p.strip()
+                       for nom_p in config.get('pjs_a_importer', 'noms_persos').split(',')]
+
+        nom_fichier_pnjs = config.get('pjs_a_importer', 'nom_fichier_pnjs')
+        # print(nom_fichier_pnjs)
+        association_auto = config.getboolean('globaux', 'association_auto')
+        type_fiche = config.get('globaux', 'type_fiche')
+
+        nom_fichier_sauvegarde = config.get('sauvegarde', 'nom_fichier_sauvegarde')
+        resultat_ok = True
+    except configparser.Error as e:
+        # Erreur lors de la lecture d'un paramètre dans le fichier de configuration
+        print("Erreur lors de la lecture du fichier de configuration : {}".format(e))
+        return
+    return dossier_intrigues, dossier_pjs, id_factions, dossier_output_squelettes_pjs, \
+           noms_persos, nom_fichier_pnjs, association_auto, type_fiche, nom_fichier_sauvegarde, resultat_ok
+
+
+if __name__ == '__main__':
+    main()

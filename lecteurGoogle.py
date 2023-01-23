@@ -44,7 +44,7 @@ def creer_lecteurs_google_apis():
             token.write(creds.to_json())
 
     try:
-        # apiDrive = build('drive', 'v3', credentials=creds, static_discovery=False)
+        # api_drive = build('drive', 'v3', credentials=creds, static_discovery=False)
         # lecteurDoc = build('docs', 'v1', credentials=creds, static_discovery=False)
         # lecteur_sheets = build('sheets', 'v4', credentials=creds, static_discovery=False)
 
