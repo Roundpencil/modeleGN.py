@@ -636,7 +636,11 @@ class GN:
             for role in intrigue.rolesContenus.values():
                 role.perso = None
 
-    def forcerImportPersos(self, nomsPersos, suffixe="_imported", verbal=False):
+    def forcer_import_pnjs(self, liste_pnjs):
+        for nom in liste_pnjs:
+            self.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
+
+    def forcer_import_pjs(self, nomsPersos, suffixe="_imported", verbal=False):
         print("début de l'ajout des personnages sans fiche")
         nomsLus = [x.nom for x in self.dictPJs.values()]
         print(f"noms lus = {nomsLus}")

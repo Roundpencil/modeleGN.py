@@ -11,12 +11,12 @@ import modeleGN
 from modeleGN import *
 
 
-def extraireIntrigues(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
+def extraire_intrigues(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
     extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extraireIntrigueDeTexte, monGN.intrigues, monGN.folderIntriguesID,
                              singletest, verbal=verbal, fast=fast)
 
 
-def extrairePJs(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
+def extraire_pjs(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
     extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extrairePJDeTexte, monGN.dictPJs, monGN.folderPJID, singletest,
                              verbal=verbal, fast=fast)
 
