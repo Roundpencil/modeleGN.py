@@ -82,7 +82,7 @@ def main():
         if not args.init:
             monGN = GN.load(nom_fichier_sauvegarde)
             # print(f"Derniere version avant mise à jour : {mon_gn.oldestUpdateIntrigue}")
-            # mon_gn.fichier_factions = "1lDKglitWeg6RsybhLgNsPUa-DqN5POPyOpIo2u9VvvA"
+            # mon_gn.id_factions = "1lDKglitWeg6RsybhLgNsPUa-DqN5POPyOpIo2u9VvvA"
             monGN.dossier_outputs_drive = dossier_output_squelettes_pjs
     except:
         print(f"impossible d'ouvrir {nom_fichier_sauvegarde} : ré-lecture à zéro de toutes les infos")
@@ -176,7 +176,7 @@ def main():
     # #génération d'un premier tableau de noms de PNJs à partir de ce qu'on lit dans les intrigues
     # nomsPNSnormalisés = normaliserNomsPNJs(mon_gn)
     # print([ nomsPNSnormalisés[k][0] for k in nomsPNSnormalisés])
-    # dedupePNJs(mon_gn)
+    # generer_liste_pnj_dedup(mon_gn)
 
     # print(getAllRole(GN))
 
@@ -246,9 +246,9 @@ def listerDatesIntrigues(monGN):
         print("{0} - {1} - {2}".format(intrigue.nom, intrigue.lastProcessing, intrigue.url))
 
 
-# def listerRolesPerso(monGN, nomPerso):
+# def listerRolesPerso(mon_gn, nomPerso):
 #     nomPerso = process.extractOne(nomPerso, noms_persos)[0]
-#     for perso in monGN.dictPJs.values():
+#     for perso in mon_gn.dictPJs.values():
 #         if perso.nom == nomPerso:
 #             # print(f"{nomPerso} trouvé")
 #             for role in perso.rolesContenus:
@@ -256,9 +256,9 @@ def listerDatesIntrigues(monGN):
 #             break
 
 
-# def ecrire_squelettes_localement(monGN, prefixe=None):
+# def ecrire_squelettes_localement(mon_gn, prefixe=None):
 #     toutesScenes = ""
-#     for perso in monGN.dictPJs.values():
+#     for perso in mon_gn.dictPJs.values():
 #         toutesScenes += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
 #         toutesScenes += f"résumé de la bio : \n"
 #         for item in perso.description:
@@ -397,80 +397,13 @@ def tousLesSquelettesPNJ(monGN: GN, prefixe):
     return toutesScenes
 
 
-def genererChangeLog(monGN, prefixe, nbJours=1, verbal=False):
-    dateReference = datetime.date.today() - datetime.timedelta(days=nbJours)
-
-    # on crée un tableau avec tous lse changements :
-    # [orga referent | perso | titre intrigue | url intrigue | date changement intrigue]
-    # structure souhaitée :
-    # orga referent / persos / titre intrigue/ url intrigue | date changement intrigue
-
-    restitution = dict()
-    for intrigue in monGN.intrigues.values():
-        if intrigue.lastFileEdit.date() > dateReference:
-            for role in intrigue.rolesContenus.values():
-                if role.perso is not None and modeleGN.estUnPJ(role.perso.pj):
-                    referent = role.perso.orgaReferent.strip()
-
-                    if len(referent) < 3:
-                        referent = "Orga sans nom"
-
-                    # print(f"je m'apprête à ajouter une ligne pour {referent} : {role.perso.nom} dans {intrigue.nom}")
-                    nomPerso = role.perso.nom
-                    nomIntrigue = intrigue.nom
-
-                    # on vérifie que le référent et le persos existent, sinon on initialise
-                    if referent not in restitution:
-                        restitution[referent] = dict()
-                    if nomPerso not in restitution[referent]:
-                        # restitution[referent][nomPerso] = dict()
-                        restitution[referent][nomPerso] = []
-                    # if nomIntrigue not in restitution[referent][nomPerso]:
-                    #     restitution[referent][nomPerso][nomIntrigue] = \
-                    #         [intrigue.lastProcessing.strftime("%d/%m/%Y à %H:%M:%S"),
-                    #          intrigue.getFullUrl()]
-                    # # on utilise nomintrigue comem clef, car sinon, comme on rentre par les roles on va multiplier les entrées
-
-                    # et maintenant on remplit la liste
-                    restitution[referent][nomPerso].append([intrigue.nom,
-                                                            intrigue.getFullUrl(),
-                                                            intrigue.lastFileEdit.strftime("%d/%m/%Y à %H:%M:%S")])
-
-                    # print(restitution)
-                    # restitution.append([role.perso.orgaReferent,
-                    #                     role.perso.nom,
-                    #                     intrigue.titre,
-                    #                     intrigue.getFullUrl(),
-                    #                     intrigue.lastProcessing])
-    # print(restitution)
-    texte = ""
-    for nomOrga in restitution:
-        texte += f"{nomOrga}, ces personnages sont dans des intrigues qui ont été modifiées depuis {dateReference} : \n"
-        for perso in restitution[nomOrga]:
-            texte += f"\t pour {perso} : \n "
-            for element in restitution[nomOrga][perso]:
-                # texte += f"\t\t l'intrigue {restitution[nomOrga][perso][0]} \n " \
-                #          f"\t\t a été modifiée le {restitution[nomOrga][perso][2]} \n" \
-                #          f"\t\t (url : {restitution[nomOrga][perso][1]}) \n"
-                texte += f"\t\t l'intrigue {element[0]} \n " \
-                         f"\t\t a été modifiée le {element[2]} \n" \
-                         f"\t\t (url : {element[1]}) \n\n"
-
-    if verbal:
-        print(texte)
-
-    if prefixe is not None:
-        with open(prefixe + ' - changements - ' + str(nbJours) + 'j.txt', 'w', encoding="utf-8") as f:
-            f.write(texte)
-            f.close()
-
-    return texte
 
 
-# def squelettePerso(monGN, nomPerso):
+
+# def squelettePerso(mon_gn, nomPerso):
 #     mesScenes = []
 #     nomPerso = process.extractOne(nomPerso, noms_persos)[0]
-#     for perso in monGN.dictPJs.values():
+#     for perso in mon_gn.dictPJs.values():
 #         if perso.nom == nomPerso:
 #             # print(f"{nomPerso} trouvé")
 #             for role in perso.rolesContenus:
@@ -601,8 +534,8 @@ def dumpPersosLus(monGN):
         print(pj)
 
 
-# def dumpSortedPersos(monGN):
-#     tousLesPersos = [x.nom for x in monGN.dictPJs.values()]
+# def dumpSortedPersos(mon_gn):
+#     tousLesPersos = [x.nom for x in mon_gn.dictPJs.values()]
 #     tousLesPersos.sort()
 #     print(tousLesPersos)
 #     print(len(tousLesPersos))
@@ -658,17 +591,7 @@ def genererTableauIntrigues(monGN):
         print(f"{intrigue.nom};{intrigue.orgaReferent.strip()};")
 
 
-def dedupePNJs(monGN):
-    nomsPNJs = []
-    nomsNormalises = dict()
-    for intrigue in monGN.intrigues.values():
-        for role in intrigue.rolesContenus.values():
-            if role.estUnPNJ():
-                nomsPNJs.append(role.nom)
-    nomsPNJs = list(set(nomsPNJs))
-    extract = process.dedupe(nomsPNJs, threshold=89)
-    for v in extract:
-        print(v)
+
 
     # rolesSansScenes = []
     # for role in intrigue.roles.values():

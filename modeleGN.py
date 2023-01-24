@@ -447,7 +447,7 @@ class Faction:
 
 
 class GN:
-    def __init__(self, folderIntriguesID, folderPJID, dossier_outputs_drive, fichier_factions=None):
+    def __init__(self, folderIntriguesID, folderPJID, dossier_outputs_drive, id_factions=None):
         self.dictPJs = {}  # idgoogle, personnage
         self.dictPNJs = {}  # nom, personnage
         self.factions = dict()  # nom, Faction
@@ -466,7 +466,7 @@ class GN:
         else:
             self.folderPJID = [folderPJID]
         # print(f"PJID = {self.folderPJID}")
-        self.fichier_factions = fichier_factions
+        self.id_factions = id_factions
         self.dossier_outputs_drive = dossier_outputs_drive
 
     def nom_vers_personnage(self, nom: str, chercher_pj=True, chercher_pnj=True) -> Personnage:

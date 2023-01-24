@@ -34,7 +34,7 @@ class Application(tk.Frame):
         self.config_button.grid(row=3, column=0, sticky="nsew")
 
         self.edit_config_button = tk.Button(self.master, text="Modifier  fichier de configuration",
-                                            command=lambda: print("faire écran modification"))
+                                            command=self.modify_config)
         self.edit_config_button.grid(row=4, column=0, sticky="nsew")
 
         # Create the label
@@ -85,17 +85,17 @@ class Application(tk.Frame):
         base_persos_gn_entry = tk.Entry(new_gn_window)
         base_persos_gn_entry.grid(row=1, column=1)
 
-        fichier_faction_label = tk.Label(new_gn_window, text="Fichier faction")
-        fichier_faction_label.grid(row=2, column=0)
-        fichier_faction_entry = tk.Entry(new_gn_window)
-        fichier_faction_entry.grid(row=2, column=1)
+        # fichier_faction_label = tk.Label(new_gn_window, text="Fichier faction")
+        # fichier_faction_label.grid(row=2, column=0)
+        # fichier_faction_entry = tk.Entry(new_gn_window)
+        # fichier_faction_entry.grid(row=2, column=1)
 
         id_factions_label = tk.Label(new_gn_window, text="ID factions")
         id_factions_label.grid(row=3, column=0)
         id_factions_entry = tk.Entry(new_gn_window)
         id_factions_entry.grid(row=3, column=1)
 
-        dossier_output_squelettes_pjs_label = tk.Label(new_gn_window, text="Dossier output squelettes PJs")
+        dossier_output_squelettes_pjs_label = tk.Label(new_gn_window, text="Dossier output")
         dossier_output_squelettes_pjs_label.grid(row=4, column=0)
         dossier_output_squelettes_pjs_entry = tk.Entry(new_gn_window)
         dossier_output_squelettes_pjs_entry.grid(row=4, column=1)
@@ -133,21 +133,20 @@ class Application(tk.Frame):
 
         submit_button = tk.Button(new_gn_window, text="Valider",
                                   command=lambda: self.submit_new_gn(intrigues_entry.get(), base_persos_gn_entry.get(),
-                                                                     fichier_faction_entry.get(),
                                                                      id_factions_entry.get(),
                                                                      dossier_output_squelettes_pjs_entry.get(),
                                                                      association_auto_var.get(), type_fiche_var.get(),
                                                                      nom_fichier_sauvegarde_entry.get(),
                                                                      noms_persos_entry.get(),
-                                                                     nom_fichier_pnjs_entry.get()))
+                                                                     nom_fichier_pnjs_entry.get(),
+                                                                     new_gn_window))
         submit_button.grid(row=10, column=0)
 
-    def submit_new_gn(self, intrigues, base_persos_gn, fichier_faction, id_factions, dossier_output_squelettes_pjs,
-                      association_auto, type_fiche, nom_fichier_sauvegarde, noms_persos, nom_fichier_pnjs):
+    def submit_new_gn(self, intrigues, base_persos_gn, id_factions, dossier_output_squelettes_pjs,
+                      association_auto, type_fiche, nom_fichier_sauvegarde, noms_persos, nom_fichier_pnjs, window):
         # Do something with the user's input
         print(f"Intrigues: {intrigues}")
         print(f"Base persos GN: {base_persos_gn}")
-        print(f"Fichier faction: {fichier_faction}")
         print(f"ID factions: {id_factions}")
         print(f"Dossier output squelettes PJs: {dossier_output_squelettes_pjs}")
         print(f"Association auto: {association_auto}")
@@ -155,6 +154,7 @@ class Application(tk.Frame):
         print(f"Nom fichier sauvegarde: {nom_fichier_sauvegarde}")
         print(f"Noms persos: {noms_persos}")
         print(f"Nom fichier PNJs: {nom_fichier_pnjs}")
+        window.destroy()
 
     def diagnostic_mode(self):
         diagnostic_window = tk.Toplevel(self.master)
@@ -169,13 +169,13 @@ class Application(tk.Frame):
         relire_intrigues_button.grid(row=1, column=0, sticky="nsew")
 
         relire_persos_button = tk.Button(diagnostic_window, text="Relire tous les personnages",
-                                         command=lambda: print("Relire tous les personnages"))
+                                         command=lambda: extraireTexteDeGoogleDoc.extraire_pjs(
+                                             self.gn, self.apiDrive, self.apiDoc, fast=False)
+                                         )
         relire_persos_button.grid(row=2, column=0, sticky="nsew")
 
         relire_perso_spec_button = tk.Button(diagnostic_window, text="Relire un personnage spécifique",
-                                             command=lambda: extraireTexteDeGoogleDoc.extraire_pjs(
-                                                 self.gn, self.apiDrive, self.apiDoc, fast=False)
-                                             )
+                                             command=lambda: print("Relire un personnage spécique"))
         relire_perso_spec_button.grid(row=3, column=0, sticky="nsew")
 
         relire_intrigue_spec_button = tk.Button(diagnostic_window, text="Relire une intrigue spécifique",
@@ -188,12 +188,15 @@ class Application(tk.Frame):
 
         importer_persos_config_button = tk.Button(diagnostic_window,
                                                   text="Importer les personnages du fichier de configuration",
-                                                  command=lambda: print(
-                                                      "Importer les personnages du fichier de configuration"))
+                                                  command=lambda: self.gn.forcer_import_pjs(
+                                                      self.dict_config['noms_persos'])
+                                                  )
         importer_persos_config_button.grid(row=6, column=0, sticky="nsew")
 
         importer_pnjs_button = tk.Button(diagnostic_window, text="Ré-importer les PNJs d'après le fichier",
-                                         command=lambda: print("Ré-importer les PNJs d'après le fichier"))
+                                         command=lambda: self.gn.forcer_import_pnjs(
+                                             lire_fichier_pnjs(self.dict_config['fichier_noms_pnjs']))
+                                         )
         importer_pnjs_button.grid(row=7, column=0, sticky="nsew")
 
         sauvegarder_gn_button = tk.Button(diagnostic_window, text="Sauvegarder le GN",
@@ -203,8 +206,9 @@ class Application(tk.Frame):
 
         generer_liste_ref_pnj_button = tk.Button(diagnostic_window,
                                                  text="Générer liste de référence des PNJs dédupliqués",
-                                                 command=lambda: print(
-                                                     "Générer liste de référence des PNJs dédupliqués"))
+                                                 command=lambda: ecrire_liste_pnj_dedup_localement(
+                                                     self.gn, str(datetime.date.today()))
+                                                 )
         generer_liste_ref_pnj_button.grid(row=9, column=0, sticky="nsew")
 
         generer_fichier_association_button = tk.Button(diagnostic_window, text="Générer le fichier d'association",
@@ -223,7 +227,9 @@ class Application(tk.Frame):
         generer_changelog_drive_button.grid(row=12, column=0, sticky="nsew")
 
         generer_changelog_local_button = tk.Button(diagnostic_window, text="Générer changelog localement",
-                                                   command=lambda: print("Générer changelog localement"))
+                                                   command=lambda: genererChangeLog(
+                                                       self.gn, str(datetime.date.today()))
+                                                   )
         generer_changelog_local_button.grid(row=13, column=0, sticky="nsew")
 
         generer_erreurs_local_button = tk.Button(diagnostic_window, text="Générer fichier des erreurs localement",
@@ -264,7 +270,7 @@ class Application(tk.Frame):
         generer_fiches_pnj_drive_button.grid(row=19, column=0, sticky="nsew")
 
         generer_fiches_pj_local_button = tk.Button(diagnostic_window, text="Générer fiches PJ localement",
-                                                   command=lambda:ecrire_squelettes_localement(
+                                                   command=lambda: ecrire_squelettes_localement(
                                                        self.gn, str(datetime.date.today()), pj=True)
                                                    )
         generer_fiches_pj_local_button.grid(row=20, column=0, sticky="nsew")
@@ -300,10 +306,16 @@ class Application(tk.Frame):
     def lire_fichier_config(self, config_file: str = 'config.ini'):
         try:
             self.dict_config = charger_fichier_init(config_file)
-            print("ping")
+            # print("ping")
             self.update_button_state()
             self.current_file_label.config(text=config_file)
-            self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'])
+            try:
+                self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'])
+            except Exception as f:
+                print(f"le gn {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
+                self.gn = GN(self.dict_config["intrigues"], self.dict_config["dossier_pj"],
+                             self.dict_config["dossier_output_squelettes_pjs"],
+                             self.dict_config["id_factions"])
             if self.apiDoc is None or self.apiSheets is None or self.apiDrive is None:
                 self.apiDrive, self.apiDoc, self.apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
 
@@ -312,30 +324,98 @@ class Application(tk.Frame):
             self.dict_config = None
             self.update_button_state()
 
-    # def lire_fichier_config(self, config_file: str = 'config.ini'):
-    #     try:
-    #         self.dict_config = maGNette.charger_fichier_init(config_file)
-    #         # if resultat_ok:
-    #         #     self.dict_config = dict()
-    #         #     self.dict_config['dossier_intrigues'] = dossier_intrigues
-    #         #     self.dict_config['dossier_pjs'] = dossier_pjs
-    #         #     self.dict_config['id_factions'] = id_factions
-    #         #     self.dict_config['dossier_output_squelettes_pjs'] = dossier_output_squelettes_pjs
-    #         #     self.dict_config['noms_persos'] = noms_persos
-    #         #     self.dict_config['nom_fichier_pnjs'] = nom_fichier_pnjs
-    #         #     self.dict_config['association_auto'] = association_auto
-    #         #     self.dict_config['type_fiche'] = type_fiche
-    #         #     self.dict_config['nom_fichier_sauvegarde'] = nom_fichier_sauvegarde
-    #         #     self.current_file_label.config(text=config_file)
-    #         #     self.update_button_state()
-    #         #     self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'])
-    #         # else:
-    #         #     self.dict_config = None
-    #         self.update_button_state()
-    #     except:
-    #         print(f"une erreur est survenue pendant la lecture du fichier ini")
-    #         self.dict_config = None
-    #         self.update_button_state()
+    def modify_config(self):
+        config_window = tk.Toplevel(self.master)
+        # for key in self.dict_config:
+        #     print(f"{key}:{self.dict_config[key]} type : {type(self.dict_config[key])}")
+
+        tk.Label(config_window, text="Intrigues").grid(row=0, column=0)
+        intrigues_entry = tk.Entry(config_window)
+        intrigues_entry.insert(0, ",".join(self.dict_config['dossier_intrigues']))
+        intrigues_entry.grid(row=0, column=1)
+
+        tk.Label(config_window, text="Base persos gn").grid(row=1, column=0)
+        base_persos_gn_entry = tk.Entry(config_window)
+        base_persos_gn_entry.insert(0, ",".join(self.dict_config['dossier_pjs']))
+        base_persos_gn_entry.grid(row=1, column=1)
+
+        tk.Label(config_window, text="Id factions").grid(row=3, column=0)
+        id_factions_entry = tk.Entry(config_window)
+        id_factions_entry.insert(0, self.dict_config['id_factions'])
+        id_factions_entry.grid(row=3, column=1)
+
+        tk.Label(config_window, text="Dossier output").grid(row=4, column=0)
+        dossier_output_squelettes_pjs_entry = tk.Entry(config_window)
+        dossier_output_squelettes_pjs_entry.insert(0, self.dict_config['dossier_output'])
+        dossier_output_squelettes_pjs_entry.grid(row=4, column=1)
+
+        tk.Label(config_window, text="Association auto").grid(row=5, column=0)
+        association_auto_var = tk.StringVar(value=self.dict_config['association_auto'])
+        association_auto_yes = tk.Radiobutton(config_window, text="Oui", variable=association_auto_var, value="oui")
+        association_auto_yes.grid(row=5, column=1)
+        association_auto_no = tk.Radiobutton(config_window, text="Non", variable=association_auto_var, value="non")
+        association_auto_no.grid(row=5, column=2)
+
+        tk.Label(config_window, text="Type fiche").grid(row=6, column=0)
+        type_fiche_var = tk.StringVar(value=self.dict_config['type_fiche'])
+        type_fiche_chalacta = tk.Radiobutton(config_window, text="Chalacta / modele 7 colonnes",
+                                             variable=type_fiche_var, value="Chalacta / modele 7 colonnes")
+        type_fiche_chalacta.grid(row=6, column=1)
+        type_fiche_autre = tk.Radiobutton(config_window, text="Autre", variable=type_fiche_var, value="autre")
+        type_fiche_autre.grid(row=6, column=2)
+
+        tk.Label(config_window, text="Nom fichier sauvegarde").grid(row=7, column=0)
+        nom_fichier_sauvegarde_entry = tk.Entry(config_window)
+        nom_fichier_sauvegarde_entry.insert(0, self.dict_config['nom_fichier_sauvegarde'])
+        nom_fichier_sauvegarde_entry.grid(row=7, column=1)
+
+        tk.Label(config_window, text="Noms persos").grid(row=8, column=0)
+
+        noms_persos_entry = tk.Entry(config_window)
+        noms_persos_entry.insert(0, ",".join(self.dict_config['noms_persos']))
+        noms_persos_entry.grid(row=8, column=1)
+
+        tk.Label(config_window, text="Nom fichier pnjs").grid(row=9, column=0)
+        nom_fichier_pnjs_entry = tk.Entry(config_window)
+        nom_fichier_pnjs_entry.insert(0, self.dict_config['fichier_noms_pnjs'])
+        nom_fichier_pnjs_entry.grid(row=9, column=1)
+
+        ok_button = tk.Button(config_window, text="Valider", command=lambda: self.validate_config(
+            intrigues_entry.get(), base_persos_gn_entry.get(), id_factions_entry.get(),
+            dossier_output_squelettes_pjs_entry.get(),
+            association_auto_var.get(), type_fiche_var.get(), nom_fichier_sauvegarde_entry.get(),
+            noms_persos_entry.get(),
+            nom_fichier_pnjs_entry.get(), config_window)
+                              )
+
+        ok_button.grid(row=11, column=0)
+        cancel_button = tk.Button(config_window, text="Annuler", command=config_window.destroy)
+        cancel_button.grid(row=11, column=1)
+
+    def validate_config(self, intrigues, base_persos_gn, id_factions, dossier_output_squelettes_pjs,
+                        association_auto, type_fiche, nom_fichier_sauvegarde, noms_persos, nom_fichier_pnjs,
+                        config_window):
+
+        # Create a dictionary with the entered values
+        dict_config = {"dossier_intrigues": intrigues.split(','),
+                       "dossier_pjs": base_persos_gn.split(',') ,
+                       "id_factions": id_factions,
+                       "dossier_output": dossier_output_squelettes_pjs,
+                       "association_auto": association_auto,
+                       "type_fiche": type_fiche,
+                       "nom_fichier_sauvegarde": nom_fichier_sauvegarde,
+                       "noms_persos": noms_persos.split(","),
+                       "fichier_noms_pnjs": nom_fichier_pnjs}
+
+        nom_fichier = nom_fichier_sauvegarde + ".ini"
+        ecrire_fichier_config(dict_config, nom_fichier)
+        self.lire_fichier_config(nom_fichier)
+        # Do something with the config_dict, like saving it to a file
+        # for key in dict_config:
+        #     print(f"{key}:{dict_config[key]} type : {type(dict_config[key])}")
+
+        # Close the configuration window
+        config_window.destroy()
 
     def regen(self):
         regen_window = tk.Toplevel(self.master)

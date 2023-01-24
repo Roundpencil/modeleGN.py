@@ -24,17 +24,8 @@ def charger_fichier_init(fichier_init: str):
                                       for nom_p in config.get('pjs_a_importer', 'noms_persos').split(',')]
 
         # chargement des PNJs depuis le fichier spécifié dans le fichier de config
-        chemin_fichier = config.get('pjs_a_importer', 'nom_fichier_pnjs')
-        dict_config['noms_pnjs'] = []
-        try:
-            with open(chemin_fichier, 'r') as f:
-                for ligne in f:
-                    nom = ligne.strip()
-                    dict_config['noms_pnjs'].append(nom)
-                    # gn.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
-                    # print(f"{gn.dictPNJs[nom]}")
-        except FileNotFoundError:
-            print(f"Le fichier {chemin_fichier} n'a pas été trouvé.")
+        dict_config['fichier_noms_pnjs'] = config.get('pjs_a_importer', 'nom_fichier_pnjs')
+        dict_config['noms_pnjs'] = lire_fichier_pnjs(dict_config['fichier_noms_pnjs'])
 
         dict_config['association_auto'] = config.getboolean('globaux', 'association_auto')
         dict_config['type_fiche'] = config.get('globaux', 'type_fiche')
@@ -46,6 +37,20 @@ def charger_fichier_init(fichier_init: str):
         print("Erreur lors de la lecture du fichier de configuration : {}".format(e))
         return None
     return dict_config
+
+
+def lire_fichier_pnjs(nom_fichier: str):
+    to_return = []
+    try:
+        with open(nom_fichier, 'r') as f:
+            for ligne in f:
+                nom = ligne.strip()
+                to_return.append(nom)
+                # gn.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
+                # print(f"{gn.dictPNJs[nom]}")
+    except FileNotFoundError:
+        print(f"Le fichier {nom_fichier} n'a pas été trouvé.")
+    return to_return
 
 
 def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier_sauvegarde: str,
@@ -96,15 +101,15 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=False)
 
     ecrire_squelettes_localement(mon_gn, prefixeFichiers)
-    tousLesSquelettesPNJ(mon_gn, prefixeFichiers)
+    ecrire_squelettes_localement(mon_gn, prefixeFichiers, pj=False)
     print("*******dumpallscenes*********************")
     # dumpAllScenes(mon_gn)
 
     print("*******changelog*********************")
     if changelog:
         generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets, dossier_output_squelettes_pjs)
-        genererChangeLog(mon_gn, prefixeFichiers, nbJours=3)
-        genererChangeLog(mon_gn, prefixeFichiers, nbJours=4)
+        # genererChangeLog(mon_gn, prefixeFichiers, nbJours=3)
+        # genererChangeLog(mon_gn, prefixeFichiers, nbJours=4)
 
     print("******* statut intrigues *********************")
     if table_intrigues:
@@ -122,13 +127,13 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 #     except FileNotFoundError:
 #         print(f"Le fichier {chemin_fichier} n'a pas été trouvé.")
 
-def lister_erreurs(monGN, prefixe, tailleMinLog=1, verbal=False):
+def lister_erreurs(mon_gn, prefixe, taille_min_log=1, verbal=False):
     logErreur = ""
-    for intrigue in monGN.intrigues.values():
-        if len(intrigue.errorLog) > tailleMinLog:
+    for intrigue in mon_gn.intrigues.values():
+        if len(intrigue.errorLog) > taille_min_log:
             logErreur += f"Pour {intrigue.nom} : \n"
             logErreur += intrigue.errorLog + '\n'
-            logErreur += suggerer_tableau_persos(monGN, intrigue)
+            logErreur += suggerer_tableau_persos(mon_gn, intrigue)
             logErreur += "\n \n"
     if verbal:
         print(logErreur)
@@ -333,7 +338,7 @@ def squelettes_par_perso(monGN, pj=True):
     return squelettes_persos
 
 
-def ecrire_squelettes_localement(mon_gn:GN, prefixe=None, pj=True):
+def ecrire_squelettes_localement(mon_gn: GN, prefixe=None, pj=True):
     squelettes_persos = squelettes_par_perso(mon_gn, pj)
     toutesScenes = "".join(squelettes_persos.values())
 
@@ -343,3 +348,127 @@ def ecrire_squelettes_localement(mon_gn:GN, prefixe=None, pj=True):
             f.close()
 
     return toutesScenes
+
+
+def generer_liste_pnj_dedup(monGN, threshold=89, verbal=False):
+    nomsPNJs = []
+    # nomsNormalises = dict()
+    for intrigue in monGN.intrigues.values():
+        for role in intrigue.rolesContenus.values():
+            if role.estUnPNJ():
+                nomsPNJs.append(role.nom)
+    nomsPNJs = list(set(nomsPNJs))
+    extract = process.dedupe(nomsPNJs, threshold=threshold)
+    extract = sorted(extract)
+    if verbal:
+        for v in extract:
+            print(v)
+    to_return = '\n'.join(extract)
+    return to_return
+
+
+def ecrire_liste_pnj_dedup_localement(mon_gn: GN, prefixe: str, threshold=89, verbal=False):
+    to_print = generer_liste_pnj_dedup(mon_gn, threshold, verbal)
+    if prefixe is not None:
+        with open(prefixe + ' - liste_pnjs_dedupliqués.txt', 'w', encoding="utf-8") as f:
+            f.write(to_print)
+            f.close()
+
+
+def genererChangeLog(monGN, prefixe, nbJours=1, verbal=False):
+    dateReference = datetime.date.today() - datetime.timedelta(days=nbJours)
+
+    # on crée un tableau avec tous lse changements :
+    # [orga referent | perso | titre intrigue | url intrigue | date changement intrigue]
+    # structure souhaitée :
+    # orga referent / persos / titre intrigue/ url intrigue | date changement intrigue
+
+    restitution = dict()
+    for intrigue in monGN.intrigues.values():
+        if intrigue.lastFileEdit.date() > dateReference:
+            for role in intrigue.rolesContenus.values():
+                if role.perso is not None and estUnPJ(role.perso.pj):
+                    referent = role.perso.orgaReferent.strip()
+
+                    if len(referent) < 3:
+                        referent = "Orga sans nom"
+
+                    # print(f"je m'apprête à ajouter une ligne pour {referent} : {role.perso.nom} dans {intrigue.nom}")
+                    nomPerso = role.perso.nom
+                    nomIntrigue = intrigue.nom
+
+                    # on vérifie que le référent et le persos existent, sinon on initialise
+                    if referent not in restitution:
+                        restitution[referent] = dict()
+                    if nomPerso not in restitution[referent]:
+                        # restitution[referent][nomPerso] = dict()
+                        restitution[referent][nomPerso] = []
+                    # if nomIntrigue not in restitution[referent][nomPerso]:
+                    #     restitution[referent][nomPerso][nomIntrigue] = \
+                    #         [intrigue.lastProcessing.strftime("%d/%m/%Y à %H:%M:%S"),
+                    #          intrigue.getFullUrl()]
+                    # # on utilise nomintrigue comem clef, car sinon, comme on rentre par les roles on va multiplier les entrées
+
+                    # et maintenant on remplit la liste
+                    restitution[referent][nomPerso].append([intrigue.nom,
+                                                            intrigue.getFullUrl(),
+                                                            intrigue.lastFileEdit.strftime("%d/%m/%Y à %H:%M:%S")])
+
+                    # print(restitution)
+                    # restitution.append([role.perso.orgaReferent,
+                    #                     role.perso.nom,
+                    #                     intrigue.titre,
+                    #                     intrigue.getFullUrl(),
+                    #                     intrigue.lastProcessing])
+    # print(restitution)
+    texte = ""
+    for nomOrga in restitution:
+        texte += f"{nomOrga}, ces personnages sont dans des intrigues qui ont été modifiées depuis {dateReference} : \n"
+        for perso in restitution[nomOrga]:
+            texte += f"\t pour {perso} : \n "
+            for element in restitution[nomOrga][perso]:
+                # texte += f"\t\t l'intrigue {restitution[nomOrga][perso][0]} \n " \
+                #          f"\t\t a été modifiée le {restitution[nomOrga][perso][2]} \n" \
+                #          f"\t\t (url : {restitution[nomOrga][perso][1]}) \n"
+                texte += f"\t\t l'intrigue {element[0]} \n " \
+                         f"\t\t a été modifiée le {element[2]} \n" \
+                         f"\t\t (url : {element[1]}) \n\n"
+
+    if verbal:
+        print(texte)
+
+    if prefixe is not None:
+        with open(prefixe + ' - changements - ' + str(nbJours) + 'j.txt', 'w', encoding="utf-8") as f:
+            f.write(texte)
+            f.close()
+
+    return texte
+
+
+def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
+    config = configparser.ConfigParser()
+
+    # Create the sections
+    config['dossiers'] = {'intrigues': ",".join(dict_config['dossier_intrigues']),
+                          'id_factions': dict_config['id_factions'],
+                          'dossier_output_squelettes_pjs': dict_config['dossier_output']}
+
+    nb_fichiers_persos = 1
+    for perso in dict_config['dossier_pjs']:
+        config['dossiers']['base_persos_'+str(nb_fichiers_persos)] = perso
+        nb_fichiers_persos += 1
+
+    config['globaux'] = {'association_auto': dict_config['association_auto'],
+                         'type_fiche': dict_config['type_fiche']}
+
+    config['sauvegarde'] = {'nom_fichier_sauvegarde': dict_config['nom_fichier_sauvegarde']}
+
+    config['pjs_a_importer'] = {'noms_persos': ",".join(dict_config['noms_persos']),
+                                'nom_fichier_pnjs': dict_config['fichier_noms_pnjs']}
+
+    # Write the config file
+    with open(nom_fichier, 'w') as configfile:
+        config.write(configfile)
+
+
+
