@@ -145,15 +145,37 @@ class Application(tk.Frame):
     def submit_new_gn(self, intrigues, base_persos_gn, id_factions, dossier_output_squelettes_pjs,
                       association_auto, type_fiche, nom_fichier_sauvegarde, noms_persos, nom_fichier_pnjs, window):
         # Do something with the user's input
-        print(f"Intrigues: {intrigues}")
-        print(f"Base persos GN: {base_persos_gn}")
-        print(f"ID factions: {id_factions}")
-        print(f"Dossier output squelettes PJs: {dossier_output_squelettes_pjs}")
-        print(f"Association auto: {association_auto}")
-        print(f"Type de fiche: {type_fiche}")
-        print(f"Nom fichier sauvegarde: {nom_fichier_sauvegarde}")
-        print(f"Noms persos: {noms_persos}")
-        print(f"Nom fichier PNJs: {nom_fichier_pnjs}")
+        # print(f"Intrigues: {intrigues}")
+        # print(f"Base persos GN: {base_persos_gn}")
+        # print(f"ID factions: {id_factions}")
+        # print(f"Dossier output squelettes PJs: {dossier_output_squelettes_pjs}")
+        # print(f"Association auto: {association_auto}")
+        # print(f"Type de fiche: {type_fiche}")
+        # print(f"Nom fichier sauvegarde: {nom_fichier_sauvegarde}")
+        # print(f"Noms persos: {noms_persos}")
+        # print(f"Nom fichier PNJs: {nom_fichier_pnjs}")
+
+#todo : régler le problème des radiobuttons dans les valeurs par défaut des panneaux de config
+
+        # Create a dictionary with the entered values
+        dict_config = {"dossier_intrigues": intrigues.split(','),
+                       "dossier_pjs": base_persos_gn.split(','),
+                       "id_factions": id_factions,
+                       "dossier_output": dossier_output_squelettes_pjs,
+                       "association_auto": association_auto,
+                       "type_fiche": type_fiche,
+                       "nom_fichier_sauvegarde": nom_fichier_sauvegarde,
+                       "noms_persos": noms_persos.split(","),
+                       "fichier_noms_pnjs": nom_fichier_pnjs}
+
+        nom_fichier = nom_fichier_sauvegarde + ".ini"
+        ecrire_fichier_config(dict_config, nom_fichier)
+        self.lire_fichier_config(nom_fichier)
+        # Do something with the config_dict, like saving it to a file
+        # for key in dict_config:
+        #     print(f"{key}:{dict_config[key]} type : {type(dict_config[key])}")
+
+        # Close the configuration window
         window.destroy()
 
     def diagnostic_mode(self):
