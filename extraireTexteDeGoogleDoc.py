@@ -151,7 +151,9 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
     lastFileEdit = datetime.datetime.strptime(
         item['modifiedTime'][:-5],
         '%Y-%m-%dT%H:%M:%S')
-    print(f"clef présentes : {item['lastModifyingUser'].keys()}")
+    if verbal:
+        print(f"clef présentes : {item['lastModifyingUser'].keys()}")
+
     try:
         derniere_modification_par = item['lastModifyingUser']['emailAddress']
     except:
@@ -418,6 +420,18 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
 
             elif balise[0:10].lower() == '## résumé:':
                 sceneAAjouter.resume = balise[11:].strip()
+
+            elif balise[0:13].lower() == '## factions :':
+                sceneAAjouter.nom_factions.add(balise[14:].strip())
+
+            elif balise[0:12].lower() == '## faction :':
+                sceneAAjouter.nom_factions.add(balise[13:].strip())
+
+            elif balise[0:12].lower() == '## factions:':
+                sceneAAjouter.nom_factions.add(balise[13:].strip())
+
+            elif balise[0:11].lower() == '## faction:':
+                sceneAAjouter.nom_factions.add(balise[12:].strip())
 
             else:
                 print("balise inconnue : " + balise + " dans le conteneur " + nomConteneur)
@@ -740,6 +754,8 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=False):
         print(f'An error occurred: {err}')
         return
 
+    print(f"texte = {text}")
+
     # à ce stade, j'ai lu les factions et je peux dépouiller
     # print(f"clefs dictionnaire : {mon_GN.dictPJs.keys()}")
     lines = text.splitlines()
@@ -758,6 +774,7 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=False):
             for perso_name in personnages_names:
                 perso_name = perso_name.strip()
                 score = fuzzywuzzy.process.extractOne(perso_name, noms_persos)
+                print(f"score durant lecture faction pour {perso_name} = {score}")
                 if verbal:
                     print(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
                 if temp_dict.get(score[0]):

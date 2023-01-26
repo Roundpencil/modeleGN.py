@@ -52,6 +52,7 @@ def lire_fichier_pnjs(nom_fichier: str):
         print(f"Le fichier {nom_fichier} n'a pas été trouvé.")
     return to_return
 
+#todo : le bug est que l'intrigue est lue sans tableau des persos car nom=pj est none pendant tout ce temps ?
 
 def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier_sauvegarde: str,
                          dossier_output_squelettes_pjs: str,
@@ -75,12 +76,17 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                           apiDoc=api_doc,
                                           singletest=singletest_perso,
                                           fast=fast_persos)
-    extraireTexteDeGoogleDoc.extraire_factions(mon_gn, apiDoc=api_doc)
+
+
+
 
     if noms_pjs:
         mon_gn.forcer_import_pjs(noms_pjs)
     if noms_pnjs:
         mon_gn.forcer_import_pnjs(noms_pnjs)
+
+    extraireTexteDeGoogleDoc.extraire_factions(mon_gn, apiDoc=api_doc)
+    print(f"mon_gn.factions = {mon_gn.factions}")
 
     mon_gn.rebuildLinks(verbal)
 

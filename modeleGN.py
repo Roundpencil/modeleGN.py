@@ -189,7 +189,7 @@ class Personnage(ConteneurDeScene):
 class Role:
 
     def __init__(self, conteneur, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ,
-                 typeIntrigue="", niveauImplication="", perimetreIntervention="", issu_dune_faction = False):
+                 typeIntrigue="", niveauImplication="", perimetreIntervention="", issu_dune_faction=False):
         self.conteneur = conteneur
         self.perso = perso
         self.nom = nom
@@ -325,7 +325,7 @@ class Scene:
         self.description = description
         self.actif = actif
         self.roles = set()
-        self.nom_factions = set()
+        self.nom_factions = set() #des strings qui contiennent les noms des factions à embarquer
         self.niveau = niveau  # 1 : dans la chronologie globale,
         # 2, dans tous les personnages de l'intrigue (pour info, donc pour les autres)
         # 3 : personnages impactés uniquement
@@ -563,6 +563,7 @@ class GN:
     def associerPJsARoles(self, seuilAlerte=70, verbal=True):
         print("Début de l'association automatique des rôles aux persos")
         nomsPjs = self.noms_pjs()
+        print(f"noms pjs = {self.noms_pjs()}")
         dictNomsPJ = dict()
         for pj in self.dictPJs.values():  # on crée un dictionnaire temporaire nom > pj pour faire les associations
             dictNomsPJ[pj.nom] = pj
@@ -591,6 +592,7 @@ class GN:
         for intrigue in self.intrigues.values():
             for role in intrigue.rolesContenus.values():
                 if estUnPJ(role.pj):
+                    print(f"nom du role testé = {role.nom}")
                     score = process.extractOne(role.nom, nomsPjs)
                     # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
                     check = intrigue.associerRoleAPerso(roleAAssocier=role, personnage=dictNomsPJ[score[0]],
@@ -624,7 +626,7 @@ class GN:
         self.associerPJsARoles(verbal)
 
     # lire les factions dans toutes les scènes
-    #normaliser leurs noms pour etre sur de lire la bonne
+    # normaliser leurs noms pour etre sur de lire la bonne
     # pour chaque nom de la faction chercher si le role est dans la scène
     # si oui (indice de confiance suffisant) > ajouter la scène au role
     # si non > ajouter un nouveau role avec une propriété issu_dune_faction= true
@@ -634,35 +636,40 @@ class GN:
         for intrigue in self.intrigues.values():
             for scene in intrigue.scenes:
                 for nom_faction in scene.nom_factions:
-                    score_faction = process.extractOne(nom_faction, self.factions)
+                    print(f"nom_faction, self.factions = {nom_faction}, {self.factions.keys()}")
+                    score_faction = process.extractOne(nom_faction, self.factions.keys())
+                    print(f"score_faction = {score_faction}")
                     if score_faction[1] < seuil_nom_faction:
                         intrigue.errorLog += f"Warning : la faction {nom_faction} " \
                                              f"a été associée à {score_faction[0]} " \
                                              f"à seulement {score_faction[1]}% de confiance"
                     ma_faction = self.factions[score_faction[0]]
-                    for role_faction in ma_faction:
-                        score_role = process.extractOne(role_faction, intrigue.rolesContenus)
+                    for personnage_dans_faction in ma_faction.personnages:
+                        print(f"personnage_dans_faction, intrigue.rolesContenus.keys() ="
+                              f" {personnage_dans_faction.nom}, {intrigue.rolesContenus.keys()}")
+                        score_role = process.extractOne(personnage_dans_faction.nom, intrigue.rolesContenus.keys())
                         if score_role[1] < seuil_reconciliation_role:
-                            intrigue.errorLog += f"Info : le role {role_faction} " \
+                            intrigue.errorLog += f"Info : le role {personnage_dans_faction} " \
                                                  f"issu de la faction {nom_faction} " \
                                                  f"dans la scène {scene.titre} " \
                                                  f"n'a pas été associée à {score_role[0]} " \
                                                  f"(seulement {score_role[1]}% de confiance) " \
                                                  f"nous avons donc ajouté un rôle dans la scène qui n'est " \
                                                  f"pas dans le tableau des persos"
-                            # ajouter un nouveau role dans l'intrigue avec role_faction = true
-                            roleAAjouter = Role(intrigue,
-                                                nom=role_faction,
-                                                description=f"Role ajouté via la faction {nom_faction}",
-                                                issu_dune_faction=True
-                                                )
-                            intrigue.rolesContenus[roleAAjouter.nom] = roleAAjouter
-                            #todo : l'ajouter à la scène
-                        else:
-                            #todo : ajouter la scène au role
-                            pass
+                            # ajouter un nouveau role dans l'intrigue avec personnage_dans_faction = true
+                            role_a_ajouter = Role(intrigue,
+                                                  nom=personnage_dans_faction,
+                                                  description=f"Role ajouté via la faction {nom_faction}",
+                                                  issu_dune_faction=True
+                                                  )
+                            intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
+                            # l'ajouter à la scène
+                            role_a_ajouter.ajouterAScene(scene)
 
-                # todo : coder la lecture de la balise faction dans une scène,
+                        else:
+                            # ajouter la scène au role
+                            intrigue.rolesContenus[score_role[0]].ajouterAScene(scene)
+                            pass
 
     # utilisée pour préparer lassociation roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
