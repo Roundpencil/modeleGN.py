@@ -478,7 +478,15 @@ class GN:
                 return self.dictPJs[nom]
         raise ValueError(f"Le personnage {nom} n'a pas été trouvé")
 
-    # todo : tester les factions
+    #todo : tester les factions
+    # algo d'ajout :
+    # avant de faire les associations on parcourre toutes les intrigues > scènes
+    # SI on trouve une faction
+    # on parcourre tous les persos de la faction pour voir s'ils ont une correspondance avec les rôles de l'intrigue
+    # si ils en ont une > on ajoute la scène au role
+    # sinon on ajoute un nouveau role,
+    # avec une propriété role_Faction = true pour ne pas le prendre par mégarde quand on fera le tableau des erreurs
+    # faire évoluer le tableau des erreurs pour ne pas prendre en compte ces persos
 
     # def charger_factions_depuis_fichier(self, fichier: str):
     #     factions_dict = lire_factions_depuis_fichier(fichier)
@@ -568,7 +576,8 @@ class GN:
         for pj in self.dictPJs.values():  # on crée un dictionnaire temporaire nom > pj pour faire les associations
             dictNomsPJ[pj.nom] = pj
 
-        # Associer les rôles sans passer par la case tableau d'assocaition pour les PJs
+        # Associer les rôles sans passer par la case tableau d'association
+        # pour les rôles issus des scènes dans les fiches de PJs
         for pj in self.dictPJs.values():
             # print(f"je suis en train de chercher des roles dans le pj {pj.nom}")
             # print(f"noms de roles trouvés : {pj.rolesContenus}")

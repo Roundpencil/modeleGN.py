@@ -157,7 +157,7 @@ def genererListeItems(monGN, apiDrive, folderID):
         #     fields="nextPageToken, files(id, name, modifiedTime)").execute()
         results = apiDrive.files().list(
             pageSize=100, q=requete,
-            fields="nextPageToken, files(id, name, modifiedTime, lastModifyingUser)").execute()  # todo last modifsying
+            fields="nextPageToken, files(id, name, modifiedTime, lastModifyingUser)").execute()
 
         items = results.get('files',
                             [])  # le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues

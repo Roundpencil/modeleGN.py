@@ -69,7 +69,7 @@ def main():
 
     monGN = GN(folderIntriguesID=dossier_intrigues,
                folderPJID=dossier_pjs,
-               fichier_factions=id_factions,
+               id_factions=id_factions,
                dossier_outputs_drive=dossier_output_squelettes_pjs)
 
     # print(f"1 - pnj dans ce GN : {mon_gn.noms_pnjs()}")

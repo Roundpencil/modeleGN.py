@@ -335,8 +335,8 @@ class Application(tk.Frame):
                 self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'])
             except Exception as f:
                 print(f"le gn {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
-                self.gn = GN(self.dict_config["intrigues"], self.dict_config["dossier_pj"],
-                             self.dict_config["dossier_output_squelettes_pjs"],
+                self.gn = GN(self.dict_config['dossier_intrigues'], self.dict_config["dossier_pjs"],
+                             self.dict_config['dossier_output'],
                              self.dict_config["id_factions"])
             if self.apiDoc is None or self.apiSheets is None or self.apiDrive is None:
                 self.apiDrive, self.apiDoc, self.apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
@@ -632,7 +632,7 @@ class Application(tk.Frame):
                              singletest_perso=personnages_specifique, singletest_intrigue=intrigue_specifique)
 
 
-# todo : à tester
+
 # ajouter les options actuellement forcées à true
 
 

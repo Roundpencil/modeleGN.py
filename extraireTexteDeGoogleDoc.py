@@ -153,7 +153,7 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
         '%Y-%m-%dT%H:%M:%S')
     print(f"clef présentes : {item['lastModifyingUser'].keys()}")
     try:
-        derniere_modification_par = item['lastModifyingUser']['emailAddress']  # todo lastmodified
+        derniere_modification_par = item['lastModifyingUser']['emailAddress']
     except:
         derniere_modification_par = "Utilisateur inconnu"
 
