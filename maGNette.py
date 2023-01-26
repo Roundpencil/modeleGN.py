@@ -119,10 +119,7 @@ def main():
 
     # todo générer les relations lues dans un tableau des relations
 
-    # todo : coder la lecture de la balise faction dans une scène,
-    #  qui ajouter des dummy roles dans la scène quand ils sont lus?
-    #  qu'il faudra nettoyer avant chaque association dans cleanupall
-    #  qui forcera lors de l'association l'ajout de la scène au personnage? comment gérer les rôles?
+
 
     print("****************************")
     print("****************************")
@@ -691,6 +688,13 @@ def charger_PNJs(gn, chemin_fichier):
     except FileNotFoundError:
         print(f"Le fichier {chemin_fichier} n'a pas été trouvé.")
 
+def ajouter_champs_pour_gerer_faction(gn:GN):
+    for intrigue in gn.intrigues.values():
+        for scene in intrigue.scenes:
+            scene.nom_factions = set()
+        for role in intrigue.rolesContenus:
+            role.issu_dune_faction = False
+            #todo : continuer de complèter ici
 
 if __name__ == '__main__':
     main()

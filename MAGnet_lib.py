@@ -156,12 +156,14 @@ def ecrire_erreurs_dans_drive(texte_erreurs, apiDoc, apiDrive, parent):
 def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
     noms_persos = mon_gn.noms_pjs()
     noms_pnjs = mon_gn.noms_pnjs()
-    noms_roles_dans_intrigue = [x.perso.nom for x in intrigue.rolesContenus.values() if x.perso is not None]
+    noms_roles_dans_intrigue = [x.perso.nom for x in intrigue.rolesContenus.values()
+                                if not x.issu_dune_faction and x.perso is not None]
     # print("Tableau suggéré")
     # créer un set de tous les rôles de chaque scène de l'intrigue
     iwant = []
     for scene in intrigue.scenes:
         if scene.noms_roles_lus is not None:
+            # comme un prend uniquement les roles lus, on exclue de facto les persos issus de faction
             iwant += scene.noms_roles_lus
     iwant = [x.strip() for x in iwant]
     iwant = set(iwant)
@@ -455,7 +457,7 @@ def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
 
     nb_fichiers_persos = 1
     for perso in dict_config['dossier_pjs']:
-        config['dossiers']['base_persos_'+str(nb_fichiers_persos)] = perso
+        config['dossiers']['base_persos_' + str(nb_fichiers_persos)] = perso
         nb_fichiers_persos += 1
 
     config['globaux'] = {'association_auto': dict_config['association_auto'],
@@ -469,6 +471,3 @@ def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
     # Write the config file
     with open(nom_fichier, 'w') as configfile:
         config.write(configfile)
-
-
-

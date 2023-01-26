@@ -189,7 +189,7 @@ class Personnage(ConteneurDeScene):
 class Role:
 
     def __init__(self, conteneur, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ,
-                 typeIntrigue="", niveauImplication="", perimetreIntervention=""):
+                 typeIntrigue="", niveauImplication="", perimetreIntervention="", issu_dune_faction = False):
         self.conteneur = conteneur
         self.perso = perso
         self.nom = nom
@@ -202,6 +202,7 @@ class Role:
         self.niveauImplication = niveauImplication
         self.scenes = set()
         self.perimetreIntervention = perimetreIntervention
+        self.issu_dune_faction = issu_dune_faction
 
     def __str__(self):
         toReturn = ""
@@ -324,6 +325,7 @@ class Scene:
         self.description = description
         self.actif = actif
         self.roles = set()
+        self.nom_factions = set()
         self.niveau = niveau  # 1 : dans la chronologie globale,
         # 2, dans tous les personnages de l'intrigue (pour info, donc pour les autres)
         # 3 : personnages impactés uniquement
@@ -339,7 +341,6 @@ class Scene:
         # print(f"date : {self.date}")
         # if type(self.date) == float or type(self.date) == int or str(self.date[1:]).isnumeric():
         if type(self.date) == float or type(self.date) == int or re.match(r"^-\d+$", self.date):
-
 
             # print(f"date est numérique")
 
@@ -477,16 +478,6 @@ class GN:
             if nom in self.dictPJs:
                 return self.dictPJs[nom]
         raise ValueError(f"Le personnage {nom} n'a pas été trouvé")
-
-    #todo : tester les factions
-    # algo d'ajout :
-    # avant de faire les associations on parcourre toutes les intrigues > scènes
-    # SI on trouve une faction
-    # on parcourre tous les persos de la faction pour voir s'ils ont une correspondance avec les rôles de l'intrigue
-    # si ils en ont une > on ajoute la scène au role
-    # sinon on ajoute un nouveau role,
-    # avec une propriété role_Faction = true pour ne pas le prendre par mégarde quand on fera le tableau des erreurs
-    # faire évoluer le tableau des erreurs pour ne pas prendre en compte ces persos
 
     # def charger_factions_depuis_fichier(self, fichier: str):
     #     factions_dict = lire_factions_depuis_fichier(fichier)
@@ -628,8 +619,50 @@ class GN:
     def rebuildLinks(self, verbal=True):
         self.clearAllAssociations()
         self.updateOldestUpdate()
+        self.ajouter_roles_issus_de_factions(verbal)
         self.associerPNJsARoles(verbal)
         self.associerPJsARoles(verbal)
+
+    # lire les factions dans toutes les scènes
+    #normaliser leurs noms pour etre sur de lire la bonne
+    # pour chaque nom de la faction chercher si le role est dans la scène
+    # si oui (indice de confiance suffisant) > ajouter la scène au role
+    # si non > ajouter un nouveau role avec une propriété issu_dune_faction= true
+
+    def ajouter_roles_issus_de_factions(self, seuil_nom_faction=85, seuil_reconciliation_role=80, verbal: bool = False):
+        # todo : tester les factions
+        for intrigue in self.intrigues.values():
+            for scene in intrigue.scenes:
+                for nom_faction in scene.nom_factions:
+                    score_faction = process.extractOne(nom_faction, self.factions)
+                    if score_faction[1] < seuil_nom_faction:
+                        intrigue.errorLog += f"Warning : la faction {nom_faction} " \
+                                             f"a été associée à {score_faction[0]} " \
+                                             f"à seulement {score_faction[1]}% de confiance"
+                    ma_faction = self.factions[score_faction[0]]
+                    for role_faction in ma_faction:
+                        score_role = process.extractOne(role_faction, intrigue.rolesContenus)
+                        if score_role[1] < seuil_reconciliation_role:
+                            intrigue.errorLog += f"Info : le role {role_faction} " \
+                                                 f"issu de la faction {nom_faction} " \
+                                                 f"dans la scène {scene.titre} " \
+                                                 f"n'a pas été associée à {score_role[0]} " \
+                                                 f"(seulement {score_role[1]}% de confiance) " \
+                                                 f"nous avons donc ajouté un rôle dans la scène qui n'est " \
+                                                 f"pas dans le tableau des persos"
+                            # ajouter un nouveau role dans l'intrigue avec role_faction = true
+                            roleAAjouter = Role(intrigue,
+                                                nom=role_faction,
+                                                description=f"Role ajouté via la faction {nom_faction}",
+                                                issu_dune_faction=True
+                                                )
+                            intrigue.rolesContenus[roleAAjouter.nom] = roleAAjouter
+                            #todo : l'ajouter à la scène
+                        else:
+                            #todo : ajouter la scène au role
+                            pass
+
+                # todo : coder la lecture de la balise faction dans une scène,
 
     # utilisée pour préparer lassociation roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
