@@ -164,12 +164,13 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     noms_pnjs = mon_gn.noms_pnjs()
     noms_roles_dans_intrigue = [x.perso.nom for x in intrigue.rolesContenus.values()
                                 if not x.issu_dune_faction and x.perso is not None]
+    print(f"noms roles dans intrigue {intrigue.nom} : {noms_roles_dans_intrigue}")
     # print("Tableau suggéré")
     # créer un set de tous les rôles de chaque scène de l'intrigue
     iwant = []
     for scene in intrigue.scenes:
         if scene.noms_roles_lus is not None:
-            # comme un prend uniquement les roles lus, on exclue de facto les persos issus de faction
+            # comme on prend uniquement les roles lus, on exclut de facto les persos issus de faction
             iwant += scene.noms_roles_lus
     iwant = [x.strip() for x in iwant]
     iwant = set(iwant)

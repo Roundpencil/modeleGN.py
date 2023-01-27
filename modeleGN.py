@@ -649,7 +649,7 @@ class GN:
                               f" {personnage_dans_faction.nom}, {intrigue.rolesContenus.keys()}")
                         score_role = process.extractOne(personnage_dans_faction.nom, intrigue.rolesContenus.keys())
                         if score_role[1] < seuil_reconciliation_role:
-                            intrigue.errorLog += f"Info : le role {personnage_dans_faction} " \
+                            intrigue.errorLog += f"Info : le role {personnage_dans_faction.nom} " \
                                                  f"issu de la faction {nom_faction} " \
                                                  f"dans la scène {scene.titre} " \
                                                  f"n'a pas été associée à {score_role[0]} " \
@@ -658,7 +658,7 @@ class GN:
                                                  f"pas dans le tableau des persos"
                             # ajouter un nouveau role dans l'intrigue avec personnage_dans_faction = true
                             role_a_ajouter = Role(intrigue,
-                                                  nom=personnage_dans_faction,
+                                                  nom=personnage_dans_faction.nom,
                                                   description=f"Role ajouté via la faction {nom_faction}",
                                                   issu_dune_faction=True
                                                   )
@@ -670,6 +670,8 @@ class GN:
                             # ajouter la scène au role
                             intrigue.rolesContenus[score_role[0]].ajouterAScene(scene)
                             pass
+#todo : quand on loade le fichier faction, clearer les factions pour prendre en compte les suppressions entre deux loading
+#todo : corriger le tableau suggéré et le print dans le fichier d'erreur pour supprimes les retours à la ligne
 
     # utilisée pour préparer lassociation roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer

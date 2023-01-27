@@ -1102,6 +1102,28 @@ def formatter_fichier_erreurs(api_doc, doc_id):
                             'fields': 'foregroundColor'
                         }
                     })
+                elif text.startswith("Info"):
+                    # Si la ligne commence par "Warning", on ajoute une requête pour mettre le texte en orange
+                    requests.append({
+                        'updateTextStyle': {
+                            'range': {
+                                'startIndex': line.get('startIndex'),
+                                'endIndex': line.get('endIndex')
+                            },
+                            'textStyle': {
+                                'foregroundColor': {
+                                    'color': {
+                                        'rgbColor': {
+                                            'blue': 1.0,
+                                            'green': 0.0,
+                                            'red': 0.0
+                                        }
+                                    }
+                                }
+                            },
+                            'fields': 'foregroundColor'
+                        }
+                    })
                 elif text.startswith("[XX]"):
                     # Si la ligne commence par "[XX]", on ajoute une requête pour mettre le texte en vert
                     requests.append({
