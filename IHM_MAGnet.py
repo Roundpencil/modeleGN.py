@@ -249,7 +249,7 @@ class Application(tk.Frame):
         generer_changelog_drive_button.grid(row=12, column=0, sticky="nsew")
 
         generer_changelog_local_button = tk.Button(diagnostic_window, text="Générer changelog localement",
-                                                   command=lambda: genererChangeLog(
+                                                   command=lambda: generer_changelog(
                                                        self.gn, str(datetime.date.today()))
                                                    )
         generer_changelog_local_button.grid(row=13, column=0, sticky="nsew")

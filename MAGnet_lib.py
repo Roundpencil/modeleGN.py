@@ -384,7 +384,7 @@ def ecrire_liste_pnj_dedup_localement(mon_gn: GN, prefixe: str, threshold=89, ve
             f.close()
 
 
-def genererChangeLog(monGN, prefixe, nbJours=1, verbal=False):
+def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
     dateReference = datetime.date.today() - datetime.timedelta(days=nbJours)
 
     # on crée un tableau avec tous lse changements :

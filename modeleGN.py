@@ -560,10 +560,11 @@ class GN:
                         if verbal:
                             print(texteErreur)
 
-    def associerPJsARoles(self, seuilAlerte=70, verbal=True):
+    def associer_pj_a_roles(self, seuilAlerte=70, verbal=True):
         print("Début de l'association automatique des rôles aux persos")
         nomsPjs = self.noms_pjs()
-        print(f"noms pjs = {self.noms_pjs()}")
+        if verbal:
+            print(f"noms pjs = {self.noms_pjs()}")
         dictNomsPJ = dict()
         for pj in self.dictPJs.values():  # on crée un dictionnaire temporaire nom > pj pour faire les associations
             dictNomsPJ[pj.nom] = pj
@@ -589,6 +590,7 @@ class GN:
                         print(texteErreur)
 
         # faire l'association dans les intrigues à partir du nom de l'intrigue
+        # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant
         for intrigue in self.intrigues.values():
             for role in intrigue.rolesContenus.values():
                 if estUnPJ(role.pj):
@@ -623,7 +625,7 @@ class GN:
         self.updateOldestUpdate()
         self.ajouter_roles_issus_de_factions(verbal)
         self.associerPNJsARoles(verbal)
-        self.associerPJsARoles(verbal)
+        self.associer_pj_a_roles(verbal)
 
     # lire les factions dans toutes les scènes
     # normaliser leurs noms pour etre sur de lire la bonne
@@ -633,9 +635,11 @@ class GN:
 
     def ajouter_roles_issus_de_factions(self, seuil_nom_faction=85, seuil_reconciliation_role=80, verbal: bool = False):
         # todo : tester les factions
+        #lire toutes les scènes pours trouver les factions
         for intrigue in self.intrigues.values():
             for scene in intrigue.scenes:
                 for nom_faction in scene.nom_factions:
+                    # quand on trouve une faction on cherche dans le GN le bon nom
                     print(f"nom_faction, self.factions = {nom_faction}, {self.factions.keys()}")
                     score_faction = process.extractOne(nom_faction, self.factions.keys())
                     print(f"score_faction = {score_faction}")
@@ -644,6 +648,8 @@ class GN:
                                              f"a été associée à {score_faction[0]} " \
                                              f"à seulement {score_faction[1]}% de confiance"
                     ma_faction = self.factions[score_faction[0]]
+                    # pour chaque personnage de la faction, on vérifie s'il a une correspondance
+                    # dans les persos de la scène, en définissant un seuil d'acceptabilité
                     for personnage_dans_faction in ma_faction.personnages:
                         print(f"personnage_dans_faction, intrigue.rolesContenus.keys() ="
                               f" {personnage_dans_faction.nom}, {intrigue.rolesContenus.keys()}")
@@ -669,9 +675,8 @@ class GN:
                         else:
                             # ajouter la scène au role
                             intrigue.rolesContenus[score_role[0]].ajouterAScene(scene)
-                            pass
 #todo : quand on loade le fichier faction, clearer les factions pour prendre en compte les suppressions entre deux loading
-#todo : corriger le tableau suggéré et le print dans le fichier d'erreur pour supprimes les retours à la ligne
+#todo : corriger le tableau suggéré
 
     # utilisée pour préparer lassociation roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer

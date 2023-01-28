@@ -448,8 +448,8 @@ def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True
 
     # dans ce cas, on prend les noms du tableau, qui fon fois, et on s'en sert pour identifier
     # les noms de la scène
-    for nomRole in roles:
-        if len(nomRole) < 2:
+    for nom_du_role in roles:
+        if len(nom_du_role) < 2:
             continue
         # SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles > on les crée sans se poser de questions
         if nomsRoles is None:
@@ -457,13 +457,13 @@ def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True
 
             # on cherche s'il existe déjà un rôle avec ce nom dans le conteneur
             roleAAjouter = None
-            nomRole = nomRole.strip()
-            if nomRole in conteneur.rolesContenus:
-                # print(f"nom trouvé dans le contenu : {nomRole}")
-                roleAAjouter = conteneur.rolesContenus[nomRole]
+            nom_du_role = nom_du_role.strip()
+            if nom_du_role in conteneur.rolesContenus:
+                # print(f"nom trouvé dans le contenu : {nom_du_role}")
+                roleAAjouter = conteneur.rolesContenus[nom_du_role]
             else:
-                # print(f"nouveau role créé dans le contenu : {nomRole}")
-                roleAAjouter = Role(conteneur, nom=nomRole)
+                # print(f"nouveau role créé dans le contenu : {nom_du_role}")
+                roleAAjouter = Role(conteneur, nom=nom_du_role)
                 conteneur.rolesContenus[roleAAjouter.nom] = roleAAjouter
 
             roleAAjouter.ajouterAScene(sceneAAjouter)
@@ -472,17 +472,18 @@ def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True
 
             # print(f"après opération d'ajout de role, les roles contienntn {conteneur.rolesContenus} ")
 
-
         else:
             # Sinon, il faut normaliser et extraire les rôles
             # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
-            score = process.extractOne(nomRole.strip(), nomsRoles)
-            # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nomRole.strip(), currentIntrigue.nom, score))
+            score = process.extractOne(nom_du_role.strip(), nomsRoles)
+            print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
+                                                                                              currentIntrigue.nom,
+                                                                                              score))
 
             # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'est peut-être trompé de perso!
             if score is not None:
                 if score[1] < seuil:
-                    warningText = f"Warning association Scene ({score[1]}) - nom dans scène : {nomRole} > Role : {score[0]} dans {conteneur.nom}/{sceneAAjouter.titre}"
+                    warningText = f"Warning association Scene ({score[1]}) - nom dans scène : {nom_du_role} > Role : {score[0]} dans {conteneur.nom}/{sceneAAjouter.titre}"
                     conteneur.addToErrorLog(warningText)
                     if verbal:
                         print(warningText)
@@ -491,7 +492,7 @@ def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True
                 monRole = conteneur.rolesContenus[score[0]]
                 monRole.ajouterAScene(sceneAAjouter)
             else:
-                texteErreur = f"Erreur, process renvoie None pour nom scène : {nomRole} dans {sceneAAjouter.titre}"
+                texteErreur = f"Erreur, process renvoie None pour nom scène : {nom_du_role} dans {sceneAAjouter.titre}"
                 if verbal:
                     print(texteErreur)
                 conteneur.errorLog += texteErreur + '\n'
@@ -1175,6 +1176,3 @@ def formatter_fichier_erreurs(api_doc, doc_id):
         result = None
 
     return result
-
-
-
