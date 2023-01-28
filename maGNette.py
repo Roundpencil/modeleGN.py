@@ -88,7 +88,6 @@ def main():
         print(f"impossible d'ouvrir {nom_fichier_sauvegarde} : ré-lecture à zéro de toutes les infos")
 
     # print(f"3 - pnj dans ce GN : {mon_gn.noms_pnjs()}")
-
     apiDrive, apiDoc, apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
 
     monGN.effacer_personnages_forces()
@@ -692,7 +691,9 @@ def ajouter_champs_pour_gerer_faction(gn:GN):
     for intrigue in gn.intrigues.values():
         for scene in intrigue.scenes:
             scene.nom_factions = set()
-        for role in intrigue.rolesContenus:
+            yop = vars(scene)
+            print(f"yop = {yop}")
+        for role in intrigue.rolesContenus.values():
             role.issu_dune_faction = False
             #todo : continuer de complèter ici
 

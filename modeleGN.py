@@ -280,9 +280,9 @@ class Intrigue(ConteneurDeScene):
             if role.perso is personnage:
                 # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au sein d'une mêm intrigue
 
-                texteErreur = f"Erreur Association role > PJ : " \
-                              f"{roleAAssocier.nom} > {personnage.nom}, " \
-                              f"déjà associé au rôle {role.nom} dans {self.nom}"
+                texteErreur = f"Erreur lors de la tentative d'associer le role " \
+                              f"{roleAAssocier.nom} au personnage {personnage.nom} (meilleur choix) : , " \
+                              f"celui-ci a déjà été automatiquement associé au rôle {role.nom} dans {self.nom}"
                 self.addToErrorLog(texteErreur)
 
                 if verbal:  # et si on a demandé à ce que la fonction raconte sa vie, on détaille
@@ -549,6 +549,8 @@ class GN:
             for role in intrigue.rolesContenus.values():
                 if estUnPNJ(role.pj):
                     score = process.extractOne(role.nom, nomsPnjs)
+                    if score is None:
+                        print(f"probleme lors de l'association de {role.nom} avec la liste : {nomsPnjs}")
                     # role.perso = self.listePnjs[score[0]]
                     # print(f"je m'apprête à associer PNJ {role.nom}, identifié comme {score} ")
                     # print(f"\t à {self.dictPNJs[score[0]].nom} (taille du dictionnaire PNJ = {len(self.dictPNJs)}")
@@ -594,7 +596,7 @@ class GN:
         for intrigue in self.intrigues.values():
             for role in intrigue.rolesContenus.values():
                 if estUnPJ(role.pj):
-                    print(f"nom du role testé = {role.nom}")
+                    # print(f"nom du role testé = {role.nom}")
                     score = process.extractOne(role.nom, nomsPjs)
                     # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
                     check = intrigue.associerRoleAPerso(roleAAssocier=role, personnage=dictNomsPJ[score[0]],

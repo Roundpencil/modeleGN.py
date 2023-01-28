@@ -321,7 +321,7 @@ class Application(tk.Frame):
         #         button.grid(row=i, column=j)
 
     def change_config_file(self):
-        config_file = filedialog.askopenfilename(initialdir="/", title="Select file",
+        config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
                                                  filetypes=(("ini files", "*.ini"), ("all files", "*.*")))
         self.lire_fichier_config(config_file)
 
@@ -613,8 +613,8 @@ class Application(tk.Frame):
         else:
             personnages_specifique = ""
         # Call the existing method that process the result with the input values:
-        print(f"{intrigues_value}, {intrigue_specifique}, {personnages_value}, {personnages_specifique}, "
-              f"{charger_fichier_value}, {sauver_apres_operation_value}, {generer_fichiers_drive_value}")
+        # print(f"{intrigues_value}, {intrigue_specifique}, {personnages_value}, {personnages_specifique}, "
+        #       f"{charger_fichier_value}, {sauver_apres_operation_value}, {generer_fichiers_drive_value}")
 
         if intrigues_value != "Spécifique":
             intrigue_specifique = "-01"

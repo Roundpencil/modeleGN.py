@@ -476,9 +476,9 @@ def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True
             # Sinon, il faut normaliser et extraire les rôles
             # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
             score = process.extractOne(nom_du_role.strip(), nomsRoles)
-            print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
-                                                                                              currentIntrigue.nom,
-                                                                                              score))
+            # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
+            #                                                                                   conteneur.nom,
+            #                                                                                   score))
 
             # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'est peut-être trompé de perso!
             if score is not None:
@@ -889,9 +889,12 @@ def formatter_titres_scenes_dans_squelettes(service, file_id):
                         'fields': 'bold,fontSize'
                     }
                 })
-        # execute the requests
-        result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
-        return result
+        if len(requests) != 0:
+            # execute the requests
+            result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
+            return result
+        else:
+            return None
     except HttpError as error:
         print(F'An error occurred: {error}')
         return None
@@ -1169,9 +1172,12 @@ def formatter_fichier_erreurs(api_doc, doc_id):
                             'fields': 'foregroundColor'
                         }
                     })
+        if len(requests) != 0:
+            # Envoie toutes les requêtes en une seule fois pour mettre à jour le document
+            result = api_doc.documents().batchUpdate(documentId=doc_id, body={'requests': requests}).execute()
+        else:
+            return None
 
-        # Envoie toutes les requêtes en une seule fois pour mettre à jour le document
-        result = api_doc.documents().batchUpdate(documentId=doc_id, body={'requests': requests}).execute()
     except:
         result = None
 

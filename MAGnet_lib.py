@@ -1,4 +1,5 @@
 import configparser
+import os
 
 import extraireTexteDeGoogleDoc
 import lecteurGoogle
@@ -12,7 +13,7 @@ def charger_fichier_init(fichier_init: str):
 
     dict_config = dict()
     try:
-        dict_config['dossier_intrigues'] = config.get('dossiers', 'intrigues').split(',')
+        dict_config['dossier_intrigues'] = [x.strip() for x in config.get('dossiers', 'intrigues').split(',')]
 
         dict_config['dossier_pjs'] = [config.get("dossiers", key)
                                       for key in config.options("dossiers") if key.startswith("base_persos")]
@@ -49,7 +50,7 @@ def lire_fichier_pnjs(nom_fichier: str):
                 # gn.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
                 # print(f"{gn.dictPNJs[nom]}")
     except FileNotFoundError:
-        print(f"Le fichier {nom_fichier} n'a pas été trouvé.")
+        print(f"Le fichier {nom_fichier} - {os.getcwd()} n'a pas été trouvé.")
     return to_return
 
 #todo : le bug est que l'intrigue est lue sans tableau des persos car nom=pj est none pendant tout ce temps ?
@@ -164,7 +165,7 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     noms_pnjs = mon_gn.noms_pnjs()
     noms_roles_dans_intrigue = [x.perso.nom for x in intrigue.rolesContenus.values()
                                 if not x.issu_dune_faction and x.perso is not None]
-    print(f"noms roles dans intrigue {intrigue.nom} : {noms_roles_dans_intrigue}")
+    # print(f"noms roles dans intrigue {intrigue.nom} : {noms_roles_dans_intrigue}")
     # print("Tableau suggéré")
     # créer un set de tous les rôles de chaque scène de l'intrigue
     iwant = []
