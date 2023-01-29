@@ -53,13 +53,14 @@ def lire_fichier_pnjs(nom_fichier: str):
         print(f"Le fichier {nom_fichier} - {os.getcwd()} n'a pas été trouvé.")
     return to_return
 
-#todo : le bug est que l'intrigue est lue sans tableau des persos car nom=pj est none pendant tout ce temps ?
+
+# todo : le bug est que l'intrigue est lue sans tableau des persos car nom=pj est none pendant tout ce temps ?
 
 def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier_sauvegarde: str,
                          dossier_output_squelettes_pjs: str,
                          noms_pjs=None, noms_pnjs=None,
                          fichier_erreurs: bool = True, export_drive: bool = True,
-                         changelog: bool = True, table_intrigues: bool = True,
+                         changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, verbal: bool = False):
     if api_doc is None or api_sheets is None or api_drive is None:
@@ -77,9 +78,6 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                           apiDoc=api_doc,
                                           singletest=singletest_perso,
                                           fast=fast_persos)
-
-
-
 
     if noms_pjs:
         mon_gn.forcer_import_pjs(noms_pjs)
@@ -102,6 +100,16 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         texte_erreurs = lister_erreurs(mon_gn, prefixeFichiers)
         ecrire_erreurs_dans_drive(texte_erreurs, api_doc, api_drive, dossier_output_squelettes_pjs)
 
+    print("******* statut intrigues *********************")
+    if table_intrigues:
+        creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive, dossier_output_squelettes_pjs)
+
+    print("*******changelog*********************")
+    if changelog:
+        generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets, dossier_output_squelettes_pjs)
+        # genererChangeLog(mon_gn, prefixeFichiers, nbJours=3)
+        # genererChangeLog(mon_gn, prefixeFichiers, nbJours=4)
+
     print("*********touslesquelettes*******************")
     if export_drive:
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=True)
@@ -112,15 +120,10 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     print("*******dumpallscenes*********************")
     # dumpAllScenes(mon_gn)
 
-    print("*******changelog*********************")
-    if changelog:
-        generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets, dossier_output_squelettes_pjs)
-        # genererChangeLog(mon_gn, prefixeFichiers, nbJours=3)
-        # genererChangeLog(mon_gn, prefixeFichiers, nbJours=4)
+    print("******* table objets *********************")
+    if table_objets:
+        ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets)
 
-    print("******* statut intrigues *********************")
-    if table_intrigues:
-        creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive, dossier_output_squelettes_pjs)
     print("******* fin de la génération  *********************")
 
 
@@ -479,3 +482,33 @@ def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
     # Write the config file
     with open(nom_fichier, 'w') as configfile:
         config.write(configfile)
+
+
+def generer_table_objets(monGN):
+    to_return = [['description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'utilisé où?']]
+
+    for intrigue in monGN.intrigues.values():
+        for objet in intrigue.objets:
+            description = objet.description.replace('\n', "***")
+            avecfx = objet.rfid
+            fx = objet.specialEffect.replace('\n', "***")
+            debuteou = objet.emplacementDebut.replace('\n', "***")
+            fournipar = objet.fourniParJoueur.replace('\n', "***")
+            utiliseou = [x.nom for x in objet.inIntrigues]
+            to_return.append([f"{description}",
+                              f"{avecfx}",
+                              f"{fx}",
+                              f"{debuteou}",
+                              f"{fournipar}",
+                              f"{utiliseou}"]
+                             )
+    return to_return
+
+
+def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets):
+    parent = mon_gn.dossier_outputs_drive
+    table = generer_table_objets(mon_gn)
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- Table des objets'
+    id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, id)

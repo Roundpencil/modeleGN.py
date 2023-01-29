@@ -332,7 +332,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, der
                 monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[2].strip(),
                                  fourniPar=sections[3].strip())
                 if sections[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
-                    monObjet.specialEffect = sections[3].strip()
+                    monObjet.specialEffect = sections[1].strip()
 
             elif len(sections) == 3:
                 monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[1].strip(),
@@ -1013,7 +1013,7 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
             valueInputOption='RAW', body=body).execute()
 
 
-def ecrire_table_google_sheets(service, table, spreadsheet_id):
+def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id):
     # def ecrire_table_google_sheets(api_doc, df, spreadsheet_id):
     try:
         body = {
@@ -1023,7 +1023,7 @@ def ecrire_table_google_sheets(service, table, spreadsheet_id):
         }
         # print(f"api_doc = {api_doc}")
 
-        result = service.spreadsheets().values().update(
+        result = api_sheets.spreadsheets().values().update(
             spreadsheetId=spreadsheet_id, range='A1',
             valueInputOption='RAW', body=body).execute()
 
