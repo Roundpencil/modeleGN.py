@@ -10,6 +10,7 @@ from modeleGN import *
 from MAGnet_lib import *
 
 
+
 def main():
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
 
@@ -83,6 +84,7 @@ def main():
             monGN = GN.load(nom_fichier_sauvegarde)
             # print(f"Derniere version avant mise à jour : {mon_gn.oldestUpdateIntrigue}")
             # mon_gn.id_factions = "1lDKglitWeg6RsybhLgNsPUa-DqN5POPyOpIo2u9VvvA"
+            # ajouter_champs_pour_gerer_456_colonnes(monGN)
             monGN.dossier_outputs_drive = dossier_output_squelettes_pjs
     except:
         print(f"impossible d'ouvrir {nom_fichier_sauvegarde} : ré-lecture à zéro de toutes les infos")
@@ -92,15 +94,15 @@ def main():
 
     monGN.effacer_personnages_forces()
 
-    # extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn, api_doc=api_doc, api_doc=api_doc, singletest="-01")
-    # extraireTexteDeGoogleDoc.extraire_pjs(mon_gn, api_doc=api_doc, api_doc=api_doc, singletest="-01")
+    # extraire_texte_de_google_doc.extraire_intrigues(mon_gn, api_doc=api_doc, api_doc=api_doc, singletest="-01")
+    # extraire_texte_de_google_doc.extraire_pjs(mon_gn, api_doc=api_doc, api_doc=api_doc, singletest="-01")
 
     extraireTexteDeGoogleDoc.extraire_intrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.intrigue,
                                                 fast=(not args.allintrigues))
     extraireTexteDeGoogleDoc.extraire_pjs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.perso,
                                           fast=(not args.allpjs))
     extraireTexteDeGoogleDoc.extraire_factions(monGN, apiDoc=apiDoc)
-    # extraireTexteDeGoogleDoc.lire_factions_depuis_fichier(mon_gn, fichier_faction)
+    # extraire_texte_de_google_doc.lire_factions_depuis_fichier(mon_gn, fichier_faction)
 
     monGN.forcer_import_pjs(noms_persos)
     monGN.rebuildLinks(args.verbal)
@@ -695,7 +697,14 @@ def ajouter_champs_pour_gerer_faction(gn:GN):
             print(f"yop = {yop}")
         for role in intrigue.rolesContenus.values():
             role.issu_dune_faction = False
-            #todo : continuer de complèter ici
+
+
+def ajouter_champs_pour_gerer_456_colonnes(gn:GN):
+    for intrigue in gn.intrigues.values():
+        for role in intrigue.rolesContenus.values():
+            role.pip_globaux = 0
+            role.pip_total = 0
+
 
 if __name__ == '__main__':
     main()

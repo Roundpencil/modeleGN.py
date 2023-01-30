@@ -1,10 +1,26 @@
 import configparser
+import itertools
 import os
 
 import extraireTexteDeGoogleDoc
 import lecteurGoogle
 from modeleGN import *
 
+
+#todo : gestion logs erreurs
+#todo : gestion des évènement
+
+#todo : générer un récap en deux volets pour les personnages
+# un onglet avec pour chaque perso le total de ses points
+
+#todo : webinsation des pjs et PNJs
+
+#todo : permettre d'utilier un tableau récap comme dans l'exemple de sandrine avec une balise tableau récap ?
+
+#todo : ajouter une section "tableau relations" qui conteint toutjours 3 colonnes "X... Voit la relation avec... Comme..."
+
+#todo : faire évoluer la fiche de génération pour ajouter tous les nouveaux fichiers
+# et faire évoluer le diag
 
 def charger_fichier_init(fichier_init: str):
     # init configuration
@@ -54,13 +70,12 @@ def lire_fichier_pnjs(nom_fichier: str):
     return to_return
 
 
-# todo : le bug est que l'intrigue est lue sans tableau des persos car nom=pj est none pendant tout ce temps ?
-
 def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier_sauvegarde: str,
                          dossier_output_squelettes_pjs: str,
                          noms_pjs=None, noms_pnjs=None,
                          fichier_erreurs: bool = True, export_drive: bool = True,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
+                         table_plannings: bool = True, table_persos: bool = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, verbal: bool = False):
     if api_doc is None or api_sheets is None or api_drive is None:
@@ -124,6 +139,13 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     if table_objets:
         ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets)
 
+    print("******* table planning *********************")
+    if table_plannings:
+        ecrire_table_planning_dans_drive(mon_gn, api_drive, api_sheets)
+
+    print("******* table persos *********************")
+    if table_persos:
+        ecrire_table_persos(mon_gn, api_drive, api_sheets)
     print("******* fin de la génération  *********************")
 
 
@@ -287,8 +309,8 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive, dossier_e
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Etat des intrigues'
     id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_export)
-    # extraireTexteDeGoogleDoc.exporter_table_intrigue(api_doc, nom_fichier, dossier_export, df)
-    # extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, df, id)
+    # extraire_texte_de_google_doc.exporter_table_intrigue(api_doc, nom_fichier, dossier_export, df)
+    # extraire_texte_de_google_doc.ecrire_table_google_sheets(api_sheets, df, id)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_intrigues, id)
 
 
@@ -510,5 +532,126 @@ def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets):
     table = generer_table_objets(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Table des objets'
+    id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, id)
+
+def generer_table_planning_condensee_raw(gn:GN):
+    # pour chaque personnage, construire un tableau contenant, dans l'ordre chronologique,
+    # toutes les scènes du personnage avec le texte "il y a..., titrescène"
+    tableau_sortie = []
+    for perso in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()):
+        mes_scenes = []
+        for role in perso.roles:
+            for scene in role.scenes:
+                # print(f"{scene.titre} trouvée")
+                mes_scenes.append(scene)
+        mes_scenes = Scene.trierScenes(mes_scenes)
+
+        #créer des lignes [date][évènement]
+        ma_ligne = [perso.nom] + [[s.getFormattedDate(), s.titre] for s in mes_scenes]
+        tableau_sortie.append(ma_ligne)
+
+    return tableau_sortie
+
+def generer_table_planning_condensee(tableau_raw):
+    # tableau_formatte = []
+    # for ligne in tableau_raw:
+    #     tableau_formatte += [ligne[0]] + [[f"{event[0]} - {event[1]}"] for event in ligne[1:]]
+    #
+    # # mettre tous les noms dans une matrice et remplir les moins longs par ""
+    # # find the length of the longest list
+    # max_len = max(len(lst) for lst in tableau_formatte)
+    # print(f"tableau formatté = {tableau_formatte}")
+    #
+    # # pad the shorter lists with zeros
+    # matrice = [lst + [""] * (max_len - len(lst)) for lst in tableau_formatte]
+    #
+    # # transpose the list of lists
+    # to_return = [list(row) for row in zip(*matrice)]
+    # return to_return
+
+    # Get the maximum number of events among all stories
+    max_len = max(len(story) - 1 for story in tableau_raw)
+
+    # Initialize the matrix with the first row being the story titles
+    matrix = [[story[0] for story in tableau_raw]]
+
+    # Iterate over the range of events
+    for i in range(max_len):
+        # Initialize a row for the current event
+        row = []
+
+        # Iterate over all stories
+        for story in tableau_raw:
+            # If the current story has an event for the current date, add the formatted date and event
+            if i + 1 < len(story):
+                date, event = story[i + 1]
+                row.append(f"{date} - {event}")
+            # Otherwise, add an empty string
+            else:
+                row.append("")
+        # Add the current row to the matrix
+        matrix.append(row)
+
+    return matrix
+
+
+def generer_table_planning_complete(table_raw):
+    # Find all unique dates across all stories
+    all_dates = set()
+    for story in table_raw:
+        all_dates |= set([event[0] for event in story[1:]])
+    all_dates = sorted(list(all_dates))
+
+    # Create a dictionary mapping dates to indices
+    date_to_index = {date: i for i, date in enumerate(all_dates)}
+
+    # Initialize the matrix with empty values
+    num_stories = len(table_raw)
+    num_dates = len(all_dates)
+    matrix = [['' for j in range(num_stories + 1)] for i in range(num_dates + 1)]
+
+    # Populate the first row with story titles
+    for j, story in enumerate(table_raw):
+        matrix[0][j + 1] = story[0]
+
+    # Populate the first column with dates
+    for i, date in enumerate(all_dates):
+        matrix[i + 1][0] = date
+
+    # Fill in the events
+    for j, story in enumerate(table_raw):
+        for event in story[1:]:
+            i = date_to_index[event[0]]
+            matrix[i + 1][j + 1] = event[1]
+
+    return matrix
+
+
+def ecrire_table_planning_dans_drive(mon_gn: GN, api_drive, api_sheets):
+    parent = mon_gn.dossier_outputs_drive
+    table_raw = generer_table_planning_condensee_raw(mon_gn)
+    table_simple = generer_table_planning_condensee(table_raw)
+    table_complete = generer_table_planning_complete(table_raw)
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- synthèse chrono'
+    id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, id, feuille="condensée")
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_complete, id, feuille="étendue")
+
+def generer_tableau_recap_persos(gn:GN):
+    to_return = []
+    for perso in gn.dictPJs.values():
+        table_perso = [perso.nom]
+        for role in perso.roles:
+            table_perso += [role.conteneur.nom]
+        to_return.append(table_perso)
+    return to_return
+
+def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
+    parent = mon_gn.dossier_outputs_drive
+    table = generer_tableau_recap_persos(mon_gn)
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- synthèse des intrigues par perso'
     id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, id)

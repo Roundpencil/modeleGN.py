@@ -189,13 +189,17 @@ class Personnage(ConteneurDeScene):
 class Role:
 
     def __init__(self, conteneur, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ,
-                 typeIntrigue="", niveauImplication="", perimetreIntervention="", issu_dune_faction=False):
+                 typeIntrigue="", niveauImplication="", perimetreIntervention="", issu_dune_faction=False,
+                 pip_globaux = 0):
         self.conteneur = conteneur
         self.perso = perso
         self.nom = nom
         self.description = description
         self.pipr = pipr
         self.pipi = pipi
+        self.pip_globaux = pip_globaux
+        self.pip_total = 0
+        self.sommer_pip()
         self.pj = pj
         self.sexe = sexe
         self.typeIntrigue = typeIntrigue
@@ -228,18 +232,24 @@ class Role:
     def estUnPNJ(self):
         return estUnPNJ(self.pj)
 
+    def sommer_pip(self):
+        # print(f"je suis en train de sommer {self.nom}")
+        self.pip_total = int(self.pip_globaux) + int(self.pipi) + int(self.pipr)
+
 
 # intrigue
 class Intrigue(ConteneurDeScene):
 
     def __init__(self, url, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", lastProcessing=None,
+                 questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="",questionnaire="",
+                 lastProcessing=None,
                  derniere_edition_fichier=0):
         super(Intrigue, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
         self.nom = nom
         self.description = description
         self.pitch = pitch
         self.questions_ouvertes = questions_ouvertes
+        self.questionnaire = questionnaire
         self.notes = notes
         self.resolution = resolution
         self.orgaReferent = orgaReferent
@@ -740,3 +750,10 @@ class Objet:
         self.rfid = len(specialEffect) > 0
         self.specialEffect = specialEffect
         self.inIntrigues = set()
+
+
+class ErreurAssociation :
+    def __init__(self, niveau, texte, genere_par):
+        self.niveau = niveau
+        self.texte = texte
+        self.genere_par = genere_par

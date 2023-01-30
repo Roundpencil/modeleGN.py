@@ -12,17 +12,19 @@ from modeleGN import *
 
 
 def extraire_intrigues(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
-    extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extraireIntrigueDeTexte, monGN.intrigues, monGN.folderIntriguesID,
-                             singletest, verbal=verbal, fast=fast)
+    extraire_texte_de_google_doc(monGN, apiDrive, apiDoc, extraire_intrigue_de_texte, monGN.intrigues,
+                                 monGN.folderIntriguesID,
+                                 singletest, verbal=verbal, fast=fast)
 
 
 def extraire_pjs(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
-    extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, extrairePJDeTexte, monGN.dictPJs, monGN.folderPJID, singletest,
-                             verbal=verbal, fast=fast)
+    extraire_texte_de_google_doc(monGN, apiDrive, apiDoc, extrairePJDeTexte, monGN.dictPJs, monGN.folderPJID,
+                                 singletest,
+                                 verbal=verbal, fast=fast)
 
 
-def extraireTexteDeGoogleDoc(monGN, apiDrive, apiDoc, fonctionExtraction, dictIDs: dict, folderArray,
-                             singletest="-01", verbal=False, fast=True):
+def extraire_texte_de_google_doc(monGN, apiDrive, apiDoc, fonctionExtraction, dictIDs: dict, folderArray,
+                                 singletest="-01", verbal=False, fast=True):
     items = lecteurGoogle.genererListeItems(monGN, apiDrive=apiDrive, folderID=folderArray)
 
     if not items:
@@ -147,7 +149,7 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
     text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
 
     # print(text) #test de la fonction récursive pour le texte
-    # monObjet = extraireIntrigueDeTexte(text, document.get('title'), item["id"], mon_gn)
+    # monObjet = extraire_intrigue_de_texte(text, document.get('title'), item["id"], mon_gn)
     lastFileEdit = datetime.datetime.strptime(
         item['modifiedTime'][:-5],
         '%Y-%m-%dT%H:%M:%S')
@@ -171,15 +173,15 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
     return monObjet
 
 
-def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, derniere_modification_par, monGN,
-                            verbal=False):
+def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, derniere_modification_par, monGN,
+                               verbal=False):
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue.replace('\v', '\n'))
     # texteIntrigue = texteIntrigue.replace('\v', '\n')
     # print("*****************************")
-    currentIntrigue = Intrigue(nom=nomIntrigue, url=idUrl, derniere_edition_fichier=lastFileEdit)
-    currentIntrigue.modifie_par = derniere_modification_par
-    monGN.intrigues[idUrl] = currentIntrigue
+    current_intrigue = Intrigue(nom=nomIntrigue, url=idUrl, derniere_edition_fichier=lastFileEdit)
+    current_intrigue.modifie_par = derniere_modification_par
+    monGN.intrigues[idUrl] = current_intrigue
     # noms_persos = mon_gn.noms_pjs()
 
     # on fait un dict du début de chaque label
@@ -195,9 +197,10 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, der
     SCENES = "détail de l’intrigue"
     RESOLUTION = "résolution de l’intrigue"
     NOTES = "notes supplémentaires"
+    QUESTIONNAIRE = "Questionnaire inscription"
 
     labels = [REFERENT, TODO, PITCH, PJS, PNJS, REROLLS, OBJETS, SCENESFX,
-              TIMELINE, SCENES, RESOLUTION, NOTES]
+              TIMELINE, SCENES, RESOLUTION, NOTES, QUESTIONNAIRE]
 
     indexes = lecteurGoogle.identifierSectionsFiche(labels, texteIntrigue)
 
@@ -205,9 +208,9 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, der
     if indexes[REFERENT]["debut"] == -1:
         print("problème référent avec l'intrigue " + nomIntrigue)
     else:
-        currentIntrigue.orgaReferent = texteIntrigue[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[
-                                           0][
-                                       len(REFERENT) + len(" : "):]
+        current_intrigue.orgaReferent = texteIntrigue[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[
+                                            0][
+                                        len(REFERENT) + len(" : "):]
         # prendre la première ligne puis les caractères à partir du label
         # print("debut / fin orga référent : {0}/{1} pour {2}".format(indexDebutReferent, indexFinReferent, nomIntrigue))
         # print("Orga référent : " + currentIntrigue.orgaReferent)
@@ -218,10 +221,10 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, der
     else:
         # currentIntrigue.questions_ouvertes = ''.join(
         #     texteIntrigue[indexes[TODO]["debut"]:indexes[TODO]["fin"]].splitlines()[1:])
-        currentIntrigue.questions_ouvertes = texteIntrigue[indexes[TODO]["debut"] + len(TODO):indexes[TODO]["fin"]]
+        current_intrigue.questions_ouvertes = texteIntrigue[indexes[TODO]["debut"] + len(TODO):indexes[TODO]["fin"]]
 
     # gestion de la section Résumé
-    currentIntrigue.pitch = ''.join(
+    current_intrigue.pitch = ''.join(
         texteIntrigue[indexes[PITCH]["debut"]:indexes[PITCH]["fin"]].splitlines(keepends=True)[1:])
     # print("section pitch trouvée : " + section)
     # print("pitch isolé after découpage : " + ''.join(section.splitlines(keepends=True)[1:]))
@@ -229,6 +232,142 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, der
 
     # gestion de la section PJ
     pjs = texteIntrigue[indexes[PJS]["debut"]:indexes[PJS]["fin"]].split("¤¤¤¤¤")
+    nb_colonnes = len(pjs[0].split("¤¤¤"))
+    if nb_colonnes == 4:
+        lire_tableau_pj_chalacta(current_intrigue, pjs)
+    elif nb_colonnes == 5:
+        lire_tableau_pj_5_colonnes(current_intrigue, pjs)
+    elif nb_colonnes == 6:
+        lire_tableau_pj_6_colonnes(current_intrigue, pjs)
+    else:
+        print("Erreur : tableau d'intrigue non standard")
+
+    # gestion de la section PNJs
+    if indexes[PNJS]["debut"] > -1:
+        # print(f'bloc PNJs = {texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]]}')
+        # print(f"dans l'intrigue {currentIntrigue.nom}")
+
+        pnjs = texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]].split('¤¤¤¤¤')
+        # faire un tableau avec une ligne par PNJ
+        for pnj in pnjs[1:]:  # on enlève la première ligne qui contient les titres
+            # print(f"section pnj en cours de lecture : {pnj}")
+            # print(f"taille = {len(pnj)}")
+            if len(pnj) < 14:
+                # dans ce cas, c'est une ligne vide
+                # print(f"pnj {pnj}  est vide")
+                continue
+            sections = pnj.split("¤¤¤")
+            # 0 Nom duPNJ et / ou fonction :
+            # 1 Intervention:(Permanente ou Temporaire)
+            # 2 Type d’implication: (Active, Passive, Info, ou Objet)
+            # 3 Résumé de l’implication
+            pnjAAjouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
+                               pj=modeleGN.EST_PNJ_HORS_JEU, niveauImplication=sections[2].strip(),
+                               perimetreIntervention=sections[1].strip())
+
+            # print("Je suis en train de regarder {0} et son implication est {1}".format(pnjAAjouter.nom, sections[1].strip()))
+
+            # cherche ensuite le niveau d'implication du pj
+            if sections[1].strip().lower().find('perman') > -1:
+                # print(pnjAAjouter.nom + " est permanent !!")
+                pnjAAjouter.pj = modeleGN.EST_PNJ_PERMANENT
+            elif sections[1].strip().lower().find('infiltr') > -1:
+                pnjAAjouter.pj = modeleGN.EST_PNJ_INFILTRE
+                # print(pnjAAjouter.nom + " est temporaire !!")
+            # elif sections[1].strip().lower().find('temp') > -1:
+            #     pnjAAjouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
+            #     # print(pnjAAjouter.nom + " est temporaire !!")
+            elif len(sections[1].strip()) > 1:
+                pnjAAjouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
+                # print(pnjAAjouter.nom + " est temporaire !!")
+
+            # sinon PNJ hors-jeu est la valeur par défaut : ne rien faire
+
+            # du coup, on peut l'ajouter aux intrigues
+            current_intrigue.rolesContenus[pnjAAjouter.nom] = pnjAAjouter
+
+    # gestion de la section Rerolls
+    if indexes[REROLLS]["debut"] > -1:
+        rerolls = texteIntrigue[indexes[REROLLS]["debut"]:indexes[REROLLS]["fin"]].split('¤¤¤¤¤')
+        # faire un tableau avec une ligne par Reroll
+        for reroll in rerolls[1:]:  # on enlève la première ligne qui contient les titres
+            if len(reroll) < 14:
+                # dans ce cas, c'est une ligne vide
+                continue
+            sections = reroll.split("¤¤¤")
+            # même sections que les PJs
+            reRollAAjouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
+                                  pj=modeleGN.EST_REROLL, typeIntrigue=sections[2].strip(),
+                                  niveauImplication=sections[1].strip())
+
+            # du coup, on peut l'ajouter aux intrigues
+            current_intrigue.rolesContenus[reRollAAjouter.nom] = reRollAAjouter
+
+    # gestion de la section Objets
+    if indexes[OBJETS]["debut"] > -1:
+        objets = texteIntrigue[indexes[OBJETS]["debut"]:indexes[OBJETS]["fin"]].split('¤¤¤¤¤')
+        # faire un tableau avec une ligne par objet
+        for objet in objets[1:]:  # on enlève la première ligne qui contient les titres
+            if len(objet) < 14:
+                # dans ce cas, c'est une ligne vide
+                continue
+            sections = objet.split("¤¤¤")
+            # vérifier si nous sommes avec un objet RFID (4 colonnes) ou sans (3 colonnes)
+            monObjet = None
+            if len(sections) == 4:
+                monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[2].strip(),
+                                 fourniPar=sections[3].strip())
+                if sections[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
+                    monObjet.specialEffect = sections[1].strip()
+
+            elif len(sections) == 3:
+                monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[1].strip(),
+                                 fourniPar=sections[2].strip())
+            else:
+                print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {sections}")
+
+            if monObjet is not None:
+                current_intrigue.objets.add(monObjet)
+                monObjet.inIntrigues.add(current_intrigue)
+
+    # gestion de la section FX
+    if indexes[SCENESFX]["debut"] > -1:
+        current_intrigue.scenesEnJeu = ''.join(
+            texteIntrigue[indexes[SCENESFX]["debut"]:indexes[SCENESFX]["fin"]].splitlines()[1:])
+
+    # gestion de la section Questionnaire
+    if indexes[QUESTIONNAIRE]["debut"] > -1:
+        current_intrigue.questionnaire = ''.join(
+            texteIntrigue[indexes[QUESTIONNAIRE]["debut"]:indexes[QUESTIONNAIRE]["fin"]].splitlines()[1:])
+
+    # gestion de la section Timeline
+    if indexes[TIMELINE]["debut"] > -1:
+        current_intrigue.timeline = ''.join(
+            texteIntrigue[indexes[TIMELINE]["debut"]:indexes[TIMELINE]["fin"]].splitlines()[1:])
+
+    # gestion de la section Scènes
+    if indexes[SCENES]["debut"] > -1:
+        texteScenes = texteIntrigue[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
+        texte2scenes(current_intrigue, nomIntrigue, texteScenes)
+
+    # gestion de la section Résolution
+    if indexes[RESOLUTION]["debut"] > -1:
+        current_intrigue.resolution = ''.join(
+            texteIntrigue[indexes[RESOLUTION]["debut"]:indexes[RESOLUTION]["fin"]].splitlines()[1:])
+
+    # gestion de la section notes
+    # print("debut/fin notes : {0}/{1}".format(indexes[NOTES]["debut"], indexes[NOTES]["fin"]))
+    if indexes[NOTES]["debut"] > -1:
+        current_intrigue.notes = ''.join(texteIntrigue[indexes[NOTES]["debut"]:indexes[NOTES]["fin"]].splitlines()[1:])
+
+    # print("liste des persos : ")
+    # for role in currentIntrigue.roles:
+    #     print(role)
+
+    return current_intrigue
+
+
+def lire_tableau_pj_chalacta(currentIntrigue, pjs):
     for pj in pjs[1:]:  # on commence en 1 pour éviter de prendre la première ligne
         # print("taille du prochain PJ : " +str(len(pj)))
         if len(pj) < 14:  # dans ce cas, c'est qu'un a une ligne du tableau vide
@@ -256,124 +395,50 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, der
                             )
         currentIntrigue.rolesContenus[roleAAjouter.nom] = roleAAjouter
 
-    # gestion de la section PNJs
-    if indexes[PNJS]["debut"] > -1:
-        # print(f'bloc PNJs = {texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]]}')
-        # print(f"dans l'intrigue {currentIntrigue.nom}")
 
-        pnjs = texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]].split('¤¤¤¤¤')
-        # faire un tableau avec une ligne par PNJ
-        for pnj in pnjs[1:]:  # on enlève la première ligne qui contient les titres
-            # print(f"section pnj en cours de lecture : {pnj}")
-            # print(f"taille = {len(pnj)}")
-            if len(pnj) < 14:
-                # dans ce cas, c'est une ligne vide
-                # print(f"pnj {pnj}  est vide")
-                continue
-            sections = pnj.split("¤¤¤")
-            # 0 Nom duPNJ et / ou fonction :
-            # 1 Intervention:(Permanente ou Temporaire)
-            # 2 Type d’implication: (Active, Passive, Info, ou Objet)
-            # 3 Résumé de l’implication
-            pnjAAjouter = Role(currentIntrigue, nom=sections[0].strip(), description=sections[3].strip(),
-                               pj=modeleGN.EST_PNJ_HORS_JEU, niveauImplication=sections[2].strip(),
-                               perimetreIntervention=sections[1].strip())
+def lire_tableau_pj_5_colonnes(current_intrigue, pjs):
+    for pj in pjs[1:]:  # on commence en 1 pour éviter de prendre la première ligne
+        # print("taille du prochain PJ : " +str(len(pj)))
+        if len(pj) < 18:  # dans ce cas, c'est qu'un a une ligne du tableau vide
+            # print("pas assez de caractères je me suis arrêté")
+            continue  # il y a de fortes chances que le PJ ne contienne que des renvois à la ligne
+        sections = pj.split("¤¤¤")
+        # print("j'ai trouvé " + str(len(sections)) + " sections")
 
-            # print("Je suis en train de regarder {0} et son implication est {1}".format(pnjAAjouter.nom, sections[1].strip()))
+        if len(sections) < 4:  # testé pour éviter de se taper les lignes vides après le tableau
+            continue
 
-            # cherche ensuite le niveau d'implication du pj
-            if sections[1].strip().lower().find('perman') > -1:
-                # print(pnjAAjouter.nom + " est permanent !!")
-                pnjAAjouter.pj = modeleGN.EST_PNJ_PERMANENT
-            elif sections[1].strip().lower().find('infiltr') > -1:
-                pnjAAjouter.pj = modeleGN.EST_PNJ_INFILTRE
-                # print(pnjAAjouter.nom + " est temporaire !!")
-            # elif sections[1].strip().lower().find('temp') > -1:
-            #     pnjAAjouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
-            #     # print(pnjAAjouter.nom + " est temporaire !!")
-            elif len(sections[1].strip()) > 1:
-                pnjAAjouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
-                # print(pnjAAjouter.nom + " est temporaire !!")
+        roleAAjouter = Role(current_intrigue,
+                            nom=sections[0].split("http")[0].strip(),
+                            description=sections[4].strip(),
+                            typeIntrigue=sections[3].strip(),
+                            niveauImplication=sections[2].strip(),
+                            pip_globaux=sections[1].strip()
+                            )
+        current_intrigue.rolesContenus[roleAAjouter.nom] = roleAAjouter
 
-            # sinon PNJ hors-jeu est la valeur par défaut : ne rien faire
 
-            # du coup, on peut l'ajouter aux intrigues
-            currentIntrigue.rolesContenus[pnjAAjouter.nom] = pnjAAjouter
+def lire_tableau_pj_6_colonnes(current_intrigue, pjs):
+    for pj in pjs[1:]:  # on commence en 1 pour éviter de prendre la première ligne
+        print("taille du prochain PJ : " + str(len(pj)))
+        if len(pj) < 22:  # dans ce cas, c'est qu'un a une ligne du tableau vide
+            # print("pas assez de caractères je me suis arrêté")
+            continue  # il y a de fortes chances que le PJ ne contienne que des renvois à la ligne
+        sections = pj.split("¤¤¤")
+        # print("j'ai trouvé " + str(len(sections)) + " sections")
 
-    # gestion de la section Rerolls
-    if indexes[REROLLS]["debut"] > -1:
-        rerolls = texteIntrigue[indexes[REROLLS]["debut"]:indexes[REROLLS]["fin"]].split('¤¤¤¤¤')
-        # faire un tableau avec une ligne par Reroll
-        for reroll in rerolls[1:]:  # on enlève la première ligne qui contient les titres
-            if len(reroll) < 14:
-                # dans ce cas, c'est une ligne vide
-                continue
-            sections = reroll.split("¤¤¤")
-            # même sections que les PJs
-            reRollAAjouter = Role(currentIntrigue, nom=sections[0].strip(), description=sections[3].strip(),
-                                  pj=modeleGN.EST_REROLL, typeIntrigue=sections[2].strip(),
-                                  niveauImplication=sections[1].strip())
+        if len(sections) < 6:  # testé pour éviter de se taper les lignes vides après le tableau
+            continue
 
-            # du coup, on peut l'ajouter aux intrigues
-            currentIntrigue.rolesContenus[reRollAAjouter.nom] = reRollAAjouter
-
-    # gestion de la section Objets
-    if indexes[OBJETS]["debut"] > -1:
-        objets = texteIntrigue[indexes[OBJETS]["debut"]:indexes[OBJETS]["fin"]].split('¤¤¤¤¤')
-        # faire un tableau avec une ligne par objet
-        for objet in objets[1:]:  # on enlève la première ligne qui contient les titres
-            if len(objet) < 14:
-                # dans ce cas, c'est une ligne vide
-                continue
-            sections = objet.split("¤¤¤")
-            # vérifier si nous sommes avec un objet RFID (4 colonnes) ou sans (3 colonnes)
-            monObjet = None
-            if len(sections) == 4:
-                monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[2].strip(),
-                                 fourniPar=sections[3].strip())
-                if sections[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
-                    monObjet.specialEffect = sections[1].strip()
-
-            elif len(sections) == 3:
-                monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[1].strip(),
-                                 fourniPar=sections[2].strip())
-            else:
-                print(f"Erreur de format d'objet dans l'intrigue {currentIntrigue.nom} : {sections}")
-
-            if monObjet is not None:
-                currentIntrigue.objets.add(monObjet)
-                monObjet.inIntrigues.add(currentIntrigue)
-
-    # gestion de la section FX
-    if indexes[SCENESFX]["debut"] > -1:
-        currentIntrigue.scenesEnJeu = ''.join(
-            texteIntrigue[indexes[SCENESFX]["debut"]:indexes[SCENESFX]["fin"]].splitlines()[1:])
-
-    # gestion de la section Timeline
-    if indexes[TIMELINE]["debut"] > -1:
-        currentIntrigue.timeline = ''.join(
-            texteIntrigue[indexes[TIMELINE]["debut"]:indexes[TIMELINE]["fin"]].splitlines()[1:])
-
-    # gestion de la section Scènes
-    if indexes[SCENES]["debut"] > -1:
-        texteScenes = texteIntrigue[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
-        texte2scenes(currentIntrigue, nomIntrigue, texteScenes)
-
-    # gestion de la section Résolution
-    if indexes[RESOLUTION]["debut"] > -1:
-        currentIntrigue.resolution = ''.join(
-            texteIntrigue[indexes[RESOLUTION]["debut"]:indexes[RESOLUTION]["fin"]].splitlines()[1:])
-
-    # gestion de la section notes
-    # print("debut/fin notes : {0}/{1}".format(indexes[NOTES]["debut"], indexes[NOTES]["fin"]))
-    if indexes[NOTES]["debut"] > -1:
-        currentIntrigue.notes = ''.join(texteIntrigue[indexes[NOTES]["debut"]:indexes[NOTES]["fin"]].splitlines()[1:])
-
-    # print("liste des persos : ")
-    # for role in currentIntrigue.roles:
-    #     print(role)
-
-    return currentIntrigue
+        roleAAjouter = Role(current_intrigue,
+                            nom=sections[0].split("http")[0].strip(),
+                            description=sections[5].strip(),
+                            typeIntrigue=sections[4].strip(),
+                            niveauImplication=sections[3].strip(),
+                            pipi=sections[1].strip(),
+                            pipr=sections[2].strip()
+                            )
+        current_intrigue.rolesContenus[roleAAjouter.nom] = roleAAjouter
 
 
 def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableauRolesExistant=True):
@@ -1013,18 +1078,41 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
             valueInputOption='RAW', body=body).execute()
 
 
-def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id):
+def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id, feuille=None):
+
+    ma_range = 'A1'
+    if feuille is not None:
+        try:
+            ma_range = f'{feuille}!A1'
+            api_sheets.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={
+                "requests": [
+                    {
+                        "addSheet": {
+                            "properties": {
+                                "title": feuille
+                            }
+                        }
+                    }
+                ]
+            }).execute()
+        except HttpError as error:
+            print(f'An error occurred: {error}')
+
     # def ecrire_table_google_sheets(api_doc, df, spreadsheet_id):
     try:
-        body = {
-            'range': 'A1',
-            'values': table,
-            'majorDimension': 'ROWS'
-        }
+        body = {'range': ma_range,
+                'values': table,
+                'majorDimension': 'ROWS'
+                }
+
         # print(f"api_doc = {api_doc}")
 
+        # result = api_sheets.spreadsheets().values().update(
+        #     spreadsheetId=spreadsheet_id, range='A1',
+        #     valueInputOption='RAW', body=body).execute()
+
         result = api_sheets.spreadsheets().values().update(
-            spreadsheetId=spreadsheet_id, range='A1',
+            spreadsheetId=spreadsheet_id, range=ma_range,
             valueInputOption='RAW', body=body).execute()
 
     except HttpError as error:
