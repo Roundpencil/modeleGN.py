@@ -22,6 +22,9 @@ from modeleGN import *
 #todo : faire évoluer la fiche de génération pour ajouter tous les nouveaux fichiers
 # et faire évoluer le diag
 
+#todo : charger fiches PNJs
+
+
 def charger_fichier_init(fichier_init: str):
     # init configuration
     config = configparser.ConfigParser()
@@ -45,7 +48,6 @@ def charger_fichier_init(fichier_init: str):
         dict_config['noms_pnjs'] = lire_fichier_pnjs(dict_config['fichier_noms_pnjs'])
 
         dict_config['association_auto'] = config.getboolean('globaux', 'association_auto')
-        dict_config['type_fiche'] = config.get('globaux', 'type_fiche')
 
         dict_config['nom_fichier_sauvegarde'] = config.get('sauvegarde', 'nom_fichier_sauvegarde')
 
@@ -63,8 +65,6 @@ def lire_fichier_pnjs(nom_fichier: str):
             for ligne in f:
                 nom = ligne.strip()
                 to_return.append(nom)
-                # gn.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
-                # print(f"{gn.dictPNJs[nom]}")
     except FileNotFoundError:
         print(f"Le fichier {nom_fichier} - {os.getcwd()} n'a pas été trouvé.")
     return to_return
@@ -148,16 +148,6 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         ecrire_table_persos(mon_gn, api_drive, api_sheets)
     print("******* fin de la génération  *********************")
 
-
-# def charger_PNJs(gn, chemin_fichier):
-#     try:
-#         with open(chemin_fichier, 'r') as f:
-#             for ligne in f:
-#                 nom = ligne.strip()
-#                 gn.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
-#                 # print(f"{gn.dictPNJs[nom]}")
-#     except FileNotFoundError:
-#         print(f"Le fichier {chemin_fichier} n'a pas été trouvé.")
 
 def lister_erreurs(mon_gn, prefixe, taille_min_log=1, verbal=False):
     logErreur = ""
@@ -601,7 +591,7 @@ def generer_table_planning_complete(table_raw):
     all_dates = set()
     for story in table_raw:
         all_dates |= set([event[0] for event in story[1:]])
-    all_dates = sorted(list(all_dates))
+    all_dates = sorted(list(all_dates), key=extraireTexteDeGoogleDoc.calculerJoursIlYA)
 
     # Create a dictionary mapping dates to indices
     date_to_index = {date: i for i, date in enumerate(all_dates)}

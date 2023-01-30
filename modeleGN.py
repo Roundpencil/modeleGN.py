@@ -2,6 +2,7 @@ import pickle
 import datetime
 import random
 import re
+from enum import IntEnum
 
 from fuzzywuzzy import process
 
@@ -463,7 +464,7 @@ class Faction:
 class GN:
     def __init__(self, folderIntriguesID, folderPJID, dossier_outputs_drive, id_factions=None):
         self.dictPJs = {}  # idgoogle, personnage
-        self.dictPNJs = {}  # nom, personnage
+        self.dictPNJs = {}  # idgoogle, personnage
         self.factions = dict()  # nom, Faction
         self.intrigues = dict()  # clef : id google
         self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN
@@ -483,19 +484,6 @@ class GN:
         self.id_factions = id_factions
         self.dossier_outputs_drive = dossier_outputs_drive
 
-    def nom_vers_personnage(self, nom: str, chercher_pj=True, chercher_pnj=True) -> Personnage:
-        if chercher_pnj:
-            if nom in self.dictPNJs:
-                return self.dictPNJs[nom]
-        if chercher_pj:
-            if nom in self.dictPJs:
-                return self.dictPJs[nom]
-        raise ValueError(f"Le personnage {nom} n'a pas été trouvé")
-
-    # def charger_factions_depuis_fichier(self, fichier: str):
-    #     factions_dict = lire_factions_depuis_fichier(fichier)
-    #     for nom, faction in factions_dict.items():
-    #         self.ajouter_faction(faction)
 
     def ajouter_faction(self, faction: Faction):
         self.factions[faction.nom] = faction
@@ -507,17 +495,23 @@ class GN:
             raise ValueError(f"La faction {nom} n'a pas été trouvée")
 
     def effacer_personnages_forces(self):
-        print(list(self.dictPJs.values()) + list(self.dictPNJs.values()))
-        for personnage in self.dictPJs.values():
-            if personnage.forced:
-                self.dictPNJs.pop(personnage.nom, None)
-                personnage.clear()
         # print(list(self.dictPJs.values()) + list(self.dictPNJs.values()))
-        # for personnage in list(self.dictPJs.values()) + list(self.dictPNJs.values()):
+        # for personnage in self.dictPJs.values():
         #     if personnage.forced:
-        #         self.dictPJs.pop(personnage.nom, None)
         #         self.dictPNJs.pop(personnage.nom, None)
         #         personnage.clear()
+        # # print(list(self.dictPJs.values()) + list(self.dictPNJs.values()))
+        # # for personnage in list(self.dictPJs.values()) + list(self.dictPNJs.values()):
+        # #     if personnage.forced:
+        # #         self.dictPJs.pop(personnage.nom, None)
+        # #         self.dictPNJs.pop(personnage.nom, None)
+        # #         personnage.clear()
+
+        for personnage in list(self.dictPJs.values()) + list(self.dictPNJs.values()):
+            if personnage.forced:
+                self.dictPJs.pop(personnage.url, None)
+                self.dictPNJs.pop(personnage.url, None)
+                personnage.clear()
 
     # permet de mettre à jour la date d'intrigue la plus ancienne
     # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
@@ -554,74 +548,147 @@ class GN:
         return [x.nom for x in self.dictPJs.values()]
 
     def noms_pnjs(self):
-        return self.dictPNJs.keys()
+        return [pnj.nom for pnj in self.dictPNJs.values()]
 
-    def associerPNJsARoles(self, seuilAlerte=90, verbal=True):
-        nomsPnjs = self.noms_pnjs()
-        for intrigue in self.intrigues.values():
-            for role in intrigue.rolesContenus.values():
-                if estUnPNJ(role.pj):
-                    score = process.extractOne(role.nom, nomsPnjs)
-                    if score is None:
-                        print(f"probleme lors de l'association de {role.nom} avec la liste : {nomsPnjs}")
-                    # role.perso = self.listePnjs[score[0]]
-                    # print(f"je m'apprête à associer PNJ {role.nom}, identifié comme {score} ")
-                    # print(f"\t à {self.dictPNJs[score[0]].nom} (taille du dictionnaire PNJ = {len(self.dictPNJs)}")
-                    intrigue.associer_role_a_perso(role_a_associer=role, personnage=self.dictPNJs[score[0]])
-                    if score[1] < seuilAlerte:
-                        texteErreur = f"Warning association ({score[1]}) " \
-                                      f"- nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}"
-                        intrigue.addToErrorLog(texteErreur)
-                        if verbal:
-                            print(texteErreur)
+    def noms_pjpnjs(self, pj:bool):
+        if pj:
+            return self.noms_pjs()
+        else:
+            return self.noms_pnjs()
+
+    # def associerPNJsARoles(self, seuilAlerte=90, verbal=True):
+    #     nomsPnjs = self.noms_pnjs()
+    #     for intrigue in self.intrigues.values():
+    #         for role in intrigue.rolesContenus.values():
+    #             if estUnPNJ(role.pj):
+    #                 score = process.extractOne(role.nom, nomsPnjs)
+    #                 if score is None:
+    #                     print(f"probleme lors de l'association de {role.nom} avec la liste : {nomsPnjs}")
+    #                 # role.perso = self.listePnjs[score[0]]
+    #                 # print(f"je m'apprête à associer PNJ {role.nom}, identifié comme {score} ")
+    #                 # print(f"\t à {self.dictPNJs[score[0]].nom} (taille du dictionnaire PNJ = {len(self.dictPNJs)}")
+    #                 intrigue.associer_role_a_perso(role_a_associer=role, personnage=self.dictPNJs[score[0]])
+    #                 if score[1] < seuilAlerte:
+    #                     texteErreur = f"Warning association ({score[1]}) " \
+    #                                   f"- nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}"
+    #                     intrigue.addToErrorLog(texteErreur)
+    #                     if verbal:
+    #                         print(texteErreur)
+    #
+    # def associer_pj_a_roles(self, seuilAlerte=70, verbal=True):
+    #     print("Début de l'association automatique des rôles aux persos")
+    #     nomsPjs = self.noms_pjs()
+    #     if verbal:
+    #         print(f"noms pjs = {self.noms_pjs()}")
+    #     dictNomsPJ = dict()
+    #     for pj in self.dictPJs.values():  # on crée un dictionnaire temporaire nom > pj pour faire les associations
+    #         dictNomsPJ[pj.nom] = pj
+    #
+    #     # Associer les rôles sans passer par la case tableau d'association
+    #     # pour les rôles issus des scènes dans les fiches de PJs
+    #     for pj in self.dictPJs.values():
+    #         # print(f"je suis en train de chercher des roles dans le pj {pj.nom}")
+    #         # print(f"noms de roles trouvés : {pj.rolesContenus}")
+    #         for role in pj.rolesContenus.values():
+    #             # print(f"je suis en train d'essayer d'associer le rôle {role.nom} issu du personnage {pj.nom}")
+    #             score = process.extractOne(role.nom, nomsPjs)
+    #             # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
+    #             role.perso = dictNomsPJ[score[0]]
+    #             role.perso.roles.add(role)
+    #
+    #             if score[1] < seuilAlerte:
+    #                 texteErreur = f"Warning association ({score[1]}) - nom rôle : " \
+    #                               f"{role.nom} > PJ : {score[0]} dans {pj.nom}"
+    #                 pj.addToErrorLog(texteErreur)
+    #                 if verbal:
+    #                     # print(f"je paaaaaarle {score[1]}")
+    #                     print(texteErreur)
+    #
+    #     # faire l'association dans les intrigues à partir du nom de l'intrigue
+    #     # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant
+    #     for intrigue in self.intrigues.values():
+    #         for role in intrigue.rolesContenus.values():
+    #             if estUnPJ(role.pj):
+    #                 # print(f"nom du role testé = {role.nom}")
+    #                 score = process.extractOne(role.nom, nomsPjs)
+    #                 # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
+    #                 check = intrigue.associer_role_a_perso(role_a_associer=role, personnage=dictNomsPJ[score[0]],
+    #                                                        verbal=verbal)
+    #
+    #                 if score[1] < seuilAlerte:
+    #                     texteErreur = f"Warning association ({score[1]}) - nom rôle : " \
+    #                                   f"{role.nom} > PJ : {score[0]} dans {intrigue.nom}"
+    #                     intrigue.addToErrorLog(texteErreur)
+    #                     if verbal:
+    #                         # print(f"je paaaaaarle {score[1]}")
+    #                         print(texteErreur)
+    #
+    #     print("Fin de l'association automatique des rôles aux persos")
+
+    def associer_pnj_a_roles(self, seuilAlerte=70, verbal=True):
+        self.associer_pjpnj_a_roles(pj=False, seuilAlerte=seuilAlerte, verbal=verbal)
 
     def associer_pj_a_roles(self, seuilAlerte=70, verbal=True):
+        self.associer_pjpnj_a_roles(pj=True, seuilAlerte=seuilAlerte, verbal=verbal)
+
+    def associer_pjpnj_a_roles(self, pj:bool, seuilAlerte=70, verbal=True):
         print("Début de l'association automatique des rôles aux persos")
-        nomsPjs = self.noms_pjs()
+        noms_persos = self.noms_pjpnjs(pj)
+        if pj:
+            dict_reference = self.dictPJs
+        else:
+            dict_reference = self.dictPNJs
+
+
         if verbal:
-            print(f"noms pjs = {self.noms_pjs()}")
-        dictNomsPJ = dict()
-        for pj in self.dictPJs.values():  # on crée un dictionnaire temporaire nom > pj pour faire les associations
-            dictNomsPJ[pj.nom] = pj
+            print(f"pj? {pj}, noms persos = {noms_persos}")
+
+        dict_noms_persos = dict()
+        for perso in dict_reference.values():  # on crée un dictionnaire temporaire nom > pj pour faire les associations
+            dict_noms_persos[perso.nom] = perso
 
         # Associer les rôles sans passer par la case tableau d'association
         # pour les rôles issus des scènes dans les fiches de PJs
-        for pj in self.dictPJs.values():
+        for perso in dict_reference.values():
             # print(f"je suis en train de chercher des roles dans le pj {pj.nom}")
             # print(f"noms de roles trouvés : {pj.rolesContenus}")
-            for role in pj.rolesContenus.values():
+            for role in perso.rolesContenus.values():
                 # print(f"je suis en train d'essayer d'associer le rôle {role.nom} issu du personnage {pj.nom}")
-                score = process.extractOne(role.nom, nomsPjs)
+                score = process.extractOne(role.nom, noms_persos)
                 # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
-                role.perso = dictNomsPJ[score[0]]
+                role.perso = dict_noms_persos[score[0]]
                 role.perso.roles.add(role)
 
                 if score[1] < seuilAlerte:
-                    texteErreur = f"Warning association ({score[1]}) - nom rôle : " \
-                                  f"{role.nom} > PJ : {score[0]} dans {pj.nom}"
-                    pj.addToErrorLog(texteErreur)
+                    texte_erreur = f"Warning association ({score[1]}) - nom rôle : " \
+                                  f"{role.nom} > perso : {score[0]} dans {perso.nom}"
+                    perso.addToErrorLog(texte_erreur)
                     if verbal:
                         # print(f"je paaaaaarle {score[1]}")
-                        print(texteErreur)
+                        print(texte_erreur)
 
         # faire l'association dans les intrigues à partir du nom de l'intrigue
+        if pj:
+            critere = estUnPJ
+        else:
+            critere = estUnPNJ
         # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant
         for intrigue in self.intrigues.values():
             for role in intrigue.rolesContenus.values():
-                if estUnPJ(role.pj):
+                if critere(role.pj):
                     # print(f"nom du role testé = {role.nom}")
-                    score = process.extractOne(role.nom, nomsPjs)
+                    score = process.extractOne(role.nom, noms_persos)
                     # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
-                    check = intrigue.associer_role_a_perso(role_a_associer=role, personnage=dictNomsPJ[score[0]],
+                    check = intrigue.associer_role_a_perso(role_a_associer=role, personnage=dict_noms_persos[score[0]],
                                                            verbal=verbal)
 
                     if score[1] < seuilAlerte:
-                        texteErreur = f"Warning association ({score[1]}) - nom rôle : " \
-                                      f"{role.nom} > PJ : {score[0]} dans {intrigue.nom}"
-                        intrigue.addToErrorLog(texteErreur)
+                        texte_erreur = f"Warning association ({score[1]}) - nom rôle : " \
+                                      f"{role.nom} > perso : {score[0]} dans {intrigue.nom}"
+                        intrigue.addToErrorLog(texte_erreur)
                         if verbal:
                             # print(f"je paaaaaarle {score[1]}")
-                            print(texteErreur)
+                            print(texte_erreur)
 
         print("Fin de l'association automatique des rôles aux persos")
 
@@ -639,7 +706,7 @@ class GN:
         self.clearAllAssociations()
         self.updateOldestUpdate()
         self.ajouter_roles_issus_de_factions(verbal)
-        self.associerPNJsARoles(verbal)
+        self.associer_pnj_a_roles(verbal)
         self.associer_pj_a_roles(verbal)
 
     # lire les factions dans toutes les scènes
@@ -707,27 +774,64 @@ class GN:
             for role in intrigue.rolesContenus.values():
                 role.perso = None
 
-    def forcer_import_pnjs(self, liste_pnjs):
-        for nom in liste_pnjs:
-            self.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
+    # def forcer_import_pnjs(self, liste_pnjs):
+    #     for nom in liste_pnjs:
+    #         #on met comme clef le nom en l'absence d'URL
+    #         self.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
 
-    def forcer_import_pjs(self, nomsPersos, suffixe="_imported", verbal=False):
+    # def forcer_import_pjs(self, nomsPersos, suffixe="_imported", verbal=False):
+    #     print("début de l'ajout des personnages sans fiche")
+    #     nomsLus = [x.nom for x in self.dictPJs.values()]
+    #     print(f"noms lus = {nomsLus}")
+    #     # pour chaque perso de ma liste :
+    #     # SI son nom est dans les persos > ne rien faire
+    #     # SINON, lui créer une coquille vide
+    #     persosSansCorrespondance = []
+    #     for perso in nomsPersos:
+    #         if perso in nomsLus and verbal:
+    #             print(f"le personnage {perso} a une correspondance dans les persos déjà présents")
+    #         else:
+    #             # persosSansCorrespondance.append(
+    #             #     [perso,
+    #             #      process.extractOne(perso, nomsLus)[0],
+    #             #      process.extractOne(perso, nomsLus)[1]])
+    #             scoreproche = process.extractOne(perso, nomsLus)
+    #             # print(f"avant assicoation, {perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
+    #             if scoreproche is not None and scoreproche[1] >= 75:
+    #                 if verbal:
+    #                     print(f"{perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
+    #                 # donc on ne fait rien
+    #             else:
+    #                 if verbal:
+    #                     print(f"{perso} a été créé (coquille vide)")
+    #                 self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=EST_PJ,
+    #                                                            forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
+
+
+    def forcer_import_pjs(self, noms_persos, suffixe="_imported", verbal=False):
+        return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=True, suffixe=suffixe, verbal=verbal)
+
+    def forcer_import_pnjs(self, noms_persos, suffixe="_imported", verbal=False):
+        return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=False, suffixe=suffixe, verbal=verbal)
+
+    def forcer_import_pjpnjs(self, noms_persos, pj:bool, suffixe="_imported", verbal=False):
         print("début de l'ajout des personnages sans fiche")
-        nomsLus = [x.nom for x in self.dictPJs.values()]
-        print(f"noms lus = {nomsLus}")
+        # nomsLus = [x.nom for x in self.dictPJs.values()]
+        noms_lus = self.noms_pjpnjs(pj)
+        print(f"noms lus = {noms_lus}")
         # pour chaque perso de ma liste :
         # SI son nom est dans les persos > ne rien faire
         # SINON, lui créer une coquille vide
+        if pj:
+            valeur_pj = EST_PJ
+        else:
+            valeur_pj = EST_PNJ_HORS_JEU
         persosSansCorrespondance = []
-        for perso in nomsPersos:
-            if perso in nomsLus and verbal:
+        for perso in noms_persos:
+            if perso in noms_lus and verbal:
                 print(f"le personnage {perso} a une correspondance dans les persos déjà présents")
             else:
-                # persosSansCorrespondance.append(
-                #     [perso,
-                #      process.extractOne(perso, nomsLus)[0],
-                #      process.extractOne(perso, nomsLus)[1]])
-                scoreproche = process.extractOne(perso, nomsLus)
+                scoreproche = process.extractOne(perso, noms_lus)
                 # print(f"avant assicoation, {perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
                 if scoreproche is not None and scoreproche[1] >= 75:
                     if verbal:
@@ -736,7 +840,7 @@ class GN:
                 else:
                     if verbal:
                         print(f"{perso} a été créé (coquille vide)")
-                    self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=EST_PJ,
+                    self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
                                                                forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
 
 
@@ -757,3 +861,14 @@ class ErreurAssociation :
         self.niveau = niveau
         self.texte = texte
         self.genere_par = genere_par
+
+    class Niveaux_Erreurs(IntEnum):
+        INFO = 10
+        WARNING = 20
+        ERREUR = 30
+
+    class Origines_Erreurs(IntEnum):
+        SCENE = 1
+        FACTION = 2
+        ASSOCIATION_AUTO = 3
+

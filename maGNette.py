@@ -426,30 +426,30 @@ def listerPNJs(monGN):
     return toReturn
 
 
-def genererCsvPNJs(monGN: GN, verbal=False):
-    noms_pnjs = monGN.noms_pnjs()
-    output = "nom PNJ;description;typePJ;niveau implication;details intervention;intrigue;" \
-             "nom dans l'intrigue;indice de confiance normalisation\n"
-    for intrigue in monGN.intrigues.values():
-        for role in intrigue.rolesContenus.values():
-            if role.estUnPNJ():
-                nompnj = role.nom.replace('\n', chr(10))
-                description = role.description.replace('\n', "***")
-                niveauImplication = role.niveauImplication.replace('\n', chr(10))
-                perimetreIntervention = role.perimetreIntervention.replace('\n', chr(10))
-                score = process.extractOne(nompnj, noms_pnjs)
-                typeDansGN = monGN.dictPNJs[score[0]].pj
-                output += f"{score[0]};" \
-                          f"{description};" \
-                          f"{stringTypePJ(typeDansGN)};" \
-                          f"{niveauImplication};" \
-                          f"{perimetreIntervention};" \
-                          f"{intrigue.nom}; " \
-                          f"{nompnj}; " \
-                          f"{score[1]}" \
-                          "\n"
-    if verbal:
-        print(output)
+# def genererCsvPNJs(monGN: GN, verbal=False):
+#     noms_pnjs = monGN.noms_pnjs()
+#     output = "nom PNJ;description;typePJ;niveau implication;details intervention;intrigue;" \
+#              "nom dans l'intrigue;indice de confiance normalisation\n"
+#     for intrigue in monGN.intrigues.values():
+#         for role in intrigue.rolesContenus.values():
+#             if role.estUnPNJ():
+#                 nompnj = role.nom.replace('\n', chr(10))
+#                 description = role.description.replace('\n', "***")
+#                 niveauImplication = role.niveauImplication.replace('\n', chr(10))
+#                 perimetreIntervention = role.perimetreIntervention.replace('\n', chr(10))
+#                 score = process.extractOne(nompnj, noms_pnjs)
+#                 typeDansGN = monGN.dictPNJs[score[0]].pj
+#                 output += f"{score[0]};" \
+#                           f"{description};" \
+#                           f"{stringTypePJ(typeDansGN)};" \
+#                           f"{niveauImplication};" \
+#                           f"{perimetreIntervention};" \
+#                           f"{intrigue.nom}; " \
+#                           f"{nompnj}; " \
+#                           f"{score[1]}" \
+#                           "\n"
+#     if verbal:
+#         print(output)
 
 
 def genererCsvObjets(monGN):
@@ -679,15 +679,15 @@ def ajouter_champs_modifie_par(mon_gn: GN, nom_fichier=None):
 #     return dossier_intrigues, dossier_pjs, id_factions, dossier_output_squelettes_pjs, \
 #            noms_persos, nom_fichier_pnjs, association_auto, type_fiche, nom_fichier_sauvegarde, resultat_ok
 
-def charger_PNJs(gn, chemin_fichier):
-    try:
-        with open(chemin_fichier, 'r') as f:
-            for ligne in f:
-                nom = ligne.strip()
-                gn.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
-                # print(f"{gn.dictPNJs[nom]}")
-    except FileNotFoundError:
-        print(f"Le fichier {chemin_fichier} n'a pas été trouvé.")
+# def charger_PNJs(gn, chemin_fichier):
+#     try:
+#         with open(chemin_fichier, 'r') as f:
+#             for ligne in f:
+#                 nom = ligne.strip()
+#                 gn.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
+#                 # print(f"{gn.dictPNJs[nom]}")
+#     except FileNotFoundError:
+#         print(f"Le fichier {chemin_fichier} n'a pas été trouvé.")
 
 def ajouter_champs_pour_gerer_faction(gn:GN):
     for intrigue in gn.intrigues.values():

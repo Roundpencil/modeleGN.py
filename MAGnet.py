@@ -2,6 +2,7 @@ import argparse
 
 from IHM_MAGnet import *
 
+# from maGNette import console_magnet
 
 def main():
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
@@ -64,7 +65,7 @@ def main():
     if args.console:
         # Code to execute when the -c/--console argument is provided
         print("Exécution de MAGnet en mode console")
-        pass
+
 
 
 if __name__ == '__main__':
