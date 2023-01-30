@@ -1,9 +1,6 @@
 from __future__ import print_function
 
-import re
-
 import fuzzywuzzy.process
-from fuzzywuzzy import process
 from googleapiclient.errors import HttpError
 
 import lecteurGoogle
@@ -18,13 +15,16 @@ def extraire_intrigues(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, 
 
 
 def extraire_pjs(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
-    extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
-                                 singletest,
-                                 verbal=verbal, fast=fast)
+    # print(f"je m'apprete à extraire les PJs depuis {mon_gn.dossiers_pjs}")
+    extraire_texte_de_google_doc(
+        mon_gn, apiDrive, apiDoc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
+        singletest,
+        verbal=verbal, fast=fast)
 
 
 def extraire_pnjs(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
-    if mon_gn.dossiers_pnjs is None:
+    # print(f"je m'apprete à extraire les PNJs depuis {mon_gn.dossiers_pnjs}")
+    if mon_gn.dossiers_pnjs is None or len(mon_gn.dossiers_pnjs) == 0:
         print(f"impossible de lire le dossier des PNJs : il n'existe pas")
         return
     extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, extraire_persos_de_texte, mon_gn.dictPNJs,
@@ -33,16 +33,17 @@ def extraire_pnjs(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, 
                                  verbal=verbal, fast=fast)
 
 
-def extraire_texte_de_google_doc(monGN, apiDrive, apiDoc, fonctionExtraction, dictIDs: dict, folderArray,
-                                 singletest="-01", verbal=False, fast=True):
-    items = lecteurGoogle.genererListeItems(monGN, apiDrive=apiDrive, folderID=folderArray)
+def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, dict_ids: dict, folder_array,
+                                 single_test="-01", verbal=False, fast=True):
+    items = lecteurGoogle.genererListeItems(mon_gn, apiDrive=apiDrive, folderID=folder_array)
+    # print(f"folder = {folder_array}  items = {items}")
 
     if not items:
         print('No files found.')
         return
 
-    # print(f"singletest : {type(singletest)} = {singletest}")
-    if int(singletest) > 0:
+    # print(f"single_test : {type(single_test)} = {single_test}")
+    if int(single_test) > 0:
         for item in items:
             try:
                 # print ("poung")
@@ -54,24 +55,24 @@ def extraire_texte_de_google_doc(monGN, apiDrive, apiDoc, fonctionExtraction, di
                 print('Titre document : {}'.format(document.get('title')))
 
                 # Alors on se demande si c'est le bon doc
-                # if document.get('title')[0:3].strip() != str(singletest):  # numéro de l'intrigue
+                # if document.get('title')[0:3].strip() != str(single_test):  # numéro de l'intrigue
                 #     # si ce n'est pas la bonne, pas la peine d'aller plus loin
                 #     continue
-                if ref_du_doc(document.get('title')) != int(singletest):
+                if ref_du_doc(document.get('title')) != int(single_test):
                     continue
                 else:
-                    print(f"j'ai trouvé le doc #{singletest} : {document.get('title')}")
+                    print(f"j'ai trouvé le doc #{single_test} : {document.get('title')}")
                     # if item['id'] in mon_gn.intrigues.keys():
                     #     mon_gn.intrigues[item['id']].clear()
                     #     del mon_gn.intrigues[item['id']]
 
                     objet_de_reference = None
-                    if item['id'] in dictIDs.keys():
-                        dictIDs[item['id']].clear()
-                        objet_de_reference = dictIDs.pop(item['id'])
+                    if item['id'] in dict_ids.keys():
+                        dict_ids[item['id']].clear()
+                        objet_de_reference = dict_ids.pop(item['id'])
 
-                    nouvelObjet = extraireObjetsDeDocument(document, item, monGN, fonctionExtraction,
-                                                           saveLastChange=False, verbal=verbal)
+                    nouvelObjet = extraire_objets_de_document(document, item, mon_gn, fonction_extraction,
+                                                              saveLastChange=False, verbal=verbal)
                     if objet_de_reference is not None:
                         nouvelObjet.updater_dates_maj_scenes(objet_de_reference)
 
@@ -107,7 +108,7 @@ def extraire_texte_de_google_doc(monGN, apiDrive, apiDoc, fonctionExtraction, di
                 # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
                 #   SI l'intrigue existe dans le GN ?
                 # if item['id'] in mon_gn.intrigues .keys():
-                if item['id'] in dictIDs.keys():
+                if item['id'] in dict_ids.keys():
 
                     #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
                     # print("l'intrigue fait déjà partie du GN ! ")
@@ -117,14 +118,14 @@ def extraire_texte_de_google_doc(monGN, apiDrive, apiDoc, fonctionExtraction, di
                     # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
                     # if mon_gn.intrigues[item['id']].lastChange >= datetime.datetime.strptime(item['modifiedTime'][:-5],
                     #                                                                         '%Y-%m-%dT%H:%M:%S'):
-                    # if dictIDs[item['id']].lastProcessing >= item['modifiedTime']:
+                    # if dict_ids[item['id']].lastProcessing >= item['modifiedTime']:
                     if fast and \
-                            dictIDs[item['id']].lastProcessing >= datetime.datetime.strptime(
+                            dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
                         item['modifiedTime'][:-5],
                         '%Y-%m-%dT%H:%M:%S'):
 
                         print(
-                            f"et elle n'a pas changé (dernier changement : {datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')}) depuis le dernier passage ({dictIDs[item['id']].lastProcessing})")
+                            f"et elle n'a pas changé (dernier changement : {datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')}) depuis le dernier passage ({dict_ids[item['id']].lastProcessing})")
                         # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
                         # si c'était la plus vieille du GN, pas la peine de continuer
 
@@ -138,10 +139,10 @@ def extraire_texte_de_google_doc(monGN, apiDrive, apiDoc, fonctionExtraction, di
                         # mon_gn.intrigues[item['id']].clear()
                         # del mon_gn.intrigues[item['id']]
 
-                        objet_de_reference = dictIDs.pop(item['id'])
+                        objet_de_reference = dict_ids.pop(item['id'])
 
                 # puis, dans tous les cas, on la crée
-                nouvelObjet = extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, verbal=verbal)
+                nouvelObjet = extraire_objets_de_document(document, item, mon_gn, fonction_extraction, verbal=verbal)
                 if objet_de_reference is not None:
                     nouvelObjet.updater_dates_maj_scenes(objet_de_reference)
                     objet_de_reference.clear()
@@ -151,16 +152,16 @@ def extraire_texte_de_google_doc(monGN, apiDrive, apiDoc, fonctionExtraction, di
                 # return #ajouté pour débugger
 
 
-def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLastChange=True, verbal=False):
+def extraire_objets_de_document(document, item, monGN, fonctionExtraction, saveLastChange=True, verbal=False):
     # print("et du coup, il est temps de créer un nouveau fichier")
     # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
-    contenuDocument = document.get('body').get('content')
-    text = lecteurGoogle.read_structural_elements(contenuDocument)
+    contenu_document = document.get('body').get('content')
+    text = lecteurGoogle.read_structural_elements(contenu_document)
     text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
 
     # print(text) #test de la fonction récursive pour le texte
     # monObjet = extraire_intrigue_de_texte(text, document.get('title'), item["id"], mon_gn)
-    lastFileEdit = datetime.datetime.strptime(
+    last_file_edit = datetime.datetime.strptime(
         item['modifiedTime'][:-5],
         '%Y-%m-%dT%H:%M:%S')
     if verbal:
@@ -171,7 +172,7 @@ def extraireObjetsDeDocument(document, item, monGN, fonctionExtraction, saveLast
     except:
         derniere_modification_par = "Utilisateur inconnu"
 
-    monObjet = fonctionExtraction(text, document.get('title'), item["id"], lastFileEdit, derniere_modification_par,
+    monObjet = fonctionExtraction(text, document.get('title'), item["id"], last_file_edit, derniere_modification_par,
                                   monGN, verbal)
     # monObjet.url = item["id"]
     # et on enregistre la date de dernière mise à jour de l'intrigue
@@ -192,7 +193,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     current_intrigue = Intrigue(nom=nomIntrigue, url=idUrl, derniere_edition_fichier=lastFileEdit)
     current_intrigue.modifie_par = derniere_modification_par
     monGN.intrigues[idUrl] = current_intrigue
-    # noms_persos = mon_gn.noms_pjs()
+    # noms_persos = mon_gn.liste_noms_pjs()
 
     # on fait un dict du début de chaque label
     REFERENT = "orga référent"
@@ -273,7 +274,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
             # 3 Résumé de l’implication
             pnjAAjouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
                                pj=modeleGN.EST_PNJ_HORS_JEU, niveauImplication=sections[2].strip(),
-                               perimetreIntervention=sections[1].strip())
+                               perimetre_intervention=sections[1].strip())
 
             # print("Je suis en train de regarder {0} et son implication est {1}".format(pnjAAjouter.nom, sections[1].strip()))
 
@@ -323,22 +324,22 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
                 continue
             sections = objet.split("¤¤¤")
             # vérifier si nous sommes avec un objet RFID (4 colonnes) ou sans (3 colonnes)
-            monObjet = None
+            mon_objet = None
             if len(sections) == 4:
-                monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[2].strip(),
+                mon_objet = Objet(description=sections[0].strip(), emplacementDebut=sections[2].strip(),
                                  fourniPar=sections[3].strip())
                 if sections[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
-                    monObjet.specialEffect = sections[1].strip()
+                    mon_objet.specialEffect = sections[1].strip()
 
             elif len(sections) == 3:
-                monObjet = Objet(description=sections[0].strip(), emplacementDebut=sections[1].strip(),
+                mon_objet = Objet(description=sections[0].strip(), emplacementDebut=sections[1].strip(),
                                  fourniPar=sections[2].strip())
             else:
                 print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {sections}")
 
-            if monObjet is not None:
-                current_intrigue.objets.add(monObjet)
-                monObjet.inIntrigues.add(current_intrigue)
+            if mon_objet is not None:
+                current_intrigue.objets.add(mon_objet)
+                mon_objet.inIntrigues.add(current_intrigue)
 
     # gestion de la section FX
     if indexes[SCENESFX]["debut"] > -1:
@@ -456,7 +457,7 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
     if tableauRolesExistant:
         # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de reférence des noms dans l'intrigue
         nomsRoles = conteneur.getNomsRoles()
-        # print(f"pour {currentIntrigue.nom}, nomsRoles =  {nomsRoles}")
+        # print(f"pour {currentIntrigue.nom}, noms_roles =  {noms_roles}")
 
     # print(f"Texte section scène : {texteScenes}")
     scenes = texteScenes.split("###")
@@ -468,24 +469,24 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
         titreScene = scene.splitlines()[0].strip()
         sceneAAjouter = conteneur.addScene(titreScene)
         sceneAAjouter.modifie_par = conteneur.modifie_par
-        # print("titre de la scène ajoutée : " + sceneAAjouter.titre)
+        # print("titre de la scène ajoutée : " + scene_a_ajouter.titre)
 
         balises = re.findall(r'##.*', scene)
         for balise in balises:
             # print("balise : " + balise)
             if balise[0:9].lower() == '## quand?':
-                extraireDateScene(balise[10:], sceneAAjouter)
+                extraire_date_scene(balise[10:], sceneAAjouter)
             elif balise[0:10].lower() == '## quand ?':
-                extraireDateScene(balise[11:], sceneAAjouter)
-                # sceneAAjouter.date = balise[11:].strip()
-                # # print("date de la scène : " + sceneAAjouter.date)
+                extraire_date_scene(balise[11:], sceneAAjouter)
+                # scene_a_ajouter.date = balise[11:].strip()
+                # # print("date de la scène : " + scene_a_ajouter.date)
             elif balise[0:9].lower() == '## il y a':
                 extraireIlYAScene(balise[10:], sceneAAjouter)
             elif balise[0:7].lower() == '## qui?':
-                extraireQuiScene(balise[8:], conteneur, nomsRoles, sceneAAjouter)
+                extraire_qui_scene(balise[8:], conteneur, nomsRoles, sceneAAjouter)
 
             elif balise[0:8].lower() == '## qui ?':
-                extraireQuiScene(balise[9:], conteneur, nomsRoles, sceneAAjouter)
+                extraire_qui_scene(balise[9:], conteneur, nomsRoles, sceneAAjouter)
 
             elif balise[0:11].lower() == '## niveau :':
                 sceneAAjouter.niveau = balise[12:].strip()
@@ -515,12 +516,12 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
                 sceneAAjouter.description += balise
 
         sceneAAjouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
-        # print("texte de la scene apres insertion : " + sceneAAjouter.description)
+        # print("texte de la scene apres insertion : " + scene_a_ajouter.description)
 
 
-def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True, seuil=80):
-    roles = listeNoms.split(",")
-    sceneAAjouter.noms_roles_lus = roles
+def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verbal=True, seuil=80):
+    roles = liste_noms.split(",")
+    scene_a_ajouter.noms_roles_lus = roles
     # print("rôles trouvés en lecture brute : " + str(roles))
 
     # dans ce cas, on prend les noms du tableau, qui fon fois, et on s'en sert pour identifier
@@ -528,22 +529,23 @@ def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True
     for nom_du_role in roles:
         if len(nom_du_role) < 2:
             continue
-        # SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles > on les crée sans se poser de questions
-        if nomsRoles is None:
+        # SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles
+        # > on les crée sans se poser de questions
+        if noms_roles is None:
             # print("Je suis entrée dans une situation ou il n'y avait pas de référence des noms")
 
             # on cherche s'il existe déjà un rôle avec ce nom dans le conteneur
-            roleAAjouter = None
+            # roleAAjouter = None
             nom_du_role = nom_du_role.strip()
             if nom_du_role in conteneur.rolesContenus:
                 # print(f"nom trouvé dans le contenu : {nom_du_role}")
-                roleAAjouter = conteneur.rolesContenus[nom_du_role]
+                role_a_ajouter = conteneur.rolesContenus[nom_du_role]
             else:
                 # print(f"nouveau role créé dans le contenu : {nom_du_role}")
-                roleAAjouter = Role(conteneur, nom=nom_du_role)
-                conteneur.rolesContenus[roleAAjouter.nom] = roleAAjouter
+                role_a_ajouter = Role(conteneur, nom=nom_du_role)
+                conteneur.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
-            roleAAjouter.ajouterAScene(sceneAAjouter)
+            role_a_ajouter.ajouter_a_scene(scene_a_ajouter)
 
             # print(f"le rôle {roleAAjouter.nom} est associé aux scènes {[s.titre for s in roleAAjouter.scenes]}")
 
@@ -552,7 +554,7 @@ def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True
         else:
             # Sinon, il faut normaliser et extraire les rôles
             # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
-            score = process.extractOne(nom_du_role.strip(), nomsRoles)
+            score = process.extractOne(nom_du_role.strip(), noms_roles)
             # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
             #                                                                                   conteneur.nom,
             #                                                                                   score))
@@ -560,35 +562,39 @@ def extraireQuiScene(listeNoms, conteneur, nomsRoles, sceneAAjouter, verbal=True
             # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'est peut-être trompé de perso!
             if score is not None:
                 if score[1] < seuil:
-                    warningText = f"Warning association Scene ({score[1]}) - nom dans scène : {nom_du_role} > Role : {score[0]} dans {conteneur.nom}/{sceneAAjouter.titre}"
-                    conteneur.addToErrorLog(warningText)
+                    warning_text = f"Association Scene ({score[1]}) - nom dans scène : {nom_du_role} > Role : {score[0]} dans {conteneur.nom}/{scene_a_ajouter.titre}"
+                    conteneur.add_to_error_log(ErreurAssociation.NIVEAUX.WARNING,
+                                               warning_text,
+                                               ErreurAssociation.ORIGINES.SCENE)
                     if verbal:
-                        print(warningText)
+                        print(warning_text)
 
                 # trouver le rôle à ajouter à la scène en lisant l'intrigue
-                monRole = conteneur.rolesContenus[score[0]]
-                monRole.ajouterAScene(sceneAAjouter)
+                mon_role = conteneur.rolesContenus[score[0]]
+                mon_role.ajouter_a_scene(scene_a_ajouter)
             else:
-                texteErreur = f"Erreur, process renvoie None pour nom scène : {nom_du_role} dans {sceneAAjouter.titre}"
+                texte_erreur = f"Erreur, process renvoie None pour nom scène : {nom_du_role} dans {scene_a_ajouter.titre}"
                 if verbal:
-                    print(texteErreur)
-                conteneur.errorLog += texteErreur + '\n'
+                    print(texte_erreur)
+                conteneur.add_to_error_log(ErreurAssociation.NIVEAUX.ERREUR,
+                                           texte_erreur,
+                                           ErreurAssociation.ORIGINES.SCENE)
 
 
-def extraireDateScene(baliseDate, sceneAAjouter):
-    # réécrite pour merger les fontions il y a et quand :
+def extraire_date_scene(balise_date, scene_a_ajouter):
+    # réécrite pour merger les fonctions il y a et quand :
 
     # est-ce que la date est écrite au format quand ? il y a ?
-    if baliseDate.strip().lower()[0:6] == 'il y a':
-        # print(f" 'quand il y a' trouvée : {baliseDate}")
-        return extraireIlYAScene(baliseDate.strip()[7:], sceneAAjouter)
+    if balise_date.strip().lower()[0:6] == 'il y a':
+        # print(f" 'quand il y a' trouvée : {balise_date}")
+        return extraireIlYAScene(balise_date.strip()[7:], scene_a_ajouter)
     else:
-        sceneAAjouter.date = baliseDate.strip()
-    # print("date de la scène : " + sceneAAjouter.date)
+        scene_a_ajouter.date = balise_date.strip()
+    # print("date de la scène : " + scene_a_ajouter.date)
 
 
 def extraireIlYAScene(baliseDate, sceneAAjouter):
-    # print("balise date : " + baliseDate)
+    # print("balise date : " + balise_date)
     # trouver s'il y a un nombres a[ns]
     dateEnJours = calculerJoursIlYA(baliseDate)
 
@@ -600,11 +606,11 @@ def calculerJoursIlYA(baliseDate):
     try:
         maDate = baliseDate
         # print(f"ma date avant stripping : {maDate}")
-        # print(baliseDate.strip().lower()[0:6])
+        # print(balise_date.strip().lower()[0:6])
         # #si il y a un "il y a" dans la balise, il faut le virer
-        # if baliseDate.strip().lower()[0:6] == 'il y a':
-        #     maDate = baliseDate[7:]
-        # print(f"ma date après stripping : {baliseDate} > {maDate}")
+        # if balise_date.strip().lower()[0:6] == 'il y a':
+        #     maDate = balise_date[7:]
+        # print(f"ma date après stripping : {balise_date} > {maDate}")
 
         ans = re.search(r"\d+\s*a", maDate)
 
@@ -617,7 +623,7 @@ def calculerJoursIlYA(baliseDate):
         # trouver s'il y a un nombres* j[ours]
         jours = re.search('\d+\s*j', maDate)
 
-        # print(f"{baliseDate} =  {ans} ans/ {jours} jours/ {mois} mois/ {semaines} semaines")
+        # print(f"{balise_date} =  {ans} ans/ {jours} jours/ {mois} mois/ {semaines} semaines")
 
         # travailler ce qu'on a trouvé comme valeurs
         if ans is None:
@@ -803,6 +809,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     # et on enregistre la date de dernière mise à jour de l'intrigue
     perso_en_cours.lastProcessing = datetime.datetime.now()
 
+    # print(f"perso à la fin de l'importation {perso_en_cours}")
     return perso_en_cours
 
 
@@ -826,21 +833,25 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=False):
 
     try:
         document = apiDoc.documents().get(documentId=mon_GN.id_factions).execute()
-        contenuDocument = document.get('body').get('content')
-        text = lecteurGoogle.read_structural_elements(contenuDocument)
+        contenu_document = document.get('body').get('content')
+        text = lecteurGoogle.read_structural_elements(contenu_document)
         text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
 
     except HttpError as err:
         print(f'An error occurred: {err}')
         return
 
-    print(f"texte = {text}")
+    if verbal:
+        print(f"texte = {text}")
 
     # à ce stade, j'ai lu les factions et je peux dépouiller
     # print(f"clefs dictionnaire : {mon_GN.dictPJs.keys()}")
     lines = text.splitlines()
     noms_persos = list(mon_GN.noms_pjs()) + list(mon_GN.noms_pnjs())
-    temp_dict = {mon_GN.dictPJs[x].nom: x for x in mon_GN.dictPJs}
+    # on crée un dictionnaire qui permettra de retrouver les id en fonction des noms
+    temp_dict_pjs = {mon_GN.dictPJs[x].nom: x for x in mon_GN.dictPJs}
+    temp_dict_pnjs = {mon_GN.dictPNJs[x].nom: x for x in mon_GN.dictPNJs}
+
     current_faction = None
     for line in lines:
         if line.startswith("### "):
@@ -854,13 +865,13 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=False):
             for perso_name in personnages_names:
                 perso_name = perso_name.strip()
                 score = fuzzywuzzy.process.extractOne(perso_name, noms_persos)
-                print(f"score durant lecture faction pour {perso_name} = {score}")
+                # print(f"score durant lecture faction pour {perso_name} = {score}")
                 if verbal:
                     print(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
-                if temp_dict.get(score[0]):
-                    personnages_a_ajouter = mon_GN.dictPJs[temp_dict.get(score[0])]
+                if temp_dict_pjs.get(score[0]):
+                    personnages_a_ajouter = mon_GN.dictPJs[temp_dict_pjs.get(score[0])]
                 else:
-                    personnages_a_ajouter = mon_GN.dictPNJs[score[0]]
+                    personnages_a_ajouter = mon_GN.dictPNJs[temp_dict_pnjs.get(score[0])]
 
                 current_faction.personnages.add(personnages_a_ajouter)
     return 0
@@ -1063,7 +1074,8 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
 
     # write data to the worksheets for each value in dict_orgas_persos
     for orga in dict_orgas_persos:
-        print(f"fiche orga en cours de création = {orga}")
+        if verbal:
+            print(f"fiche orga en cours de création = {orga}")
 
         # persos = []
         # for orga_set in dict_orgas_persos.values():

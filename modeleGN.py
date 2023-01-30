@@ -14,15 +14,15 @@ EST_PNJ_TEMPORAIRE = 2
 EST_PNJ_HORS_JEU = 1
 
 
-def estUnPNJ(niveauPJ):
+def est_un_pnj(niveauPJ):
     return niveauPJ == EST_PNJ_HORS_JEU or niveauPJ == EST_PNJ_TEMPORAIRE or niveauPJ == EST_PNJ_INFILTRE or niveauPJ == EST_PNJ_PERMANENT
 
 
-def estUnPJ(niveauPJ):
+def est_un_pj(niveauPJ):
     return niveauPJ == EST_PJ
 
 
-def stringTypePJ(typePJ):
+def string_type_pj(typePJ):
     if typePJ == EST_PJ:
         return "PJ"
     if typePJ == EST_REROLL:
@@ -47,21 +47,21 @@ class ConteneurDeScene:
     def __init__(self, derniere_edition_fichier, url):
         self.scenes = set()
         self.rolesContenus = {}  # nom, rôle
-        self.errorLog = ""
+        self.error_log = ErreurManager()
         self.lastFileEdit = derniere_edition_fichier
         self.modifie_par = ""
         self.url = url
 
-    def getErrorLog(self):
-        return self.errorLog
+    def texte_error_log(self):
+        return str(self.error_log)
 
-    def addToErrorLog(self, text):
-        self.errorLog += text + "\n"
+    def add_to_error_log(self, niveau, message, origine):
+        self.error_log.ajouter_erreur(niveau, message, origine)
         # une erreur :
         # un endroit ou c'est détecté : tableau des intrigues, rôles, personnages
 
     def clearErrorLog(self):
-        self.errorLog = ""
+        self.error_log = ""
 
     def getNomsRoles(self):
         return self.rolesContenus.keys()
@@ -90,7 +90,7 @@ class ConteneurDeScene:
             del scene
         # self.scenes.clear()
         # print(f"intrigue effacée {self.nom}")
-        self.errorLog = ''
+        self.error_log = ''
 
     def getFullUrl(self):
         return "https://docs.google.com/document/d/" + self.url
@@ -153,36 +153,37 @@ class Personnage(ConteneurDeScene):
             role.perso = None
         self.roles.clear()
 
-    def addrole(self, r):
+    def ajouter_role(self, r):
         self.roles.add(r)
 
     # def __str__(self):
     #     return "nom perso : " + self.nom
 
     def __str__(self):
-        toReturn = ""
-        toReturn += f"nom = {self.nom} \n"
-        toReturn += f"concept = {self.concept} \n"
-        toReturn += f"questions_ouvertes = {self.questions_ouvertes} \n"
-        toReturn += f"sexe = {self.sexe} \n"
-        toReturn += f"pj = {stringTypePJ(self.pj)} \n"
-        toReturn += f"actif = {self.actif} \n"
-        toReturn += f"roles = {str(self.roles)} \n"
-        toReturn += f"relations = {str(self.relations)} \n"
-        toReturn += f"images = {self.images} \n"
-        toReturn += f"description = {self.description} \n"
-        toReturn += f"orgaReferent = {self.orgaReferent} \n"
-        toReturn += f"joueurs = {self.joueurs.values()} \n"
-        toReturn += f"pitchJoueur = {self.pitchJoueur} \n"
-        toReturn += f"indicationsCostume = {self.indicationsCostume} \n"
-        toReturn += f"factions = {self.factions} \n"
-        toReturn += f"textesAnnexes = {self.textesAnnexes} \n"
-        return toReturn
+        to_return = ""
+        to_return += f"nom = {self.nom} \n"
+        to_return += f"concept = {self.concept} \n"
+        to_return += f"driver = {self.driver} \n"
+        to_return += f"questions_ouvertes = {self.questions_ouvertes} \n"
+        to_return += f"sexe = {self.sexe} \n"
+        to_return += f"pj = {string_type_pj(self.pj)} \n"
+        to_return += f"actif = {self.actif} \n"
+        to_return += f"roles = {str(self.roles)} \n"
+        to_return += f"relations = {str(self.relations)} \n"
+        to_return += f"images = {self.images} \n"
+        to_return += f"description = {self.description} \n"
+        to_return += f"orgaReferent = {self.orgaReferent} \n"
+        to_return += f"joueurs = {self.joueurs.values()} \n"
+        to_return += f"pitchJoueur = {self.pitchJoueur} \n"
+        to_return += f"indicationsCostume = {self.indicationsCostume} \n"
+        to_return += f"factions = {self.factions} \n"
+        to_return += f"textesAnnexes = {self.textesAnnexes} \n"
+        return to_return
 
-    def estUnPNJ(self):
+    def est_un_pnj(self):
         return self.pj == EST_PNJ_HORS_JEU or self.pj == EST_PNJ_TEMPORAIRE or self.pj == EST_PNJ_INFILTRE or self.pj == EST_PNJ_PERMANENT
 
-    def estUnPJ(self):
+    def est_un_pj(self):
         return self.pj == EST_PJ
 
     def sommer_pip(self):
@@ -196,7 +197,7 @@ class Personnage(ConteneurDeScene):
 class Role:
 
     def __init__(self, conteneur, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ,
-                 typeIntrigue="", niveauImplication="", perimetreIntervention="", issu_dune_faction=False,
+                 typeIntrigue="", niveauImplication="", perimetre_intervention="", issu_dune_faction=False,
                  pip_globaux=0):
         self.conteneur = conteneur
         self.perso = perso
@@ -212,7 +213,7 @@ class Role:
         self.typeIntrigue = typeIntrigue
         self.niveauImplication = niveauImplication
         self.scenes = set()
-        self.perimetreIntervention = perimetreIntervention
+        self.perimetreIntervention = perimetre_intervention
         self.issu_dune_faction = issu_dune_faction
 
     def __str__(self):
@@ -226,18 +227,18 @@ class Role:
         toReturn += "description : " + self.description + "\n"
         # toReturn += "pipr : " + str(self.pipr) + "\n"
         # toReturn += "pipi : " + str(self.pipi) + "\n"
-        toReturn += "pj : " + stringTypePJ(self.pj) + "\n"
+        toReturn += "pj : " + string_type_pj(self.pj) + "\n"
         # toReturn += "sexe : " + self.sexe + "\n"
         toReturn += "typeIntrigue : " + self.typeIntrigue + "\n"
         toReturn += "niveauImplication : " + self.niveauImplication + "\n"
         return toReturn
 
-    def ajouterAScene(self, sceneAAjouter):
+    def ajouter_a_scene(self, sceneAAjouter):
         self.scenes.add(sceneAAjouter)
         sceneAAjouter.roles.add(self)
 
-    def estUnPNJ(self):
-        return estUnPNJ(self.pj)
+    def est_un_pnj(self):
+        return est_un_pnj(self.pj)
 
     def sommer_pip(self):
         # print(f"je suis en train de sommer {self.nom}")
@@ -301,10 +302,13 @@ class Intrigue(ConteneurDeScene):
                 # todo : nettoyer à un moement le fichier des erreurs d'associations.
                 # en effet, si on fait évoluer la liste des pjs/pnjs mais sans changer l'intrigue, les logs restent alors que le problème est régle...
 
-                texteErreur = f"Erreur lors de la tentative d'associer le role " \
+                texteErreur = f"lors de la tentative d'associer le role " \
                               f"{role_a_associer.nom} au personnage {personnage.nom} (meilleur choix) : " \
                               f"celui-ci a déjà été automatiquement associé au rôle {role.nom} dans {self.nom}"
-                self.addToErrorLog(texteErreur)
+                self.add_to_error_log(ErreurAssociation.NIVEAUX.ERREUR,
+                                      texteErreur,
+                                      ErreurAssociation.ORIGINES.ASSOCIATION_AUTO
+                                      )
 
                 if verbal:  # et si on a demandé à ce que la fonction raconte sa vie, on détaille
                     print(texteErreur)
@@ -490,13 +494,16 @@ class GN:
         self.dossiers_pjs = None
         self.dossier_outputs_drive = None
         self.dossiers_intrigues = None
-        self.injecter_config(self, dossiers_intrigues, dossier_output, association_auto,
-                             dossiers_pnj=dossiers_pnj, id_factions=id_factions, dossiers_pj=dossiers_pj)
+        self.injecter_config(dossiers_intrigues, dossier_output, association_auto, dossiers_pj=dossiers_pj,
+                             dossiers_pnj=dossiers_pnj, id_factions=id_factions)
 
     def injecter_config(self,
                         dossiers_intrigues, dossier_output, association_auto,
-                        dossiers_pj=None, dossiers_pnj=None, id_factions=None):
+                        dossiers_pj=None, dossiers_pnj=None, id_factions=None, noms_pjs=None, noms_pnjs=None):
+        # todo : injecter les noms des PJs et le dossier PNJ
 
+        self.liste_noms_pjs = noms_pjs
+        self.liste_noms_pnjs = noms_pnjs
         if isinstance(dossiers_intrigues, list):
             self.dossiers_intrigues = dossiers_intrigues
         else:
@@ -595,10 +602,10 @@ class GN:
             return self.noms_pnjs()
 
     # def associerPNJsARoles(self, seuilAlerte=90, verbal=True):
-    #     nomsPnjs = self.noms_pnjs()
+    #     nomsPnjs = self.liste_noms_pnjs()
     #     for intrigue in self.intrigues.values():
     #         for role in intrigue.rolesContenus.values():
-    #             if estUnPNJ(role.pj):
+    #             if est_un_pnj(role.pj):
     #                 score = process.extractOne(role.nom, nomsPnjs)
     #                 if score is None:
     #                     print(f"probleme lors de l'association de {role.nom} avec la liste : {nomsPnjs}")
@@ -609,15 +616,15 @@ class GN:
     #                 if score[1] < seuilAlerte:
     #                     texteErreur = f"Warning association ({score[1]}) " \
     #                                   f"- nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}"
-    #                     intrigue.addToErrorLog(texteErreur)
+    #                     intrigue.add_to_error_log(texteErreur)
     #                     if verbal:
     #                         print(texteErreur)
     #
     # def associer_pj_a_roles(self, seuilAlerte=70, verbal=True):
     #     print("Début de l'association automatique des rôles aux persos")
-    #     nomsPjs = self.noms_pjs()
+    #     nomsPjs = self.liste_noms_pjs()
     #     if verbal:
-    #         print(f"noms pjs = {self.noms_pjs()}")
+    #         print(f"noms pjs = {self.liste_noms_pjs()}")
     #     dictNomsPJ = dict()
     #     for pj in self.dictPJs.values():  # on crée un dictionnaire temporaire nom > pj pour faire les associations
     #         dictNomsPJ[pj.nom] = pj
@@ -637,7 +644,7 @@ class GN:
     #             if score[1] < seuilAlerte:
     #                 texteErreur = f"Warning association ({score[1]}) - nom rôle : " \
     #                               f"{role.nom} > PJ : {score[0]} dans {pj.nom}"
-    #                 pj.addToErrorLog(texteErreur)
+    #                 pj.add_to_error_log(texteErreur)
     #                 if verbal:
     #                     # print(f"je paaaaaarle {score[1]}")
     #                     print(texteErreur)
@@ -646,7 +653,7 @@ class GN:
     #     # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant
     #     for intrigue in self.intrigues.values():
     #         for role in intrigue.rolesContenus.values():
-    #             if estUnPJ(role.pj):
+    #             if est_un_pj(role.pj):
     #                 # print(f"nom du role testé = {role.nom}")
     #                 score = process.extractOne(role.nom, nomsPjs)
     #                 # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
@@ -656,7 +663,7 @@ class GN:
     #                 if score[1] < seuilAlerte:
     #                     texteErreur = f"Warning association ({score[1]}) - nom rôle : " \
     #                                   f"{role.nom} > PJ : {score[0]} dans {intrigue.nom}"
-    #                     intrigue.addToErrorLog(texteErreur)
+    #                     intrigue.add_to_error_log(texteErreur)
     #                     if verbal:
     #                         # print(f"je paaaaaarle {score[1]}")
     #                         print(texteErreur)
@@ -676,6 +683,8 @@ class GN:
             dict_reference = self.dictPJs
         else:
             dict_reference = self.dictPNJs
+            test = [e.nom for e in self.dictPNJs.values()]
+            print(f"test = {test}")
 
         if verbal:
             print(f"pj? {pj}, noms persos = {noms_persos}")
@@ -690,25 +699,27 @@ class GN:
             # print(f"je suis en train de chercher des roles dans le pj {pj.nom}")
             # print(f"noms de roles trouvés : {pj.rolesContenus}")
             for role in perso.rolesContenus.values():
-                # print(f"je suis en train d'essayer d'associer le rôle {role.nom} issu du personnage {pj.nom}")
+                print(f"je suis en train d'essayer d'associer le rôle {role.nom} issu du personnage {perso.nom}")
                 score = process.extractOne(role.nom, noms_persos)
-                # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
+                print(f"Pour {role.nom} dans {role.conteneur.nom}, score = {score}")
                 role.perso = dict_noms_persos[score[0]]
                 role.perso.roles.add(role)
 
                 if score[1] < seuilAlerte:
-                    texte_erreur = f"Warning association ({score[1]}) - nom rôle : " \
+                    texte_erreur = f"Association ({score[1]}) - nom rôle : " \
                                    f"{role.nom} > perso : {score[0]} dans {perso.nom}"
-                    perso.addToErrorLog(texte_erreur)
+                    perso.add_to_error_log(ErreurAssociation.NIVEAUX.WARNING,
+                                           texte_erreur,
+                                           ErreurAssociation.ORIGINES.ASSOCIATION_AUTO)
                     if verbal:
                         # print(f"je paaaaaarle {score[1]}")
                         print(texte_erreur)
 
         # faire l'association dans les intrigues à partir du nom de l'intrigue
         if pj:
-            critere = estUnPJ
+            critere = est_un_pj
         else:
-            critere = estUnPNJ
+            critere = est_un_pnj
         # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant
         for intrigue in self.intrigues.values():
             for role in intrigue.rolesContenus.values():
@@ -720,9 +731,12 @@ class GN:
                                                            verbal=verbal)
 
                     if score[1] < seuilAlerte:
-                        texte_erreur = f"Warning association ({score[1]}) - nom rôle : " \
+                        texte_erreur = f"Association ({score[1]}) - nom rôle : " \
                                        f"{role.nom} > perso : {score[0]} dans {intrigue.nom}"
-                        intrigue.addToErrorLog(texte_erreur)
+                        intrigue.add_to_error_log(ErreurAssociation.NIVEAUX.WARNING,
+                                                  texte_erreur,
+                                                  ErreurAssociation.ORIGINES.ASSOCIATION_AUTO
+                                                  )
                         if verbal:
                             # print(f"je paaaaaarle {score[1]}")
                             print(texte_erreur)
@@ -731,16 +745,16 @@ class GN:
 
     @staticmethod
     def load(filename):
-        monfichier = open(filename, 'rb')
-        return pickle.load(monfichier)
+        mon_fichier = open(filename, 'rb')
+        return pickle.load(mon_fichier)
 
     # apres une importation recrée
     # tous les liens entre les PJs,
     # les PNJs
     # et les fonctions d'accélération de ré-importations
 
-    def rebuildLinks(self, verbal=True):
-        self.clearAllAssociations()
+    def rebuild_links(self, verbal=True):
+        self.clear_all_associations()
         self.updateOldestUpdate()
         self.ajouter_roles_issus_de_factions(verbal)
         self.associer_pnj_a_roles(verbal)
@@ -753,7 +767,6 @@ class GN:
     # si non > ajouter un nouveau role avec une propriété issu_dune_faction= true
 
     def ajouter_roles_issus_de_factions(self, seuil_nom_faction=85, seuil_reconciliation_role=80, verbal: bool = False):
-        # todo : tester les factions
         # lire toutes les scènes pours trouver les factions
         for intrigue in self.intrigues.values():
             for scene in intrigue.scenes:
@@ -763,9 +776,9 @@ class GN:
                     score_faction = process.extractOne(nom_faction, self.factions.keys())
                     print(f"score_faction = {score_faction}")
                     if score_faction[1] < seuil_nom_faction:
-                        intrigue.errorLog += f"Warning : la faction {nom_faction} " \
-                                             f"a été associée à {score_faction[0]} " \
-                                             f"à seulement {score_faction[1]}% de confiance"
+                        intrigue.error_log += f"Warning : la faction {nom_faction} " \
+                                              f"a été associée à {score_faction[0]} " \
+                                              f"à seulement {score_faction[1]}% de confiance"
                     ma_faction = self.factions[score_faction[0]]
                     # pour chaque personnage de la faction, on vérifie s'il a une correspondance
                     # dans les persos de la scène, en définissant un seuil d'acceptabilité
@@ -774,9 +787,13 @@ class GN:
                               f" {personnage_dans_faction.nom}, {intrigue.rolesContenus.keys()}")
                         score_role = process.extractOne(personnage_dans_faction.nom, intrigue.rolesContenus.keys())
                         if score_role[1] < seuil_reconciliation_role:
-                            intrigue.errorLog += f"Info :  {personnage_dans_faction.nom} " \
-                                                 f"a été ajouté via la faction {nom_faction} " \
-                                                 f"pour la scène {scene.titre} \n"
+                            texte_info = f"{personnage_dans_faction.nom} " \
+                                         f"a été ajouté via la faction {nom_faction} " \
+                                         f"pour la scène {scene.titre} \n"
+                            intrigue.error_log.ajouter_erreur(ErreurAssociation.NIVEAUX.INFO,
+                                                              texte_info,
+                                                              ErreurAssociation.ORIGINES.FACTION
+                                                              )
                             # ajouter un nouveau role dans l'intrigue avec personnage_dans_faction = true
                             role_a_ajouter = Role(intrigue,
                                                   nom=personnage_dans_faction.nom,
@@ -785,26 +802,28 @@ class GN:
                                                   )
                             intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
                             # l'ajouter à la scène
-                            role_a_ajouter.ajouterAScene(scene)
+                            role_a_ajouter.ajouter_a_scene(scene)
 
                         else:
                             # ajouter la scène au role
-                            intrigue.rolesContenus[score_role[0]].ajouterAScene(scene)
+                            intrigue.rolesContenus[score_role[0]].ajouter_a_scene(scene)
 
     # todo : quand on loade le fichier faction, clearer les factions pour prendre en compte les suppressions entre deux loading
-    # todo : corriger le tableau suggéré
 
     # utilisée pour préparer lassociation roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
-    def clearAllAssociations(self):
-        for pj in self.dictPJs.values():
-            pj.roles.clear()
-        for pnj in self.dictPNJs.values():
-            pnj.roles.clear()
+    def clear_all_associations(self):
+        # for pj in self.dictPJs.values():
+        #     pj.roles.clear()
+        # for pnj in self.dictPNJs.values():
+        #     pnj.roles.clear()
+        for perso in list(self.dictPJs.values()) + list(self.dictPNJs.values()):
+            perso.roles.clear()
+            perso.error_log.clear(ErreurAssociation.ORIGINES.ASSOCIATION_AUTO)
+            perso.error_log.clear(ErreurAssociation.ORIGINES.FACTION)
 
         for intrigue in self.intrigues.values():
             # intrigue.clearErrorLog()
-            # todo ne nettoyer que les erreurs générées par l'association...quand on aura un objet erreur :)
             for role in intrigue.rolesContenus.values():
                 role.perso = None
 
@@ -850,6 +869,10 @@ class GN:
     def forcer_import_pjpnjs(self, noms_persos, pj: bool, suffixe="_imported", verbal=False):
         print("début de l'ajout des personnages sans fiche")
         # nomsLus = [x.nom for x in self.dictPJs.values()]
+        if pj:
+            dict_actif = self.dictPJs
+        else:
+            dict_actif = self.dictPNJs
         noms_lus = self.noms_pjpnjs(pj)
         print(f"noms lus = {noms_lus}")
         # pour chaque perso de ma liste :
@@ -873,8 +896,11 @@ class GN:
                 else:
                     if verbal:
                         print(f"{perso} a été créé (coquille vide)")
-                    self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
+                    dict_actif[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
                                                                forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
+
+                    # self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
+                    #                                            forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
 
 
 # objets
@@ -893,7 +919,17 @@ class ErreurAssociation:
     def __init__(self, niveau, texte, genere_par):
         self.niveau = niveau
         self.texte = texte
-        self.genere_par = genere_par
+        self.origine = genere_par
+
+    def __str__(self):
+        if self.niveau == self.NIVEAUX.ERREUR:
+            prefixe = "Erreur : "
+        elif self.niveau == self.NIVEAUX.WARNING:
+            prefixe = "Warning : "
+        else:
+            prefixe = "Info : "
+
+        return prefixe + self.texte
 
     class NIVEAUX(IntEnum):
         INFO = 10
@@ -904,3 +940,26 @@ class ErreurAssociation:
         SCENE = 1
         FACTION = 2
         ASSOCIATION_AUTO = 3
+
+
+class ErreurManager:
+    def __init__(self):
+        self.erreurs = []
+
+    def nb_erreurs(self):
+        return len(self.erreurs)
+
+    def ajouter_erreur(self, niveau: ErreurAssociation.NIVEAUX, message, origine: ErreurAssociation.ORIGINES):
+        self.erreurs.append(ErreurAssociation(niveau, message, origine))
+
+    def __str__(self):
+        return '\n'.join([str(erreur) for erreur in self.erreurs])
+
+    def clear(self, niveau: ErreurAssociation.ORIGINES):
+        if niveau is None:
+            # dans ce cas c'est qu'on veut TOUT effacer, par exempe car on va recréer le conteneur
+            self.erreurs.clear()
+        else:
+            for erreur in self.erreurs:
+                if erreur.origine == niveau:
+                    self.erreurs.remove(erreur)

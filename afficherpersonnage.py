@@ -23,7 +23,7 @@ testIntrigue.scenes.add(testScene)
 
 #testIntrigue.roles().add(testRole)
 
-testPerso.addrole(testRole)
+testPerso.ajouter_role(testRole)
 
 # for r in testPerso.roles:
 #     for e in r.intrigue.evenements:

@@ -211,7 +211,7 @@ class Application(tk.Frame):
         importer_persos_config_button = tk.Button(diagnostic_window,
                                                   text="Importer les personnages du fichier de configuration",
                                                   command=lambda: self.gn.forcer_import_pjs(
-                                                      self.dict_config['noms_persos'])
+                                                      self.dict_config['liste_noms_pjs'])
                                                   )
         importer_persos_config_button.grid(row=6, column=0, sticky="nsew")
 
@@ -330,9 +330,18 @@ class Application(tk.Frame):
                                         dossier_output=self.dict_config['dossier_output'],
                                         association_auto=self.dict_config['association_auto'],
                                         dossiers_pj=self.dict_config.get('dossiers_pjs'),
-                                        dossiers_pnj=self.dict_config.get('dossiers_pjs'),
-                                        id_factions=self.dict_config.get('id_factions')
+                                        dossiers_pnj=self.dict_config.get('dossiers_pnjs'),
+                                        id_factions=self.dict_config.get('id_factions'),
+                                        noms_pjs=self.dict_config.get('liste_noms_pjs'),
+                                        noms_pnjs=self.dict_config.get('liste_noms_pnjs')
                                         )
+                # print(f"après injection, nous avons : "
+                #       f"dossiers_intrigues={self.dict_config['dossiers_intrigues'],}"
+                #       f"dossier_output= {self.dict_config['dossier_output']},"
+                #       f"association_auto= {self.dict_config['association_auto']},"
+                #       f"dossiers_pj= {self.dict_config.get('dossiers_pjs')},"
+                #       f"dossiers_pnj= {self.dict_config.get('dossiers_pnjs')},"
+                #       f"id_factions= {self.dict_config.get('id_factions')}")
 
             except Exception as f:
                 print(f"le gn {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
@@ -341,7 +350,7 @@ class Application(tk.Frame):
                              association_auto=self.dict_config['association_auto'],
                              dossiers_pj=self.dict_config.get('dossiers_pjs'),
                              dossiers_pnj=self.dict_config.get('dossiers_pjs'),
-                             id_factions=self.dict_config.get('id_factions')
+                             id_factions=self.dict_config.get('id_factions'),
                              )
             if self.apiDoc is None or self.apiSheets is None or self.apiDrive is None:
                 self.apiDrive, self.apiDoc, self.apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
@@ -399,7 +408,7 @@ class Application(tk.Frame):
         tk.Label(config_window, text="Noms persos").grid(row=8, column=0)
 
         noms_persos_entry = tk.Entry(config_window)
-        noms_persos_entry.insert(0, ",".join(self.dict_config['noms_persos']))
+        noms_persos_entry.insert(0, ",".join(self.dict_config['liste_noms_pjs']))
         noms_persos_entry.grid(row=8, column=1)
 
         tk.Label(config_window, text="Nom fichier pnjs").grid(row=9, column=0)
@@ -637,8 +646,8 @@ class Application(tk.Frame):
                              api_drive=self.apiDrive,
                              api_doc=self.apiDoc,
                              api_sheets=self.apiSheets,
-                             noms_pjs=self.dict_config['noms_persos'],
-                             noms_pnjs=self.dict_config['noms_pnjs'],
+                             noms_pjs=self.dict_config['liste_noms_pjs'],
+                             noms_pnjs=self.dict_config['liste_noms_pnjs'],
                              nom_fichier_sauvegarde=self.dict_config['nom_fichier_sauvegarde'],
                              fichier_erreurs=fichier_erreur_var,
                              generer_fichiers_pjs=export_drive_var,

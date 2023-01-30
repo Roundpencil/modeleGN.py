@@ -62,7 +62,7 @@ def update_roles_from_drive(gn, spreadsheet_id, sheet_name, verbal=True):
 
         if personnage is None:
             # Si le personnage n'a pas été trouvé, ajouter une erreur au journal d'erreurs
-            gn.addToErrorLog(f"Le personnage {personnage_name} n'a pas été trouvé dans le GN")
+            gn.add_to_error_log(f"Le personnage {personnage_name} n'a pas été trouvé dans le GN")
             if verbal:
                 print(f"Le personnage {personnage_name} n'a pas été trouvé dans le GN")
             continue
@@ -75,7 +75,7 @@ def update_roles_from_drive(gn, spreadsheet_id, sheet_name, verbal=True):
                 break
         if role is None:
             # Si le rôle n'a pas été trouvé, ajouter une erreur au journal d'erreurs
-            gn.addToErrorLog(f"Le rôle {role_name} n'a pas été trouvé dans le GN")
+            gn.add_to_error_log(f"Le rôle {role_name} n'a pas été trouvé dans le GN")
             if verbal:
                 print(f"Le rôle {role_name} n'a pas été trouvé dans le GN")
             continue

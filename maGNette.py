@@ -73,29 +73,29 @@ def main():
                id_factions=id_factions,
                dossier_outputs_drive=dossier_output_squelettes_pjs)
 
-    # print(f"1 - pnj dans ce GN : {mon_gn.noms_pnjs()}")
+    # print(f"1 - pnj dans ce GN : {mon_gn.liste_noms_pnjs()}")
 
     charger_PNJs(monGN, nom_fichier_pnjs)
 
-    # print(f"2 - pnj dans ce GN : {mon_gn.noms_pnjs()}")
+    # print(f"2 - pnj dans ce GN : {mon_gn.liste_noms_pnjs()}")
 
     try:
         if not args.init:
             monGN = GN.load(nom_fichier_sauvegarde)
             # print(f"Derniere version avant mise à jour : {mon_gn.oldestUpdateIntrigue}")
             # mon_gn.id_factions = "1lDKglitWeg6RsybhLgNsPUa-DqN5POPyOpIo2u9VvvA"
-            # ajouter_champs_pour_gerer_456_colonnes(monGN)
+            # ajouter_champs_pour_gerer_456_colonnes(mon_gn)
             monGN.dossier_outputs_drive = dossier_output_squelettes_pjs
     except:
         print(f"impossible d'ouvrir {nom_fichier_sauvegarde} : ré-lecture à zéro de toutes les infos")
 
-    # print(f"3 - pnj dans ce GN : {mon_gn.noms_pnjs()}")
+    # print(f"3 - pnj dans ce GN : {mon_gn.liste_noms_pnjs()}")
     apiDrive, apiDoc, apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
 
     monGN.effacer_personnages_forces()
 
-    # extraire_texte_de_google_doc.extraire_intrigues(mon_gn, api_doc=api_doc, api_doc=api_doc, singletest="-01")
-    # extraire_texte_de_google_doc.extraire_pjs(mon_gn, api_doc=api_doc, api_doc=api_doc, singletest="-01")
+    # extraire_texte_de_google_doc.extraire_intrigues(mon_gn, api_doc=api_doc, api_doc=api_doc, single_test="-01")
+    # extraire_texte_de_google_doc.extraire_pjs(mon_gn, api_doc=api_doc, api_doc=api_doc, single_test="-01")
 
     extraireTexteDeGoogleDoc.extraire_intrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.intrigue,
                                                 fast=(not args.allintrigues))
@@ -105,7 +105,7 @@ def main():
     # extraire_texte_de_google_doc.lire_factions_depuis_fichier(mon_gn, fichier_faction)
 
     monGN.forcer_import_pjs(noms_persos)
-    monGN.rebuildLinks(args.verbal)
+    monGN.rebuild_links(args.verbal)
 
     if not args.nosave:
         monGN.save(nom_fichier_sauvegarde)
@@ -420,30 +420,30 @@ def listerPNJs(monGN):
     toReturn = []
     for intrigue in monGN.intrigues.values():
         for role in intrigue.rolesContenus.values():
-            if role.estUnPNJ():
+            if role.est_un_pnj():
                 print(role)
                 toReturn.append(role.nom)
     return toReturn
 
 
-# def genererCsvPNJs(monGN: GN, verbal=False):
-#     noms_pnjs = monGN.noms_pnjs()
+# def genererCsvPNJs(mon_gn: GN, verbal=False):
+#     liste_noms_pnjs = mon_gn.liste_noms_pnjs()
 #     output = "nom PNJ;description;typePJ;niveau implication;details intervention;intrigue;" \
 #              "nom dans l'intrigue;indice de confiance normalisation\n"
-#     for intrigue in monGN.intrigues.values():
+#     for intrigue in mon_gn.intrigues.values():
 #         for role in intrigue.rolesContenus.values():
-#             if role.estUnPNJ():
+#             if role.est_un_pnj():
 #                 nompnj = role.nom.replace('\n', chr(10))
 #                 description = role.description.replace('\n', "***")
 #                 niveauImplication = role.niveauImplication.replace('\n', chr(10))
-#                 perimetreIntervention = role.perimetreIntervention.replace('\n', chr(10))
-#                 score = process.extractOne(nompnj, noms_pnjs)
-#                 typeDansGN = monGN.dictPNJs[score[0]].pj
+#                 perimetre_intervention = role.perimetre_intervention.replace('\n', chr(10))
+#                 score = process.extractOne(nompnj, liste_noms_pnjs)
+#                 typeDansGN = mon_gn.dictPNJs[score[0]].pj
 #                 output += f"{score[0]};" \
 #                           f"{description};" \
-#                           f"{stringTypePJ(typeDansGN)};" \
+#                           f"{string_type_pj(typeDansGN)};" \
 #                           f"{niveauImplication};" \
-#                           f"{perimetreIntervention};" \
+#                           f"{perimetre_intervention};" \
 #                           f"{intrigue.nom}; " \
 #                           f"{nompnj}; " \
 #                           f"{score[1]}" \
@@ -475,7 +475,7 @@ def tousLesRoles(monGN):
     print(f"dernière modification GN : {monGN.oldestUpdate}/{monGN.intrigues[monGN.oldestUpdatedIntrigue]}")
     for intrigue in monGN.intrigues.values():
         for role in intrigue.rolesContenus.values():
-            if not modeleGN.estUnPNJ(role.pj) and role.pj != EST_REROLL:
+            if not modeleGN.est_un_pnj(role.pj) and role.pj != EST_REROLL:
                 tousLesRoles.append(role.nom)
         # print(f"date dernière MAJ {intrigue.dateModification}")
     return tousLesRoles
@@ -500,7 +500,7 @@ def normaliserNomsPNJs(monGN):
     nomsNormalises = dict()
     for intrigue in monGN.intrigues.values():
         for role in intrigue.rolesContenus.values():
-            if role.estUnPNJ():
+            if role.est_un_pnj():
                 nomsPNJs.append(role.nom)
     nomsPNJs = list(set(nomsPNJs))
     print("Nom D'origine ;Meilleur choix;Confiance")

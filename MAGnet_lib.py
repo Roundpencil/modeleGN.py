@@ -5,30 +5,34 @@ import extraireTexteDeGoogleDoc
 import lecteurGoogle
 from modeleGN import *
 
-#com
-#todo :informer chalacta des factions, des suqlettes pnjs, des tableaux intrigues, des nouveaux tableaux de synthèse (objets / chrono / persos)
 
-#bugs
-# todo : gestion logs erreurs
+# com
+# todo :informer chalacta des factions,
+#  des suqlettes pnjs, des tableaux intrigues, des nouveaux tableaux de synthèse (objets / chrono / persos)
+
+# bugs
 # todo comprendre pourquoi pas de load de snyder
-
-# todo : rendre optionnels certains paramètres du fichier de config
-#  on en aura besoin dès ce soir pour le chalacta :)
-#  (factions, pitchs pj, pitch pnjs au moins) et gérer les valeurs par défaut
-#   > vérifier quand on régènére que le gn n'est pas en contradiction avec les instructions demandées
-#  sachantq u'il faut au moins un dossier pj ou un dossier perso > ajouter un controle
-#  et pareil pour les pnjs
-
+# todo vérifier le focntionnement de la balise questionnaire perso
 
 # à faire
 # todo : gestion des évènement
 #  lire les fiches
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
+# todo ajouter dans les roles conseillés les roles qui sont dans le tableau mais das aucune scène
+
 # todo : ajouter une section "tableau relations" qui conteint toutjours 3 colonnes
 #  "X... Voit la relation avec... Comme..."
 
+# todo : amèliorer rendre optionnels certains paramètres du fichier de config
+#  on en aura besoin dès ce soir pour le chalacta :)
+#  (factions, pitchs pj, pitch pnjs au moins) et gérer les valeurs par défaut
+#   > vérifier quand on régènére que le gn n'est pas en contradiction avec les instructions demandées
+#  sachant qu'il faut au moins un dossier pj ou un dossier perso > ajouter un controle
+#  et pareil pour les pnjs
+
 # confort / logique
+# todo : refaire version console
 # todo : webisation des pjs et PNJs
 #  créer une sheet avec le nom des pjs sur un onglet, et le nom des PNJ sur l'autre
 
@@ -72,11 +76,11 @@ def charger_fichier_init(fichier_init: str):
 
         dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs')
 
-        dict_config['noms_persos'] = [nom_p.strip()
-                                      for nom_p in config.get('Optionnels', 'noms_persos').split(',')]
+        dict_config['liste_noms_pjs'] = [nom_p.strip()
+                                         for nom_p in config.get('Optionnels', 'noms_persos').split(',')]
 
         # création des champs dérivés
-        dict_config['noms_pnjs'] = lire_fichier_pnjs(dict_config['fichier_noms_pnjs'])
+        dict_config['liste_noms_pnjs'] = lire_fichier_pnjs(dict_config['fichier_noms_pnjs'])
 
     except configparser.Error as e:
         # Erreur lors de la lecture d'un paramètre dans le fichier de configuration
@@ -106,15 +110,6 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          table_chrono: bool = True, table_persos: bool = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, verbal: bool = False):
-    # def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier_sauvegarde: str,
-    #                          dossier_output_squelettes_pjs: str,
-    #                          noms_pjs=None, noms_pnjs=None,
-    #                          fichier_erreurs: bool = True, export_drive: bool = True,
-    #                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
-    #                          table_chrono: bool = True, table_persos: bool = True,
-    #                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
-    #                          fast_intrigues: bool = True, fast_persos: bool = True, verbal: bool = False):
-
     if api_doc is None or api_sheets is None or api_drive is None:
         api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
 
@@ -132,20 +127,23 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                           fast=fast_persos)
 
     extraireTexteDeGoogleDoc.extraire_pnjs(mon_gn,
-                                          apiDrive=api_drive,
-                                          apiDoc=api_doc,
-                                          singletest=singletest_perso,
-                                          fast=fast_persos)
+                                           apiDrive=api_drive,
+                                           apiDoc=api_doc,
+                                           singletest=singletest_perso,
+                                           fast=fast_persos)
 
     if noms_pjs:
         mon_gn.forcer_import_pjs(noms_pjs)
+        print("début du forçage des PJs")
+        mon_gn.forcer_import_pnjs(noms_pnjs)
     if noms_pnjs:
+        print("début du forçage des PNJs")
         mon_gn.forcer_import_pnjs(noms_pnjs)
 
     extraireTexteDeGoogleDoc.extraire_factions(mon_gn, apiDoc=api_doc)
-    print(f"mon_gn.factions = {mon_gn.factions}")
+    # print(f"mon_gn.factions = {mon_gn.factions}")
 
-    mon_gn.rebuildLinks(verbal)
+    mon_gn.rebuild_links(verbal)
 
     mon_gn.save(nom_fichier_sauvegarde)
 
@@ -194,20 +192,21 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
 
 def lister_erreurs(mon_gn, prefixe, taille_min_log=1, verbal=False):
-    logErreur = ""
+    log_erreur = ""
     for intrigue in mon_gn.intrigues.values():
-        if len(intrigue.errorLog) > taille_min_log:
-            logErreur += f"Pour {intrigue.nom} : \n"
-            logErreur += intrigue.errorLog + '\n'
-            logErreur += suggerer_tableau_persos(mon_gn, intrigue)
-            logErreur += "\n \n"
+        if intrigue.error_log.nb_erreurs() > taille_min_log:
+            # print(f"poy! {intrigue.error_log}")
+            log_erreur += f"Pour {intrigue.nom} : \n" \
+                          f"{intrigue.error_log} \n"
+            log_erreur += suggerer_tableau_persos(mon_gn, intrigue)
+            log_erreur += "\n \n"
     if verbal:
-        print(logErreur)
+        print(log_erreur)
     if prefixe is not None:
-        with open(prefixe + ' - problemes tableaux persos.txt', 'w', encoding="utf-8") as f:
-            f.write(logErreur)
+        with open(prefixe + ' - problèmes tableaux persos.txt', 'w', encoding="utf-8") as f:
+            f.write(log_erreur)
             f.close()
-    return logErreur
+    return log_erreur
 
 
 def ecrire_erreurs_dans_drive(texte_erreurs, apiDoc, apiDrive, parent):
@@ -281,7 +280,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
 
     for ma_scene in toutes_les_scenes:
         for role in ma_scene.roles:
-            if role.estUnPNJ():
+            if role.est_un_pnj():
                 continue
             if role.perso is None:
                 continue
@@ -308,7 +307,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
         dict_orgas = dict()
         # dict_scene['dict_orgas'] = dict_orgas
         for role in ma_scene.roles:
-            if role.estUnPNJ():
+            if role.est_un_pnj():
                 continue
             if role.perso is None:
                 continue
@@ -338,7 +337,7 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
                                 intrigue.modifie_par,
                                 intrigue.orgaReferent,
                                 intrigue.questions_ouvertes,
-                                len(intrigue.errorLog.splitlines()),
+                                intrigue.error_log.nb_erreurs(),
                                 intrigue.getFullUrl()])
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Etat des intrigues'
@@ -375,16 +374,18 @@ def squelettes_par_perso(monGN, pj=True):
         liste_persos_source = monGN.dictPNJs.values()
 
     for perso in liste_persos_source:
+        print(f"génération du texte des persos : perso en cours de lecture : {perso.nom}")
         # for perso in mon_gn.dictPJs.values():
         texte_perso = ""
         texte_perso += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
         texte_perso += f"résumé de la bio : \n"
         for item in perso.description:
             texte_perso += f"{item} \n"
-        texte_perso += f"Psychologie : "
+        texte_perso += f"Psychologie : \n"
         for item in perso.concept:
             texte_perso += f"{item} \n"
         texte_perso += f"Motivations et objectifs : \n"
+        print(f"driver avant insertion {perso.driver}")
         for item in perso.driver:
             texte_perso += f"{item} \n"
         texte_perso += f"Chronologie : \n "
@@ -410,14 +411,14 @@ def squelettes_par_perso(monGN, pj=True):
 
 def ecrire_squelettes_localement(mon_gn: GN, prefixe=None, pj=True):
     squelettes_persos = squelettes_par_perso(mon_gn, pj)
-    toutesScenes = "".join(squelettes_persos.values())
+    toutes_scenes = "".join(squelettes_persos.values())
 
     if prefixe is not None:
         with open(prefixe + ' - squelettes.txt', 'w', encoding="utf-8") as f:
-            f.write(toutesScenes)
+            f.write(toutes_scenes)
             f.close()
 
-    return toutesScenes
+    return toutes_scenes
 
 
 def generer_liste_pnj_dedup(monGN, threshold=89, verbal=False):
@@ -425,7 +426,7 @@ def generer_liste_pnj_dedup(monGN, threshold=89, verbal=False):
     # nomsNormalises = dict()
     for intrigue in monGN.intrigues.values():
         for role in intrigue.rolesContenus.values():
-            if role.estUnPNJ():
+            if role.est_un_pnj():
                 nomsPNJs.append(role.nom)
     nomsPNJs = list(set(nomsPNJs))
     extract = process.dedupe(nomsPNJs, threshold=threshold)
@@ -457,7 +458,7 @@ def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
     for intrigue in monGN.intrigues.values():
         if intrigue.lastFileEdit.date() > dateReference:
             for role in intrigue.rolesContenus.values():
-                if role.perso is not None and estUnPJ(role.perso.pj):
+                if role.perso is not None and est_un_pj(role.perso.pj):
                     referent = role.perso.orgaReferent.strip()
 
                     if len(referent) < 3:
@@ -701,3 +702,6 @@ def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
 
 def mettre_a_jour_champs(gn: GN):
     pass
+    # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
+    #     conteneur.error_log = ErreurManager()
+    #     print(f"conteneur {conteneur} mis à jour")
