@@ -185,13 +185,19 @@ class Personnage(ConteneurDeScene):
     def estUnPJ(self):
         return self.pj == EST_PJ
 
+    def sommer_pip(self):
+        pip = 0
+        for role in self.roles:
+            pip += role.sommer_pip()
+        return pip
+
 
 # rôle
 class Role:
 
     def __init__(self, conteneur, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ,
                  typeIntrigue="", niveauImplication="", perimetreIntervention="", issu_dune_faction=False,
-                 pip_globaux = 0):
+                 pip_globaux=0):
         self.conteneur = conteneur
         self.perso = perso
         self.nom = nom
@@ -236,13 +242,14 @@ class Role:
     def sommer_pip(self):
         # print(f"je suis en train de sommer {self.nom}")
         self.pip_total = int(self.pip_globaux) + int(self.pipi) + int(self.pipr)
+        return self.pip_total
 
 
 # intrigue
 class Intrigue(ConteneurDeScene):
 
     def __init__(self, url, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="",questionnaire="",
+                 questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", questionnaire="",
                  lastProcessing=None,
                  derniere_edition_fichier=0):
         super(Intrigue, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
@@ -291,7 +298,7 @@ class Intrigue(ConteneurDeScene):
             if role.perso is personnage:
                 # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au sein d'une mêm intrigue
 
-                #todo : nettoyer à un moement le fichier des erreurs d'associations.
+                # todo : nettoyer à un moement le fichier des erreurs d'associations.
                 # en effet, si on fait évoluer la liste des pjs/pnjs mais sans changer l'intrigue, les logs restent alors que le problème est régle...
 
                 texteErreur = f"Erreur lors de la tentative d'associer le role " \
@@ -339,7 +346,7 @@ class Scene:
         self.description = description
         self.actif = actif
         self.roles = set()
-        self.nom_factions = set() #des strings qui contiennent les noms des factions à embarquer
+        self.nom_factions = set()  # des strings qui contiennent les noms des factions à embarquer
         self.niveau = niveau  # 1 : dans la chronologie globale,
         # 2, dans tous les personnages de l'intrigue (pour info, donc pour les autres)
         # 3 : personnages impactés uniquement
@@ -462,7 +469,11 @@ class Faction:
 
 
 class GN:
-    def __init__(self, folderIntriguesID, folderPJID, dossier_outputs_drive, id_factions=None):
+    def __init__(self,
+                 dossiers_intrigues, dossier_output: str,
+                 association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, id_factions=None):
+
+        # création des objets nécessaires
         self.dictPJs = {}  # idgoogle, personnage
         self.dictPNJs = {}  # idgoogle, personnage
         self.factions = dict()  # nom, Faction
@@ -471,19 +482,46 @@ class GN:
         self.oldestUpdatePJ = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatedIntrigue = ""  # contient l'id de la dernière intrigue updatée dans le GN
         self.oldestUpdatedPJ = ""  # contient l'id du dernier PJ updaté dans le GN
-        if isinstance(folderIntriguesID, list):
-            self.folderIntriguesID = folderIntriguesID
-        else:
-            self.folderIntriguesID = [folderIntriguesID]
 
-        if isinstance(folderPJID, list):
-            self.folderPJID = folderPJID
+        # injection des paramètres du fichier de config
+        self.association_auto = None
+        self.id_factions = None
+        self.dossiers_pnjs = None
+        self.dossiers_pjs = None
+        self.dossier_outputs_drive = None
+        self.dossiers_intrigues = None
+        self.injecter_config(self, dossiers_intrigues, dossier_output, association_auto,
+                             dossiers_pnj=dossiers_pnj, id_factions=id_factions, dossiers_pj=dossiers_pj)
+
+    def injecter_config(self,
+                        dossiers_intrigues, dossier_output, association_auto,
+                        dossiers_pj=None, dossiers_pnj=None, id_factions=None):
+
+        if isinstance(dossiers_intrigues, list):
+            self.dossiers_intrigues = dossiers_intrigues
         else:
-            self.folderPJID = [folderPJID]
-        # print(f"PJID = {self.folderPJID}")
+            self.dossiers_intrigues = [dossiers_intrigues]
+
+        if dossiers_pj is not None:
+            if isinstance(dossiers_pj, list):
+                self.dossiers_pjs = dossiers_pj
+            else:
+                self.dossiers_pjs = [dossiers_pj]
+        else:
+            self.dossiers_pjs = None
+
+        if dossiers_pnj is not None:
+            if isinstance(dossiers_pnj, list):
+                self.dossiers_pnjs = dossiers_pnj
+            else:
+                self.dossiers_pnjs = [dossiers_pnj]
+        else:
+            self.dossiers_pnjs = None
+
         self.id_factions = id_factions
-        self.dossier_outputs_drive = dossier_outputs_drive
+        self.dossier_outputs_drive = dossier_output
 
+        self.association_auto = association_auto
 
     def ajouter_faction(self, faction: Faction):
         self.factions[faction.nom] = faction
@@ -550,7 +588,7 @@ class GN:
     def noms_pnjs(self):
         return [pnj.nom for pnj in self.dictPNJs.values()]
 
-    def noms_pjpnjs(self, pj:bool):
+    def noms_pjpnjs(self, pj: bool):
         if pj:
             return self.noms_pjs()
         else:
@@ -631,14 +669,13 @@ class GN:
     def associer_pj_a_roles(self, seuilAlerte=70, verbal=True):
         self.associer_pjpnj_a_roles(pj=True, seuilAlerte=seuilAlerte, verbal=verbal)
 
-    def associer_pjpnj_a_roles(self, pj:bool, seuilAlerte=70, verbal=True):
+    def associer_pjpnj_a_roles(self, pj: bool, seuilAlerte=70, verbal=True):
         print("Début de l'association automatique des rôles aux persos")
         noms_persos = self.noms_pjpnjs(pj)
         if pj:
             dict_reference = self.dictPJs
         else:
             dict_reference = self.dictPNJs
-
 
         if verbal:
             print(f"pj? {pj}, noms persos = {noms_persos}")
@@ -661,7 +698,7 @@ class GN:
 
                 if score[1] < seuilAlerte:
                     texte_erreur = f"Warning association ({score[1]}) - nom rôle : " \
-                                  f"{role.nom} > perso : {score[0]} dans {perso.nom}"
+                                   f"{role.nom} > perso : {score[0]} dans {perso.nom}"
                     perso.addToErrorLog(texte_erreur)
                     if verbal:
                         # print(f"je paaaaaarle {score[1]}")
@@ -684,7 +721,7 @@ class GN:
 
                     if score[1] < seuilAlerte:
                         texte_erreur = f"Warning association ({score[1]}) - nom rôle : " \
-                                      f"{role.nom} > perso : {score[0]} dans {intrigue.nom}"
+                                       f"{role.nom} > perso : {score[0]} dans {intrigue.nom}"
                         intrigue.addToErrorLog(texte_erreur)
                         if verbal:
                             # print(f"je paaaaaarle {score[1]}")
@@ -717,7 +754,7 @@ class GN:
 
     def ajouter_roles_issus_de_factions(self, seuil_nom_faction=85, seuil_reconciliation_role=80, verbal: bool = False):
         # todo : tester les factions
-        #lire toutes les scènes pours trouver les factions
+        # lire toutes les scènes pours trouver les factions
         for intrigue in self.intrigues.values():
             for scene in intrigue.scenes:
                 for nom_faction in scene.nom_factions:
@@ -757,8 +794,9 @@ class GN:
                         else:
                             # ajouter la scène au role
                             intrigue.rolesContenus[score_role[0]].ajouterAScene(scene)
-#todo : quand on loade le fichier faction, clearer les factions pour prendre en compte les suppressions entre deux loading
-#todo : corriger le tableau suggéré
+
+    # todo : quand on loade le fichier faction, clearer les factions pour prendre en compte les suppressions entre deux loading
+    # todo : corriger le tableau suggéré
 
     # utilisée pour préparer lassociation roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
@@ -807,14 +845,13 @@ class GN:
     #                 self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=EST_PJ,
     #                                                            forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
 
-
     def forcer_import_pjs(self, noms_persos, suffixe="_imported", verbal=False):
         return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=True, suffixe=suffixe, verbal=verbal)
 
     def forcer_import_pnjs(self, noms_persos, suffixe="_imported", verbal=False):
         return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=False, suffixe=suffixe, verbal=verbal)
 
-    def forcer_import_pjpnjs(self, noms_persos, pj:bool, suffixe="_imported", verbal=False):
+    def forcer_import_pjpnjs(self, noms_persos, pj: bool, suffixe="_imported", verbal=False):
         print("début de l'ajout des personnages sans fiche")
         # nomsLus = [x.nom for x in self.dictPJs.values()]
         noms_lus = self.noms_pjpnjs(pj)
@@ -856,7 +893,7 @@ class Objet:
         self.inIntrigues = set()
 
 
-class ErreurAssociation :
+class ErreurAssociation:
     def __init__(self, niveau, texte, genere_par):
         self.niveau = niveau
         self.texte = texte
@@ -871,4 +908,3 @@ class ErreurAssociation :
         SCENE = 1
         FACTION = 2
         ASSOCIATION_AUTO = 3
-

@@ -13,12 +13,22 @@ from modeleGN import *
 
 def extraire_intrigues(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
     extraire_texte_de_google_doc(monGN, apiDrive, apiDoc, extraire_intrigue_de_texte, monGN.intrigues,
-                                 monGN.folderIntriguesID,
+                                 monGN.dossiers_intrigues,
                                  singletest, verbal=verbal, fast=fast)
 
 
-def extraire_pjs(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
-    extraire_texte_de_google_doc(monGN, apiDrive, apiDoc, extrairePJDeTexte, monGN.dictPJs, monGN.folderPJID,
+def extraire_pjs(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
+    extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
+                                 singletest,
+                                 verbal=verbal, fast=fast)
+
+
+def extraire_pnjs(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
+    if mon_gn.dossiers_pnjs is None:
+        print(f"impossible de lire le dossier des PNJs : il n'existe pas")
+        return
+    extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, extraire_persos_de_texte, mon_gn.dictPNJs,
+                                 mon_gn.dossiers_pnjs,
                                  singletest,
                                  verbal=verbal, fast=fast)
 
@@ -487,16 +497,16 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
                 sceneAAjouter.resume = balise[11:].strip()
 
             elif balise[0:13].lower() == '## factions :':
-                sceneAAjouter.nom_factions.add(balise[14:].strip())
+                sceneAAjouter.nom_factions.add([f.strip() for f in balise[14:].split(',')])
 
             elif balise[0:12].lower() == '## faction :':
-                sceneAAjouter.nom_factions.add(balise[13:].strip())
+                sceneAAjouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
 
             elif balise[0:12].lower() == '## factions:':
-                sceneAAjouter.nom_factions.add(balise[13:].strip())
+                sceneAAjouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
 
             elif balise[0:11].lower() == '## faction:':
-                sceneAAjouter.nom_factions.add(balise[12:].strip())
+                sceneAAjouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
 
             else:
                 print("balise inconnue : " + balise + " dans le conteneur " + nomConteneur)
@@ -636,20 +646,21 @@ def calculerJoursIlYA(baliseDate):
         return baliseDate.strip()
 
 
-def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, derniere_modification_par, monGN, verbal=False):
-    print(f"Lecture de {nomDoc}")
-    if len(textePJ) < 800:
-        print(f"fiche {nomDoc} avec {len(textePJ)} caractères est vide")
+def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, mon_gn,
+                             verbal=False, pj=EST_PJ):
+    print(f"Lecture de {nom_doc}")
+    if len(texte_persos) < 800:
+        print(f"fiche {nom_doc} avec {len(texte_persos)} caractères est vide")
         return  # dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
 
-    nomPJ = re.sub(r"^\d+\s*-", '', nomDoc).strip()
+    nom_perso_en_cours = re.sub(r"^\d+\s*-", '', nom_doc).strip()
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
-    currentPJ = Personnage(nom=nomPJ, url=idUrl, derniere_edition_fichier=lastFileEdit)
-    currentPJ.modifie_par = derniere_modification_par
-    monGN.dictPJs[idUrl] = currentPJ
+    perso_en_cours = Personnage(nom=nom_perso_en_cours, url=id_url, derniere_edition_fichier=last_file_edit, pj=pj)
+    perso_en_cours.modifie_par = derniere_modification_par
+    mon_gn.dictPJs[id_url] = perso_en_cours
 
-    textePJLow = textePJ.lower()  # on passe en minuscule pour mieux trouver les chaines
+    texte_persos_low = texte_persos.lower()  # on passe en minuscule pour mieux trouver les chaines
 
     REFERENT = "orga référent"
     JOUEURV1 = "joueur v1"
@@ -671,125 +682,126 @@ def extrairePJDeTexte(textePJ, nomDoc, idUrl, lastFileEdit, derniere_modificatio
     labels = [REFERENT, JOUEURV1, JOUEURV2, PITCH, COSTUME, FACTION1, FACTION2,
               BIO, PSYCHO, MOTIVATIONS, CHRONOLOGIE, RELATIONS, INTRIGUES, JOUEUSE1, JOUEUSE2, SCENES]
 
-    indexes = lecteurGoogle.identifierSectionsFiche(labels, textePJ)
+    indexes = lecteurGoogle.identifierSectionsFiche(labels, texte_persos_low)
 
     # print(f"indexes : {indexes}")
 
     if indexes[REFERENT]["debut"] == -1:
-        print("pas de référent avec le perso " + nomPJ)
+        print("pas de référent avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.orgaReferent = textePJ[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[
-                                     0][
-                                 len(REFERENT) + len(" : "):]
+        perso_en_cours.orgaReferent = texte_persos[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[
+                                          0][
+                                      len(REFERENT) + len(" : "):]
 
     if indexes[JOUEURV1]["debut"] == -1:
         if verbal:
-            print("Pas de joueur 1 avec le perso " + nomPJ)
+            print("Pas de joueur 1 avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.joueurs['V1'] = textePJ[indexes[JOUEURV1]["debut"]:indexes[JOUEURV1]["fin"]].splitlines()[
-                                      0][
-                                  len(JOUEURV1) + len(" : "):]
+        perso_en_cours.joueurs['V1'] = texte_persos[indexes[JOUEURV1]["debut"]:indexes[JOUEURV1]["fin"]].splitlines()[
+                                           0][
+                                       len(JOUEURV1) + len(" : "):]
 
     if indexes[JOUEURV2]["debut"] == -1:
         if verbal:
-            print("Pas de joueur 2 avec le perso " + nomPJ)
+            print("Pas de joueur 2 avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.joueurs['V2'] = textePJ[indexes[JOUEURV2]["debut"]:indexes[JOUEURV2]["fin"]].splitlines()[
-                                      0][
-                                  len(JOUEURV1) + len(" : "):]
+        perso_en_cours.joueurs['V2'] = texte_persos[indexes[JOUEURV2]["debut"]:indexes[JOUEURV2]["fin"]].splitlines()[
+                                           0][
+                                       len(JOUEURV1) + len(" : "):]
 
     if indexes[JOUEUSE1]["debut"] == -1:
         if verbal:
-            print("Pas de joueuse 1 avec le perso " + nomPJ)
+            print("Pas de joueuse 1 avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.joueurs['V1'] = textePJ[indexes[JOUEUSE1]["debut"]:indexes[JOUEUSE1]["fin"]].splitlines()[
-                                      0][
-                                  len(JOUEURV1) + len(" : "):]
+        perso_en_cours.joueurs['V1'] = texte_persos[indexes[JOUEUSE1]["debut"]:indexes[JOUEUSE1]["fin"]].splitlines()[
+                                           0][
+                                       len(JOUEURV1) + len(" : "):]
 
     if indexes[JOUEUSE2]["debut"] == -1:
         if verbal:
-            print("Pas de joueuse 2 avec le perso " + nomPJ)
+            print("Pas de joueuse 2 avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.joueurs['V2'] = textePJ[indexes[JOUEUSE2]["debut"]:indexes[JOUEUSE2]["fin"]].splitlines()[
-                                      0][
-                                  len(JOUEURV1) + len(" : "):]
+        perso_en_cours.joueurs['V2'] = texte_persos[indexes[JOUEUSE2]["debut"]:indexes[JOUEUSE2]["fin"]].splitlines()[
+                                           0][
+                                       len(JOUEURV1) + len(" : "):]
 
     if indexes[PITCH]["debut"] == -1:
         if verbal:
-            print("Pas de pitch  avec le perso " + nomPJ)
+            print("Pas de pitch  avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.pitch = textePJ[indexes[PITCH]["debut"]:indexes[PITCH]["fin"]].splitlines()[1:]
+        perso_en_cours.pitch = texte_persos[indexes[PITCH]["debut"]:indexes[PITCH]["fin"]].splitlines()[1:]
 
     if indexes[COSTUME]["debut"] == -1:
         if verbal:
-            print("Pas d'indication costume avec le perso " + nomPJ)
+            print("Pas d'indication costume avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.indicationsCostume = textePJ[indexes[COSTUME]["debut"] + len(COSTUME) + len(" : "):
-                                               indexes[COSTUME]["fin"]]
+        perso_en_cours.indicationsCostume = texte_persos[indexes[COSTUME]["debut"] + len(COSTUME) + len(" : "):
+                                                         indexes[COSTUME]["fin"]]
 
     if indexes[FACTION1]["debut"] == -1:
         if verbal:
-            print("Pas de faction 1 avec le perso " + nomPJ)
+            print("Pas de faction 1 avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.factions.append(textePJ[indexes[FACTION1]["debut"]:indexes[FACTION1]["fin"]].splitlines()[
-                                      0][
-                                  len(FACTION1) + len(" : "):])
+        perso_en_cours.factions.append(texte_persos[indexes[FACTION1]["debut"]:indexes[FACTION1]["fin"]].splitlines()[
+                                           0][
+                                       len(FACTION1) + len(" : "):])
 
     if indexes[FACTION2]["debut"] == -1:
         if verbal:
-            print("Pas de faction 2 avec le perso " + nomPJ)
+            print("Pas de faction 2 avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.factions.append(textePJ[indexes[FACTION2]["debut"]:indexes[FACTION2]["fin"]].splitlines()[
-                                      0][
-                                  len(FACTION2) + len(" : "):])
+        perso_en_cours.factions.append(texte_persos[indexes[FACTION2]["debut"]:indexes[FACTION2]["fin"]].splitlines()[
+                                           0][
+                                       len(FACTION2) + len(" : "):])
 
     if indexes[BIO]["debut"] == -1:
         if verbal:
-            print("Pas de BIO avec le perso " + nomPJ)
+            print("Pas de BIO avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.description = textePJ[indexes[BIO]["debut"]:
-                                        indexes[BIO]["fin"]].splitlines()[1:]
+        perso_en_cours.description = texte_persos[indexes[BIO]["debut"]:
+                                                  indexes[BIO]["fin"]].splitlines()[1:]
 
     if indexes[PSYCHO]["debut"] == -1:
         if verbal:
-            print("Pas de psycho avec le perso " + nomPJ)
+            print("Pas de psycho avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.concept = textePJ[indexes[PSYCHO]["debut"]:
-                                    indexes[PSYCHO]["fin"]].splitlines()[1:]
+        perso_en_cours.concept = texte_persos[indexes[PSYCHO]["debut"]:
+                                              indexes[PSYCHO]["fin"]].splitlines()[1:]
 
     if indexes[MOTIVATIONS]["debut"] == -1:
         if verbal:
-            print("Pas de motivations avec le perso " + nomPJ)
+            print("Pas de motivations avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.driver = textePJ[indexes[MOTIVATIONS]["debut"]:indexes[MOTIVATIONS]["fin"]].splitlines()[1:]
+        perso_en_cours.driver = texte_persos[indexes[MOTIVATIONS]["debut"]:indexes[MOTIVATIONS]["fin"]].splitlines()[1:]
 
     if indexes[CHRONOLOGIE]["debut"] == -1:
         if verbal:
-            print("Pas de chronologie avec le perso " + nomPJ)
+            print("Pas de chronologie avec le perso " + nom_perso_en_cours)
     else:
-        currentPJ.datesClefs = textePJ[indexes[CHRONOLOGIE]["debut"]:indexes[CHRONOLOGIE]["fin"]].splitlines()[1:]
+        perso_en_cours.datesClefs = texte_persos[
+                                    indexes[CHRONOLOGIE]["debut"]:indexes[CHRONOLOGIE]["fin"]].splitlines()[1:]
 
     if indexes[SCENES]["debut"] == -1:
         if verbal:
-            print("Pas de scènes dans le perso " + nomPJ)
+            print("Pas de scènes dans le perso " + nom_perso_en_cours)
     else:
         # print(f"début balise scène : {indexes[SCENES]['debut']}, fin balise scènes : {indexes[SCENES]['fin']} ")
-        texteScenes = textePJ[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
+        texte_scenes = texte_persos[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
 
         # print(f"ping j'ai trouvé la balise scènes, elle contient : {texteScenes}")
-        texte2scenes(currentPJ, nomPJ, texteScenes, False)
-        # for scene in currentPJ.scenes:
+        texte2scenes(perso_en_cours, nom_perso_en_cours, texte_scenes, False)
+        # for scene in perso_en_cours.scenes:
         #     print(f"Scene présente : {scene}")
-        # print(f"rôles contenus dans {nomPJ} : {currentPJ.rolesContenus}")
+        # print(f"rôles contenus dans {nomPJ} : {perso_en_cours.rolesContenus}")
 
     # rajouter les scènes en jeu après le tableau
-    bottomText = textePJ.split("#####")[-1]
-    currentPJ.textesAnnexes = bottomText
+    bottom_text = texte_persos.split("#####")[-1]
+    perso_en_cours.textesAnnexes = bottom_text
 
     # et on enregistre la date de dernière mise à jour de l'intrigue
-    currentPJ.lastProcessing = datetime.datetime.now()
+    perso_en_cours.lastProcessing = datetime.datetime.now()
 
-    return currentPJ
+    return perso_en_cours
 
 
 def ref_du_doc(s):
@@ -1079,7 +1091,6 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
 
 
 def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id, feuille=None):
-
     ma_range = 'A1'
     if feuille is not None:
         try:

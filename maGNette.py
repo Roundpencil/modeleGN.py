@@ -656,7 +656,7 @@ def ajouter_champs_modifie_par(mon_gn: GN, nom_fichier=None):
 #     try:
 #         dossier_intrigues = config.get('dossiers', 'intrigues').split(',')
 #
-#         dossier_pjs = [config.get("dossiers", key)
+#         dossiers_pjs = [config.get("dossiers", key)
 #                        for key in config.options("dossiers") if key.startswith("base_persos")]
 #
 #         id_factions = config.get('dossiers', 'id_factions')
@@ -676,7 +676,7 @@ def ajouter_champs_modifie_par(mon_gn: GN, nom_fichier=None):
 #         # Erreur lors de la lecture d'un paramètre dans le fichier de configuration
 #         print("Erreur lors de la lecture du fichier de configuration : {}".format(e))
 #         return
-#     return dossier_intrigues, dossier_pjs, id_factions, dossier_output_squelettes_pjs, \
+#     return dossier_intrigues, dossiers_pjs, id_factions, dossier_output_squelettes_pjs, \
 #            noms_persos, nom_fichier_pnjs, association_auto, type_fiche, nom_fichier_sauvegarde, resultat_ok
 
 # def charger_PNJs(gn, chemin_fichier):

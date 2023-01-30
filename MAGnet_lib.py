@@ -1,5 +1,4 @@
 import configparser
-import itertools
 import os
 
 import extraireTexteDeGoogleDoc
@@ -7,23 +6,31 @@ import lecteurGoogle
 from modeleGN import *
 
 
-#todo : gestion logs erreurs
-#todo : gestion des évènement
+# todo : gestion logs erreurs
+# todo : gestion des évènement
 
-#todo : générer un récap en deux volets pour les personnages
+# todo : générer un récap en deux volets pour les personnages
 # un onglet avec pour chaque perso le total de ses points
 
-#todo : webinsation des pjs et PNJs
+# todo : webinsation des pjs et PNJs
+#  créer une sheet avec le nom des pjs sur un onglet, et le nom des PNJ sur l'autre
 
-#todo : permettre d'utilier un tableau récap comme dans l'exemple de sandrine avec une balise tableau récap ?
+# todo : faire évoluer la fiche de génération pour ajouter tous les nouveaux fichiers
+# et faire évoluer le diagnotic pour proposer les focntions
 
-#todo : ajouter une section "tableau relations" qui conteint toutjours 3 colonnes "X... Voit la relation avec... Comme..."
+# todo : rendre optionnels certains paramètres du fichier de config
+#  (factions, pitchs pj, pitch pnjs au moins) et gérer les valeurs par défaut
 
-#todo : faire évoluer la fiche de génération pour ajouter tous les nouveaux fichiers
-# et faire évoluer le diag
+# todo : jouer sans factions
 
-#todo : charger fiches PNJs
+# todo : faire un menu qui crée le GN avec les options et crée tous les fichiers qui vont bien
+#  dans un dossier magnet du drive fourni en entrée, et des questions sous la forme de "allez-vous utiliser...?"
+#  pour déterminer les champs à créer
 
+# todo : permettre d'utilier un tableau récap comme dans l'exemple de sandrine avec une balise tableau récap ?
+
+# todo : ajouter une section "tableau relations" qui conteint toutjours 3 colonnes
+#  "X... Voit la relation avec... Comme..."
 
 def charger_fichier_init(fichier_init: str):
     # init configuration
@@ -32,24 +39,37 @@ def charger_fichier_init(fichier_init: str):
 
     dict_config = dict()
     try:
-        dict_config['dossier_intrigues'] = [x.strip() for x in config.get('dossiers', 'intrigues').split(',')]
+        # lecture des informations essentielles
+        # dict_config['dossier_intrigues'] = [x.strip() for x in config.get('Essentiels', 'intrigues').split(',')]
+        #
+        dict_config['dossiers_intrigues'] = [config.get("Essentiels", key)
+                                             for key in config.options("Essentiels")
+                                             if key.startswith("id_dossier_intrigues")]
 
-        dict_config['dossier_pjs'] = [config.get("dossiers", key)
-                                      for key in config.options("dossiers") if key.startswith("base_persos")]
+        dict_config['dossier_output'] = config.get('Essentiels', 'dossier_output_squelettes_pjs')
 
-        dict_config['id_factions'] = config.get('dossiers', 'id_factions')
-        dict_config['dossier_output'] = config.get('dossiers', 'dossier_output_squelettes_pjs')
+        dict_config['association_auto'] = config.getboolean('Essentiels', 'association_auto')
+
+        dict_config['nom_fichier_sauvegarde'] = config.get('Essentiels', 'nom_fichier_sauvegarde')
+
+        # lecture des informations optionnelles
+        dict_config['dossiers_pjs'] = [config.get("Optionnels", key)
+                                       for key in config.options("Optionnels")
+                                       if key.startswith("id_dossier_pjs")]
+
+        dict_config['dossiers_pnjs'] = [config.get("Optionnels", key)
+                                        for key in config.options("Optionnels")
+                                        if key.startswith("id_dossier_pnjs")]
+
+        dict_config['id_factions'] = config.get('Optionnels', 'id_factions')
+
+        dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs')
 
         dict_config['noms_persos'] = [nom_p.strip()
-                                      for nom_p in config.get('pjs_a_importer', 'noms_persos').split(',')]
+                                      for nom_p in config.get('Optionnels', 'noms_persos').split(',')]
 
-        # chargement des PNJs depuis le fichier spécifié dans le fichier de config
-        dict_config['fichier_noms_pnjs'] = config.get('pjs_a_importer', 'nom_fichier_pnjs')
+        # création des champs dérivés
         dict_config['noms_pnjs'] = lire_fichier_pnjs(dict_config['fichier_noms_pnjs'])
-
-        dict_config['association_auto'] = config.getboolean('globaux', 'association_auto')
-
-        dict_config['nom_fichier_sauvegarde'] = config.get('sauvegarde', 'nom_fichier_sauvegarde')
 
     except configparser.Error as e:
         # Erreur lors de la lecture d'un paramètre dans le fichier de configuration
@@ -71,13 +91,23 @@ def lire_fichier_pnjs(nom_fichier: str):
 
 
 def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier_sauvegarde: str,
-                         dossier_output_squelettes_pjs: str,
                          noms_pjs=None, noms_pnjs=None,
-                         fichier_erreurs: bool = True, export_drive: bool = True,
+                         fichier_erreurs: bool = True,
+                         generer_fichiers_pjs: bool = True,
+                         generer_fichiers_pnjs: bool = True,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
-                         table_plannings: bool = True, table_persos: bool = True,
+                         table_chrono: bool = True, table_persos: bool = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, verbal: bool = False):
+    # def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier_sauvegarde: str,
+    #                          dossier_output_squelettes_pjs: str,
+    #                          noms_pjs=None, noms_pnjs=None,
+    #                          fichier_erreurs: bool = True, export_drive: bool = True,
+    #                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
+    #                          table_chrono: bool = True, table_persos: bool = True,
+    #                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
+    #                          fast_intrigues: bool = True, fast_persos: bool = True, verbal: bool = False):
+
     if api_doc is None or api_sheets is None or api_drive is None:
         api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
 
@@ -113,21 +143,22 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     print("*********toutesleserreurs*******************")
     if fichier_erreurs:
         texte_erreurs = lister_erreurs(mon_gn, prefixeFichiers)
-        ecrire_erreurs_dans_drive(texte_erreurs, api_doc, api_drive, dossier_output_squelettes_pjs)
+        ecrire_erreurs_dans_drive(texte_erreurs, api_doc, api_drive, mon_gn.dossier_outputs_drive)
 
     print("******* statut intrigues *********************")
     if table_intrigues:
-        creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive, dossier_output_squelettes_pjs)
+        creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive)
 
     print("*******changelog*********************")
     if changelog:
-        generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets, dossier_output_squelettes_pjs)
+        generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets)
         # genererChangeLog(mon_gn, prefixeFichiers, nbJours=3)
         # genererChangeLog(mon_gn, prefixeFichiers, nbJours=4)
 
     print("*********touslesquelettes*******************")
-    if export_drive:
+    if generer_fichiers_pjs:
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=True)
+    if generer_fichiers_pnjs:
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=False)
 
     ecrire_squelettes_localement(mon_gn, prefixeFichiers)
@@ -140,8 +171,8 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets)
 
     print("******* table planning *********************")
-    if table_plannings:
-        ecrire_table_planning_dans_drive(mon_gn, api_drive, api_sheets)
+    if table_chrono:
+        ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets)
 
     print("******* table persos *********************")
     if table_persos:
@@ -169,10 +200,10 @@ def lister_erreurs(mon_gn, prefixe, taille_min_log=1, verbal=False):
 def ecrire_erreurs_dans_drive(texte_erreurs, apiDoc, apiDrive, parent):
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Listes des erreurs dans les tableaux des persos'
-    id = extraireTexteDeGoogleDoc.add_doc(apiDrive, nom_fichier, parent)
-    result = extraireTexteDeGoogleDoc.write_to_doc(apiDoc, id, texte_erreurs)
+    mon_id = extraireTexteDeGoogleDoc.add_doc(apiDrive, nom_fichier, parent)
+    result = extraireTexteDeGoogleDoc.write_to_doc(apiDoc, mon_id, texte_erreurs)
     if result:
-        extraireTexteDeGoogleDoc.formatter_fichier_erreurs(apiDoc, id)
+        extraireTexteDeGoogleDoc.formatter_fichier_erreurs(apiDoc, mon_id)
 
 
 def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
@@ -221,7 +252,7 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     return toPrint
 
 
-def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, dossier_output: str):
+def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
     dict_orgas_persos = dict()
     tableau_scene_orgas = []
     tous_les_conteneurs = list(mon_gn.dictPJs.values()) + list(mon_gn.intrigues.values())
@@ -278,12 +309,12 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, dossi
         tableau_scene_orgas.append([dict_scene, dict_orgas])
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Changelog'
+    dossier_output = mon_gn.dossier_outputs_drive
+    mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_output)
+    extraireTexteDeGoogleDoc.exporter_changelog(tableau_scene_orgas, mon_id, dict_orgas_persos, api_sheets)
 
-    id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_output)
-    extraireTexteDeGoogleDoc.exporter_changelog(tableau_scene_orgas, id, dict_orgas_persos, api_sheets)
 
-
-def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive, dossier_export):
+def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
     table_intrigues = [
         ["nom intrigue", "nombre de scenes", "dernière édition", "modifié par", "Orga referent", "statut", "Problèmes",
          "url"]]
@@ -298,10 +329,11 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive, dossier_e
                                 intrigue.getFullUrl()])
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Etat des intrigues'
-    id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_export)
+    dossier_export = mon_gn.dossier_outputs_drive
+    mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_export)
     # extraire_texte_de_google_doc.exporter_table_intrigue(api_doc, nom_fichier, dossier_export, df)
-    # extraire_texte_de_google_doc.ecrire_table_google_sheets(api_sheets, df, id)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_intrigues, id)
+    # extraire_texte_de_google_doc.ecrire_table_google_sheets(api_sheets, df, mon_id)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_intrigues, mon_id)
 
 
 def generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive, pj=True):
@@ -479,7 +511,7 @@ def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
                           'dossier_output_squelettes_pjs': dict_config['dossier_output']}
 
     nb_fichiers_persos = 1
-    for perso in dict_config['dossier_pjs']:
+    for perso in dict_config['dossiers_pjs']:
         config['dossiers']['base_persos_' + str(nb_fichiers_persos)] = perso
         nb_fichiers_persos += 1
 
@@ -525,7 +557,8 @@ def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets):
     id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, id)
 
-def generer_table_planning_condensee_raw(gn:GN):
+
+def generer_table_chrono_condensee_raw(gn: GN):
     # pour chaque personnage, construire un tableau contenant, dans l'ordre chronologique,
     # toutes les scènes du personnage avec le texte "il y a..., titrescène"
     tableau_sortie = []
@@ -537,13 +570,14 @@ def generer_table_planning_condensee_raw(gn:GN):
                 mes_scenes.append(scene)
         mes_scenes = Scene.trierScenes(mes_scenes)
 
-        #créer des lignes [date][évènement]
+        # créer des lignes [date][évènement]
         ma_ligne = [perso.nom] + [[s.getFormattedDate(), s.titre] for s in mes_scenes]
         tableau_sortie.append(ma_ligne)
 
     return tableau_sortie
 
-def generer_table_planning_condensee(tableau_raw):
+
+def generer_table_chrono_condensee(tableau_raw):
     # tableau_formatte = []
     # for ligne in tableau_raw:
     #     tableau_formatte += [ligne[0]] + [[f"{event[0]} - {event[1]}"] for event in ligne[1:]]
@@ -586,7 +620,7 @@ def generer_table_planning_condensee(tableau_raw):
     return matrix
 
 
-def generer_table_planning_complete(table_raw):
+def generer_table_chrono_complete(table_raw):
     # Find all unique dates across all stories
     all_dates = set()
     for story in table_raw:
@@ -618,25 +652,30 @@ def generer_table_planning_complete(table_raw):
     return matrix
 
 
-def ecrire_table_planning_dans_drive(mon_gn: GN, api_drive, api_sheets):
+def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.dossier_outputs_drive
-    table_raw = generer_table_planning_condensee_raw(mon_gn)
-    table_simple = generer_table_planning_condensee(table_raw)
-    table_complete = generer_table_planning_complete(table_raw)
+    table_raw = generer_table_chrono_condensee_raw(mon_gn)
+    table_simple = generer_table_chrono_condensee(table_raw)
+    table_complete = generer_table_chrono_complete(table_raw)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- synthèse chrono'
     id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, id, feuille="condensée")
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_complete, id, feuille="étendue")
 
-def generer_tableau_recap_persos(gn:GN):
+
+def generer_tableau_recap_persos(gn: GN):
     to_return = []
+    # to_return = ["Nom Perso", "Orga Référent", "Points", "Intrigues"]
     for perso in gn.dictPJs.values():
         table_perso = [perso.nom]
+        table_perso += [perso.orgaReferent]
+        table_perso += [perso.sommer_pip()]
         for role in perso.roles:
             table_perso += [role.conteneur.nom]
         to_return.append(table_perso)
     return to_return
+
 
 def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.dossier_outputs_drive
