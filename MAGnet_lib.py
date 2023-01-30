@@ -5,32 +5,39 @@ import extraireTexteDeGoogleDoc
 import lecteurGoogle
 from modeleGN import *
 
+#com
+#todo :informer chalacta des factions, des suqlettes pnjs, des tableaux intrigues, des nouveaux tableaux de synthèse (objets / chrono / persos)
 
+#bugs
 # todo : gestion logs erreurs
-# todo : gestion des évènement
-
-# todo : générer un récap en deux volets pour les personnages
-# un onglet avec pour chaque perso le total de ses points
-
-# todo : webinsation des pjs et PNJs
-#  créer une sheet avec le nom des pjs sur un onglet, et le nom des PNJ sur l'autre
-
-# todo : faire évoluer la fiche de génération pour ajouter tous les nouveaux fichiers
-# et faire évoluer le diagnotic pour proposer les focntions
+# todo comprendre pourquoi pas de load de snyder
 
 # todo : rendre optionnels certains paramètres du fichier de config
+#  on en aura besoin dès ce soir pour le chalacta :)
 #  (factions, pitchs pj, pitch pnjs au moins) et gérer les valeurs par défaut
+#   > vérifier quand on régènére que le gn n'est pas en contradiction avec les instructions demandées
+#  sachantq u'il faut au moins un dossier pj ou un dossier perso > ajouter un controle
+#  et pareil pour les pnjs
 
-# todo : jouer sans factions
+
+# à faire
+# todo : gestion des évènement
+#  lire les fiches
+#  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
+
+# todo : ajouter une section "tableau relations" qui conteint toutjours 3 colonnes
+#  "X... Voit la relation avec... Comme..."
+
+# confort / logique
+# todo : webisation des pjs et PNJs
+#  créer une sheet avec le nom des pjs sur un onglet, et le nom des PNJ sur l'autre
 
 # todo : faire un menu qui crée le GN avec les options et crée tous les fichiers qui vont bien
 #  dans un dossier magnet du drive fourni en entrée, et des questions sous la forme de "allez-vous utiliser...?"
 #  pour déterminer les champs à créer
 
-# todo : permettre d'utilier un tableau récap comme dans l'exemple de sandrine avec une balise tableau récap ?
+# todo : permettre d'utiliser un tableau récap comme dans l'exemple de sandrine avec une balise tableau récap ?
 
-# todo : ajouter une section "tableau relations" qui conteint toutjours 3 colonnes
-#  "X... Voit la relation avec... Comme..."
 
 def charger_fichier_init(fichier_init: str):
     # init configuration
@@ -119,6 +126,12 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                                 singletest=singletest_intrigue,
                                                 fast=fast_intrigues)
     extraireTexteDeGoogleDoc.extraire_pjs(mon_gn,
+                                          apiDrive=api_drive,
+                                          apiDoc=api_doc,
+                                          singletest=singletest_perso,
+                                          fast=fast_persos)
+
+    extraireTexteDeGoogleDoc.extraire_pnjs(mon_gn,
                                           apiDrive=api_drive,
                                           apiDoc=api_doc,
                                           singletest=singletest_perso,
@@ -665,8 +678,8 @@ def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets):
 
 
 def generer_tableau_recap_persos(gn: GN):
-    to_return = []
-    # to_return = ["Nom Perso", "Orga Référent", "Points", "Intrigues"]
+    # to_return = []
+    to_return = [["Nom Perso", "Orga Référent", "Points", "Intrigues"]]
     for perso in gn.dictPJs.values():
         table_perso = [perso.nom]
         table_perso += [perso.orgaReferent]
@@ -684,3 +697,7 @@ def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
                   f'- synthèse des intrigues par perso'
     id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, id)
+
+
+def mettre_a_jour_champs(gn: GN):
+    pass

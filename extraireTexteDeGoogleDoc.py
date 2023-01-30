@@ -500,7 +500,9 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
                 sceneAAjouter.nom_factions.add([f.strip() for f in balise[14:].split(',')])
 
             elif balise[0:12].lower() == '## faction :':
-                sceneAAjouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
+                noms_factions = [f.strip() for f in balise[13:].split(',')]
+                for f in noms_factions:
+                    sceneAAjouter.nom_factions.add(f)
 
             elif balise[0:12].lower() == '## factions:':
                 sceneAAjouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])

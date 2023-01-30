@@ -181,32 +181,32 @@ class Application(tk.Frame):
     def diagnostic_mode(self):
         diagnostic_window = tk.Toplevel(self.master)
 
-        recharger_gn_button = tk.Button(diagnostic_window, text="Recharger GN", command=lambda: print("Recharger GN"))
-        recharger_gn_button.grid(row=0, column=0, sticky="nsew")
-
-        relire_intrigues_button = tk.Button(diagnostic_window, text="Relire toutes les intrigues",
-                                            command=lambda: extraireTexteDeGoogleDoc.extraire_intrigues(
-                                                self.gn, self.apiDrive, self.apiDoc, fast=False)
-                                            )
-        relire_intrigues_button.grid(row=1, column=0, sticky="nsew")
-
-        relire_persos_button = tk.Button(diagnostic_window, text="Relire tous les personnages",
-                                         command=lambda: extraireTexteDeGoogleDoc.extraire_pjs(
-                                             self.gn, self.apiDrive, self.apiDoc, fast=False)
-                                         )
-        relire_persos_button.grid(row=2, column=0, sticky="nsew")
-
-        relire_perso_spec_button = tk.Button(diagnostic_window, text="Relire un personnage spécifique",
-                                             command=lambda: print("Relire un personnage spécique"))
-        relire_perso_spec_button.grid(row=3, column=0, sticky="nsew")
-
-        relire_intrigue_spec_button = tk.Button(diagnostic_window, text="Relire une intrigue spécifique",
-                                                command=lambda: print("Relire une intrigue spécifique"))
-        relire_intrigue_spec_button.grid(row=4, column=0, sticky="nsew")
-
-        effacer_persos_force_button = tk.Button(diagnostic_window, text="Effacer les personnages forcés",
-                                                command=lambda: self.gn.effacer_personnages_forces())
-        effacer_persos_force_button.grid(row=5, column=0, sticky="nsew")
+        # recharger_gn_button = tk.Button(diagnostic_window, text="Recharger GN", command=lambda: print("Recharger GN"))
+        # recharger_gn_button.grid(row=0, column=0, sticky="nsew")
+        #
+        # relire_intrigues_button = tk.Button(diagnostic_window, text="Relire toutes les intrigues",
+        #                                     command=lambda: extraireTexteDeGoogleDoc.extraire_intrigues(
+        #                                         self.gn, self.apiDrive, self.apiDoc, fast=False)
+        #                                     )
+        # relire_intrigues_button.grid(row=1, column=0, sticky="nsew")
+        #
+        # relire_persos_button = tk.Button(diagnostic_window, text="Relire tous les personnages",
+        #                                  command=lambda: extraireTexteDeGoogleDoc.extraire_pjs(
+        #                                      self.gn, self.apiDrive, self.apiDoc, fast=False)
+        #                                  )
+        # relire_persos_button.grid(row=2, column=0, sticky="nsew")
+        #
+        # relire_perso_spec_button = tk.Button(diagnostic_window, text="Relire un personnage spécifique",
+        #                                      command=lambda: print("Relire un personnage spécique"))
+        # relire_perso_spec_button.grid(row=3, column=0, sticky="nsew")
+        #
+        # relire_intrigue_spec_button = tk.Button(diagnostic_window, text="Relire une intrigue spécifique",
+        #                                         command=lambda: print("Relire une intrigue spécifique"))
+        # relire_intrigue_spec_button.grid(row=4, column=0, sticky="nsew")
+        #
+        # effacer_persos_force_button = tk.Button(diagnostic_window, text="Effacer les personnages forcés",
+        #                                         command=lambda: self.gn.effacer_personnages_forces())
+        # effacer_persos_force_button.grid(row=5, column=0, sticky="nsew")
 
         importer_persos_config_button = tk.Button(diagnostic_window,
                                                   text="Importer les personnages du fichier de configuration",
@@ -241,11 +241,11 @@ class Application(tk.Frame):
                                                     command=lambda: print("Lire le fichier d'associations"))
         lire_fichier_association_button.grid(row=11, column=0, sticky="nsew")
 
-        generer_changelog_drive_button = tk.Button(diagnostic_window, text="Générer changelog dans Drive",
-                                                   command=lambda: generer_tableau_changelog_sur_drive(
-                                                       self.gn, self.apiDrive, self.apiSheets)
-                                                   )
-        generer_changelog_drive_button.grid(row=12, column=0, sticky="nsew")
+        # generer_changelog_drive_button = tk.Button(diagnostic_window, text="Générer changelog dans Drive",
+        #                                            command=lambda: generer_tableau_changelog_sur_drive(
+        #                                                self.gn, self.apiDrive, self.apiSheets)
+        #                                            )
+        # generer_changelog_drive_button.grid(row=12, column=0, sticky="nsew")
 
         generer_changelog_local_button = tk.Button(diagnostic_window, text="Générer changelog localement",
                                                    command=lambda: generer_changelog(
@@ -257,19 +257,19 @@ class Application(tk.Frame):
                                                  command=lambda: lister_erreurs(self.gn, str(datetime.date.today())))
         generer_erreurs_local_button.grid(row=14, column=0, sticky="nsew")
 
-        generer_erreurs_drive_button = tk.Button(diagnostic_window, text="Générer fichier des erreurs sur Drive",
-                                                 command=lambda:
-                                                 ecrire_erreurs_dans_drive(
-                                                     lister_erreurs(self.gn, None),
-                                                     self.apiDoc, self.apiDrive, self.dict_config['dossier_output']))
-        generer_erreurs_drive_button.grid(row=15, column=0, sticky="nsew")
-
-        generer_table_intrigues_drive_button = tk.Button(diagnostic_window,
-                                                         text="Générer table des intrigues sur Drive",
-                                                         command=lambda: creer_table_intrigues_sur_drive(
-                                                             self.gn, self.apiSheets, self.apiDrive)
-                                                         )
-        generer_table_intrigues_drive_button.grid(row=16, column=0, sticky="nsew")
+        # generer_erreurs_drive_button = tk.Button(diagnostic_window, text="Générer fichier des erreurs sur Drive",
+        #                                          command=lambda:
+        #                                          ecrire_erreurs_dans_drive(
+        #                                              lister_erreurs(self.gn, None),
+        #                                              self.apiDoc, self.apiDrive, self.dict_config['dossier_output']))
+        # generer_erreurs_drive_button.grid(row=15, column=0, sticky="nsew")
+        #
+        # generer_table_intrigues_drive_button = tk.Button(diagnostic_window,
+        #                                                  text="Générer table des intrigues sur Drive",
+        #                                                  command=lambda: creer_table_intrigues_sur_drive(
+        #                                                      self.gn, self.apiSheets, self.apiDrive)
+        #                                                  )
+        # generer_table_intrigues_drive_button.grid(row=16, column=0, sticky="nsew")
 
         generer_table_intrigues_local_button = tk.Button(diagnostic_window,
                                                          text="Générer table des intrigues localement",
@@ -277,17 +277,17 @@ class Application(tk.Frame):
                                                              "Générer table des intrigues localement"))
         generer_table_intrigues_local_button.grid(row=17, column=0, sticky="nsew")
 
-        generer_fiches_pj_drive_button = tk.Button(diagnostic_window, text="Générer fiches PJ dans Drive",
-                                                   command=lambda: generer_squelettes_dans_drive(
-                                                       self.gn, self.apiDoc, self.apiDrive, True)
-                                                   )
-        generer_fiches_pj_drive_button.grid(row=18, column=0, sticky="nsew")
-
-        generer_fiches_pnj_drive_button = tk.Button(diagnostic_window, text="Générer fiches PNJ dans Drive",
-                                                    command=lambda: lambda: generer_squelettes_dans_drive(
-                                                        self.gn, self.apiDoc, self.apiDrive, False)
-                                                    )
-        generer_fiches_pnj_drive_button.grid(row=19, column=0, sticky="nsew")
+        # generer_fiches_pj_drive_button = tk.Button(diagnostic_window, text="Générer fiches PJ dans Drive",
+        #                                            command=lambda: generer_squelettes_dans_drive(
+        #                                                self.gn, self.apiDoc, self.apiDrive, True)
+        #                                            )
+        # generer_fiches_pj_drive_button.grid(row=18, column=0, sticky="nsew")
+        #
+        # generer_fiches_pnj_drive_button = tk.Button(diagnostic_window, text="Générer fiches PNJ dans Drive",
+        #                                             command=lambda: lambda: generer_squelettes_dans_drive(
+        #                                                 self.gn, self.apiDoc, self.apiDrive, False)
+        #                                             )
+        # generer_fiches_pnj_drive_button.grid(row=19, column=0, sticky="nsew")
 
         generer_fiches_pj_local_button = tk.Button(diagnostic_window, text="Générer fiches PJ localement",
                                                    command=lambda: ecrire_squelettes_localement(
@@ -305,18 +305,13 @@ class Application(tk.Frame):
                                                    command=lambda: print("Générer table des PNJs localement"))
         generer_table_pnj_local_button.grid(row=22, column=0, sticky="nsew")
 
-        relire_factions_button = tk.Button(diagnostic_window, text="Relire les factions",
-                                           command=lambda: print("Relire les factions"))
-        relire_factions_button.grid(row=23, column=0, sticky="nsew")
-        # diagnostic_window = tk.Toplevel(self.master)
-        # diagnostic_window.title("Mode diagnostic")
-        # diagnostic_window.geometry("400x400")
-        #
-        # # Create the 3x3 button grid
-        # for i in range(3):
-        #     for j in range(3):
-        #         button = tk.Button(diagnostic_window)
-        #         button.grid(row=i, column=j)
+        forcer_update_gn_button = tk.Button(diagnostic_window, text="adapter le GN aux dernières maj de Magnet",
+                                            command=lambda: mettre_a_jour_champs(self.gn))
+        forcer_update_gn_button.grid(row=23, column=0, sticky="nsew")
+
+        # relire_factions_button = tk.Button(diagnostic_window, text="Relire les factions",
+        #                                    command=lambda: print("Relire les factions"))
+        # relire_factions_button.grid(row=23, column=0, sticky="nsew")
 
     def change_config_file(self):
         config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
@@ -517,6 +512,7 @@ class Application(tk.Frame):
         master_checkbox = tk.Checkbutton(regen_window, text="cocher / décocher tout", variable=master_state,
                                          command=lambda: update_checkboxes(master_state))
         master_checkbox.grid(row=5, column=2)
+
         def update_checkboxes(etat_a_forcer):
             args = [generer_fichiers_drive_var,
                     generer_fichiers_drive_var,

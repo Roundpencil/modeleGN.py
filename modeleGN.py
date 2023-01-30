@@ -774,13 +774,9 @@ class GN:
                               f" {personnage_dans_faction.nom}, {intrigue.rolesContenus.keys()}")
                         score_role = process.extractOne(personnage_dans_faction.nom, intrigue.rolesContenus.keys())
                         if score_role[1] < seuil_reconciliation_role:
-                            intrigue.errorLog += f"Info : le role {personnage_dans_faction.nom} " \
-                                                 f"issu de la faction {nom_faction} " \
-                                                 f"dans la scène {scene.titre} " \
-                                                 f"n'a pas été associée à {score_role[0]} " \
-                                                 f"(seulement {score_role[1]}% de confiance) " \
-                                                 f"nous avons donc ajouté un rôle dans la scène qui n'est " \
-                                                 f"pas dans le tableau des persos"
+                            intrigue.errorLog += f"Info :  {personnage_dans_faction.nom} " \
+                                                 f"a été ajouté via la faction {nom_faction} " \
+                                                 f"pour la scène {scene.titre} \n"
                             # ajouter un nouveau role dans l'intrigue avec personnage_dans_faction = true
                             role_a_ajouter = Role(intrigue,
                                                   nom=personnage_dans_faction.nom,
@@ -899,12 +895,12 @@ class ErreurAssociation:
         self.texte = texte
         self.genere_par = genere_par
 
-    class Niveaux_Erreurs(IntEnum):
+    class NIVEAUX(IntEnum):
         INFO = 10
         WARNING = 20
         ERREUR = 30
 
-    class Origines_Erreurs(IntEnum):
+    class ORIGINES(IntEnum):
         SCENE = 1
         FACTION = 2
         ASSOCIATION_AUTO = 3
