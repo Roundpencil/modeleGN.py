@@ -9,9 +9,12 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
-# SCOPES = ['https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/documents.readonly https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/documents']
+# SCOPES = ['https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/documents.readonly
+# https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/documents']
 SCOPES = [
-    'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/documents https://www.googleapis.com/auth/spreadsheets']
+    'https://www.googleapis.com/auth/drive '
+    'https://www.googleapis.com/auth/documents '
+    'https://www.googleapis.com/auth/spreadsheets']
 
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre des tokens dans la déclaration
 
@@ -38,17 +41,18 @@ def creer_lecteurs_google_apis():
 
     try:
         # api_drive = build('drive', 'v3', credentials=creds, static_discovery=False)
-        # lecteurDoc = build('docs', 'v1', credentials=creds, static_discovery=False)
+        # lecteur_doc = build('docs', 'v1', credentials=creds, static_discovery=False)
         # lecteur_sheets = build('sheets', 'v4', credentials=creds, static_discovery=False)
 
-        apiDrive = build('drive', 'v3', credentials=creds)
-        lecteurDoc = build('docs', 'v1', credentials=creds)
+        api_drive = build('drive', 'v3', credentials=creds)
+        lecteur_doc = build('docs', 'v1', credentials=creds)
         lecteur_sheets = build('sheets', 'v4', credentials=creds)
 
     except HttpError as error:
         print(f'An error occurred: {error}')
+        return None, None, None
 
-    return apiDrive, lecteurDoc, lecteur_sheets
+    return api_drive, lecteur_doc, lecteur_sheets
 
 
 def read_paragraph_element(element):
@@ -93,71 +97,69 @@ def read_structural_elements(elements):
 
 
 # renvoie un dictionnaire [label]["debut"/"fin"]
-def identifierSectionsFiche(labelsATrouver, texteDocument):
-    texteDocument = texteDocument.lower()
+def identifier_sections_fiche(labelsATrouver, texte_document):
+    texte_document = texte_document.lower()
     # on passe en minuscule pour mieux trouver les chaines
 
     indexes = dict()
     for label in labelsATrouver:
-        indexes[label] = {"debut": texteDocument.find(label)}
+        indexes[label] = {"debut": texte_document.find(label)}
         # on complètera la seconde dimension (fin) plus bas avec la fin de la séquence
     # print("dictionnaire des labels : {0}".format(indexes))
     # maintenant, on aura besoin d'identifier pour chaque label où il se termine
     # pour cela on fait un dictionnaire ou la fin de chaque entrée est le début de la suivante
     # print("toutes les valeurs du tableau : {0}".format([x['debut'] for x in indexes.values()]))
     # on commence par extraire toutes les valeurs de début et les trier dans l'ordre
-    tousLesIndexes = [x['debut'] for x in indexes.values()]
-    tousLesIndexes.sort()
-    # print("Tous les indexes : {0}".format(tousLesIndexes))
+    tous_les_indexes = [x['debut'] for x in indexes.values()]
+    tous_les_indexes.sort()
+    # print("Tous les indexes : {0}".format(tous_les_indexes))
     # on crée une table qui associe à chaque début la section suivante
-    tableDebutsFinsLabels = dict()
+    table_debuts_fins_labels = dict()
     for i in range(len(indexes)):
         try:
-            tableDebutsFinsLabels[tousLesIndexes[i]] = tousLesIndexes[i + 1] - 1
-            # print("pour l'index {0}, j'ai le couple {1}:{2}".format(i, tousLesIndexes[i], tousLesIndexes[i+1]))
+            table_debuts_fins_labels[tous_les_indexes[i]] = tous_les_indexes[i + 1] - 1
+            # print("pour l'index {0}, j'ai le couple {1}:{2}".format(i, tous_les_indexes[i], tous_les_indexes[i+1]))
         except IndexError:
-            tableDebutsFinsLabels[tousLesIndexes[i]] = len(texteDocument)
+            table_debuts_fins_labels[tous_les_indexes[i]] = len(texte_document)
             break
-    # enfin on met à jour la table des labels pour avoir la fin à côté du début
+    # enfin, on met à jour la table des labels pour avoir la fin à côté du début
     for label in labelsATrouver:
-        indexes[label]["fin"] = tableDebutsFinsLabels[indexes[label]["debut"]]
+        indexes[label]["fin"] = table_debuts_fins_labels[indexes[label]["debut"]]
         # print("label {0} : [{1}:{2}]".format(label, indexes[label]["debut"], indexes[label]["fin"]))
     return indexes
 
 
-def genererListeItems(monGN, apiDrive, folderID):
-    folderid = folderID
+def generer_liste_items(monGN, apiDrive, nom_fichier):
+    # nom_fichier = nom_fichier
 
     # faire la requête pour lire tous les dossiers en entrée
 
-    if len(folderid) < 1:
-        print("erreur, aucun id dans l'input")
+    if len(nom_fichier) < 1:
+        print("erreur, aucun mon_id dans l'input")
         return -1
 
     requete = ""
-    for id in folderid:
-        requete += f"'{id}' in parents or "
+    for mon_id in nom_fichier:
+        requete += f"'{mon_id}' in parents or "
     requete = requete[:-3]
     print(f"requete = {requete}")
 
-    ## pour tentere de comprendre comment on spécifie le mimetype
+    # pour tenter de comprendre comment on spécifie le mimetype
     # requete = "mimeType == application/vnd.google-apps.document"
 
     try:
         # Call the Drive v3 API
         # results = api_doc.files().list(
         #     pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
-        #     fields="nextPageToken, files(id, name, modifiedTime)").execute()
+        #     fields="nextPageToken, files(mon_id, name, modifiedTime)").execute()
         results = apiDrive.files().list(
             pageSize=100, q=requete,
-            fields="nextPageToken, files(id, name, modifiedTime, lastModifyingUser)").execute()
+            fields="nextPageToken, files(mon_id, name, modifiedTime, lastModifyingUser)").execute()
 
         items = results.get('files',
                             [])  # le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues
-        print((f"j'ai trouvé {len(items)} items "))
+        print(f"j'ai trouvé {len(items)} items ")
         return items
     except HttpError as err:
         print(f'An error occurred: {err}')
         return None
-
-

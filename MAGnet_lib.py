@@ -16,20 +16,18 @@ from modeleGN import *
 
 # à faire
 # todo : gestion des évènement
-#  lire les fiches
+#  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
+# todo : propager verbal depuis l'interface graphique en ajoutant un bouton à droite de ok
+#   et prendre en compte les bouton charger et sauver
+
+# todo : ajouter une section "tableau relations" qui conteint toutjours 4 colonnes
+#  "X... Voit la relation avec... Comme... Et si non réciproque..."
+#  dans les fiches de persos
+#  dans les scènes : relations nécessaires (nouveau tag)
+
 # todo ajouter dans les roles conseillés les roles qui sont dans le tableau mais das aucune scène
-
-# todo : ajouter une section "tableau relations" qui conteint toutjours 3 colonnes
-#  "X... Voit la relation avec... Comme..."
-
-# todo : amèliorer rendre optionnels certains paramètres du fichier de config
-#  on en aura besoin dès ce soir pour le chalacta :)
-#  (factions, pitchs pj, pitch pnjs au moins) et gérer les valeurs par défaut
-#   > vérifier quand on régènére que le gn n'est pas en contradiction avec les instructions demandées
-#  sachant qu'il faut au moins un dossier pj ou un dossier perso > ajouter un controle
-#  et pareil pour les pnjs
 
 # confort / logique
 # todo : refaire version console
@@ -150,10 +148,10 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     print("****************************")
     print("****************************")
     print("****************************")
-    prefixeFichiers = str(datetime.date.today())
+    prefixe_fichiers = str(datetime.date.today())
     print("*********toutesleserreurs*******************")
     if fichier_erreurs:
-        texte_erreurs = lister_erreurs(mon_gn, prefixeFichiers)
+        texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
         ecrire_erreurs_dans_drive(texte_erreurs, api_doc, api_drive, mon_gn.dossier_outputs_drive)
 
     print("******* statut intrigues *********************")
@@ -163,8 +161,8 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     print("*******changelog*********************")
     if changelog:
         generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets)
-        # genererChangeLog(mon_gn, prefixeFichiers, nbJours=3)
-        # genererChangeLog(mon_gn, prefixeFichiers, nbJours=4)
+        # genererChangeLog(mon_gn, prefixe_fichiers, nbJours=3)
+        # genererChangeLog(mon_gn, prefixe_fichiers, nbJours=4)
 
     print("*********touslesquelettes*******************")
     if generer_fichiers_pjs:
@@ -172,8 +170,8 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     if generer_fichiers_pnjs:
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=False)
 
-    ecrire_squelettes_localement(mon_gn, prefixeFichiers)
-    ecrire_squelettes_localement(mon_gn, prefixeFichiers, pj=False)
+    ecrire_squelettes_localement(mon_gn, prefixe_fichiers)
+    ecrire_squelettes_localement(mon_gn, prefixe_fichiers, pj=False)
     print("*******dumpallscenes*********************")
     # dumpAllScenes(mon_gn)
 
@@ -235,7 +233,7 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     iwant = set(iwant)
 
     tableau_sortie = []
-    toPrint = "Tableau suggéré : \n"
+    to_print = "Tableau suggéré : \n"
 
     # pour chaque nom dans une scène, trouver le perso correspondant
     for nom in iwant:
@@ -256,12 +254,12 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
         tableau_sortie = sorted(tableau_sortie)
 
     for e in tableau_sortie:
-        toPrint += f"{e[0]} {e[1]} \n"
+        to_print += f"{e[0]} {e[1]} \n"
 
     if verbal:
-        print(toPrint)
+        print(to_print)
 
-    return toPrint
+    return to_print
 
 
 def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
@@ -273,7 +271,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
         for scene in conteneur.scenes:
             toutes_les_scenes.append(scene)
 
-    toutes_les_scenes = sorted(toutes_les_scenes, key=lambda scene: scene.derniere_mise_a_jour, reverse=True)
+    toutes_les_scenes = sorted(toutes_les_scenes, key=lambda s: s.derniere_mise_a_jour, reverse=True)
 
     # print(f"taille de toutes les scènes = {len(toutes_les_scenes)}"
     #       f"taille de tous les conteneurs = {len(tous_les_conteneurs)}")
@@ -422,14 +420,14 @@ def ecrire_squelettes_localement(mon_gn: GN, prefixe=None, pj=True):
 
 
 def generer_liste_pnj_dedup(monGN, threshold=89, verbal=False):
-    nomsPNJs = []
+    noms_pnjs = []
     # nomsNormalises = dict()
     for intrigue in monGN.intrigues.values():
         for role in intrigue.rolesContenus.values():
             if role.est_un_pnj():
-                nomsPNJs.append(role.nom)
-    nomsPNJs = list(set(nomsPNJs))
-    extract = process.dedupe(nomsPNJs, threshold=threshold)
+                noms_pnjs.append(role.nom)
+    noms_pnjs = list(set(noms_pnjs))
+    extract = process.dedupe(noms_pnjs, threshold=threshold)
     extract = sorted(extract)
     if verbal:
         for v in extract:
@@ -447,7 +445,7 @@ def ecrire_liste_pnj_dedup_localement(mon_gn: GN, prefixe: str, threshold=89, ve
 
 
 def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
-    dateReference = datetime.date.today() - datetime.timedelta(days=nbJours)
+    date_reference = datetime.date.today() - datetime.timedelta(days=nbJours)
 
     # on crée un tableau avec tous lse changements :
     # [orga referent | perso | titre intrigue | url intrigue | date changement intrigue]
@@ -456,7 +454,7 @@ def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
 
     restitution = dict()
     for intrigue in monGN.intrigues.values():
-        if intrigue.lastFileEdit.date() > dateReference:
+        if intrigue.lastFileEdit.date() > date_reference:
             for role in intrigue.rolesContenus.values():
                 if role.perso is not None and est_un_pj(role.perso.pj):
                     referent = role.perso.orgaReferent.strip()
@@ -465,23 +463,24 @@ def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
                         referent = "Orga sans nom"
 
                     # print(f"je m'apprête à ajouter une ligne pour {referent} : {role.perso.nom} dans {intrigue.nom}")
-                    nomPerso = role.perso.nom
-                    nomIntrigue = intrigue.nom
+                    nom_perso = role.perso.nom
+                    # nomIntrigue = intrigue.nom
 
-                    # on vérifie que le référent et le persos existent, sinon on initialise
+                    # on vérifie que le référent et le perso existent, sinon on initialise
                     if referent not in restitution:
                         restitution[referent] = dict()
-                    if nomPerso not in restitution[referent]:
-                        # restitution[referent][nomPerso] = dict()
-                        restitution[referent][nomPerso] = []
-                    # if nomIntrigue not in restitution[referent][nomPerso]:
-                    #     restitution[referent][nomPerso][nomIntrigue] = \
+                    if nom_perso not in restitution[referent]:
+                        # restitution[referent][nom_perso] = dict()
+                        restitution[referent][nom_perso] = []
+                    # if nomIntrigue not in restitution[referent][nom_perso]:
+                    #     restitution[referent][nom_perso][nomIntrigue] = \
                     #         [intrigue.lastProcessing.strftime("%d/%m/%Y à %H:%M:%S"),
                     #          intrigue.getFullUrl()]
-                    # # on utilise nomintrigue comem clef, car sinon, comme on rentre par les roles on va multiplier les entrées
+                    # # on utilise nomintrigue comem clef,
+                    # # car sinon, comme on rentre par les roles on va multiplier les entrées
 
                     # et maintenant on remplit la liste
-                    restitution[referent][nomPerso].append([intrigue.nom,
+                    restitution[referent][nom_perso].append([intrigue.nom,
                                                             intrigue.getFullUrl(),
                                                             intrigue.lastFileEdit.strftime("%d/%m/%Y à %H:%M:%S")])
 
@@ -494,7 +493,8 @@ def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
     # print(restitution)
     texte = ""
     for nomOrga in restitution:
-        texte += f"{nomOrga}, ces personnages sont dans des intrigues qui ont été modifiées depuis {dateReference} : \n"
+        texte += f"{nomOrga}, ces personnages sont dans des intrigues qui ont été modifiées " \
+                 f"depuis {date_reference} : \n"
         for perso in restitution[nomOrga]:
             texte += f"\t pour {perso} : \n "
             for element in restitution[nomOrga][perso]:
@@ -568,8 +568,8 @@ def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets):
     table = generer_table_objets(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Table des objets'
-    id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, id)
+    mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, mon_id)
 
 
 def generer_table_chrono_condensee_raw(gn: GN):
@@ -639,7 +639,7 @@ def generer_table_chrono_complete(table_raw):
     all_dates = set()
     for story in table_raw:
         all_dates |= set([event[0] for event in story[1:]])
-    all_dates = sorted(list(all_dates), key=extraireTexteDeGoogleDoc.calculerJoursIlYA)
+    all_dates = sorted(list(all_dates), key=extraireTexteDeGoogleDoc.calculer_jours_il_y_a)
 
     # Create a dictionary mapping dates to indices
     date_to_index = {date: i for i, date in enumerate(all_dates)}
@@ -647,7 +647,8 @@ def generer_table_chrono_complete(table_raw):
     # Initialize the matrix with empty values
     num_stories = len(table_raw)
     num_dates = len(all_dates)
-    matrix = [['' for j in range(num_stories + 1)] for i in range(num_dates + 1)]
+    # matrix = [['' for j in range(num_stories + 1)] for i in range(num_dates + 1)]
+    matrix = [['' for _ in range(num_stories + 1)] for _ in range(num_dates + 1)]
 
     # Populate the first row with story titles
     for j, story in enumerate(table_raw):
@@ -673,9 +674,9 @@ def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets):
     table_complete = generer_table_chrono_complete(table_raw)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- synthèse chrono'
-    id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, id, feuille="condensée")
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_complete, id, feuille="étendue")
+    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="condensée")
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_complete, file_id, feuille="étendue")
 
 
 def generer_tableau_recap_persos(gn: GN):
@@ -696,11 +697,12 @@ def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
     table = generer_tableau_recap_persos(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- synthèse des intrigues par perso'
-    id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, id)
+    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, file_id)
 
 
 def mettre_a_jour_champs(gn: GN):
+    print(gn.dictPJs)
     pass
     # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
     #     conteneur.error_log = ErreurManager()

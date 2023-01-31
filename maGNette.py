@@ -567,7 +567,7 @@ def trierScenes(monGN):
         print()
         print()
         print(f"intrigue {intrigue.nom} : ")
-        triee = intrigue.getScenesTriees()
+        triee = intrigue.get_scenes_triees()
         for scene in triee:
             print(scene)
 

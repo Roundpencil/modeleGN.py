@@ -6,36 +6,49 @@ from enum import IntEnum
 
 from fuzzywuzzy import process
 
-EST_PJ = 6
-EST_REROLL = 5
-EST_PNJ_INFILTRE = 4
-EST_PNJ_PERMANENT = 3
-EST_PNJ_TEMPORAIRE = 2
-EST_PNJ_HORS_JEU = 1
+
+class TypePerso(IntEnum):
+    EST_PNJ_HORS_JEU = 1
+    EST_PNJ_TEMPORAIRE = 2
+    EST_PNJ_PERMANENT = 3
+    EST_PNJ_INFILTRE = 4
+    EST_REROLL = 5
+    EST_PJ = 6
 
 
 def est_un_pnj(niveauPJ):
-    return niveauPJ == EST_PNJ_HORS_JEU or niveauPJ == EST_PNJ_TEMPORAIRE or niveauPJ == EST_PNJ_INFILTRE or niveauPJ == EST_PNJ_PERMANENT
+    return niveauPJ == TypePerso.EST_PNJ_HORS_JEU \
+        or niveauPJ == TypePerso.EST_PNJ_TEMPORAIRE \
+        or niveauPJ == TypePerso.EST_PNJ_INFILTRE \
+        or niveauPJ == TypePerso.EST_PNJ_PERMANENT
 
 
 def est_un_pj(niveauPJ):
-    return niveauPJ == EST_PJ
+    return niveauPJ == TypePerso.EST_PJ
 
 
-def string_type_pj(typePJ):
-    if typePJ == EST_PJ:
-        return "PJ"
-    if typePJ == EST_REROLL:
-        return "Reroll"
-    if typePJ == EST_PNJ_INFILTRE:
-        return "PNJ Infiltré"
-    if typePJ == EST_PNJ_PERMANENT:
-        return "PNJ Permanent"
-    if typePJ == EST_PNJ_TEMPORAIRE:
-        return "PNJ Temporaire"
-    if typePJ == EST_PNJ_HORS_JEU:
-        return "PNJ Hors Jeu"
-    return f"Type de PJ inconnu ({typePJ})"
+def string_type_pj(typePJ: TypePerso):
+    grille_pj = {TypePerso.EST_PJ: "PJ",
+                 TypePerso.EST_REROLL: "Reroll",
+                 TypePerso.EST_PNJ_INFILTRE: "PNJ Infiltré",
+                 TypePerso.EST_PNJ_HORS_JEU: "PNJ Hors Jeu",
+                 TypePerso.EST_PNJ_PERMANENT: "PNJ Permanent",
+                 TypePerso.EST_PNJ_TEMPORAIRE: "PNJ Temporaire"}
+    return grille_pj.get(typePJ, f"Type de PJ inconnu ({typePJ})")
+
+    # if typePJ == TypePerso.EST_PJ:
+    #     return "PJ"
+    # if typePJ == TypePerso.EST_REROLL:
+    #     return "Reroll"
+    # if typePJ == TypePerso.EST_PNJ_INFILTRE:
+    #     return "PNJ Infiltré"
+    # if typePJ == TypePerso.EST_PNJ_PERMANENT:
+    #     return "PNJ Permanent"
+    # if typePJ == TypePerso.EST_PNJ_TEMPORAIRE:
+    #     return "PNJ Temporaire"
+    # if typePJ == TypePerso.EST_PNJ_HORS_JEU:
+    #     return "PNJ Hors Jeu"
+    # return f"Type de PJ inconnu ({typePJ})"
 
 
 # une superclasse qui représente un fichier qui content des scènes, avec es rtôles associés
@@ -60,19 +73,19 @@ class ConteneurDeScene:
         # une erreur :
         # un endroit ou c'est détecté : tableau des intrigues, rôles, personnages
 
-    def clearErrorLog(self):
-        self.error_log = ""
+    def clear_error_log(self):
+        self.error_log.clear()
 
-    def getNomsRoles(self):
+    def get_noms_roles(self):
         return self.rolesContenus.keys()
 
-    def addScene(self, nomScene):
-        sceneAajouter = Scene(self, nomScene)
-        sceneAajouter.derniere_mise_a_jour = self.lastFileEdit
-        self.scenes.add(sceneAajouter)
-        return sceneAajouter
+    def ajouter_scene(self, nomScene):
+        scene_a_ajouter = Scene(self, nomScene)
+        scene_a_ajouter.derniere_mise_a_jour = self.lastFileEdit
+        self.scenes.add(scene_a_ajouter)
+        return scene_a_ajouter
 
-    def getScenesTriees(self):
+    def get_scenes_triees(self):
         return Scene.trierScenes(self.scenes)
 
     def clear(self):
@@ -90,7 +103,7 @@ class ConteneurDeScene:
             del scene
         # self.scenes.clear()
         # print(f"intrigue effacée {self.nom}")
-        self.error_log = ''
+        self.error_log.clear()
 
     def getFullUrl(self):
         return "https://docs.google.com/document/d/" + self.url
@@ -120,7 +133,8 @@ class ConteneurDeScene:
 # personnage
 class Personnage(ConteneurDeScene):
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
-                 sexe="i", pj=EST_PJ, orgaReferent="", pitchJoueur="", indicationsCostume="", textesAnnexes="", url="",
+                 sexe="i", pj: TypePerso = TypePerso.EST_PJ, orgaReferent="", pitchJoueur="", indicationsCostume="",
+                 textesAnnexes="", url="",
                  datesClefs="", lastChange=datetime.datetime(year=2000, month=1, day=1), forced=False,
                  derniere_edition_fichier=0):
         super(Personnage, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
@@ -181,10 +195,13 @@ class Personnage(ConteneurDeScene):
         return to_return
 
     def est_un_pnj(self):
-        return self.pj == EST_PNJ_HORS_JEU or self.pj == EST_PNJ_TEMPORAIRE or self.pj == EST_PNJ_INFILTRE or self.pj == EST_PNJ_PERMANENT
+        # return self.pj == TypePerso.EST_PNJ_HORS_JEU
+        # or self.pj == EST_PNJ_TEMPORAIRE or self.pj == EST_PNJ_INFILTRE or self.pj == EST_PNJ_PERMANENT
+        return est_un_pnj(self.pj)
 
     def est_un_pj(self):
-        return self.pj == EST_PJ
+        # return self.pj == EST_PJ
+        return est_un_pj(self.pj)
 
     def sommer_pip(self):
         pip = 0
@@ -196,7 +213,8 @@ class Personnage(ConteneurDeScene):
 # rôle
 class Role:
 
-    def __init__(self, conteneur, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i", pj=EST_PJ,
+    def __init__(self, conteneur, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i",
+                 pj: TypePerso = TypePerso.EST_PJ,
                  typeIntrigue="", niveauImplication="", perimetre_intervention="", issu_dune_faction=False,
                  pip_globaux=0):
         self.conteneur = conteneur
@@ -699,9 +717,11 @@ class GN:
             # print(f"je suis en train de chercher des roles dans le pj {pj.nom}")
             # print(f"noms de roles trouvés : {pj.rolesContenus}")
             for role in perso.rolesContenus.values():
-                print(f"je suis en train d'essayer d'associer le rôle {role.nom} issu du personnage {perso.nom}")
+                if verbal:
+                    print(f"je suis en train d'essayer d'associer le rôle {role.nom} issu du personnage {perso.nom}")
                 score = process.extractOne(role.nom, noms_persos)
-                print(f"Pour {role.nom} dans {role.conteneur.nom}, score = {score}")
+                if verbal:
+                    print(f"Pour {role.nom} dans {role.conteneur.nom}, score = {score}")
                 role.perso = dict_noms_persos[score[0]]
                 role.perso.roles.add(role)
 
@@ -726,7 +746,7 @@ class GN:
                 if critere(role.pj):
                     # print(f"nom du role testé = {role.nom}")
                     score = process.extractOne(role.nom, noms_persos)
-                    # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
+                    print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
                     check = intrigue.associer_role_a_perso(role_a_associer=role, personnage=dict_noms_persos[score[0]],
                                                            verbal=verbal)
 
@@ -776,9 +796,12 @@ class GN:
                     score_faction = process.extractOne(nom_faction, self.factions.keys())
                     print(f"score_faction = {score_faction}")
                     if score_faction[1] < seuil_nom_faction:
-                        intrigue.error_log += f"Warning : la faction {nom_faction} " \
+                        texte_erreur = f"la faction {nom_faction} " \
                                               f"a été associée à {score_faction[0]} " \
                                               f"à seulement {score_faction[1]}% de confiance"
+                        intrigue.error_log.ajouter_erreur(ErreurAssociation.NIVEAUX.WARNING,
+                                                          texte_erreur,
+                                                          ErreurAssociation.ORIGINES.FACTION)
                     ma_faction = self.factions[score_faction[0]]
                     # pour chaque personnage de la faction, on vérifie s'il a une correspondance
                     # dans les persos de la scène, en définissant un seuil d'acceptabilité
@@ -823,7 +846,7 @@ class GN:
             perso.error_log.clear(ErreurAssociation.ORIGINES.FACTION)
 
         for intrigue in self.intrigues.values():
-            # intrigue.clearErrorLog()
+            # intrigue.clear_error_log()
             for role in intrigue.rolesContenus.values():
                 role.perso = None
 
@@ -879,9 +902,9 @@ class GN:
         # SI son nom est dans les persos > ne rien faire
         # SINON, lui créer une coquille vide
         if pj:
-            valeur_pj = EST_PJ
+            valeur_pj = TypePerso.EST_PJ
         else:
-            valeur_pj = EST_PNJ_HORS_JEU
+            valeur_pj = TypePerso.EST_PNJ_HORS_JEU
         persosSansCorrespondance = []
         for perso in noms_persos:
             if perso in noms_lus and verbal:
@@ -897,7 +920,7 @@ class GN:
                     if verbal:
                         print(f"{perso} a été créé (coquille vide)")
                     dict_actif[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
-                                                               forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
+                                                             forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
 
                     # self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
                     #                                            forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
@@ -955,7 +978,7 @@ class ErreurManager:
     def __str__(self):
         return '\n'.join([str(erreur) for erreur in self.erreurs])
 
-    def clear(self, niveau: ErreurAssociation.ORIGINES):
+    def clear(self, niveau: ErreurAssociation.ORIGINES = None):
         if niveau is None:
             # dans ce cas c'est qu'on veut TOUT effacer, par exempe car on va recréer le conteneur
             self.erreurs.clear()
