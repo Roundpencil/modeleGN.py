@@ -323,9 +323,9 @@ class Intrigue(ConteneurDeScene):
                 texteErreur = f"lors de la tentative d'associer le role " \
                               f"{role_a_associer.nom} au personnage {personnage.nom} (meilleur choix) : " \
                               f"celui-ci a déjà été automatiquement associé au rôle {role.nom} dans {self.nom}"
-                self.add_to_error_log(ErreurAssociation.NIVEAUX.ERREUR,
+                self.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
                                       texteErreur,
-                                      ErreurAssociation.ORIGINES.ASSOCIATION_AUTO
+                                      ErreurManager.ORIGINES.ASSOCIATION_AUTO
                                       )
 
                 if verbal:  # et si on a demandé à ce que la fonction raconte sa vie, on détaille
@@ -728,9 +728,9 @@ class GN:
                 if score[1] < seuilAlerte:
                     texte_erreur = f"Association ({score[1]}) - nom rôle : " \
                                    f"{role.nom} > perso : {score[0]} dans {perso.nom}"
-                    perso.add_to_error_log(ErreurAssociation.NIVEAUX.WARNING,
+                    perso.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                            texte_erreur,
-                                           ErreurAssociation.ORIGINES.ASSOCIATION_AUTO)
+                                           ErreurManager.ORIGINES.ASSOCIATION_AUTO)
                     if verbal:
                         # print(f"je paaaaaarle {score[1]}")
                         print(texte_erreur)
@@ -753,9 +753,9 @@ class GN:
                     if score[1] < seuilAlerte:
                         texte_erreur = f"Association ({score[1]}) - nom rôle : " \
                                        f"{role.nom} > perso : {score[0]} dans {intrigue.nom}"
-                        intrigue.add_to_error_log(ErreurAssociation.NIVEAUX.WARNING,
+                        intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                                   texte_erreur,
-                                                  ErreurAssociation.ORIGINES.ASSOCIATION_AUTO
+                                                  ErreurManager.ORIGINES.ASSOCIATION_AUTO
                                                   )
                         if verbal:
                             # print(f"je paaaaaarle {score[1]}")
@@ -799,9 +799,9 @@ class GN:
                         texte_erreur = f"la faction {nom_faction} " \
                                               f"a été associée à {score_faction[0]} " \
                                               f"à seulement {score_faction[1]}% de confiance"
-                        intrigue.error_log.ajouter_erreur(ErreurAssociation.NIVEAUX.WARNING,
+                        intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
                                                           texte_erreur,
-                                                          ErreurAssociation.ORIGINES.FACTION)
+                                                          ErreurManager.ORIGINES.FACTION)
                     ma_faction = self.factions[score_faction[0]]
                     # pour chaque personnage de la faction, on vérifie s'il a une correspondance
                     # dans les persos de la scène, en définissant un seuil d'acceptabilité
@@ -813,9 +813,9 @@ class GN:
                             texte_info = f"{personnage_dans_faction.nom} " \
                                          f"a été ajouté via la faction {nom_faction} " \
                                          f"pour la scène {scene.titre} \n"
-                            intrigue.error_log.ajouter_erreur(ErreurAssociation.NIVEAUX.INFO,
+                            intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.INFO,
                                                               texte_info,
-                                                              ErreurAssociation.ORIGINES.FACTION
+                                                              ErreurManager.ORIGINES.FACTION
                                                               )
                             # ajouter un nouveau role dans l'intrigue avec personnage_dans_faction = true
                             role_a_ajouter = Role(intrigue,
@@ -842,8 +842,8 @@ class GN:
         #     pnj.roles.clear()
         for perso in list(self.dictPJs.values()) + list(self.dictPNJs.values()):
             perso.roles.clear()
-            perso.error_log.clear(ErreurAssociation.ORIGINES.ASSOCIATION_AUTO)
-            perso.error_log.clear(ErreurAssociation.ORIGINES.FACTION)
+            perso.error_log.clear(ErreurManager.ORIGINES.ASSOCIATION_AUTO)
+            perso.error_log.clear(ErreurManager.ORIGINES.FACTION)
 
         for intrigue in self.intrigues.values():
             # intrigue.clear_error_log()
@@ -938,21 +938,9 @@ class Objet:
         self.inIntrigues = set()
 
 
-class ErreurAssociation:
-    def __init__(self, niveau, texte, genere_par):
-        self.niveau = niveau
-        self.texte = texte
-        self.origine = genere_par
-
-    def __str__(self):
-        if self.niveau == self.NIVEAUX.ERREUR:
-            prefixe = "Erreur : "
-        elif self.niveau == self.NIVEAUX.WARNING:
-            prefixe = "Warning : "
-        else:
-            prefixe = "Info : "
-
-        return prefixe + self.texte
+class ErreurManager:
+    def __init__(self):
+        self.erreurs = []
 
     class NIVEAUX(IntEnum):
         INFO = 10
@@ -964,23 +952,34 @@ class ErreurAssociation:
         FACTION = 2
         ASSOCIATION_AUTO = 3
 
+    class ErreurAssociation:
+        def __init__(self, niveau, texte, genere_par):
+            self.niveau = niveau
+            self.texte = texte
+            self.origine = genere_par
 
-class ErreurManager:
-    def __init__(self):
-        self.erreurs = []
+        def __str__(self):
+            if self.niveau == ErreurManager.NIVEAUX.ERREUR:
+                prefixe = "Erreur : "
+            elif self.niveau == ErreurManager.NIVEAUX.WARNING:
+                prefixe = "Warning : "
+            else:
+                prefixe = "Info : "
+
+            return prefixe + self.texte
 
     def nb_erreurs(self):
         return len(self.erreurs)
 
-    def ajouter_erreur(self, niveau: ErreurAssociation.NIVEAUX, message, origine: ErreurAssociation.ORIGINES):
-        self.erreurs.append(ErreurAssociation(niveau, message, origine))
+    def ajouter_erreur(self, niveau: NIVEAUX, message, origine: ORIGINES):
+        self.erreurs.append(self.ErreurAssociation(niveau, message, origine))
 
     def __str__(self):
         return '\n'.join([str(erreur) for erreur in self.erreurs])
 
-    def clear(self, niveau: ErreurAssociation.ORIGINES = None):
+    def clear(self, niveau: ORIGINES = None):
         if niveau is None:
-            # dans ce cas c'est qu'on veut TOUT effacer, par exempe car on va recréer le conteneur
+            # dans ce cas, c'est qu'on veut TOUT effacer, par exemple car on va recréer le conteneur
             self.erreurs.clear()
         else:
             for erreur in self.erreurs:

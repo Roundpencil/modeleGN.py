@@ -122,7 +122,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                     # if dict_ids[item['id']].lastProcessing >= item['modifiedTime']:
                     if fast and \
                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
-                                item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
+                        item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
 
                         print(
                             f"et elle n'a pas changé (dernier changement : "
@@ -457,10 +457,10 @@ def lire_tableau_pj_6_colonnes(current_intrigue, pjs):
 
 
 def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableauRolesExistant=True):
-    nomsRoles = None
+    noms_roles = None
     if tableauRolesExistant:
         # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de référence des noms dans l'intrigue
-        nomsRoles = conteneur.get_noms_roles()
+        noms_roles = conteneur.get_noms_roles()
         # print(f"pour {currentIntrigue.nom}, noms_roles =  {noms_roles}")
 
     # print(f"Texte section scène : {texteScenes}")
@@ -470,56 +470,56 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
         if len(scene) < 10:
             continue
 
-        titreScene = scene.splitlines()[0].strip()
-        sceneAAjouter = conteneur.ajouter_scene(titreScene)
-        sceneAAjouter.modifie_par = conteneur.modifie_par
+        titre_scene = scene.splitlines()[0].strip()
+        scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
+        scene_a_ajouter.modifie_par = conteneur.modifie_par
         # print("titre de la scène ajoutée : " + scene_a_ajouter.titre)
 
         balises = re.findall(r'##.*', scene)
         for balise in balises:
             # print("balise : " + balise)
             if balise[0:9].lower() == '## quand?':
-                extraire_date_scene(balise[10:], sceneAAjouter)
+                extraire_date_scene(balise[10:], scene_a_ajouter)
             elif balise[0:10].lower() == '## quand ?':
-                extraire_date_scene(balise[11:], sceneAAjouter)
+                extraire_date_scene(balise[11:], scene_a_ajouter)
                 # scene_a_ajouter.date = balise[11:].strip()
                 # # print("date de la scène : " + scene_a_ajouter.date)
             elif balise[0:9].lower() == '## il y a':
-                extraire_il_y_a_scene(balise[10:], sceneAAjouter)
+                extraire_il_y_a_scene(balise[10:], scene_a_ajouter)
             elif balise[0:7].lower() == '## qui?':
-                extraire_qui_scene(balise[8:], conteneur, nomsRoles, sceneAAjouter)
+                extraire_qui_scene(balise[8:], conteneur, noms_roles, scene_a_ajouter)
 
             elif balise[0:8].lower() == '## qui ?':
-                extraire_qui_scene(balise[9:], conteneur, nomsRoles, sceneAAjouter)
+                extraire_qui_scene(balise[9:], conteneur, noms_roles, scene_a_ajouter)
 
             elif balise[0:11].lower() == '## niveau :':
-                sceneAAjouter.niveau = balise[12:].strip()
+                scene_a_ajouter.niveau = balise[12:].strip()
 
             elif balise[0:11].lower() == '## résumé :':
-                sceneAAjouter.resume = balise[12:].strip()
+                scene_a_ajouter.resume = balise[12:].strip()
 
             elif balise[0:10].lower() == '## résumé:':
-                sceneAAjouter.resume = balise[11:].strip()
+                scene_a_ajouter.resume = balise[11:].strip()
 
             elif balise[0:13].lower() == '## factions :':
-                sceneAAjouter.nom_factions.add([f.strip() for f in balise[14:].split(',')])
+                scene_a_ajouter.nom_factions.add([f.strip() for f in balise[14:].split(',')])
 
             elif balise[0:12].lower() == '## faction :':
                 noms_factions = [f.strip() for f in balise[13:].split(',')]
                 for f in noms_factions:
-                    sceneAAjouter.nom_factions.add(f)
+                    scene_a_ajouter.nom_factions.add(f)
 
             elif balise[0:12].lower() == '## factions:':
-                sceneAAjouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
+                scene_a_ajouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
 
             elif balise[0:11].lower() == '## faction:':
-                sceneAAjouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
+                scene_a_ajouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
 
             else:
                 print("balise inconnue : " + balise + " dans le conteneur " + nomConteneur)
-                sceneAAjouter.description += balise
+                scene_a_ajouter.description += balise
 
-        sceneAAjouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
+        scene_a_ajouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
         # print("texte de la scene apres insertion : " + scene_a_ajouter.description)
 
 
@@ -568,9 +568,9 @@ def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verba
                 if score[1] < seuil:
                     warning_text = f"Association Scene ({score[1]}) - nom dans scène : {nom_du_role} " \
                                    f"> Role : {score[0]} dans {conteneur.nom}/{scene_a_ajouter.titre}"
-                    conteneur.add_to_error_log(ErreurAssociation.NIVEAUX.WARNING,
+                    conteneur.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                                warning_text,
-                                               ErreurAssociation.ORIGINES.SCENE)
+                                               ErreurManager.ORIGINES.SCENE)
                     if verbal:
                         print(warning_text)
 
@@ -582,9 +582,9 @@ def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verba
                                f"{nom_du_role} dans {scene_a_ajouter.titre}"
                 if verbal:
                     print(texte_erreur)
-                conteneur.add_to_error_log(ErreurAssociation.NIVEAUX.ERREUR,
+                conteneur.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
                                            texte_erreur,
-                                           ErreurAssociation.ORIGINES.SCENE)
+                                           ErreurManager.ORIGINES.SCENE)
 
 
 def extraire_date_scene(balise_date, scene_a_ajouter):
@@ -661,7 +661,7 @@ def calculer_jours_il_y_a(balise_date):
 
 
 def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, mon_gn,
-                             verbal=False, pj:TypePerso=TypePerso.EST_PJ):
+                             verbal=False, pj: TypePerso = TypePerso.EST_PJ):
     print(f"Lecture de {nom_doc}")
     if len(texte_persos) < 800:
         print(f"fiche {nom_doc} avec {len(texte_persos)} caractères est vide")
@@ -1301,3 +1301,19 @@ def formatter_fichier_erreurs(api_doc, doc_id):
         result = None
 
     return result
+
+
+def reconstituer_tableau(texte_lu, separateur_ligne="¤¤¤¤¤", separateur_colonne="¤¤¤"):
+    first_hash_index = texte_lu.find(separateur_ligne)
+    last_hash_index = texte_lu.rfind(separateur_ligne)
+    if first_hash_index == -1 or last_hash_index == -1:
+        return None
+
+    texte_tableau = texte_lu[first_hash_index:last_hash_index + 1]
+    lignes = texte_tableau.split(separateur_ligne)
+    to_return = []
+    for ligne in lignes[1:]:
+        to_return.append(ligne.split(separateur_colonne))
+
+    return to_return
+
