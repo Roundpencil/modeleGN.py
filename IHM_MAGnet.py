@@ -1,5 +1,6 @@
 import sys
 import tkinter as tk
+import traceback
 from tkinter import filedialog
 from MAGnet_lib import *
 from modeleGN import GN
@@ -344,6 +345,8 @@ class Application(tk.Frame):
                 #       f"id_factions= {self.dict_config.get('id_factions')}")
 
             except Exception as f:
+                print(traceback.format_exc())
+                print(f"une erreur est survenue qui a conduit à re-créer un gn : {f}")
                 print(f"le gn {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
                 self.gn = GN(dossiers_intrigues=self.dict_config['dossiers_intrigues'],
                              dossier_output=self.dict_config['dossier_output'],

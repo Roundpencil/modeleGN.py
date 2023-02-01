@@ -32,6 +32,17 @@ def extraire_pnjs(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, 
                                  verbal=verbal, fast=fast)
 
 
+def extraire_evenements(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
+    # print(f"je m'apprete à extraire les PNJs depuis {mon_gn.dossiers_pnjs}")
+    if mon_gn.dossiers_evenements is None or len(mon_gn.dossiers_evenements) == 0:
+        print(f"impossible de lire le dossier des PNJs : il n'existe pas")
+        return
+    extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, extraire_evenement_de_texte, mon_gn.dict_evenements,
+                                 mon_gn.dossiers_evenements,
+                                 singletest,
+                                 verbal=verbal, fast=fast)
+
+
 def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, dict_ids: dict, folder_array,
                                  single_test="-01", verbal=False, fast=True):
     items = lecteurGoogle.generer_liste_items(mon_gn, apiDrive=apiDrive, nom_fichier=folder_array)
@@ -72,8 +83,11 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
 
                     nouvel_objet = extraire_objets_de_document(document, item, mon_gn, fonction_extraction,
                                                                saveLastChange=False, verbal=verbal)
+
                     if objet_de_reference is not None:
-                        nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
+                        if isinstance(nouvel_objet, ConteneurDeScene):
+                            nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
+                        objet_de_reference.clear()
 
                     break
                     # on a trouvé le bon doc, on arrête de chercher
@@ -122,7 +136,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                     # if dict_ids[item['id']].lastProcessing >= item['modifiedTime']:
                     if fast and \
                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
-                        item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
+                                item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
 
                         print(
                             f"et elle n'a pas changé (dernier changement : "
@@ -146,7 +160,8 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 # puis, dans tous les cas, on la crée
                 nouvel_objet = extraire_objets_de_document(document, item, mon_gn, fonction_extraction, verbal=verbal)
                 if objet_de_reference is not None:
-                    nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
+                    if isinstance(nouvel_objet, ConteneurDeScene):
+                        nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
                     objet_de_reference.clear()
 
             except HttpError as err:
@@ -1317,3 +1332,13 @@ def reconstituer_tableau(texte_lu, separateur_ligne="¤¤¤¤¤", separateur_col
 
     return to_return
 
+
+def extraire_evenement_de_texte(texte_evenement, nom_evenement, id_url, lastFileEdit, derniere_modification_par, monGN,
+                                verbal=False):
+    # Créer un nouvel évènement
+
+    # lire les sections dans le fichier
+
+    # pour chaque section, l'attribuer directement
+    # ou bien utiliser la lecture de tableau pour la traiter (potentiellement via un dictionnaire)
+    pass

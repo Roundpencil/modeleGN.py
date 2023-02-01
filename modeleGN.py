@@ -985,3 +985,33 @@ class ErreurManager:
             for erreur in self.erreurs:
                 if erreur.origine == niveau:
                     self.erreurs.remove(erreur)
+
+
+# ######## a supprimer apres remise à niveau
+#
+#
+# class ErreurAssociation:
+#     def __init__(self, niveau, texte, genere_par):
+#         self.niveau = niveau
+#         self.texte = texte
+#         self.origine = genere_par
+#
+#     def __str__(self):
+#         if self.niveau == ErreurManager.NIVEAUX.ERREUR:
+#             prefixe = "Erreur : "
+#         elif self.niveau == ErreurManager.NIVEAUX.WARNING:
+#             prefixe = "Warning : "
+#         else:
+#             prefixe = "Info : "
+#
+#         return prefixe + self.texte
+#
+#     class NIVEAUX(IntEnum):
+#         INFO = 10
+#         WARNING = 20
+#         ERREUR = 30
+#
+#     class ORIGINES(IntEnum):
+#         SCENE = 1
+#         FACTION = 2
+#         ASSOCIATION_AUTO = 3

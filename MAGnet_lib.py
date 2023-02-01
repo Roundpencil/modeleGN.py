@@ -11,6 +11,8 @@ from modeleGN import *
 #  des suqlettes pnjs, des tableaux intrigues, des nouveaux tableaux de synthèse (objets / chrono / persos)
 
 # bugs
+# todo : reprendre l'ancienne écriture de manager
+#  et faire une focntion qui fait la transition pour tous les objets concernés
 # todo comprendre pourquoi pas de load de snyder
 # todo vérifier le focntionnement de la balise questionnaire perso
 
@@ -702,6 +704,34 @@ def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
 
 def mettre_a_jour_champs(gn: GN):
     print(gn.dictPJs)
+
+    for obj in list(gn.dictPJs.values())+list(gn.dictPNJs.values())+list(gn.intrigues.values()):
+        tmp = obj.error_log
+        obj.error_log = ErreurManager()
+        for erreur in tmp.erreurs:
+            niveau = 0
+            origine = 0
+            for n in ErreurManager.NIVEAUX:
+                if n == erreur.niveau:
+                    niveau = n
+            for o in ErreurManager.ORIGINES:
+                if o == erreur.origine:
+                    origine = n
+
+            obj.error_log.ajouter_erreur(niveau, erreur.texte, origine)
+        print(f"{obj.nom} a été mis à jour")
+    def convertir_erreur_manager(liste_anciens_erreur_manager):
+        nouveaux_erreur_manager = []
+        for ancien_erreur_manager in liste_anciens_erreur_manager:
+            nouveau_erreur_manager = ErreurManagerV2()
+            nouveau_erreur_manager.erreurs = [ErreurManagerV2.ErreurAssociation(
+                erreur.niveau,
+                erreur.texte,
+                erreur.origine
+            ) for erreur in ancien_erreur_manager.erreurs]
+            nouveaux_erreur_manager.append(nouveau_erreur_manager)
+            print(f"{obj.nom} a été mis à jour")
+        return nouveaux_erreur_manager
     pass
     # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
     #     conteneur.error_log = ErreurManager()
