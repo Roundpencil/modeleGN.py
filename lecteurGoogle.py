@@ -40,13 +40,13 @@ def creer_lecteurs_google_apis():
             token.write(creds.to_json())
 
     try:
-        # api_drive = build('drive', 'v3', credentials=creds, static_discovery=False)
-        # lecteur_doc = build('docs', 'v1', credentials=creds, static_discovery=False)
-        # lecteur_sheets = build('sheets', 'v4', credentials=creds, static_discovery=False)
+        api_drive = build('drive', 'v3', credentials=creds, static_discovery=False)
+        lecteur_doc = build('docs', 'v1', credentials=creds, static_discovery=False)
+        lecteur_sheets = build('sheets', 'v4', credentials=creds, static_discovery=False)
 
-        api_drive = build('drive', 'v3', credentials=creds)
-        lecteur_doc = build('docs', 'v1', credentials=creds)
-        lecteur_sheets = build('sheets', 'v4', credentials=creds)
+        # api_drive = build('drive', 'v3', credentials=creds)
+        # lecteur_doc = build('docs', 'v1', credentials=creds)
+        # lecteur_sheets = build('sheets', 'v4', credentials=creds)
 
     except HttpError as error:
         print(f'An error occurred: {error}')
@@ -154,7 +154,7 @@ def generer_liste_items(monGN, apiDrive, nom_fichier):
         #     fields="nextPageToken, files(mon_id, name, modifiedTime)").execute()
         results = apiDrive.files().list(
             pageSize=100, q=requete,
-            fields="nextPageToken, files(mon_id, name, modifiedTime, lastModifyingUser)").execute()
+            fields="nextPageToken, files(id, name, modifiedTime, lastModifyingUser)").execute()
 
         items = results.get('files',
                             [])  # le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues

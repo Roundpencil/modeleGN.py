@@ -34,7 +34,7 @@ def main():
     parser.add_argument("--noexportdrive", "-ned", action="store_true", help="pour ne pas provoquer l'export drive")
     parser.add_argument("--nochangelog", "-ncl", action="store_true",
                         help="pour ne pas provoquer la création des changelogs")
-    parser.add_argument("--init", "-in", action="store_true", help="fait que la fonction gn.load n'est pas appelée")
+    parser.add_argument("--init", "-in", action="store_true", help="fait que la fonction self.load n'est pas appelée")
     parser.add_argument("--nosave", "-ns", action="store_true", help="fait que la focntion GN.save n'est pas appelée")
     parser.add_argument("--verbal", "-v", action="store_true", help="si on veut afficher toutes les erreurs")
 
@@ -679,13 +679,13 @@ def ajouter_champs_modifie_par(mon_gn: GN, nom_fichier=None):
 #     return dossier_intrigues, dossiers_pjs, id_factions, dossier_output_squelettes_pjs, \
 #            noms_persos, nom_fichier_pnjs, association_auto, type_fiche, nom_fichier_sauvegarde, resultat_ok
 
-# def charger_PNJs(gn, chemin_fichier):
+# def charger_PNJs(self, chemin_fichier):
 #     try:
 #         with open(chemin_fichier, 'r') as f:
 #             for ligne in f:
 #                 nom = ligne.strip()
-#                 gn.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
-#                 # print(f"{gn.dictPNJs[nom]}")
+#                 self.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
+#                 # print(f"{self.dictPNJs[nom]}")
 #     except FileNotFoundError:
 #         print(f"Le fichier {chemin_fichier} n'a pas été trouvé.")
 
@@ -706,5 +706,39 @@ def ajouter_champs_pour_gerer_456_colonnes(gn:GN):
             role.pip_total = 0
 
 
+
 if __name__ == '__main__':
     main()
+
+
+def convertir_erreur_manager(gn:GN):
+    print(gn.dictPJs)
+
+    for obj in list(gn.dictPJs.values())+list(gn.dictPNJs.values())+list(gn.intrigues.values()):
+        tmp = obj.error_log
+        obj.error_log = ErreurManager()
+        for erreur in tmp.erreurs:
+            niveau = 0
+            origine = 0
+            for n in ErreurManager.NIVEAUX:
+                if n == erreur.niveau:
+                    niveau = n
+            for o in ErreurManager.ORIGINES:
+                if o == erreur.origine:
+                    origine = n
+
+            obj.error_log.ajouter_erreur(niveau, erreur.texte, origine)
+        print(f"{obj.nom} a été mis à jour")
+    # def convertir_erreur_manager(liste_anciens_erreur_manager):
+    #     nouveaux_erreur_manager = []
+    #     for ancien_erreur_manager in liste_anciens_erreur_manager:
+    #         nouveau_erreur_manager = ErreurManagerV2()
+    #         nouveau_erreur_manager.erreurs = [ErreurManagerV2.ErreurAssociation(
+    #             erreur.niveau,
+    #             erreur.texte,
+    #             erreur.origine
+    #         ) for erreur in ancien_erreur_manager.erreurs]
+    #         nouveaux_erreur_manager.append(nouveau_erreur_manager)
+    #         print(f"{obj.nom} a été mis à jour")
+    #     return nouveaux_erreur_manager
+    pass

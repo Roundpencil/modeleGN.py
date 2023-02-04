@@ -187,13 +187,13 @@ class Application(tk.Frame):
         #
         # relire_intrigues_button = tk.Button(diagnostic_window, text="Relire toutes les intrigues",
         #                                     command=lambda: extraireTexteDeGoogleDoc.extraire_intrigues(
-        #                                         self.gn, self.apiDrive, self.apiDoc, fast=False)
+        #                                         self.self, self.apiDrive, self.apiDoc, fast=False)
         #                                     )
         # relire_intrigues_button.grid(row=1, column=0, sticky="nsew")
         #
         # relire_persos_button = tk.Button(diagnostic_window, text="Relire tous les personnages",
         #                                  command=lambda: extraireTexteDeGoogleDoc.extraire_pjs(
-        #                                      self.gn, self.apiDrive, self.apiDoc, fast=False)
+        #                                      self.self, self.apiDrive, self.apiDoc, fast=False)
         #                                  )
         # relire_persos_button.grid(row=2, column=0, sticky="nsew")
         #
@@ -206,7 +206,7 @@ class Application(tk.Frame):
         # relire_intrigue_spec_button.grid(row=4, column=0, sticky="nsew")
         #
         # effacer_persos_force_button = tk.Button(diagnostic_window, text="Effacer les personnages forcés",
-        #                                         command=lambda: self.gn.effacer_personnages_forces())
+        #                                         command=lambda: self.self.effacer_personnages_forces())
         # effacer_persos_force_button.grid(row=5, column=0, sticky="nsew")
 
         importer_persos_config_button = tk.Button(diagnostic_window,
@@ -244,7 +244,7 @@ class Application(tk.Frame):
 
         # generer_changelog_drive_button = tk.Button(diagnostic_window, text="Générer changelog dans Drive",
         #                                            command=lambda: generer_tableau_changelog_sur_drive(
-        #                                                self.gn, self.apiDrive, self.apiSheets)
+        #                                                self.self, self.apiDrive, self.apiSheets)
         #                                            )
         # generer_changelog_drive_button.grid(row=12, column=0, sticky="nsew")
 
@@ -261,14 +261,14 @@ class Application(tk.Frame):
         # generer_erreurs_drive_button = tk.Button(diagnostic_window, text="Générer fichier des erreurs sur Drive",
         #                                          command=lambda:
         #                                          ecrire_erreurs_dans_drive(
-        #                                              lister_erreurs(self.gn, None),
+        #                                              lister_erreurs(self.self, None),
         #                                              self.apiDoc, self.apiDrive, self.dict_config['dossier_output']))
         # generer_erreurs_drive_button.grid(row=15, column=0, sticky="nsew")
         #
         # generer_table_intrigues_drive_button = tk.Button(diagnostic_window,
         #                                                  text="Générer table des intrigues sur Drive",
         #                                                  command=lambda: creer_table_intrigues_sur_drive(
-        #                                                      self.gn, self.apiSheets, self.apiDrive)
+        #                                                      self.self, self.apiSheets, self.apiDrive)
         #                                                  )
         # generer_table_intrigues_drive_button.grid(row=16, column=0, sticky="nsew")
 
@@ -280,13 +280,13 @@ class Application(tk.Frame):
 
         # generer_fiches_pj_drive_button = tk.Button(diagnostic_window, text="Générer fiches PJ dans Drive",
         #                                            command=lambda: generer_squelettes_dans_drive(
-        #                                                self.gn, self.apiDoc, self.apiDrive, True)
+        #                                                self.self, self.apiDoc, self.apiDrive, True)
         #                                            )
         # generer_fiches_pj_drive_button.grid(row=18, column=0, sticky="nsew")
         #
         # generer_fiches_pnj_drive_button = tk.Button(diagnostic_window, text="Générer fiches PNJ dans Drive",
         #                                             command=lambda: lambda: generer_squelettes_dans_drive(
-        #                                                 self.gn, self.apiDoc, self.apiDrive, False)
+        #                                                 self.self, self.apiDoc, self.apiDrive, False)
         #                                             )
         # generer_fiches_pnj_drive_button.grid(row=19, column=0, sticky="nsew")
 
@@ -346,8 +346,8 @@ class Application(tk.Frame):
 
             except Exception as f:
                 print(traceback.format_exc())
-                print(f"une erreur est survenue qui a conduit à re-créer un gn : {f}")
-                print(f"le gn {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
+                print(f"une erreur est survenue qui a conduit à re-créer un self : {f}")
+                print(f"le self {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
                 self.gn = GN(dossiers_intrigues=self.dict_config['dossiers_intrigues'],
                              dossier_output=self.dict_config['dossier_output'],
                              association_auto=self.dict_config['association_auto'],
@@ -373,7 +373,7 @@ class Application(tk.Frame):
         intrigues_entry.insert(0, ",".join(self.dict_config['dossier_intrigues']))
         intrigues_entry.grid(row=0, column=1)
 
-        tk.Label(config_window, text="Base persos gn").grid(row=1, column=0)
+        tk.Label(config_window, text="Base persos self").grid(row=1, column=0)
         base_persos_gn_entry = tk.Entry(config_window)
         base_persos_gn_entry.insert(0, ",".join(self.dict_config['dossiers_pjs']))
         base_persos_gn_entry.grid(row=1, column=1)
@@ -478,9 +478,13 @@ class Application(tk.Frame):
                                               command=lambda: self.regen_intrigue_select("Spécifique"))
         intrigues_specifique.grid(row=1, column=2)
 
+        # self.intrigue_specifique_entry = tk.Entry(regen_window)
+        # self.intrigue_specifique_entry.grid(row=1, column=3)
+        # self.intrigue_specifique_entry.config(state='disabled')
+
         self.intrigue_specifique_entry = tk.Entry(regen_window)
         self.intrigue_specifique_entry.grid(row=1, column=3)
-        self.intrigue_specifique_entry.config(state='disabled')
+        self. intrigue_specifique_entry.config(state='disabled')
 
         # Personnages
         personnages_label = tk.Label(regen_window, text="Personnages")
@@ -505,8 +509,8 @@ class Application(tk.Frame):
         self.personnages_specifique_entry.config(state='disabled')
 
         charger_fichier_var = tk.BooleanVar()
-        charger_fichier_var.set(True)
-        charger_fichier_check = tk.Checkbutton(regen_window, text="Charger depuis fichier",
+        charger_fichier_var.set(False)
+        charger_fichier_check = tk.Checkbutton(regen_window, text="Repartir de 0",
                                                variable=charger_fichier_var)
         charger_fichier_check.grid(row=4, column=0)
 
@@ -591,11 +595,17 @@ class Application(tk.Frame):
         cancel_button = tk.Button(regen_window, text="Annuler", command=regen_window.destroy)
         cancel_button.grid(row=8, column=0)
 
+        verbal_var = tk.BooleanVar()
+        verbal_var.set(False)
+        verbal_check = tk.Checkbutton(regen_window, text='Mode "bavard"',
+                                      variable=verbal_var)
+        verbal_check.grid(row=8, column=2)
+
         ok_button = tk.Button(regen_window, text="OK",
                               command=lambda: self.process_regen(
                                   intrigues_value=intrigues_var.get(),
                                   personnages_value=personnages_var.get(),
-                                  charger_fichier_value=charger_fichier_var.get(),
+                                  sans_chargement_fichier_value=charger_fichier_var.get(),
                                   sauver_apres_operation_value=sauver_apres_operation_var.get(),
                                   generer_fichiers_drive_value=generer_fichiers_drive_var.get(),
                                   fichier_erreur_var=fichier_erreurs_var.get(),
@@ -605,7 +615,8 @@ class Application(tk.Frame):
                                   table_chrono_var=table_chrono_var.get(),
                                   table_persos_var=table_persos_var.get(),
                                   table_intrigues_var=table_intrigues_var.get(),
-                                  table_objets_var=table_objets_var.get()
+                                  table_objets_var=table_objets_var.get(),
+                                  verbal_var=verbal_var.get()
                               )
                               )
 
@@ -623,10 +634,11 @@ class Application(tk.Frame):
         elif value == "Spécifique":
             self.personnages_specifique_entry.config(state='normal')
 
-    def process_regen(self, intrigues_value, personnages_value, charger_fichier_value, sauver_apres_operation_value,
+    def process_regen(self, intrigues_value, personnages_value, sans_chargement_fichier_value,
+                      sauver_apres_operation_value,
                       generer_fichiers_drive_value, fichier_erreur_var, export_drive_var, changelog_var,
                       table_chrono_var, table_persos_var, table_intrigues_var, table_objets_var,
-                      generer_fichiers_pnjs_var):
+                      generer_fichiers_pnjs_var, verbal_var):
 
         if intrigues_value == "Spécifique":
             intrigue_specifique = self.intrigue_specifique_entry.get()
@@ -664,7 +676,9 @@ class Application(tk.Frame):
                              fast_persos=(personnages_value == "Rapide"),
                              singletest_perso=personnages_specifique,
                              singletest_intrigue=intrigue_specifique,
-                             verbal=False)
+                             sans_chargement_fichier=sans_chargement_fichier_value,
+                             sauver_apres_operation=sauver_apres_operation_value,
+                             verbal=verbal_var)
 
 
 # ajouter les options actuellement forcées à true

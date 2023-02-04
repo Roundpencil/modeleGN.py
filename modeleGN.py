@@ -776,16 +776,51 @@ class GN:
     def rebuild_links(self, verbal=True):
         self.clear_all_associations()
         self.updateOldestUpdate()
-        self.ajouter_roles_issus_de_factions(verbal)
+        self.ajouter_roles_issus_de_factions(verbal=verbal)  # todo : à tester
         self.associer_pnj_a_roles(verbal)
         self.associer_pj_a_roles(verbal)
+        self.trouver_roles_sans_scenes()
+
+    def trouver_roles_sans_scenes(self, verbal=False, seuil=70):
+        # nettoyer tous les fichiers erreurs:
+        for intrigue in self.intrigues.values():
+            intrigue.error_log.clear(ErreurManager.ORIGINES.PERSOS_SANS_SCENE)
+
+        # pour chaque intrigue
+        for intrigue in self.intrigues.values():
+
+            # prendre les noms dans le tableau
+            if len(intrigue.rolesContenus) == 0:
+                continue
+            noms_roles_dans_tableau_intrigue = [x.nom for x in intrigue.rolesContenus.values()
+                                                if not x.issu_dune_faction]
+
+            # prendre les noms dans les scènes
+            tous_les_noms_lus_dans_scenes = []
+            for scene in intrigue.scenes:
+                if scene.noms_roles_lus is not None:
+                    # comme on prend uniquement les roles lus, on exclut de facto les persos issus de faction
+                    tous_les_noms_lus_dans_scenes += scene.noms_roles_lus
+            tous_les_noms_lus_dans_scenes = [x.strip() for x in tous_les_noms_lus_dans_scenes]
+            tous_les_noms_lus_dans_scenes = set(tous_les_noms_lus_dans_scenes)
+
+            # pour chaque nom dans le tableau, lui chercher une correspondance dans les scènes
+            for nom in noms_roles_dans_tableau_intrigue:
+                score = process.extractOne(nom, tous_les_noms_lus_dans_scenes)
+                # Si inférieur au seuil, alors l'ajouter aux noms sans scènes
+                if score is not None and score[1] < seuil:
+                    texte_erreur = f"[--] {nom} est dans le tableau des personnages mais dans aucune scène"
+                    intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                      texte_erreur,
+                                                      ErreurManager.ORIGINES.PERSOS_SANS_SCENE)
+                    if verbal:
+                        print(f"Warning : {texte_erreur}")
 
     # lire les factions dans toutes les scènes
     # normaliser leurs noms pour etre sur de lire la bonne
     # pour chaque nom de la faction chercher si le role est dans la scène
     # si oui (indice de confiance suffisant) > ajouter la scène au role
     # si non > ajouter un nouveau role avec une propriété issu_dune_faction= true
-
     def ajouter_roles_issus_de_factions(self, seuil_nom_faction=85, seuil_reconciliation_role=80, verbal: bool = False):
         # lire toutes les scènes pours trouver les factions
         for intrigue in self.intrigues.values():
@@ -797,8 +832,8 @@ class GN:
                     print(f"score_faction = {score_faction}")
                     if score_faction[1] < seuil_nom_faction:
                         texte_erreur = f"la faction {nom_faction} " \
-                                              f"a été associée à {score_faction[0]} " \
-                                              f"à seulement {score_faction[1]}% de confiance"
+                                       f"a été associée à {score_faction[0]} " \
+                                       f"à seulement {score_faction[1]}% de confiance"
                         intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
                                                           texte_erreur,
                                                           ErreurManager.ORIGINES.FACTION)
@@ -849,6 +884,9 @@ class GN:
             # intrigue.clear_error_log()
             for role in intrigue.rolesContenus.values():
                 role.perso = None
+            intrigue.error_log.clear(ErreurManager.ORIGINES.ASSOCIATION_AUTO)
+            intrigue.error_log.clear(ErreurManager.ORIGINES.FACTION)
+            intrigue.error_log.clear(ErreurManager.ORIGINES.PERSOS_SANS_SCENE)
 
     # def forcer_import_pnjs(self, liste_pnjs):
     #     for nom in liste_pnjs:
@@ -951,6 +989,7 @@ class ErreurManager:
         SCENE = 1
         FACTION = 2
         ASSOCIATION_AUTO = 3
+        PERSOS_SANS_SCENE = 4
 
     class ErreurAssociation:
         def __init__(self, niveau, texte, genere_par):
@@ -977,14 +1016,29 @@ class ErreurManager:
     def __str__(self):
         return '\n'.join([str(erreur) for erreur in self.erreurs])
 
-    def clear(self, niveau: ORIGINES = None):
-        if niveau is None:
+    # def clear(self, origine: ORIGINES = None):
+    #     if origine is None:
+    #         # dans ce cas, c'est qu'on veut TOUT effacer, par exemple car on va recréer le conteneur
+    #         self.erreurs.clear()
+    #     else:
+    #         for erreur in self.erreurs:
+    #             if erreur.origine == origine:
+    #                 self.erreurs.remove(erreur)
+    #     tab_err = [[err.niveau, err.texte, err.origine] for err in self.erreurs]
+    #     print(f"erreurs après nettoyage = {tab_err}")
+    def clear(self, origine: ORIGINES = None):
+        if origine is None:
             # dans ce cas, c'est qu'on veut TOUT effacer, par exemple car on va recréer le conteneur
             self.erreurs.clear()
         else:
+            temp = []
             for erreur in self.erreurs:
-                if erreur.origine == niveau:
-                    self.erreurs.remove(erreur)
+                if erreur.origine != origine:
+                    temp.append(erreur)
+            self.erreurs = temp
+
+        tab_err = [[err.niveau, err.texte, err.origine] for err in self.erreurs]
+        print(f"erreurs après nettoyage = {tab_err}")
 
 
 # ######## a supprimer apres remise à niveau
@@ -1015,3 +1069,47 @@ class ErreurManager:
 #         SCENE = 1
 #         FACTION = 2
 #         ASSOCIATION_AUTO = 3
+
+class Evenement:
+    def __init__(self,
+                 code_evenement="",
+                 referent="",
+                 etat="",
+                 intrigue_liee="",
+                 lieu="",
+                 date="",
+                 heure_de_demarrage="",
+                 declencheur="",
+                 consequences_evenement="",
+                 synopsis=""):
+        self.code_evenement = code_evenement
+        self.referent = referent
+        self.etat = etat
+        self.intrigue_liee = intrigue_liee
+        self.lieu = lieu
+        self.date = date
+        self.heure_de_demarrage = heure_de_demarrage
+        self.declencheur = declencheur
+        self.consequences_evenement = consequences_evenement
+        self.synopsis = synopsis
+        self.objets = []
+        self.interventions = []
+        self.briefs_pnj = []
+        self.infos_pj = []
+
+
+class BriefPNJPourEvenement:
+    def __init__(self, nom_pnj="", costumes_et_accessoires="", implication="", situation_de_départ=""):
+        self.nom_pnj = nom_pnj
+        self.pnj = None
+        self.costumes_et_accessoires = costumes_et_accessoires
+        self.implication = implication
+        self.situation_de_depart = situation_de_départ
+
+class InfoPJPourEvenement:
+    def __init__(self, nom_pj="", infos_a_fournir=""):
+        self.nom_pj = nom_pj
+        self.pj = None
+        self.infos_a_fournir = infos_a_fournir
+#  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
+#  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)

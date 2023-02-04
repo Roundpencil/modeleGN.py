@@ -134,7 +134,7 @@ def generate_drive_association(spreadsheet_id, sheet_name, gn: GN):
     except HttpError as error:
         print(f"An error occurred: {error}")
 
-# Ce code utilise l'ID du document et le nom de la feuille pour accéder aux données du document et parcourt les lignes pour générer des associations en utilisant la fonction gn.associer_role_a_perso . N'oubliez pas d'ajouter les bibliothèques google-api-python-client et google-auth-httplib2 pour utiliser ces fonctions
+# Ce code utilise l'ID du document et le nom de la feuille pour accéder aux données du document et parcourt les lignes pour générer des associations en utilisant la fonction self.associer_role_a_perso . N'oubliez pas d'ajouter les bibliothèques google-api-python-client et google-auth-httplib2 pour utiliser ces fonctions
 
 
 def generer_csv_association(roles_dict, filename):
@@ -174,7 +174,7 @@ def lire_association_roles_depuis_csv(roles_list, filename):
                 personnage = row[5]
 
                 # et mettre à jour les paramètres du GN en fcontion de ceux du programme > ca se joue à quel niveau?
-                # qu'est-ce qui est propriété de quoi? peut-on changer d'association en cours de vie de gn?
+                # qu'est-ce qui est propriété de quoi? peut-on changer d'association en cours de vie de self?
 
                 # Trouver le rôle correspondant dans la liste de rôles
                 role = next((role for role in roles_list if role.nom == nom), None)

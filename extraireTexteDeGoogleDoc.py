@@ -35,7 +35,7 @@ def extraire_pnjs(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, 
 def extraire_evenements(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
     # print(f"je m'apprete à extraire les PNJs depuis {mon_gn.dossiers_pnjs}")
     if mon_gn.dossiers_evenements is None or len(mon_gn.dossiers_evenements) == 0:
-        print(f"impossible de lire le dossier des PNJs : il n'existe pas")
+        print(f"impossible de lire le dossier des évènements : il n'existe pas")
         return
     extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, extraire_evenement_de_texte, mon_gn.dict_evenements,
                                  mon_gn.dossiers_evenements,
@@ -78,7 +78,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
 
                     objet_de_reference = None
                     if item['id'] in dict_ids.keys():
-                        dict_ids[item['id']].clear()
+                        # dict_ids[item['id']].clear()
                         objet_de_reference = dict_ids.pop(item['id'])
 
                     nouvel_objet = extraire_objets_de_document(document, item, mon_gn, fonction_extraction,
@@ -238,7 +238,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     else:
         current_intrigue.orgaReferent = texteIntrigue[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[
                                             0][
-                                        len(REFERENT) + len(" : "):]
+                                        len(REFERENT) + len(" : "):].strip()
         # prendre la première ligne puis les caractères à partir du label
         # print("debut / fin orga référent : {0}/{1} pour {2}"
         # .format(indexDebutReferent, indexFinReferent, nomIntrigue))
@@ -269,6 +269,9 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     elif nb_colonnes == 6:
         lire_tableau_pj_6_colonnes(current_intrigue, pjs)
     else:
+        current_intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                  "Tableau des personnages dans l'intrigue non standard",
+                                                  ErreurManager.ORIGINES.SCENE)
         print("Erreur : tableau d'intrigue non standard")
 
     # gestion de la section PNJs
@@ -1306,6 +1309,25 @@ def formatter_fichier_erreurs(api_doc, doc_id):
                             'fields': 'foregroundColor'
                         }
                     })
+                elif text.endswith("voici les intrigues avec des soucis dans leurs tableaux de persos \n"):
+                    # Si la ligne commence par "Pour ", on ajoute une requête pour mettre le texte en gras
+                    requests.append({
+                        'updateTextStyle': {
+                            'range': {
+                                'startIndex': line.get('startIndex'),
+                                'endIndex': line.get('endIndex')
+                            },
+                            'textStyle': {
+                                'bold': True,
+                                'fontSize': {
+                                    'magnitude': 12,
+                                    'unit': 'PT'
+                                }
+                            },
+                            'fields': 'bold, fontSize'
+                        }
+                    })
+
         if len(requests) != 0:
             # Envoie toutes les requêtes en une seule fois pour mettre à jour le document
             result = api_doc.documents().batchUpdate(documentId=doc_id, body={'requests': requests}).execute()

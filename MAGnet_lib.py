@@ -8,11 +8,10 @@ from modeleGN import *
 
 # com
 # todo :informer chalacta des factions,
-#  des suqlettes pnjs, des tableaux intrigues, des nouveaux tableaux de synthèse (objets / chrono / persos)
+#  des squelettes pnjs, des tableaux intrigues, des nouveaux tableaux de synthèse (objets / chrono / persos),
+#  des nouveaux fichiers d'erruers, du tag questionnaire
 
 # bugs
-# todo : reprendre l'ancienne écriture de manager
-#  et faire une focntion qui fait la transition pour tous les objets concernés
 # todo comprendre pourquoi pas de load de snyder
 # todo vérifier le focntionnement de la balise questionnaire perso
 
@@ -21,15 +20,13 @@ from modeleGN import *
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
-# todo : propager verbal depuis l'interface graphique en ajoutant un bouton à droite de ok
-#   et prendre en compte les bouton charger et sauver
-
 # todo : ajouter une section "tableau relations" qui conteint toutjours 4 colonnes
 #  "X... Voit la relation avec... Comme... Et si non réciproque..."
 #  dans les fiches de persos
 #  dans les scènes : relations nécessaires (nouveau tag)
 
-# todo ajouter dans les roles conseillés les roles qui sont dans le tableau mais das aucune scène
+# todo utiliser dateparser pour ajouter une balise ## date dans les scènes
+#   question : comment faire cohébiter les dates il y a avec les dates saisies en ebsolu ?
 
 # confort / logique
 # todo : refaire version console
@@ -101,6 +98,8 @@ def lire_fichier_pnjs(nom_fichier: str):
 
 
 def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier_sauvegarde: str,
+                         sans_chargement_fichier=False,
+                         sauver_apres_operation=True,
                          noms_pjs=None, noms_pnjs=None,
                          fichier_erreurs: bool = True,
                          generer_fichiers_pjs: bool = True,
@@ -112,39 +111,55 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     if api_doc is None or api_sheets is None or api_drive is None:
         api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
 
-    mon_gn.effacer_personnages_forces()
+    if sans_chargement_fichier:
+        print ("recréation d'un GN from scratch")
+        new_gn = GN(
+            mon_gn.dossiers_intrigues,
+            mon_gn.dossier_outputs_drive,
+            mon_gn.association_auto,
+            mon_gn.dossiers_pjs,
+            mon_gn.dossiers_pnjs,
+            mon_gn.id_factions
+        )
+        mon_gn = new_gn
+    else:
+        mon_gn.effacer_personnages_forces()
 
     extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn,
                                                 apiDrive=api_drive,
                                                 apiDoc=api_doc,
                                                 singletest=singletest_intrigue,
-                                                fast=fast_intrigues)
+                                                fast=fast_intrigues,
+                                                verbal=verbal)
     extraireTexteDeGoogleDoc.extraire_pjs(mon_gn,
                                           apiDrive=api_drive,
                                           apiDoc=api_doc,
                                           singletest=singletest_perso,
-                                          fast=fast_persos)
+                                          fast=fast_persos,
+                                          verbal=verbal)
 
     extraireTexteDeGoogleDoc.extraire_pnjs(mon_gn,
                                            apiDrive=api_drive,
                                            apiDoc=api_doc,
                                            singletest=singletest_perso,
-                                           fast=fast_persos)
+                                           fast=fast_persos,
+                                           verbal=verbal)
 
     if noms_pjs:
-        mon_gn.forcer_import_pjs(noms_pjs)
+        mon_gn.forcer_import_pjs(noms_pjs, verbal=verbal)
         print("début du forçage des PJs")
-        mon_gn.forcer_import_pnjs(noms_pnjs)
+        mon_gn.forcer_import_pnjs(noms_pnjs, verbal=verbal)
     if noms_pnjs:
         print("début du forçage des PNJs")
-        mon_gn.forcer_import_pnjs(noms_pnjs)
+        mon_gn.forcer_import_pnjs(noms_pnjs, verbal=verbal)
 
-    extraireTexteDeGoogleDoc.extraire_factions(mon_gn, apiDoc=api_doc)
+    extraireTexteDeGoogleDoc.extraire_factions(mon_gn, apiDoc=api_doc, verbal=verbal)
     # print(f"mon_gn.factions = {mon_gn.factions}")
 
     mon_gn.rebuild_links(verbal)
 
-    mon_gn.save(nom_fichier_sauvegarde)
+    if sauver_apres_operation:
+        mon_gn.save(nom_fichier_sauvegarde)
 
     print("****************************")
     print("****************************")
@@ -190,9 +205,18 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     print("******* fin de la génération  *********************")
 
 
-def lister_erreurs(mon_gn, prefixe, taille_min_log=1, verbal=False):
+def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
     log_erreur = ""
-    for intrigue in mon_gn.intrigues.values():
+    intrigues_triees = [intrigue for intrigue in mon_gn.intrigues.values()]
+    # intrigues_triees = sorted(intrigues_triees,  key= lambda x:x.orgaReferent)
+    intrigues_triees = sorted(mon_gn.intrigues.values(),  key= lambda x:x.orgaReferent)
+    # for intrigue in mon_gn.intrigues.values():
+
+    current_orga = "ceci est un placeholder"
+    for intrigue in intrigues_triees:
+        if current_orga != intrigue.orgaReferent:
+            current_orga = intrigue.orgaReferent
+            log_erreur += f"{current_orga} voici les intrigues avec des soucis dans leurs tableaux de persos \n"
         if intrigue.error_log.nb_erreurs() > taille_min_log:
             # print(f"poy! {intrigue.error_log}")
             log_erreur += f"Pour {intrigue.nom} : \n" \
@@ -220,28 +244,28 @@ def ecrire_erreurs_dans_drive(texte_erreurs, apiDoc, apiDrive, parent):
 def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
     noms_persos = mon_gn.noms_pjs()
     noms_pnjs = mon_gn.noms_pnjs()
-    noms_roles_dans_intrigue = [x.perso.nom for x in intrigue.rolesContenus.values()
+    noms_roles_dans_tableau_intrigue = [x.perso.nom for x in intrigue.rolesContenus.values()
                                 if not x.issu_dune_faction and x.perso is not None]
-    # print(f"noms roles dans intrigue {intrigue.nom} : {noms_roles_dans_intrigue}")
+    # print(f"noms roles dans intrigue {intrigue.nom} : {noms_roles_dans_tableau_intrigue}")
     # print("Tableau suggéré")
     # créer un set de tous les rôles de chaque scène de l'intrigue
-    iwant = []
+    tous_les_noms_lus_dans_scenes = []
     for scene in intrigue.scenes:
         if scene.noms_roles_lus is not None:
             # comme on prend uniquement les roles lus, on exclut de facto les persos issus de faction
-            iwant += scene.noms_roles_lus
-    iwant = [x.strip() for x in iwant]
-    iwant = set(iwant)
+            tous_les_noms_lus_dans_scenes += scene.noms_roles_lus
+    tous_les_noms_lus_dans_scenes = [x.strip() for x in tous_les_noms_lus_dans_scenes]
+    tous_les_noms_lus_dans_scenes = set(tous_les_noms_lus_dans_scenes)
 
     tableau_sortie = []
     to_print = "Tableau suggéré : \n"
 
     # pour chaque nom dans une scène, trouver le perso correspondant
-    for nom in iwant:
+    for nom in tous_les_noms_lus_dans_scenes:
         # print(str(nom))
         score_pj = process.extractOne(str(nom), noms_persos)
         score_pnj = process.extractOne(str(nom), noms_pnjs)
-        if score_pj[0] in noms_roles_dans_intrigue or score_pnj[0] in noms_roles_dans_intrigue:
+        if score_pj[0] in noms_roles_dans_tableau_intrigue or score_pnj[0] in noms_roles_dans_tableau_intrigue:
             prefixe = "[OK]"
         else:
             prefixe = "[XX]"
@@ -703,36 +727,8 @@ def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
 
 
 def mettre_a_jour_champs(gn: GN):
-    print(gn.dictPJs)
+    for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
+        conteneur.error_log.clear()
+        print(f"pour le conteneur {conteneur}, errorlog = {conteneur.error_log}")
 
-    for obj in list(gn.dictPJs.values())+list(gn.dictPNJs.values())+list(gn.intrigues.values()):
-        tmp = obj.error_log
-        obj.error_log = ErreurManager()
-        for erreur in tmp.erreurs:
-            niveau = 0
-            origine = 0
-            for n in ErreurManager.NIVEAUX:
-                if n == erreur.niveau:
-                    niveau = n
-            for o in ErreurManager.ORIGINES:
-                if o == erreur.origine:
-                    origine = n
 
-            obj.error_log.ajouter_erreur(niveau, erreur.texte, origine)
-        print(f"{obj.nom} a été mis à jour")
-    def convertir_erreur_manager(liste_anciens_erreur_manager):
-        nouveaux_erreur_manager = []
-        for ancien_erreur_manager in liste_anciens_erreur_manager:
-            nouveau_erreur_manager = ErreurManagerV2()
-            nouveau_erreur_manager.erreurs = [ErreurManagerV2.ErreurAssociation(
-                erreur.niveau,
-                erreur.texte,
-                erreur.origine
-            ) for erreur in ancien_erreur_manager.erreurs]
-            nouveaux_erreur_manager.append(nouveau_erreur_manager)
-            print(f"{obj.nom} a été mis à jour")
-        return nouveaux_erreur_manager
-    pass
-    # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
-    #     conteneur.error_log = ErreurManager()
-    #     print(f"conteneur {conteneur} mis à jour")

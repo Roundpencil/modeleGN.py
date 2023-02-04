@@ -30,7 +30,7 @@ def main():
     parser.add_argument("--noexportdrive", "-ned", action="store_true", help="pour ne pas provoquer l'export drive")
     parser.add_argument("--nochangelog", "-ncl", action="store_true",
                         help="pour ne pas provoquer la création des changelogs")
-    parser.add_argument("--init", "-in", action="store_true", help="fait que la fonction gn.load n'est pas appelée")
+    parser.add_argument("--init", "-in", action="store_true", help="fait que la fonction self.load n'est pas appelée")
     parser.add_argument("--nosave", "-ns", action="store_true", help="fait que la focntion GN.save n'est pas appelée")
     parser.add_argument("--verbal", "-v", action="store_true", help="si on veut afficher toutes les erreurs")
     parser.add_argument("--console", "-c", action="store_true",
