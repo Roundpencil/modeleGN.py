@@ -13,9 +13,6 @@ import dateparser
 
 # bugs
 # todo comprendre pourquoi pas de load de snyder
-# todo vérifier le focntionnement de la balise questionnaire perso
-
-
 
 # à faire
 # todo : gestion des évènement
