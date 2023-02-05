@@ -15,6 +15,11 @@ import dateparser
 # todo comprendre pourquoi pas de load de snyder
 
 # à faire
+#todo : gestion des paramètres optionnels en utilisant
+# for section in config.sections():
+#     config_dict[section] = dict(config.items(section))
+#  puis get avec None comme défaut
+
 # todo : gestion des évènement
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
