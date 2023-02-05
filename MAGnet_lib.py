@@ -23,6 +23,7 @@ import dateparser
 # todo : gestion des évènement
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
+#  ne pas oublier qu'un évènement se rattache à un tringue, et donc à des roles, PAS DES PERSOS
 
 # todo : ajouter une section "tableau relations" qui conteint toutjours 4 colonnes
 #  "X... Voit la relation avec... Comme... Et si non réciproque..."
