@@ -4,9 +4,9 @@ import os
 import extraireTexteDeGoogleDoc
 import lecteurGoogle
 from modeleGN import *
+import dateparser
 
-
-# com
+# communication :
 # todo :informer chalacta des factions,
 #  des squelettes pnjs, des tableaux intrigues, des nouveaux tableaux de synthèse (objets / chrono / persos),
 #  des nouveaux fichiers d'erruers, du tag questionnaire
@@ -14,6 +14,8 @@ from modeleGN import *
 # bugs
 # todo comprendre pourquoi pas de load de snyder
 # todo vérifier le focntionnement de la balise questionnaire perso
+
+
 
 # à faire
 # todo : gestion des évènement
@@ -25,8 +27,8 @@ from modeleGN import *
 #  dans les fiches de persos
 #  dans les scènes : relations nécessaires (nouveau tag)
 
-# todo utiliser dateparser pour ajouter une balise ## date dans les scènes
-#   question : comment faire cohébiter les dates il y a avec les dates saisies en ebsolu ?
+# refaire tableau objet 6 colonnes
+# refaire une focntion de mise à jour globale qui met à jour les dates, les objets
 
 # confort / logique
 # todo : refaire version console
@@ -75,6 +77,13 @@ def charger_fichier_init(fichier_init: str):
         dict_config['liste_noms_pjs'] = [nom_p.strip()
                                          for nom_p in config.get('Optionnels', 'noms_persos').split(',')]
 
+        texte_date_gn = config.get('Optionnels', 'date_gn').strip()
+        if texte_date_gn is not None :
+            print(f"texte_date_gn = {texte_date_gn} / {type(texte_date_gn)}")
+            dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
+            print(f"date_gn formattée = {dict_config['date_gn']}")
+        print(f"pour ce GN, date_gn = {dict_config['date_gn']}")
+
         # création des champs dérivés
         dict_config['liste_noms_pnjs'] = lire_fichier_pnjs(dict_config['fichier_noms_pnjs'])
 
@@ -112,7 +121,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
 
     if sans_chargement_fichier:
-        print ("recréation d'un GN from scratch")
+        print("recréation d'un GN from scratch")
         new_gn = GN(
             mon_gn.dossiers_intrigues,
             mon_gn.dossier_outputs_drive,
@@ -126,21 +135,21 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         mon_gn.effacer_personnages_forces()
 
     extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn,
-                                                apiDrive=api_drive,
-                                                apiDoc=api_doc,
+                                                api_drive=api_drive,
+                                                api_doc=api_doc,
                                                 singletest=singletest_intrigue,
                                                 fast=fast_intrigues,
                                                 verbal=verbal)
     extraireTexteDeGoogleDoc.extraire_pjs(mon_gn,
-                                          apiDrive=api_drive,
-                                          apiDoc=api_doc,
+                                          api_drive=api_drive,
+                                          api_doc=api_doc,
                                           singletest=singletest_perso,
                                           fast=fast_persos,
                                           verbal=verbal)
 
     extraireTexteDeGoogleDoc.extraire_pnjs(mon_gn,
-                                           apiDrive=api_drive,
-                                           apiDoc=api_doc,
+                                           api_drive=api_drive,
+                                           api_doc=api_doc,
                                            singletest=singletest_perso,
                                            fast=fast_persos,
                                            verbal=verbal)
@@ -209,7 +218,7 @@ def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
     log_erreur = ""
     intrigues_triees = [intrigue for intrigue in mon_gn.intrigues.values()]
     # intrigues_triees = sorted(intrigues_triees,  key= lambda x:x.orgaReferent)
-    intrigues_triees = sorted(mon_gn.intrigues.values(),  key= lambda x:x.orgaReferent)
+    intrigues_triees = sorted(mon_gn.intrigues.values(), key=lambda x: x.orgaReferent)
     # for intrigue in mon_gn.intrigues.values():
 
     current_orga = "ceci est un placeholder"
@@ -245,7 +254,7 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     noms_persos = mon_gn.noms_pjs()
     noms_pnjs = mon_gn.noms_pnjs()
     noms_roles_dans_tableau_intrigue = [x.perso.nom for x in intrigue.rolesContenus.values()
-                                if not x.issu_dune_faction and x.perso is not None]
+                                        if not x.issu_dune_faction and x.perso is not None]
     # print(f"noms roles dans intrigue {intrigue.nom} : {noms_roles_dans_tableau_intrigue}")
     # print("Tableau suggéré")
     # créer un set de tous les rôles de chaque scène de l'intrigue
@@ -389,12 +398,12 @@ def generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive, pj=True):
         extraireTexteDeGoogleDoc.inserer_squelettes_dans_drive(nouveau_dossier, api_doc, api_drive, texte, nom_fichier)
 
 
-def squelettes_par_perso(monGN, pj=True):
+def squelettes_par_perso(mon_gn, pj=True):
     squelettes_persos = {}
     if pj:
-        liste_persos_source = monGN.dictPJs.values()
+        liste_persos_source = mon_gn.dictPJs.values()
     else:
-        liste_persos_source = monGN.dictPNJs.values()
+        liste_persos_source = mon_gn.dictPNJs.values()
 
     for perso in liste_persos_source:
         print(f"génération du texte des persos : perso en cours de lecture : {perso.nom}")
@@ -422,10 +431,10 @@ def squelettes_par_perso(monGN, pj=True):
                 # print(f"{scene.titre} trouvée")
                 mes_scenes.append(scene)
 
-        mes_scenes = Scene.trierScenes(mes_scenes)
+        mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=mon_gn.date_gn)
         for scene in mes_scenes:
             # print(scene)
-            texte_perso += str(scene) + '\n'
+            texte_perso += scene.str_pour_squelette(mon_gn.date_gn) + '\n'
         texte_perso += '****************************************************** \n'
         squelettes_persos[perso.nom] = texte_perso
 
@@ -506,8 +515,8 @@ def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
 
                     # et maintenant on remplit la liste
                     restitution[referent][nom_perso].append([intrigue.nom,
-                                                            intrigue.getFullUrl(),
-                                                            intrigue.lastFileEdit.strftime("%d/%m/%Y à %H:%M:%S")])
+                                                             intrigue.getFullUrl(),
+                                                             intrigue.lastFileEdit.strftime("%d/%m/%Y à %H:%M:%S")])
 
                     # print(restitution)
                     # restitution.append([role.perso.orgaReferent,
@@ -607,16 +616,17 @@ def generer_table_chrono_condensee_raw(gn: GN):
             for scene in role.scenes:
                 # print(f"{scene.titre} trouvée")
                 mes_scenes.append(scene)
-        mes_scenes = Scene.trierScenes(mes_scenes)
+        mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=gn.date_gn)
 
         # créer des lignes [date][évènement]
-        ma_ligne = [perso.nom] + [[s.getFormattedDate(), s.titre] for s in mes_scenes]
+        # ma_ligne = [perso.nom] + [[s.get_formatted_date(date_gn=gn.date_gn), s.titre] for s in mes_scenes]
+        ma_ligne = [perso.nom] + mes_scenes
         tableau_sortie.append(ma_ligne)
 
     return tableau_sortie
 
 
-def generer_table_chrono_condensee(tableau_raw):
+def generer_table_chrono_condensee(tableau_raw, date_gn):
     # tableau_formatte = []
     # for ligne in tableau_raw:
     #     tableau_formatte += [ligne[0]] + [[f"{event[0]} - {event[1]}"] for event in ligne[1:]]
@@ -648,7 +658,10 @@ def generer_table_chrono_condensee(tableau_raw):
         for story in tableau_raw:
             # If the current story has an event for the current date, add the formatted date and event
             if i + 1 < len(story):
-                date, event = story[i + 1]
+                # date, event = story[i + 1]
+                # row.append(f"{date} - {event}")
+                date = story[i + 1].get_formatted_date(date_gn=date_gn)
+                event = story[i + 1].titre
                 row.append(f"{date} - {event}")
             # Otherwise, add an empty string
             else:
@@ -659,15 +672,22 @@ def generer_table_chrono_condensee(tableau_raw):
     return matrix
 
 
-def generer_table_chrono_complete(table_raw):
+def generer_table_chrono_complete(table_raw, date_gn):
+    # # Find all unique dates across all stories
+    # all_dates = set()
+    # for story in table_raw:
+    #     all_dates |= set([event[0] for event in story[1:]])
+    # all_dates = sorted(list(all_dates), key=extraireTexteDeGoogleDoc.calculer_jours_il_y_a)
+
     # Find all unique dates across all stories
     all_dates = set()
     for story in table_raw:
-        all_dates |= set([event[0] for event in story[1:]])
-    all_dates = sorted(list(all_dates), key=extraireTexteDeGoogleDoc.calculer_jours_il_y_a)
+        all_dates |= set([scene for scene in story[1:]])
+    all_dates = sorted(list(all_dates), key=lambda scene: scene.clef_tri(date_gn))
+
 
     # Create a dictionary mapping dates to indices
-    date_to_index = {date: i for i, date in enumerate(all_dates)}
+    date_to_index = {scene.get_formatted_date(date_gn=date_gn): i for i, scene in enumerate(all_dates)}
 
     # Initialize the matrix with empty values
     num_stories = len(table_raw)
@@ -680,14 +700,14 @@ def generer_table_chrono_complete(table_raw):
         matrix[0][j + 1] = story[0]
 
     # Populate the first column with dates
-    for i, date in enumerate(all_dates):
-        matrix[i + 1][0] = date
+    for i, scene in enumerate(all_dates):
+        matrix[i + 1][0] = scene.get_formatted_date(date_gn=date_gn)
 
     # Fill in the events
     for j, story in enumerate(table_raw):
         for event in story[1:]:
-            i = date_to_index[event[0]]
-            matrix[i + 1][j + 1] = event[1]
+            i = date_to_index[event.get_formatted_date(date_gn=date_gn)]
+            matrix[i + 1][j + 1] = '\n'.join([matrix[i + 1][j + 1], event.titre])
 
     return matrix
 
@@ -695,8 +715,8 @@ def generer_table_chrono_complete(table_raw):
 def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.dossier_outputs_drive
     table_raw = generer_table_chrono_condensee_raw(mon_gn)
-    table_simple = generer_table_chrono_condensee(table_raw)
-    table_complete = generer_table_chrono_complete(table_raw)
+    table_simple = generer_table_chrono_condensee(table_raw, mon_gn.date_gn)
+    table_complete = generer_table_chrono_complete(table_raw, mon_gn.date_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- synthèse chrono'
     file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
@@ -727,8 +747,18 @@ def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
 
 
 def mettre_a_jour_champs(gn: GN):
-    for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
-        conteneur.error_log.clear()
-        print(f"pour le conteneur {conteneur}, errorlog = {conteneur.error_log}")
+    # #mise à jour des errors logs
+    # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
+    #     conteneur.error_log.clear()
+    #     print(f"pour le conteneur {conteneur}, errorlog = {conteneur.error_log}")
 
-
+    # mise à jour des formats de date
+    if not hasattr(gn, 'date_gn'):
+        gn.date_gn = None
+    for conteneur in list(gn.dictPJs.values()) \
+                     + list(gn.dictPNJs.values()) \
+                     + list(gn.intrigues.values()):
+        for scene in conteneur.scenes:
+            if not hasattr(scene, 'date_absolue'):
+                scene.date_absolue = None
+            print(f"la scène {scene.titre}, dateba absolue = {scene.date_absolue}")

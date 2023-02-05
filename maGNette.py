@@ -97,9 +97,9 @@ def main():
     # extraire_texte_de_google_doc.extraire_intrigues(mon_gn, api_doc=api_doc, api_doc=api_doc, single_test="-01")
     # extraire_texte_de_google_doc.extraire_pjs(mon_gn, api_doc=api_doc, api_doc=api_doc, single_test="-01")
 
-    extraireTexteDeGoogleDoc.extraire_intrigues(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.intrigue,
+    extraireTexteDeGoogleDoc.extraire_intrigues(monGN, api_drive=apiDrive, api_doc=apiDoc, singletest=args.intrigue,
                                                 fast=(not args.allintrigues))
-    extraireTexteDeGoogleDoc.extraire_pjs(monGN, apiDrive=apiDrive, apiDoc=apiDoc, singletest=args.perso,
+    extraireTexteDeGoogleDoc.extraire_pjs(monGN, api_drive=apiDrive, api_doc=apiDoc, singletest=args.perso,
                                           fast=(not args.allpjs))
     extraireTexteDeGoogleDoc.extraire_factions(monGN, apiDoc=apiDoc)
     # extraire_texte_de_google_doc.lire_factions_depuis_fichier(mon_gn, fichier_faction)
@@ -152,7 +152,7 @@ def main():
         creer_table_intrigues_sur_drive(monGN, apiSheets, apiDrive, dossier_output_squelettes_pjs)
 
     # ajouter_champs_modifie_par(mon_gn, nom_fichier_sauvegarde)
-    # trierScenes(mon_gn)
+    # trier_scenes(mon_gn)
     # listerTrierPersos(mon_gn)
     # #écrit toutes les scènes qui sont dans le GN, sans ordre particulier
     # dumpAllScenes(mon_gn)
@@ -224,7 +224,7 @@ def afficherLesPersos(monGN):
 def afficherDatesScenes(monGN):
     for intrigue in monGN.intrigues:
         for scene in intrigue.scenes:
-            print("scène : {0} / date : {1} > {2}".format(scene.titre, scene.date, scene.getFormattedDate()))
+            print("scène : {0} / date : {1} > {2}".format(scene.titre, scene.date, scene.get_formatted_date()))
 
 
 def genererCsvOrgaIntrigue(monGN):
@@ -282,7 +282,7 @@ def listerDatesIntrigues(monGN):
 #         #     mesScenes.append(scene)
 #
 #         # print(f"{nomPerso} trouvé")
-#         mesScenes = Scene.trierScenes(mesScenes)
+#         mesScenes = Scene.trier_scenes(mesScenes)
 #         for scene in mesScenes:
 #             # print(scene)
 #             toutesScenes += str(scene) + '\n'
@@ -323,7 +323,7 @@ def squelettes_persos_en_kit(monGN):
                 # print(f"{scene.titre} trouvée")
                 mes_scenes.append(scene)
 
-        mes_scenes = Scene.trierScenes(mes_scenes)
+        mes_scenes = Scene.trier_scenes(mes_scenes)
         # for scene in mesScenes:
         #     # print(scene)
         #     texte_intro += str(scene) + '\n'
@@ -379,7 +379,7 @@ def tousLesSquelettesPNJ(monGN: GN, prefixe):
         #     mesScenes.append(scene)
 
         # print(f"{nomPerso} trouvé")
-        mesScenes = Scene.trierScenes(mesScenes)
+        mesScenes = Scene.trier_scenes(mesScenes)
         for scene in mesScenes:
             # print(scene)
             toutesScenes += str(scene) + '\n'
@@ -411,7 +411,7 @@ def tousLesSquelettesPNJ(monGN: GN, prefixe):
 #             break
 #
 #     # print(f"{nomPerso} trouvé")
-#     mesScenes = Scene.trierScenes(mesScenes)
+#     mesScenes = Scene.trier_scenes(mesScenes)
 #     for scene in mesScenes:
 #         print(scene)
 

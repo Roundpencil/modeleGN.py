@@ -1,32 +1,36 @@
 from __future__ import print_function
 
+from typing import Any
+
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
 
 import lecteurGoogle
 from modeleGN import *
 
+import dateparser
 
-def extraire_intrigues(monGN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
-    extraire_texte_de_google_doc(monGN, apiDrive, apiDoc, extraire_intrigue_de_texte, monGN.intrigues,
-                                 monGN.dossiers_intrigues,
+
+def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
+    extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_intrigue_de_texte, mon_gn.intrigues,
+                                 mon_gn.dossiers_intrigues,
                                  singletest, verbal=verbal, fast=fast)
 
 
-def extraire_pjs(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
+def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
     # print(f"je m'apprete à extraire les PJs depuis {mon_gn.dossiers_pjs}")
     extraire_texte_de_google_doc(
-        mon_gn, apiDrive, apiDoc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
+        mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
         singletest,
         verbal=verbal, fast=fast)
 
 
-def extraire_pnjs(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
-    # print(f"je m'apprete à extraire les PNJs depuis {mon_gn.dossiers_pnjs}")
+def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
+    # print(f"je m'apprête à extraire les PNJs depuis {mon_gn.dossiers_pnjs}")
     if mon_gn.dossiers_pnjs is None or len(mon_gn.dossiers_pnjs) == 0:
         print(f"impossible de lire le dossier des PNJs : il n'existe pas")
         return
-    extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, extraire_persos_de_texte, mon_gn.dictPNJs,
+    extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPNJs,
                                  mon_gn.dossiers_pnjs,
                                  singletest,
                                  verbal=verbal, fast=fast)
@@ -136,7 +140,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                     # if dict_ids[item['id']].lastProcessing >= item['modifiedTime']:
                     if fast and \
                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
-                                item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
+                        item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
 
                         print(
                             f"et elle n'a pas changé (dernier changement : "
@@ -225,7 +229,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     SCENES = "détail de l’intrigue"
     RESOLUTION = "résolution de l’intrigue"
     NOTES = "notes supplémentaires"
-    QUESTIONNAIRE = "Questionnaire inscription"
+    QUESTIONNAIRE = "questionnaire inscription"
 
     labels = [REFERENT, TODO, PITCH, PJS, PNJS, REROLLS, OBJETS, SCENESFX,
               TIMELINE, SCENES, RESOLUTION, NOTES, QUESTIONNAIRE]
@@ -504,6 +508,10 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
                 # # print("date de la scène : " + scene_a_ajouter.date)
             elif balise[0:9].lower() == '## il y a':
                 extraire_il_y_a_scene(balise[10:], scene_a_ajouter)
+            elif balise[0:9].lower() == '## date :':
+                extraire_date_absolue(balise[10:], scene_a_ajouter)
+            elif balise[0:8].lower() == '## date?':
+                extraire_date_absolue(balise[9:], scene_a_ajouter)
             elif balise[0:7].lower() == '## qui?':
                 extraire_qui_scene(balise[8:], conteneur, noms_roles, scene_a_ajouter)
 
@@ -621,11 +629,20 @@ def extraire_il_y_a_scene(baliseDate, sceneAAjouter):
     # print("balise date : " + balise_date)
     # trouver s'il y a un nombre a[ns]
     date_en_jours = calculer_jours_il_y_a(baliseDate)
+    print(f"dans extraire il y a scene : {date_en_jours} avant de mettre à jour")
 
     sceneAAjouter.date = date_en_jours
+    print(f"et après mise à jour de la scène : {sceneAAjouter.date}")
+
+
+def extraire_date_absolue(texte_brut: str, scene_a_ajouter: Scene):
+    if texte_brut.endswith("h"):
+        texte_brut +="00"
+    scene_a_ajouter.date_absolue = dateparser.parse(texte_brut, languages=['fr'])
 
 
 def calculer_jours_il_y_a(balise_date):
+    print(f"balise date il y a en entrée {balise_date}")
     balise_date = balise_date.lower()
     try:
         ma_date = balise_date
@@ -672,6 +689,8 @@ def calculer_jours_il_y_a(balise_date):
         # print(f"{ma_date} > ans/jours/mois = {ans}/{mois}/{jours}")
 
         dateEnJours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(semaines) * 7 + float(jours))
+        print(f"balise date il y a en sortie {dateEnJours}")
+
         return dateEnJours
     except ValueError:
         print(f"Erreur avec la date {balise_date}")
@@ -925,7 +944,7 @@ def is_document_being_edited(service, file_id):
         # get the document
         doc = service.documents().get(documentId=file_id).execute()
         # check if the document is being edited
-        if doc.get('isWriting') == True:
+        if doc.get('isWriting'):
             print("Document is currently being edited")
             return True
         else:

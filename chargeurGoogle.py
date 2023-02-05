@@ -125,7 +125,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue):
                     roles = balise[8:].split(", ")
                     print("rôles trouvés : " + str(roles))
                     for nomRole in roles:
-                        sceneAAjouter.addRole(currentIntrigue.getOrAddRole(nomRole))
+                        sceneAAjouter.ajouter_role(currentIntrigue.getOrAddRole(nomRole))
                 elif balise[0:11] == '## Niveau :':
                     sceneAAjouter.niveau = balise[12:].strip()
 

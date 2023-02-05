@@ -5,7 +5,7 @@ import re
 from enum import IntEnum
 
 from fuzzywuzzy import process
-
+import sys
 
 class TypePerso(IntEnum):
     EST_PNJ_HORS_JEU = 1
@@ -18,9 +18,9 @@ class TypePerso(IntEnum):
 
 def est_un_pnj(niveauPJ):
     return niveauPJ == TypePerso.EST_PNJ_HORS_JEU \
-        or niveauPJ == TypePerso.EST_PNJ_TEMPORAIRE \
-        or niveauPJ == TypePerso.EST_PNJ_INFILTRE \
-        or niveauPJ == TypePerso.EST_PNJ_PERMANENT
+           or niveauPJ == TypePerso.EST_PNJ_TEMPORAIRE \
+           or niveauPJ == TypePerso.EST_PNJ_INFILTRE \
+           or niveauPJ == TypePerso.EST_PNJ_PERMANENT
 
 
 def est_un_pj(niveauPJ):
@@ -85,8 +85,8 @@ class ConteneurDeScene:
         self.scenes.add(scene_a_ajouter)
         return scene_a_ajouter
 
-    def get_scenes_triees(self):
-        return Scene.trierScenes(self.scenes)
+    def get_scenes_triees(self, date_gn=None):
+        return Scene.trier_scenes(self.scenes, date_gn=date_gn)
 
     def clear(self):
         # retirer l'intrigue du GN > à faire au niveau de l'appel
@@ -221,9 +221,21 @@ class Role:
         self.perso = perso
         self.nom = nom
         self.description = description
-        self.pipr = pipr
-        self.pipi = pipi
-        self.pip_globaux = pip_globaux
+        try:
+            self.pipr = int(pipr)
+        except ValueError:
+            self.pipr = 0
+
+        try:
+            self.pipi = int(pipi)
+        except ValueError:
+            self.pipi = 0
+
+        try:
+            self.pip_globaux = int(pip_globaux)
+        except ValueError:
+            self.pip_globaux = 0
+
         self.pip_total = 0
         self.sommer_pip()
         self.pj = pj
@@ -357,12 +369,13 @@ class Relation:
 
 # Scènes
 class Scene:
-    def __init__(self, conteneur, titre, date="0", pitch="Pas de description simple",
+    def __init__(self, conteneur, titre, date="0", pitch="Pas de description simple", date_absolue:datetime=None,
                  description="Description complète",
                  actif=True, resume="", niveau=3):
         self.conteneur = conteneur
         self.date = date  # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
         # l'évènement
+        self.date_absolue = date_absolue
         self.titre = titre
         self.pitch = pitch
         self.description = description
@@ -376,25 +389,36 @@ class Scene:
         self.noms_roles_lus = None
         self.derniere_mise_a_jour = datetime.datetime.now()
         self.modifie_par = ""
+        print(f"Je viens de créer la scène {self.titre}, avec en entrée la date {date}")
 
     def get_date(self):
         return self.date
 
-    def getLongdigitsDate(self, size=30):
-        # print(f"date : {self.date}")
-        # if type(self.date) == float or type(self.date) == int or str(self.date[1:]).isnumeric():
-        if type(self.date) == float or type(self.date) == int or re.match(r"^-\d+$", self.date):
+    def get_formatted_date(self, date_gn=None):
+        print(f"debut du débug affichage dates pour la scène {self.titre}, clef de tri = {self.clef_tri(date_gn)}")
+        # print(f"date relative = {self.date}")
+        # print(f" date absolue sans prise en compte date gn : {self.get_date_absolue()}")
+        # print(f"date absolue avec prise en compte date gn {self.get_date_absolue(date_gn)}")
+        # print(f"date du gn = {date_gn}")
 
-            # print(f"date est numérique")
-
-            refdate = str(int(self.date))[1:] + str(
-                random.randint(1000, 9999))  # permet d'éviter les évènements qui ont la meme date
-            return "0" * (size - len(str(refdate))) + str(refdate)
+        date_absolue_calculee = self.get_date_absolue(date_du_jeu=date_gn)
+        if date_absolue_calculee == datetime.datetime.min:
+            # alors c'est qu'on a une  valeur par défaut => tenter le formattage il y a
+            return self.get_formatted_il_y_a()
         else:
-            # print(f"date n'est pas numérique")
-            return str(self.date) + "0" * (size - len(str(self.date)))
+            days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+            months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
+                      "novembre", "décembre"]
 
-    def getFormattedDate(self):
+            date_string = "{} {} {} {}".format(days[date_absolue_calculee.weekday()], date_absolue_calculee.day,
+                                               months[date_absolue_calculee.month - 1], date_absolue_calculee.year)
+            time_string = "{}h{}".format(date_absolue_calculee.hour, date_absolue_calculee.minute)
+
+            final_string = "{}, {}".format(date_string, time_string)
+            return final_string
+
+
+    def get_formatted_il_y_a(self):
         # print("date/type > {0}/{1}".format(self.date, type(self.date)))
         if type(self.date) == float or type(self.date) == int or str(self.date[1:]).isnumeric():
             if type(self.date) == str:
@@ -424,59 +448,66 @@ class Scene:
             # print("la date <{0}> n'est pas un nombre".format(self.date))
             return self.date
 
-    def addRole(self, role):
+    def ajouter_role(self, role):
         self.roles.add(role)
 
-    def __str__(self):
-        toReturn = ""
+    def str_pour_squelette(self, date_gn=None):
+        to_return = ""
 
-        toReturn += f"titre scène : {self.titre} - date  : {self.getFormattedDate()} \n"
+        to_return += f"titre scène : {self.titre} - date  : {self.get_formatted_date(date_gn)} \n"
         strRolesPersos = 'Roles (Perso) : '
         for role in self.roles:
             if role.perso is None:
                 strRolesPersos += f"{role.nom} (pas de perso affecté) / "
             else:
                 strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
-        toReturn += f"roles  : {strRolesPersos[:-2]} \n"
-        toReturn += f"provenance : {self.conteneur.nom} \n"
-        # toReturn += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
-        toReturn += f"dernières éditions : intrigue : {self.conteneur.lastFileEdit}  " \
+        to_return += f"roles  : {strRolesPersos[:-2]} \n"
+        to_return += f"provenance : {self.conteneur.nom} \n"
+        # to_return += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
+        to_return += f"dernières éditions : intrigue : {self.conteneur.lastFileEdit}  " \
                     f"/ scène : {self.derniere_mise_a_jour} \n"
-        toReturn += f"url intrigue : {self.conteneur.getFullUrl()} \n"
-        # toReturn += f"pitch  : {self.pitch} \n"
-        # toReturn += f"description : \n {self.description} \n"
-        toReturn += f"\n {self.description} \n"
+        to_return += f"url intrigue : {self.conteneur.getFullUrl()} \n"
+        # to_return += f"pitch  : {self.pitch} \n"
+        # to_return += f"description : \n {self.description} \n"
+        to_return += f"\n {self.description} \n"
 
-        # toReturn += f"actif  : {self.actif} \n"
-        return toReturn
+        # to_return += f"actif  : {self.actif} \n"
+        return to_return
 
-    # def dict_text(self):
-    #     toReturn = dict()
-    #
-    #     toReturn["titre"] = f"titre scène : {self.titre} - date {self.getFormattedDate()} \n"
-    #
-    #     texte_entete = ""
-    #     strRolesPersos = 'Roles (Perso) : '
-    #     for role in self.roles:
-    #         if role.perso is None:
-    #             strRolesPersos += f"{role.nom} (pas de perso affecté) / "
-    #         else:
-    #             strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
-    #     texte_entete += f"roles  : {strRolesPersos} \n"
-    #     texte_entete += f"provenance : {self.conteneur.nom} \n"
-    #     texte_entete += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
-    #     texte_entete += f"dernière édition de l'intrigue : {self.conteneur.lastFileEdit} \n"
-    #     texte_entete += f"url intrigue : {self.conteneur.getFullUrl()} \n"
-    #     toReturn["en-tete"] = texte_entete
-    #
-    #     toReturn["corps"] = f"\n {self.description} \n"
-    #
-    #     # texte_entete += f"actif  : {self.actif} \n"
-    #     return toReturn
+
+    def get_date_absolue(self, date_du_jeu=None):
+        # print(f"pour la scène {self.titre} dans get_d_abs = date absolue = {self.date_absolue}, date = {self.date}")
+        if self.date_absolue is not None:
+            return self.date_absolue
+        elif date_du_jeu is not None:
+            try:
+                float_date = float(self.date)
+                date_absolue = date_du_jeu - datetime.timedelta(days=int(float_date) * -1)
+                return date_absolue
+            except ValueError:
+                pass
+        return datetime.datetime.min
+
+    def get_date_jours(self):
+        # print(f"Je suis dans get date jour et date = {self.date}, et son type est type{type(self.date)}")
+        if isinstance(self.date, float):
+            return self.date
+        else:
+            # return sys.minsize
+          return sys.maxsize * -1 - 1
+
+    def clef_tri(self, date_gn = None):
+        # renvoie une donnée de type [a, b, c] où a est la date absolue, b la date relative et c la date texte
+        # en cas d'absence, complète avec des valeurs par défaut
+        # en cas de comparaison, met le texte en premier, puis les dates en il y a, puis les dates absolues
+        to_return = [self.get_date_absolue(date_gn), self.get_date_jours(), self.date]
+        # to_return = [self.get_date_absolue(date_gn)]
+
+        return to_return
 
     @staticmethod
-    def trierScenes(scenesATrier):
-        return sorted(scenesATrier, key=lambda scene: scene.getLongdigitsDate(), reverse=True)
+    def trier_scenes(scenes_a_trier, date_gn=None):
+        return sorted(scenes_a_trier, key=lambda scene: scene.clef_tri(date_gn))
 
 
 # objet pour tout sauvegarder
@@ -493,7 +524,7 @@ class Faction:
 class GN:
     def __init__(self,
                  dossiers_intrigues, dossier_output: str,
-                 association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, id_factions=None):
+                 association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, id_factions=None, date_gn = None):
 
         # création des objets nécessaires
         self.dictPJs = {}  # idgoogle, personnage
@@ -512,12 +543,14 @@ class GN:
         self.dossiers_pjs = None
         self.dossier_outputs_drive = None
         self.dossiers_intrigues = None
+        self.date_gn =None
         self.injecter_config(dossiers_intrigues, dossier_output, association_auto, dossiers_pj=dossiers_pj,
-                             dossiers_pnj=dossiers_pnj, id_factions=id_factions)
+                             dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn = date_gn)
 
     def injecter_config(self,
                         dossiers_intrigues, dossier_output, association_auto,
-                        dossiers_pj=None, dossiers_pnj=None, id_factions=None, noms_pjs=None, noms_pnjs=None):
+                        dossiers_pj=None, dossiers_pnj=None, id_factions=None, noms_pjs=None,
+                        noms_pnjs=None, date_gn = None):
         # todo : injecter les noms des PJs et le dossier PNJ
 
         self.liste_noms_pjs = noms_pjs
@@ -547,6 +580,7 @@ class GN:
         self.dossier_outputs_drive = dossier_output
 
         self.association_auto = association_auto
+        self.date_gn = date_gn
 
     def ajouter_faction(self, faction: Faction):
         self.factions[faction.nom] = faction
@@ -1037,8 +1071,8 @@ class ErreurManager:
                     temp.append(erreur)
             self.erreurs = temp
 
-        tab_err = [[err.niveau, err.texte, err.origine] for err in self.erreurs]
-        print(f"erreurs après nettoyage = {tab_err}")
+        # tab_err = [[err.niveau, err.texte, err.origine] for err in self.erreurs]
+        # print(f"erreurs après nettoyage = {tab_err}")
 
 
 # ######## a supprimer apres remise à niveau
@@ -1099,17 +1133,28 @@ class Evenement:
 
 
 class BriefPNJPourEvenement:
-    def __init__(self, nom_pnj="", costumes_et_accessoires="", implication="", situation_de_départ=""):
+    def __init__(self, nom_pnj="", costumes_et_accessoires="", implication="", situation_de_depart=""):
         self.nom_pnj = nom_pnj
         self.pnj = None
         self.costumes_et_accessoires = costumes_et_accessoires
         self.implication = implication
-        self.situation_de_depart = situation_de_départ
+        self.situation_de_depart = situation_de_depart
+
 
 class InfoPJPourEvenement:
     def __init__(self, nom_pj="", infos_a_fournir=""):
         self.nom_pj = nom_pj
         self.pj = None
         self.infos_a_fournir = infos_a_fournir
+
+
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
+
+class Intervention:
+    def __init__(self, jour=None, heure=None, description=""):
+        self.jour = jour
+        self.heure = heure
+        self.pj_impliques = []
+        self.pnj_impliques = []
+        self.description = description
