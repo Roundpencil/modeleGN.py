@@ -15,11 +15,6 @@ import dateparser
 # todo comprendre pourquoi pas de load de snyder
 
 # à faire
-#todo : gestion des paramètres optionnels en utilisant
-# for section in config.sections():
-#     config_dict[section] = dict(config.items(section))
-#  puis get avec None comme défaut
-
 # todo : gestion des évènement
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
@@ -73,22 +68,75 @@ def charger_fichier_init(fichier_init: str):
                                         for key in config.options("Optionnels")
                                         if key.startswith("id_dossier_pnjs")]
 
-        dict_config['id_factions'] = config.get('Optionnels', 'id_factions')
+        dict_config['id_factions'] = config.get('Optionnels', 'id_factions', fallback=None)
 
-        dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs')
+        dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs', fallback=None)
 
         dict_config['liste_noms_pjs'] = [nom_p.strip()
-                                         for nom_p in config.get('Optionnels', 'noms_persos').split(',')]
+                                         for nom_p in config.get('Optionnels', 'noms_persos', fallback=None).split(',')]
 
-        texte_date_gn = config.get('Optionnels', 'date_gn').strip()
+        texte_date_gn = config.get('Optionnels', 'date_gn', fallback=None)
         if texte_date_gn is not None :
+            texte_date_gn = texte_date_gn.strip()
             print(f"texte_date_gn = {texte_date_gn} / {type(texte_date_gn)}")
             dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
             print(f"date_gn formattée = {dict_config['date_gn']}")
-        print(f"pour ce GN, date_gn = {dict_config['date_gn']}")
+        print(f"pour ce GN, date_gn = {dict_config.get('date_gn', 'Pas de date lue')}")
+
+
+        # dict_optionnels = config.items("Optionnels")
+        #
+        # dict_config['id_factions'] = dict_optionnels.get('id_factions')
+        # print(dict_optionnels)
+        #
+        # dict_config['dossiers_pjs'] = [dict_optionnels.get(key)
+        #                                for key in list(dict_optionnels.keys())
+        #                                if key.startswith("id_dossier_pjs")]
+        #
+        # dict_config['dossiers_pnjs'] = [dict_optionnels.get(key)
+        #                                 for key in dict_optionnels
+        #                                 if key.startswith("id_dossier_pnjs")]
+        #
+        # dict_config['id_factions'] = dict_optionnels.get('id_factions')
+        #
+        # dict_config['fichier_noms_pnjs'] = dict_optionnels.get('nom_fichier_pnjs')
+        #
+        # dict_config['liste_noms_pjs'] = [nom_p.strip()
+        #                                  for nom_p in dict_optionnels.get('noms_persos').split(',')]
+        #
+        # texte_date_gn = dict_optionnels.get('date_gn').strip()
+        # if texte_date_gn is not None:
+        #     print(f"texte_date_gn = {texte_date_gn} / {type(texte_date_gn)}")
+        #     dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
+        #     print(f"date_gn formattée = {dict_config['date_gn']}")
+        # print(f"pour ce GN, date_gn = {dict_config['date_gn']}")
+
+
+        # dict_config['dossiers_pjs'] = [config.get("Optionnels", key)
+        #                                for key in config.options("Optionnels")
+        #                                if key.startswith("id_dossier_pjs")]
+        #
+        # dict_config['dossiers_pnjs'] = [config.get("Optionnels", key)
+        #                                 for key in config.options("Optionnels")
+        #                                 if key.startswith("id_dossier_pnjs")]
+        #
+        # dict_config['id_factions'] = config.get('Optionnels', 'id_factions')
+        #
+        # dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs')
+        #
+        # dict_config['liste_noms_pjs'] = [nom_p.strip()
+        #                                  for nom_p in config.get('Optionnels', 'noms_persos').split(',')]
+        #
+        # texte_date_gn = config.get('Optionnels', 'date_gn').strip()
+        # if texte_date_gn is not None :
+        #     print(f"texte_date_gn = {texte_date_gn} / {type(texte_date_gn)}")
+        #     dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
+        #     print(f"date_gn formattée = {dict_config['date_gn']}")
+        # print(f"pour ce GN, date_gn = {dict_config['date_gn']}")
 
         # création des champs dérivés
-        dict_config['liste_noms_pnjs'] = lire_fichier_pnjs(dict_config['fichier_noms_pnjs'])
+        if dict_config['fichier_noms_pnjs'] is not None:
+            dict_config['liste_noms_pnjs'] = lire_fichier_pnjs(dict_config['fichier_noms_pnjs'])
 
     except configparser.Error as e:
         # Erreur lors de la lecture d'un paramètre dans le fichier de configuration
@@ -684,6 +732,11 @@ def generer_table_chrono_complete(table_raw, date_gn):
 
     # Find all unique dates across all stories
     all_dates = set()
+    # for story in table_raw:
+    #     all_dates |= set([scene for scene in story[1:]])
+    # all_dates = sorted(list(all_dates), key=lambda scene: scene.clef_tri(date_gn))
+
+#todo : prendre les textes des dates et non les scènes
     for story in table_raw:
         all_dates |= set([scene for scene in story[1:]])
     all_dates = sorted(list(all_dates), key=lambda scene: scene.clef_tri(date_gn))

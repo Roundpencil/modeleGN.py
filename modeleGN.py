@@ -352,10 +352,11 @@ class Intrigue(ConteneurDeScene):
 
 # relations
 class Relation:
-    def __init__(self, perso1, perso2, description="Relation à définir"):
+    def __init__(self, perso1, perso2, description_vue_par_1="Relation à définir", description_vue_par_2=""):
         self.perso1 = perso1
         self.perso2 = perso2
-        self.description = description
+        self.description_vue_par_1 = description_vue_par_1
+        self.description_vue_par_2 = description_vue_par_2
 
     def partenaire(self, perso):
         if perso is self.perso1:
@@ -369,8 +370,8 @@ class Relation:
 
 # Scènes
 class Scene:
-    def __init__(self, conteneur, titre, date="0", pitch="Pas de description simple", date_absolue:datetime=None,
-                 description="Description complète",
+    def __init__(self, conteneur, titre, date="TBD", pitch="Pas de description simple", date_absolue:datetime=None,
+                 description="Pas de description complète",
                  actif=True, resume="", niveau=3):
         self.conteneur = conteneur
         self.date = date  # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
@@ -455,13 +456,13 @@ class Scene:
         to_return = ""
 
         to_return += f"titre scène : {self.titre} - date  : {self.get_formatted_date(date_gn)} \n"
-        strRolesPersos = 'Roles (Perso) : '
+        str_roles_persos = 'Roles (Perso) : '
         for role in self.roles:
             if role.perso is None:
-                strRolesPersos += f"{role.nom} (pas de perso affecté) / "
+                str_roles_persos += f"{role.nom} (pas de perso affecté) / "
             else:
-                strRolesPersos += f" {role.nom} ({role.perso.nom}) / "
-        to_return += f"roles  : {strRolesPersos[:-2]} \n"
+                str_roles_persos += f" {role.nom} ({role.perso.nom}) / "
+        to_return += f"roles  : {str_roles_persos[:-2]} \n"
         to_return += f"provenance : {self.conteneur.nom} \n"
         # to_return += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
         to_return += f"dernières éditions : intrigue : {self.conteneur.lastFileEdit}  " \
@@ -494,7 +495,7 @@ class Scene:
             return self.date
         else:
             # return sys.minsize
-          return sys.maxsize * -1 - 1
+            return sys.maxsize * -1 - 1
 
     def clef_tri(self, date_gn = None):
         # renvoie une donnée de type [a, b, c] où a est la date absolue, b la date relative et c la date texte
