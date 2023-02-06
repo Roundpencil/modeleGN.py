@@ -13,7 +13,6 @@ import dateparser
 
 # bugs
 # todo comprendre pourquoi pas de load de snyder
-#todo : comprendre pourquoi objets FX ne se met pas à jour
 
 # à faire
 #todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
