@@ -634,12 +634,18 @@ def generer_table_objets(monGN):
 
     for intrigue in monGN.intrigues.values():
         for objet in intrigue.objets:
-            code = objet.code.replace('\n', "***")
-            description = objet.description.replace('\n', "***")
+            code = objet.code.replace('\n', '\v')
+            description = objet.description.replace('\n', '\v')
             avecfx = objet.avec_fx()
-            fx = objet.specialEffect.replace('\n', "***")
-            debuteou = objet.emplacementDebut.replace('\n', "***")
-            fournipar = objet.fourniParJoueur.replace('\n', "***")
+            fx = objet.specialEffect.replace('\n', '\v')
+            debuteou = objet.emplacementDebut.replace('\n', '\v')
+            fournipar = objet.fourniParJoueur.replace('\n', '\v')
+            # code = objet.code.replace('\n', "***")
+            # description = objet.description.replace('\n', "***")
+            # avecfx = objet.avec_fx()
+            # fx = objet.specialEffect.replace('\n', "***")
+            # debuteou = objet.emplacementDebut.replace('\n', "***")
+            # fournipar = objet.fourniParJoueur.replace('\n', "***")
             utiliseou = [x.nom for x in objet.inIntrigues]
             to_return.append([f"{code}",
                               f"{description}",
