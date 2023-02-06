@@ -62,9 +62,10 @@ def read_paragraph_element(element):
             element: a ParagraphElement from a Google Doc.
     """
     text_run = element.get('textRun')
-    if not text_run:
-        return ''
-    return text_run.get('content')
+    return text_run.get('content') if text_run else ''
+    # if not text_run:
+    #     return ''
+    # return text_run.get('content')
 
 
 def read_structural_elements(elements):
@@ -99,13 +100,15 @@ def read_structural_elements(elements):
 # renvoie un dictionnaire [label]["debut"/"fin"]
 def identifier_sections_fiche(labelsATrouver, texte_document):
     texte_document = texte_document.lower()
-    # on passe en minuscule pour mieux trouver les chaines
-
-    indexes = dict()
-    for label in labelsATrouver:
-        indexes[label] = {"debut": texte_document.find(label)}
-        # on complètera la seconde dimension (fin) plus bas avec la fin de la séquence
+    indexes = {
+        label: {"debut": texte_document.find(label)}
+        for label in labelsATrouver
+    }
+    # indexes = dict()
+    # for label in labelsATrouver:
+    #     indexes[label] = {"debut": texte_document.find(label)}
     # print("dictionnaire des labels : {0}".format(indexes))
+
     # maintenant, on aura besoin d'identifier pour chaque label où il se termine
     # pour cela on fait un dictionnaire ou la fin de chaque entrée est le début de la suivante
     # print("toutes les valeurs du tableau : {0}".format([x['debut'] for x in indexes.values()]))
@@ -114,7 +117,7 @@ def identifier_sections_fiche(labelsATrouver, texte_document):
     tous_les_indexes.sort()
     # print("Tous les indexes : {0}".format(tous_les_indexes))
     # on crée une table qui associe à chaque début la section suivante
-    table_debuts_fins_labels = dict()
+    table_debuts_fins_labels = {}
     for i in range(len(indexes)):
         try:
             table_debuts_fins_labels[tous_les_indexes[i]] = tous_les_indexes[i + 1] - 1
@@ -138,9 +141,8 @@ def generer_liste_items(monGN, apiDrive, nom_fichier):
         print("erreur, aucun mon_id dans l'input")
         return -1
 
-    requete = ""
-    for mon_id in nom_fichier:
-        requete += f"'{mon_id}' in parents or "
+    requete = "".join(f"'{mon_id}' in parents or " for mon_id in nom_fichier)
+
     requete = requete[:-3]
     print(f"requete = {requete}")
 

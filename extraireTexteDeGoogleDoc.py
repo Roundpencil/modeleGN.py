@@ -28,7 +28,7 @@ def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False,
 def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
     # print(f"je m'apprête à extraire les PNJs depuis {mon_gn.dossiers_pnjs}")
     if mon_gn.dossiers_pnjs is None or len(mon_gn.dossiers_pnjs) == 0:
-        print(f"impossible de lire le dossier des PNJs : il n'existe pas")
+        print("impossible de lire le dossier des PNJs : il n'existe pas")
         return
     extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPNJs,
                                  mon_gn.dossiers_pnjs,
@@ -66,7 +66,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 # Retrieve the documents contents from the Docs api_doc.
                 document = apiDoc.documents().get(documentId=item['id']).execute()
 
-                print('Titre document : {}'.format(document.get('title')))
+                print(f"Titre document : {document.get('title')}")
 
                 # Alors on se demande si c'est le bon doc
                 # if document.get('title')[0:3].strip() != str(single_test):  # numéro de l'intrigue
@@ -109,7 +109,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 # Retrieve the documents contents from the Docs api_doc.
                 document = apiDoc.documents().get(documentId=item['id']).execute()
 
-                print('Titre document : {}'.format(document.get('title')))
+                print(f"Titre document : {document.get('title')}")
                 # print(document.get('title')[0:2])
 
                 # if not document.get('title')[0:2].isdigit():
@@ -352,20 +352,56 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
             # vérifier si nous sommes avec un objet RFID (4 colonnes) ou sans (3 colonnes)
             mon_objet = None
             if len(sections) == 4:
-                mon_objet = Objet(description=sections[0].strip(), emplacementDebut=sections[2].strip(),
+                mon_objet = Objet(description=sections[0].strip(),
+                                  specialEffect=sections[1].strip() if sections[1].strip().lower() != "non" else '',
+                                  emplacementDebut=sections[2].strip(),
                                   fourniPar=sections[3].strip())
-                if sections[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
-                    mon_objet.specialEffect = sections[1].strip()
+                # if sections[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
+                #     mon_objet.specialEffect = sections[1].strip()
 
             elif len(sections) == 3:
-                mon_objet = Objet(description=sections[0].strip(), emplacementDebut=sections[1].strip(),
+                mon_objet = Objet(description=sections[0].strip(),
+                                  emplacementDebut=sections[1].strip(),
                                   fourniPar=sections[2].strip())
+            elif len(sections) == 6:
+                mon_objet = Objet(code=sections[0].strip(),
+                                  description=sections[1].strip(),
+                                  specialEffect=sections[2].strip() if sections[2].strip().lower() != "non" else '',
+                                  emplacementDebut=sections[3].strip(),
+                                  fourniPar=sections[4].strip())
             else:
                 print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {sections}")
 
             if mon_objet is not None:
                 current_intrigue.objets.add(mon_objet)
                 mon_objet.inIntrigues.add(current_intrigue)
+
+        # objets = texteIntrigue[indexes[OBJETS]["debut"]:indexes[OBJETS]["fin"]]
+        # tab_objets, nb_colonnes = reconstituer_tableau(objets)
+        # for ligne in tab_objets[1:]:
+        #     mon_objet = None
+        #     if nb_colonnes == 3:
+        #         mon_objet = Objet(description=ligne[0].strip(), emplacementDebut=ligne[1].strip(),
+        #                           fourniPar=ligne[2].strip())
+        #     elif nb_colonnes == 4:
+        #         mon_objet = Objet(description=ligne[0].strip(),
+        #                           specialEffect=ligne[1].strip() if ligne[1].strip().lower() != "non" else '',
+        #                           emplacementDebut=ligne[2].strip(),
+        #                           fourniPar=ligne[3].strip())
+        #         # if ligne[1].strip().lower() != "non":
+        #         #     # si on a mis non pour le RFID ca ne veut pas dire oui :)
+        #         #     mon_objet.specialEffect = ligne[1].strip()
+        #     elif nb_colonnes == 6:
+        #         mon_objet = Objet(code=ligne[0].strip(),
+        #                           description=ligne[1].strip(),
+        #                           specialEffect=ligne[2].strip() if ligne[2].strip().lower() != "non" else '',
+        #                           emplacementDebut=ligne[3].strip(),
+        #                           fourniPar=ligne[4].strip())
+        #     else:
+        #         print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {ligne}")
+        #     if mon_objet is not None:
+        #         current_intrigue.objets.add(mon_objet)
+        #         mon_objet.inIntrigues.add(current_intrigue)
 
     # gestion de la section FX
     if indexes[SCENESFX]["debut"] > -1:
@@ -542,8 +578,12 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
                 scene_a_ajouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
 
             else:
-                print("balise inconnue : " + balise + " dans le conteneur " + nomConteneur)
+                texte_erreur = "balise inconnue : " + balise + " dans le conteneur " + nomConteneur
+                print(texte_erreur)
                 scene_a_ajouter.description += balise
+                conteneur.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                   texte_erreur,
+                                                   ErreurManager.ORIGINES.SCENE)
 
         scene_a_ajouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
         # print("texte de la scene apres insertion : " + scene_a_ajouter.description)
@@ -629,20 +669,20 @@ def extraire_il_y_a_scene(baliseDate, scene_a_ajouter):
     # print("balise date : " + balise_date)
     # trouver s'il y a un nombre a[ns]
     date_en_jours = calculer_jours_il_y_a(baliseDate)
-    print(f"dans extraire il y a scene : {date_en_jours} avant de mettre à jour")
+    # print(f"dans extraire il y a scene : {date_en_jours} avant de mettre à jour")
 
     scene_a_ajouter.date = date_en_jours
-    print(f"et après mise à jour de la scène : {scene_a_ajouter.date}")
+    # print(f"et après mise à jour de la scène : {scene_a_ajouter.date}")
 
 
 def extraire_date_absolue(texte_brut: str, scene_a_ajouter: Scene):
     if texte_brut.endswith("h"):
-        texte_brut +="00"
+        texte_brut += "00"
     scene_a_ajouter.date_absolue = dateparser.parse(texte_brut, languages=['fr'])
 
 
 def calculer_jours_il_y_a(balise_date):
-    print(f"balise date il y a en entrée {balise_date}")
+    # print(f"balise date il y a en entrée {balise_date}")
     balise_date = balise_date.lower()
     try:
         ma_date = balise_date
@@ -689,7 +729,7 @@ def calculer_jours_il_y_a(balise_date):
         # print(f"{ma_date} > ans/jours/mois = {ans}/{mois}/{jours}")
 
         date_en_jours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(semaines) * 7 + float(jours))
-        print(f"balise date il y a en sortie {date_en_jours}")
+        # print(f"balise date il y a en sortie {date_en_jours}")
 
         return date_en_jours
     except ValueError:
@@ -1359,11 +1399,25 @@ def formatter_fichier_erreurs(api_doc, doc_id):
     return result
 
 
-def reconstituer_tableau(texte_lu, separateur_ligne="¤¤¤¤¤", separateur_colonne="¤¤¤"):
+# def reconstituer_tableau(texte_lu, separateur_ligne="¤¤¤¤¤", separateur_colonne="¤¤¤"):
+#     first_hash_index = texte_lu.find(separateur_ligne)
+#     last_hash_index = texte_lu.rfind(separateur_ligne)
+#     if first_hash_index == -1 or last_hash_index == -1:
+#         return None
+#
+#     texte_tableau = texte_lu[first_hash_index:last_hash_index + 1]
+#     lignes = texte_tableau.split(separateur_ligne)
+#     to_return = []
+#     for ligne in lignes[1:]:
+#         to_return.append(ligne.split(separateur_colonne))
+#
+#     return to_return
+
+def reconstituer_tableau(texte_lu: str, separateur_ligne="¤¤¤¤¤", separateur_colonne="¤¤¤"):
     first_hash_index = texte_lu.find(separateur_ligne)
     last_hash_index = texte_lu.rfind(separateur_ligne)
     if first_hash_index == -1 or last_hash_index == -1:
-        return None
+        return None, None
 
     texte_tableau = texte_lu[first_hash_index:last_hash_index + 1]
     lignes = texte_tableau.split(separateur_ligne)
@@ -1371,7 +1425,8 @@ def reconstituer_tableau(texte_lu, separateur_ligne="¤¤¤¤¤", separateur_col
     for ligne in lignes[1:]:
         to_return.append(ligne.split(separateur_colonne))
 
-    return to_return
+    num_columns = len(to_return[0]) if to_return else None
+    return to_return, num_columns
 
 
 def extraire_evenement_de_texte(texte_evenement, nom_evenement, id_url, lastFileEdit, derniere_modification_par, monGN,

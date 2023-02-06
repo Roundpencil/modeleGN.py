@@ -18,10 +18,12 @@ class TypePerso(IntEnum):
 
 
 def est_un_pnj(niveauPJ):
-    return niveauPJ == TypePerso.EST_PNJ_HORS_JEU \
-        or niveauPJ == TypePerso.EST_PNJ_TEMPORAIRE \
-        or niveauPJ == TypePerso.EST_PNJ_INFILTRE \
-        or niveauPJ == TypePerso.EST_PNJ_PERMANENT
+    return niveauPJ in [
+        TypePerso.EST_PNJ_HORS_JEU,
+        TypePerso.EST_PNJ_TEMPORAIRE,
+        TypePerso.EST_PNJ_INFILTRE,
+        TypePerso.EST_PNJ_PERMANENT,
+    ]
 
 
 def est_un_pj(niveauPJ):
@@ -106,16 +108,17 @@ class ConteneurDeScene:
         # print(f"intrigue effacée {self.nom}")
         self.error_log.clear()
 
-    def getFullUrl(self):
-        return "https://docs.google.com/document/d/" + self.url
+    def get_full_url(self):
+        return f"https://docs.google.com/document/d/{self.url}"
 
-    def updater_dates_maj_scenes(self, conteneur_de_reference):
+    def updater_dates_maj_scenes(self, conteneur_de_reference, verbal=False):
         for ma_scene in self.scenes:
-            # print(f"*** je suis en train de lire la scène {ma_scene.titre} dans l'élément {self.getFullUrl()}")
+            # print(f"*** je suis en train de lire la scène {ma_scene.titre} dans l'élément {self.get_full_url()}")
             # On va chercher si cette scène existe déjà dans l'objet intrigue précédent
             for sa_scene in conteneur_de_reference.scenes:
-                # print(f"je suis en train la comparer à la scène {sa_scene.titre} "
-                #       f"dans l'élément {conteneur_de_reference.getFullUrl()}")
+                if verbal:
+                    print(f"je suis en train la comparer à la scène {sa_scene.titre} "
+                          f"dans l'élément {conteneur_de_reference.get_full_url()}")
                 if ma_scene.titre == sa_scene.titre:
                     # print(f"Les deux scènes ont le même titre !")
                     if ma_scene.description == sa_scene.description:
@@ -124,10 +127,8 @@ class ConteneurDeScene:
                         ma_scene.derniere_mise_a_jour = sa_scene.derniere_mise_a_jour
                         ma_scene.modifie_par = sa_scene.modifie_par
                         # print(f"et, après update : ma_scene : {ma_scene.derniere_mise_a_jour} / sa_scène : {sa_scene.derniere_mise_a_jour}")
-                    else:
-                        # print("mais pas la même description !")
-                        pass
-
+                    elif verbal:
+                        print("mais pas la même description !")
                     break
 
 
@@ -151,7 +152,7 @@ class Personnage(ConteneurDeScene):
         self.images = set()
         self.description = description
         self.orgaReferent = orgaReferent
-        self.joueurs = dict()
+        self.joueurs = {}
         self.pitchJoueur = pitchJoueur
         self.indicationsCostume = indicationsCostume
         self.factions = []
@@ -205,10 +206,12 @@ class Personnage(ConteneurDeScene):
         return est_un_pj(self.pj)
 
     def sommer_pip(self):
-        pip = 0
-        for role in self.roles:
-            pip += role.sommer_pip()
-        return pip
+        return sum(role.sommer_pip() for role in self.roles)
+
+        # pip = 0
+        # for role in self.roles:
+        #     pip += role.sommer_pip()
+        # return pip
 
 
 # rôle
@@ -249,19 +252,19 @@ class Role:
 
     def __str__(self):
         toReturn = ""
-        toReturn += "provenance : " + self.conteneur.nom + "\n"
-        toReturn += "nom dans provenance : " + self.nom + "\n"
+        toReturn += f"provenance : {self.conteneur.nom}" + "\n"
+        toReturn += f"nom dans provenance : {self.nom}" + "\n"
         if self.perso is None:
             toReturn += "perso : aucun" + "\n"
         else:
-            toReturn += "perso : " + self.perso.nom + "\n"
-        toReturn += "description : " + self.description + "\n"
+            toReturn += f"perso : {self.perso.nom}" + "\n"
+        toReturn += f"description : {self.description}" + "\n"
         # toReturn += "pipr : " + str(self.pipr) + "\n"
         # toReturn += "pipi : " + str(self.pipi) + "\n"
-        toReturn += "pj : " + string_type_pj(self.pj) + "\n"
+        toReturn += f"pj : {string_type_pj(self.pj)}" + "\n"
         # toReturn += "sexe : " + self.sexe + "\n"
-        toReturn += "typeIntrigue : " + self.typeIntrigue + "\n"
-        toReturn += "niveauImplication : " + self.niveauImplication + "\n"
+        toReturn += f"typeIntrigue : {self.typeIntrigue}" + "\n"
+        toReturn += f"niveauImplication : {self.niveauImplication}" + "\n"
         return toReturn
 
     def ajouter_a_scene(self, sceneAAjouter):
@@ -391,7 +394,7 @@ class Scene:
         self.noms_roles_lus = None
         self.derniere_mise_a_jour = datetime.datetime.now()
         self.modifie_par = ""
-        print(f"Je viens de créer la scène {self.titre}, avec en entrée la date {date}")
+        # print(f"Je viens de créer la scène {self.titre}, avec en entrée la date {date}")
 
     def get_date(self):
         return self.date
@@ -404,20 +407,19 @@ class Scene:
         # print(f"date du gn = {date_gn}")
 
         date_absolue_calculee = self.get_date_absolue(date_du_jeu=date_gn)
+
         if date_absolue_calculee == datetime.datetime.min:
             # alors c'est qu'on a une  valeur par défaut => tenter le formattage il y a
             return self.get_formatted_il_y_a()
-        else:
-            days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
-            months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
-                      "novembre", "décembre"]
 
-            date_string = "{} {} {} {}".format(days[date_absolue_calculee.weekday()], date_absolue_calculee.day,
-                                               months[date_absolue_calculee.month - 1], date_absolue_calculee.year)
-            time_string = "{}h{}".format(date_absolue_calculee.hour, date_absolue_calculee.minute)
+        days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+        months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
+                  "novembre", "décembre"]
 
-            final_string = "{}, {}".format(date_string, time_string)
-            return final_string
+        date_string = f"{days[date_absolue_calculee.weekday()]} {date_absolue_calculee.day} {months[date_absolue_calculee.month - 1]} {date_absolue_calculee.year}"
+        time_string = f"{date_absolue_calculee.hour}h{date_absolue_calculee.minute}"
+
+        return f"{date_string}, {time_string}"
 
     def get_formatted_il_y_a(self):
         # print("date/type > {0}/{1}".format(self.date, type(self.date)))
@@ -430,24 +432,24 @@ class Scene:
             if ma_date == 0:
                 return "Il y a 0 jours"
 
-            dateTexte = 'Il y a '
-            nbAnnees = ma_date // 365
-            nbMois = (ma_date - nbAnnees * 365) // 30.5
-            nbJours = ma_date - nbAnnees * 365 - nbMois * 30.5
+            date_texte = 'Il y a '
+            nb_annees = ma_date // 365
+            nb_mois = (ma_date - nb_annees * 365) // 30.5
+            nb_jours = ma_date - nb_annees * 365 - nb_mois * 30.5
 
-            if nbAnnees > 1:
-                dateTexte += str(nbAnnees)[:-2] + " ans, "
-            elif nbAnnees == 1:
-                dateTexte += "1 an, "
+            if nb_annees > 1:
+                date_texte += str(nb_annees)[:-2] + " ans, "
+            elif nb_annees == 1:
+                date_texte += "1 an, "
 
-            if nbMois > 0:
-                dateTexte += str(nbMois)[:-2] + " mois, "
+            if nb_mois > 0:
+                date_texte += str(nb_mois)[:-2] + " mois, "
 
-            if nbJours > 1:
-                dateTexte += str(nbJours)[:-2] + " jours, "
-            elif nbJours > 0:
-                dateTexte += "1 jour, "
-            return dateTexte[0:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
+            if nb_jours > 1:
+                date_texte += str(nb_jours)[:-2] + " jours, "
+            elif nb_jours > 0:
+                date_texte += "1 jour, "
+            return date_texte[0:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
 
         else:
             # print("la date <{0}> n'est pas un nombre".format(self.date))
@@ -471,7 +473,7 @@ class Scene:
         # to_return += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
         to_return += f"dernières éditions : intrigue : {self.conteneur.lastFileEdit}  " \
                      f"/ scène : {self.derniere_mise_a_jour} \n"
-        to_return += f"url intrigue : {self.conteneur.getFullUrl()} \n"
+        to_return += f"url intrigue : {self.conteneur.get_full_url()} \n"
         # to_return += f"pitch  : {self.pitch} \n"
         # to_return += f"description : \n {self.description} \n"
         to_return += f"\n {self.description} \n"
@@ -538,8 +540,8 @@ class GN:
         # création des objets nécessaires
         self.dictPJs = {}  # idgoogle, personnage
         self.dictPNJs = {}  # idgoogle, personnage
-        self.factions = dict()  # nom, Faction
-        self.intrigues = dict()  # clef : id google
+        self.factions = {}  # nom, Faction
+        self.intrigues = {}  # clef : id google
         self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatePJ = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatedIntrigue = ""  # contient l'id de la dernière intrigue updatée dans le GN
@@ -569,22 +571,19 @@ class GN:
         else:
             self.dossiers_intrigues = [dossiers_intrigues]
 
-        if dossiers_pj is not None:
-            if isinstance(dossiers_pj, list):
-                self.dossiers_pjs = dossiers_pj
-            else:
-                self.dossiers_pjs = [dossiers_pj]
-        else:
+        if dossiers_pj is None:
             self.dossiers_pjs = None
-
-        if dossiers_pnj is not None:
-            if isinstance(dossiers_pnj, list):
-                self.dossiers_pnjs = dossiers_pnj
-            else:
-                self.dossiers_pnjs = [dossiers_pnj]
+        elif isinstance(dossiers_pj, list):
+            self.dossiers_pjs = dossiers_pj
         else:
-            self.dossiers_pnjs = None
+            self.dossiers_pjs = [dossiers_pj]
 
+        if dossiers_pnj is None:
+            self.dossiers_pnjs = None
+        elif isinstance(dossiers_pnj, list):
+            self.dossiers_pnjs = dossiers_pnj
+        else:
+            self.dossiers_pnjs = [dossiers_pnj]
         self.id_factions = id_factions
         self.dossier_outputs_drive = dossier_output
 
@@ -657,10 +656,11 @@ class GN:
         return [pnj.nom for pnj in self.dictPNJs.values()]
 
     def noms_pjpnjs(self, pj: bool):
-        if pj:
-            return self.noms_pjs()
-        else:
-            return self.noms_pnjs()
+        return self.noms_pjs() if pj else self.noms_pnjs()
+        # if pj:
+        #     return self.noms_pjs()
+        # else:
+        #     return self.noms_pnjs()
 
     # def associerPNJsARoles(self, seuilAlerte=90, verbal=True):
     #     nomsPnjs = self.liste_noms_pnjs()
@@ -750,9 +750,8 @@ class GN:
         if verbal:
             print(f"pj? {pj}, noms persos = {noms_persos}")
 
-        dict_noms_persos = dict()
-        for perso in dict_reference.values():  # on crée un dictionnaire temporaire nom > pj pour faire les associations
-            dict_noms_persos[perso.nom] = perso
+        # on crée un dictionnaire temporaire nom > pj pour faire les associations
+        dict_noms_persos = {perso.nom: perso for perso in dict_reference.values()}
 
         # Associer les rôles sans passer par la case tableau d'association
         # pour les rôles issus des scènes dans les fiches de PJs
@@ -770,7 +769,7 @@ class GN:
 
                 if score[1] < seuilAlerte:
                     texte_erreur = f"Association ({score[1]}) - nom rôle : " \
-                                   f"{role.nom} > perso : {score[0]} dans {perso.nom}"
+                                           f"{role.nom} > perso : {score[0]} dans {perso.nom}"
                     perso.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                            texte_erreur,
                                            ErreurManager.ORIGINES.ASSOCIATION_AUTO)
@@ -779,10 +778,9 @@ class GN:
                         print(texte_erreur)
 
         # faire l'association dans les intrigues à partir du nom de l'intrigue
-        if pj:
-            critere = est_un_pj
-        else:
-            critere = est_un_pnj
+        #identifier la bonne focntion à appliquer
+        critere = est_un_pj if pj else est_un_pnj
+
         # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant
         for intrigue in self.intrigues.values():
             for role in intrigue.rolesContenus.values():
@@ -796,7 +794,7 @@ class GN:
 
                     if score[1] < seuilAlerte:
                         texte_erreur = f"Association ({score[1]}) - nom rôle : " \
-                                       f"{role.nom} > perso : {score[0]} dans {intrigue.nom}"
+                                               f"{role.nom} > perso : {score[0]} dans {intrigue.nom}"
                         intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                                   texte_erreur,
                                                   ErreurManager.ORIGINES.ASSOCIATION_AUTO
@@ -974,29 +972,33 @@ class GN:
     def forcer_import_pjpnjs(self, noms_persos, pj: bool, suffixe="_imported", verbal=False):
         print("début de l'ajout des personnages sans fiche")
         # nomsLus = [x.nom for x in self.dictPJs.values()]
-        if pj:
-            dict_actif = self.dictPJs
-        else:
-            dict_actif = self.dictPNJs
+        dict_actif = self.dictPJs if pj else self.dictPNJs
+
+        # if pj:
+        #     dict_actif = self.dictPJs
+        # else:
+        #     dict_actif = self.dictPNJs
         noms_lus = self.noms_pjpnjs(pj)
         print(f"noms lus = {noms_lus}")
         # pour chaque perso de ma liste :
         # SI son nom est dans les persos > ne rien faire
         # SINON, lui créer une coquille vide
-        if pj:
-            valeur_pj = TypePerso.EST_PJ
-        else:
-            valeur_pj = TypePerso.EST_PNJ_HORS_JEU
-        persosSansCorrespondance = []
+        # if pj:
+        #     valeur_pj = TypePerso.EST_PJ
+        # else:
+        #     valeur_pj = TypePerso.EST_PNJ_HORS_JEU
+        valeur_pj = TypePerso.EST_PJ if pj else TypePerso.EST_PNJ_HORS_JEU
+
+        persos_sans_correspondance = []
         for perso in noms_persos:
             if perso in noms_lus and verbal:
                 print(f"le personnage {perso} a une correspondance dans les persos déjà présents")
             else:
-                scoreproche = process.extractOne(perso, noms_lus)
-                # print(f"avant assicoation, {perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
-                if scoreproche is not None and scoreproche[1] >= 75:
+                score_proche = process.extractOne(perso, noms_lus)
+                # print(f"avant assicoation, {perso} correspond à {score_proche[0]} à {score_proche[1]}%")
+                if score_proche is not None and score_proche[1] >= 75:
                     if verbal:
-                        print(f"{perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
+                        print(f"{perso} correspond à {score_proche[0]} à {score_proche[1]}%")
                     # donc on ne fait rien
                 else:
                     if verbal:
@@ -1011,13 +1013,16 @@ class GN:
 # objets
 
 class Objet:
-    def __init__(self, description="", fourniPar="Inconnu", emplacementDebut="", specialEffect=""):
+    def __init__(self, code="", description="", fourniPar="Inconnu", emplacementDebut="", specialEffect=""):
         self.description = description
         self.fourniParJoueur = fourniPar
         self.emplacementDebut = emplacementDebut
-        self.rfid = len(specialEffect) > 0
         self.specialEffect = specialEffect
+        self.code = code
         self.inIntrigues = set()
+
+    def avec_fx(self):
+        return len(self.specialEffect) > 0
 
 
 class ErreurManager:
@@ -1075,10 +1080,11 @@ class ErreurManager:
             # dans ce cas, c'est qu'on veut TOUT effacer, par exemple car on va recréer le conteneur
             self.erreurs.clear()
         else:
-            temp = []
-            for erreur in self.erreurs:
-                if erreur.origine != origine:
-                    temp.append(erreur)
+            temp = [erreur for erreur in self.erreurs if erreur.origine != origine]
+            # temp = []
+            # for erreur in self.erreurs:
+            #     if erreur.origine != origine:
+            #         temp.append(erreur)
             self.erreurs = temp
 
         # tab_err = [[err.niveau, err.texte, err.origine] for err in self.erreurs]

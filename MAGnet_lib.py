@@ -13,8 +13,13 @@ import dateparser
 
 # bugs
 # todo comprendre pourquoi pas de load de snyder
+#todo : comprendre pourquoi objets FX ne se met pas à jour
 
 # à faire
+#todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
+
+#todo : faire évoluer grille objets avec le code et le fait qu'on a trouvé un lien vers une fiche objet
+
 # todo : gestion des évènement
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
@@ -24,9 +29,6 @@ import dateparser
 #  "X... Voit la relation avec... Comme... Et si non réciproque..."
 #  dans les fiches de persos
 #  dans les scènes : relations nécessaires (nouveau tag)
-
-# refaire tableau objet 6 colonnes
-# refaire une focntion de mise à jour globale qui met à jour les dates, les objets
 
 # confort / logique
 # todo : refaire version console
@@ -386,7 +388,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
         dict_scene['nom_scene'] = ma_scene.titre
         dict_scene['date'] = ma_scene.derniere_mise_a_jour.strftime("%Y-%m-%d %H:%M:%S")
         dict_scene['qui'] = ma_scene.modifie_par
-        dict_scene['document'] = ma_scene.conteneur.getFullUrl()
+        dict_scene['document'] = ma_scene.conteneur.get_full_url()
         dict_orgas = dict()
         # dict_scene['dict_orgas'] = dict_orgas
         for role in ma_scene.roles:
@@ -421,7 +423,7 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
                                 intrigue.orgaReferent,
                                 intrigue.questions_ouvertes,
                                 intrigue.error_log.nb_erreurs(),
-                                intrigue.getFullUrl()])
+                                intrigue.get_full_url()])
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Etat des intrigues'
     dossier_export = mon_gn.dossier_outputs_drive
@@ -560,20 +562,20 @@ def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
                     # if nomIntrigue not in restitution[referent][nom_perso]:
                     #     restitution[referent][nom_perso][nomIntrigue] = \
                     #         [intrigue.lastProcessing.strftime("%d/%m/%Y à %H:%M:%S"),
-                    #          intrigue.getFullUrl()]
+                    #          intrigue.get_full_url()]
                     # # on utilise nomintrigue comem clef,
                     # # car sinon, comme on rentre par les roles on va multiplier les entrées
 
                     # et maintenant on remplit la liste
                     restitution[referent][nom_perso].append([intrigue.nom,
-                                                             intrigue.getFullUrl(),
+                                                             intrigue.get_full_url(),
                                                              intrigue.lastFileEdit.strftime("%d/%m/%Y à %H:%M:%S")])
 
                     # print(restitution)
                     # restitution.append([role.perso.orgaReferent,
                     #                     role.perso.nom,
                     #                     intrigue.titre,
-                    #                     intrigue.getFullUrl(),
+                    #                     intrigue.get_full_url(),
                     #                     intrigue.lastProcessing])
     # print(restitution)
     texte = ""
@@ -628,22 +630,26 @@ def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
 
 
 def generer_table_objets(monGN):
-    to_return = [['description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'utilisé où?']]
+    to_return = [['code', 'description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'utilisé où?',
+                  'fiche objet trouvée?']]
 
     for intrigue in monGN.intrigues.values():
         for objet in intrigue.objets:
+            code = objet.code.replace('\n', "***")
             description = objet.description.replace('\n', "***")
-            avecfx = objet.rfid
+            avecfx = objet.avec_fx()
             fx = objet.specialEffect.replace('\n', "***")
             debuteou = objet.emplacementDebut.replace('\n', "***")
             fournipar = objet.fourniParJoueur.replace('\n', "***")
             utiliseou = [x.nom for x in objet.inIntrigues]
-            to_return.append([f"{description}",
+            to_return.append([f"{code}",
+                              f"{description}",
                               f"{avecfx}",
                               f"{fx}",
                               f"{debuteou}",
                               f"{fournipar}",
-                              f"{utiliseou}"]
+                              f"{utiliseou}",
+                              "fonction non développée"]
                              )
     return to_return
 
@@ -839,3 +845,10 @@ def mettre_a_jour_champs(gn: GN):
             if not hasattr(scene, 'date_absolue'):
                 scene.date_absolue = None
             print(f"la scène {scene.titre}, dateba absolue = {scene.date_absolue}")
+
+    for intrigue in gn.intrigues.values():
+        for objet in intrigue.objets:
+            if not hasattr(objet, 'code'):
+                objet.code=""
+            if hasattr(objet, 'rfid'):
+                delattr(objet, 'rfid')
