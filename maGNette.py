@@ -428,7 +428,7 @@ def listerPNJs(monGN):
 
 # def genererCsvPNJs(mon_gn: GN, verbal=False):
 #     liste_noms_pnjs = mon_gn.liste_noms_pnjs()
-#     output = "nom PNJ;description;typePJ;niveau implication;details intervention;intrigue;" \
+#     output = "nom PNJ;description;type_pj;niveau implication;details intervention;intrigue;" \
 #              "nom dans l'intrigue;indice de confiance normalisation\n"
 #     for intrigue in mon_gn.intrigues.values():
 #         for role in intrigue.rolesContenus.values():

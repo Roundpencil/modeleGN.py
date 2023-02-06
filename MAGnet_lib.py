@@ -434,10 +434,7 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
 
 def generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive, pj=True):
     parent = mon_GN.dossier_outputs_drive
-    if pj:
-        pj_pnj = "PJ"
-    else:
-        pj_pnj = "PNJ"
+    pj_pnj = "PJ" if pj else "PNJ"
     nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes {pj_pnj}'
     nouveau_dossier = extraireTexteDeGoogleDoc.creer_dossier(api_drive, parent, nom_dossier)
 

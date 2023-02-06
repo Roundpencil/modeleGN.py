@@ -26,32 +26,32 @@ def est_un_pnj(niveauPJ):
     ]
 
 
-def est_un_pj(niveauPJ):
-    return niveauPJ == TypePerso.EST_PJ
+def est_un_pj(niveau_pj):
+    return niveau_pj == TypePerso.EST_PJ
 
 
-def string_type_pj(typePJ: TypePerso):
+def string_type_pj(type_pj: TypePerso):
     grille_pj = {TypePerso.EST_PJ: "PJ",
                  TypePerso.EST_REROLL: "Reroll",
                  TypePerso.EST_PNJ_INFILTRE: "PNJ Infiltré",
                  TypePerso.EST_PNJ_HORS_JEU: "PNJ Hors Jeu",
                  TypePerso.EST_PNJ_PERMANENT: "PNJ Permanent",
                  TypePerso.EST_PNJ_TEMPORAIRE: "PNJ Temporaire"}
-    return grille_pj.get(typePJ, f"Type de PJ inconnu ({typePJ})")
+    return grille_pj.get(type_pj, f"Type de PJ inconnu ({type_pj})")
 
-    # if typePJ == TypePerso.EST_PJ:
+    # if type_pj == TypePerso.EST_PJ:
     #     return "PJ"
-    # if typePJ == TypePerso.EST_REROLL:
+    # if type_pj == TypePerso.EST_REROLL:
     #     return "Reroll"
-    # if typePJ == TypePerso.EST_PNJ_INFILTRE:
+    # if type_pj == TypePerso.EST_PNJ_INFILTRE:
     #     return "PNJ Infiltré"
-    # if typePJ == TypePerso.EST_PNJ_PERMANENT:
+    # if type_pj == TypePerso.EST_PNJ_PERMANENT:
     #     return "PNJ Permanent"
-    # if typePJ == TypePerso.EST_PNJ_TEMPORAIRE:
+    # if type_pj == TypePerso.EST_PNJ_TEMPORAIRE:
     #     return "PNJ Temporaire"
-    # if typePJ == TypePerso.EST_PNJ_HORS_JEU:
+    # if type_pj == TypePerso.EST_PNJ_HORS_JEU:
     #     return "PNJ Hors Jeu"
-    # return f"Type de PJ inconnu ({typePJ})"
+    # return f"Type de PJ inconnu ({type_pj})"
 
 
 # une superclasse qui représente un fichier qui content des scènes, avec es rtôles associés
