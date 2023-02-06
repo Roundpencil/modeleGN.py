@@ -7,6 +7,7 @@ from enum import IntEnum
 from fuzzywuzzy import process
 import sys
 
+
 class TypePerso(IntEnum):
     EST_PNJ_HORS_JEU = 1
     EST_PNJ_TEMPORAIRE = 2
@@ -18,9 +19,9 @@ class TypePerso(IntEnum):
 
 def est_un_pnj(niveauPJ):
     return niveauPJ == TypePerso.EST_PNJ_HORS_JEU \
-           or niveauPJ == TypePerso.EST_PNJ_TEMPORAIRE \
-           or niveauPJ == TypePerso.EST_PNJ_INFILTRE \
-           or niveauPJ == TypePerso.EST_PNJ_PERMANENT
+        or niveauPJ == TypePerso.EST_PNJ_TEMPORAIRE \
+        or niveauPJ == TypePerso.EST_PNJ_INFILTRE \
+        or niveauPJ == TypePerso.EST_PNJ_PERMANENT
 
 
 def est_un_pj(niveauPJ):
@@ -370,7 +371,7 @@ class Relation:
 
 # Scènes
 class Scene:
-    def __init__(self, conteneur, titre, date="TBD", pitch="Pas de description simple", date_absolue:datetime=None,
+    def __init__(self, conteneur, titre, date="TBD", pitch="Pas de description simple", date_absolue: datetime = None,
                  description="Pas de description complète",
                  actif=True, resume="", niveau=3):
         self.conteneur = conteneur
@@ -396,7 +397,7 @@ class Scene:
         return self.date
 
     def get_formatted_date(self, date_gn=None):
-        print(f"debut du débug affichage dates pour la scène {self.titre}, clef de tri = {self.clef_tri(date_gn)}")
+        # print(f"debut du débug affichage dates pour la scène {self.titre}, clef de tri = {self.clef_tri(date_gn)}")
         # print(f"date relative = {self.date}")
         # print(f" date absolue sans prise en compte date gn : {self.get_date_absolue()}")
         # print(f"date absolue avec prise en compte date gn {self.get_date_absolue(date_gn)}")
@@ -418,18 +419,21 @@ class Scene:
             final_string = "{}, {}".format(date_string, time_string)
             return final_string
 
-
     def get_formatted_il_y_a(self):
         # print("date/type > {0}/{1}".format(self.date, type(self.date)))
         if type(self.date) == float or type(self.date) == int or str(self.date[1:]).isnumeric():
             if type(self.date) == str:
-                maDate = float(self.date[1:])
+                ma_date = float(self.date[1:])
             else:
-                maDate = -1 * self.date
+                ma_date = -1 * self.date
+
+            if ma_date == 0:
+                return "Il y a 0 jours"
+
             dateTexte = 'Il y a '
-            nbAnnees = maDate // 365
-            nbMois = (maDate - nbAnnees * 365) // 30.5
-            nbJours = maDate - nbAnnees * 365 - nbMois * 30.5
+            nbAnnees = ma_date // 365
+            nbMois = (ma_date - nbAnnees * 365) // 30.5
+            nbJours = ma_date - nbAnnees * 365 - nbMois * 30.5
 
             if nbAnnees > 1:
                 dateTexte += str(nbAnnees)[:-2] + " ans, "
@@ -466,7 +470,7 @@ class Scene:
         to_return += f"provenance : {self.conteneur.nom} \n"
         # to_return += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
         to_return += f"dernières éditions : intrigue : {self.conteneur.lastFileEdit}  " \
-                    f"/ scène : {self.derniere_mise_a_jour} \n"
+                     f"/ scène : {self.derniere_mise_a_jour} \n"
         to_return += f"url intrigue : {self.conteneur.getFullUrl()} \n"
         # to_return += f"pitch  : {self.pitch} \n"
         # to_return += f"description : \n {self.description} \n"
@@ -474,7 +478,6 @@ class Scene:
 
         # to_return += f"actif  : {self.actif} \n"
         return to_return
-
 
     def get_date_absolue(self, date_du_jeu=None):
         # print(f"pour la scène {self.titre} dans get_d_abs = date absolue = {self.date_absolue}, date = {self.date}")
@@ -491,17 +494,22 @@ class Scene:
 
     def get_date_jours(self):
         # print(f"Je suis dans get date jour et date = {self.date}, et son type est type{type(self.date)}")
-        if isinstance(self.date, float):
-            return self.date
-        else:
-            # return sys.minsize
+        # if isinstance(self.date, float) or isinstance(self.date, int):
+        #     return self.date
+        # else:
+        #     # return sys.minsize
+        #     return sys.maxsize * -1 - 1
+        try:
+            return int(float(self.date))
+        except ValueError:
+            print(f"la date {self.date} n'est pas un nombre")
             return sys.maxsize * -1 - 1
 
-    def clef_tri(self, date_gn = None):
+    def clef_tri(self, date_gn=None):
         # renvoie une donnée de type [a, b, c] où a est la date absolue, b la date relative et c la date texte
         # en cas d'absence, complète avec des valeurs par défaut
         # en cas de comparaison, met le texte en premier, puis les dates en il y a, puis les dates absolues
-        to_return = [self.get_date_absolue(date_gn), self.get_date_jours(), self.date]
+        to_return = [self.get_date_absolue(date_gn), self.get_date_jours(), str(self.date)]
         # to_return = [self.get_date_absolue(date_gn)]
 
         return to_return
@@ -525,7 +533,7 @@ class Faction:
 class GN:
     def __init__(self,
                  dossiers_intrigues, dossier_output: str,
-                 association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, id_factions=None, date_gn = None):
+                 association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, id_factions=None, date_gn=None):
 
         # création des objets nécessaires
         self.dictPJs = {}  # idgoogle, personnage
@@ -544,14 +552,14 @@ class GN:
         self.dossiers_pjs = None
         self.dossier_outputs_drive = None
         self.dossiers_intrigues = None
-        self.date_gn =None
+        self.date_gn = None
         self.injecter_config(dossiers_intrigues, dossier_output, association_auto, dossiers_pj=dossiers_pj,
-                             dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn = date_gn)
+                             dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn)
 
     def injecter_config(self,
                         dossiers_intrigues, dossier_output, association_auto,
                         dossiers_pj=None, dossiers_pnj=None, id_factions=None, noms_pjs=None,
-                        noms_pnjs=None, date_gn = None):
+                        noms_pnjs=None, date_gn=None):
         # todo : injecter les noms des PJs et le dossier PNJ
 
         self.liste_noms_pjs = noms_pjs
@@ -781,7 +789,8 @@ class GN:
                 if critere(role.pj):
                     # print(f"nom du role testé = {role.nom}")
                     score = process.extractOne(role.nom, noms_persos)
-                    print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
+                    if verbal:
+                        print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
                     check = intrigue.associer_role_a_perso(role_a_associer=role, personnage=dict_noms_persos[score[0]],
                                                            verbal=verbal)
 

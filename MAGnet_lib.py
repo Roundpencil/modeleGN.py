@@ -731,23 +731,44 @@ def generer_table_chrono_complete(table_raw, date_gn):
     # all_dates = sorted(list(all_dates), key=extraireTexteDeGoogleDoc.calculer_jours_il_y_a)
 
     # Find all unique dates across all stories
-    all_dates = set()
+    # all_scenes = set()
     # for story in table_raw:
     #     all_dates |= set([scene for scene in story[1:]])
     # all_dates = sorted(list(all_dates), key=lambda scene: scene.clef_tri(date_gn))
 
-#todo : prendre les textes des dates et non les scènes
-    for story in table_raw:
-        all_dates |= set([scene for scene in story[1:]])
-    all_dates = sorted(list(all_dates), key=lambda scene: scene.clef_tri(date_gn))
+    all_scenes = []
+    for ligne in table_raw:
+        all_scenes += [scene for scene in ligne[1:]]
+    all_scenes = Scene.trier_scenes(all_scenes, date_gn=date_gn)
 
+    # all_date = set()
+    # for scene in all_scenes:
+    #     print(f"clef-formatted-titre = {scene.clef_tri(date_gn)} / {scene.get_formatted_date(date_gn=date_gn)} / {scene.titre}")
+    #     all_date.add(scene.get_formatted_date(date_gn=date_gn))
+
+    dates = []
+    seen = set()
+    for scene in all_scenes:
+        date = scene.get_formatted_date(date_gn=date_gn)
+        if date not in seen:
+            seen.add(date)
+            dates.append(date)
+
+    for date in dates:
+        print(f"date triée (normalement) = {date}")
+
+
+    # all_dates = []
+    # for scene in all_scenes:
+    #     all_dates.append(scene.get_formatted_date(date_gn=date_gn))
+    # all_dates = set(all_dates)
 
     # Create a dictionary mapping dates to indices
-    date_to_index = {scene.get_formatted_date(date_gn=date_gn): i for i, scene in enumerate(all_dates)}
-
+    date_to_index = {date: i for i, date in enumerate(dates)}
+    print(f"date_to_index = {date_to_index}")
     # Initialize the matrix with empty values
     num_stories = len(table_raw)
-    num_dates = len(all_dates)
+    num_dates = len(dates)
     # matrix = [['' for j in range(num_stories + 1)] for i in range(num_dates + 1)]
     matrix = [['' for _ in range(num_stories + 1)] for _ in range(num_dates + 1)]
 
@@ -756,8 +777,8 @@ def generer_table_chrono_complete(table_raw, date_gn):
         matrix[0][j + 1] = story[0]
 
     # Populate the first column with dates
-    for i, scene in enumerate(all_dates):
-        matrix[i + 1][0] = scene.get_formatted_date(date_gn=date_gn)
+    for i, date in enumerate(dates):
+        matrix[i + 1][0] = date
 
     # Fill in the events
     for j, story in enumerate(table_raw):

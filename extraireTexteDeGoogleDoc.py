@@ -625,14 +625,14 @@ def extraire_date_scene(balise_date, scene_a_ajouter):
     # print("date de la scène : " + scene_a_ajouter.date)
 
 
-def extraire_il_y_a_scene(baliseDate, sceneAAjouter):
+def extraire_il_y_a_scene(baliseDate, scene_a_ajouter):
     # print("balise date : " + balise_date)
     # trouver s'il y a un nombre a[ns]
     date_en_jours = calculer_jours_il_y_a(baliseDate)
     print(f"dans extraire il y a scene : {date_en_jours} avant de mettre à jour")
 
-    sceneAAjouter.date = date_en_jours
-    print(f"et après mise à jour de la scène : {sceneAAjouter.date}")
+    scene_a_ajouter.date = date_en_jours
+    print(f"et après mise à jour de la scène : {scene_a_ajouter.date}")
 
 
 def extraire_date_absolue(texte_brut: str, scene_a_ajouter: Scene):
@@ -688,10 +688,10 @@ def calculer_jours_il_y_a(balise_date):
 
         # print(f"{ma_date} > ans/jours/mois = {ans}/{mois}/{jours}")
 
-        dateEnJours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(semaines) * 7 + float(jours))
-        print(f"balise date il y a en sortie {dateEnJours}")
+        date_en_jours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(semaines) * 7 + float(jours))
+        print(f"balise date il y a en sortie {date_en_jours}")
 
-        return dateEnJours
+        return date_en_jours
     except ValueError:
         print(f"Erreur avec la date {balise_date}")
         return balise_date.strip()
