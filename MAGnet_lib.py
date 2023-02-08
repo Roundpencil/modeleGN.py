@@ -287,7 +287,7 @@ def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
     if verbal:
         print(log_erreur)
     if prefixe is not None:
-        with open(prefixe + ' - problèmes tableaux persos.txt', 'w', encoding="utf-8") as f:
+        with open(f'{prefixe} - problèmes tableaux persos.txt', 'w', encoding="utf-8") as f:
             f.write(log_erreur)
             f.close()
     return log_erreur
@@ -746,7 +746,8 @@ def generer_table_chrono_complete(table_raw, date_gn):
 
     all_scenes = []
     for ligne in table_raw:
-        all_scenes += [scene for scene in ligne[1:]]
+        all_scenes += list(ligne[1:])
+        # all_scenes += [scene for scene in ligne[1:]]
     all_scenes = Scene.trier_scenes(all_scenes, date_gn=date_gn)
 
     # all_date = set()

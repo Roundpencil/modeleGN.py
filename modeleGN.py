@@ -356,11 +356,13 @@ class Intrigue(ConteneurDeScene):
 
 # relations
 class Relation:
-    def __init__(self, perso1, perso2, description_vue_par_1="Relation à définir", description_vue_par_2=""):
+    def __init__(self, perso1, perso2, description_vue_par_1="Relation à définir", description_vue_par_2="",
+                 reciproque = True):
         self.perso1 = perso1
         self.perso2 = perso2
         self.description_vue_par_1 = description_vue_par_1
         self.description_vue_par_2 = description_vue_par_2
+        self.reciproque = reciproque
 
     def partenaire(self, perso):
         if perso is self.perso1:
