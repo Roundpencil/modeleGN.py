@@ -509,14 +509,11 @@ class Scene:
             print(f"la date {self.date} n'est pas un nombre")
             return sys.maxsize * -1 - 1
 
+    # renvoie une donnée de type [a, b, c] où a est la date absolue, b la date relative et c la date texte
+    # en cas d'absence, complète avec des valeurs par défaut
+    # en cas de comparaison, met le texte en premier, puis les dates en il y a, puis les dates absolues
     def clef_tri(self, date_gn=None):
-        # renvoie une donnée de type [a, b, c] où a est la date absolue, b la date relative et c la date texte
-        # en cas d'absence, complète avec des valeurs par défaut
-        # en cas de comparaison, met le texte en premier, puis les dates en il y a, puis les dates absolues
-        to_return = [self.get_date_absolue(date_gn), self.get_date_jours(), str(self.date)]
-        # to_return = [self.get_date_absolue(date_gn)]
-
-        return to_return
+        return [self.get_date_absolue(date_gn), self.get_date_jours(), str(self.date)]
 
     @staticmethod
     def trier_scenes(scenes_a_trier, date_gn=None):
@@ -780,7 +777,7 @@ class GN:
                         print(texte_erreur)
 
         # faire l'association dans les intrigues à partir du nom de l'intrigue
-        #identifier la bonne focntion à appliquer
+        # identifier la bonne fonction à appliquer
         critere = est_un_pj if pj else est_un_pnj
 
         # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant

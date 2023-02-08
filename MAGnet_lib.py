@@ -15,6 +15,8 @@ import dateparser
 # todo comprendre pourquoi pas de load de snyder
 
 # à faire
+# todo ajouter une gestion des tags infos
+
 #todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
 #todo : faire évoluer grille objets avec le code et le fait qu'on a trouvé un lien vers une fiche objet
