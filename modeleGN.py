@@ -247,7 +247,7 @@ class Role:
         self.typeIntrigue = typeIntrigue
         self.niveauImplication = niveauImplication
         self.scenes = set()
-        self.perimetreIntervention = perimetre_intervention
+        self.perimetre_intervention = perimetre_intervention
         self.issu_dune_faction = issu_dune_faction
 
     def __str__(self):

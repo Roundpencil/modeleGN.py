@@ -540,7 +540,9 @@ class Application(tk.Frame):
                     table_intrigues_var,
                     table_objets_var,
                     table_chrono_var,
-                    table_persos_var]
+                    table_persos_var,
+                    table_pnjs_var
+                    ]
 
             for checkbox in args:
                 checkbox.set(etat_a_forcer.get())
@@ -593,15 +595,22 @@ class Application(tk.Frame):
                                             variable=table_persos_var)
         table_persos_check.grid(row=7, column=3)
 
+        table_pnjs_var = tk.BooleanVar()
+        table_pnjs_var.set(True)
+        table_pnjs_check = tk.Checkbutton(regen_window, text="Table des pnjs",
+                                            variable=table_pnjs_var)
+        table_pnjs_check.grid(row=8, column=1)
+
+
         # Buttons
         cancel_button = tk.Button(regen_window, text="Annuler", command=regen_window.destroy)
-        cancel_button.grid(row=8, column=0)
+        cancel_button.grid(row=9, column=0)
 
         verbal_var = tk.BooleanVar()
         verbal_var.set(False)
         verbal_check = tk.Checkbutton(regen_window, text='Mode "bavard"',
                                       variable=verbal_var)
-        verbal_check.grid(row=8, column=2)
+        verbal_check.grid(row=9, column=2)
 
         ok_button = tk.Button(regen_window, text="OK",
                               command=lambda: self.process_regen(
@@ -616,16 +625,17 @@ class Application(tk.Frame):
                                   changelog_var=changelog_var.get(),
                                   table_chrono_var=table_chrono_var.get(),
                                   table_persos_var=table_persos_var.get(),
+                                  table_pnj_var=table_pnjs_var.get(),
                                   table_intrigues_var=table_intrigues_var.get(),
                                   table_objets_var=table_objets_var.get(),
                                   verbal_var=verbal_var.get()
                               )
                               )
 
-        ok_button.grid(row=8, column=1)
+        ok_button.grid(row=9, column=1)
 
     def regen_intrigue_select(self, value):
-        if value == "Rapide" or value == "Complet":
+        if value in ["Rapide", "Complet"]:
             self.intrigue_specifique_entry.config(state='disabled')
         elif value == "Spécifique":
             self.intrigue_specifique_entry.config(state='normal')
@@ -639,7 +649,7 @@ class Application(tk.Frame):
     def process_regen(self, intrigues_value, personnages_value, sans_chargement_fichier_value,
                       sauver_apres_operation_value,
                       generer_fichiers_drive_value, fichier_erreur_var, export_drive_var, changelog_var,
-                      table_chrono_var, table_persos_var, table_intrigues_var, table_objets_var,
+                      table_chrono_var, table_persos_var, table_pnj_var, table_intrigues_var, table_objets_var,
                       generer_fichiers_pnjs_var, verbal_var):
 
         if intrigues_value == "Spécifique":
@@ -674,6 +684,7 @@ class Application(tk.Frame):
                              table_objets=table_objets_var,
                              table_chrono=table_chrono_var,
                              table_persos=table_persos_var,
+                             table_pnjs=table_pnj_var,
                              fast_intrigues=(intrigues_value == "Rapide"),
                              fast_persos=(personnages_value == "Rapide"),
                              singletest_perso=personnages_specifique,

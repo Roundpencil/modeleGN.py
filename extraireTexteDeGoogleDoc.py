@@ -18,7 +18,7 @@ def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=Fals
 
 
 def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
-    # print(f"je m'apprete à extraire les PJs depuis {mon_gn.dossiers_pjs}")
+    # print(f"je m'apprete à extraire les PJs depuis {gn.dossiers_pjs}")
     extraire_texte_de_google_doc(
         mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
         singletest,
@@ -26,7 +26,7 @@ def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False,
 
 
 def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
-    # print(f"je m'apprête à extraire les PNJs depuis {mon_gn.dossiers_pnjs}")
+    # print(f"je m'apprête à extraire les PNJs depuis {gn.dossiers_pnjs}")
     if mon_gn.dossiers_pnjs is None or len(mon_gn.dossiers_pnjs) == 0:
         print("impossible de lire le dossier des PNJs : il n'existe pas")
         return
@@ -37,7 +37,7 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
 
 
 def extraire_evenements(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
-    # print(f"je m'apprete à extraire les PNJs depuis {mon_gn.dossiers_pnjs}")
+    # print(f"je m'apprete à extraire les PNJs depuis {gn.dossiers_pnjs}")
     if mon_gn.dossiers_evenements is None or len(mon_gn.dossiers_evenements) == 0:
         print(f"impossible de lire le dossier des évènements : il n'existe pas")
         return
@@ -76,9 +76,9 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                     continue
                 else:
                     print(f"j'ai trouvé le doc #{single_test} : {document.get('title')}")
-                    # if item['id'] in mon_gn.intrigues.keys():
-                    #     mon_gn.intrigues[item['id']].clear()
-                    #     del mon_gn.intrigues[item['id']]
+                    # if item['id'] in gn.intrigues.keys():
+                    #     gn.intrigues[item['id']].clear()
+                    #     del gn.intrigues[item['id']]
 
                     objet_de_reference = None
                     if item['id'] in dict_ids.keys():
@@ -124,18 +124,18 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
 
                 # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
                 #   SI l'intrigue existe dans le GN ?
-                # if item['id'] in mon_gn.intrigues .keys():
+                # if item['id'] in gn.intrigues .keys():
                 if item['id'] in dict_ids.keys():
 
                     #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
                     # print("l'intrigue fait déjà partie du GN ! ")
-                    # print(f"Variable / type : mon_gn.intrigues[item['id']].lastChange /
-                    # {type(mon_gn.intrigues[item['id']].lastChange)} / {mon_gn.intrigues[item['id']].lastChange}")
+                    # print(f"Variable / type : gn.intrigues[item['id']].lastChange /
+                    # {type(gn.intrigues[item['id']].lastChange)} / {gn.intrigues[item['id']].lastChange}")
                     # print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} /
                     # {item['modifiedTime']}")
 
                     # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
-                    # if mon_gn.intrigues[item['id']].lastChange >=
+                    # if gn.intrigues[item['id']].lastChange >=
                     # datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
                     # if dict_ids[item['id']].lastProcessing >= item['modifiedTime']:
                     if fast and \
@@ -156,8 +156,8 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                     else:
                         # print("elle a changé depuis mon dernier passage : supprimons-la !")
                         # dans ce cas, il faut la supprimer, car on va tout réécrire
-                        # mon_gn.intrigues[item['id']].clear()
-                        # del mon_gn.intrigues[item['id']]
+                        # gn.intrigues[item['id']].clear()
+                        # del gn.intrigues[item['id']]
 
                         objet_de_reference = dict_ids.pop(item['id'])
 
@@ -181,7 +181,7 @@ def extraire_objets_de_document(document, item, mon_gn, fonctionExtraction, save
     text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
 
     # print(text) #test de la fonction récursive pour le texte
-    # mon_objet = extraire_intrigue_de_texte(text, document.get('title'), item["id"], mon_gn)
+    # mon_objet = extraire_intrigue_de_texte(text, document.get('title'), item["id"], gn)
     last_file_edit = datetime.datetime.strptime(
         item['modifiedTime'][:-5],
         '%Y-%m-%dT%H:%M:%S')
@@ -214,7 +214,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     current_intrigue = Intrigue(nom=nomIntrigue, url=idUrl, derniere_edition_fichier=lastFileEdit)
     current_intrigue.modifie_par = derniere_modification_par
     monGN.intrigues[idUrl] = current_intrigue
-    # noms_persos = mon_gn.liste_noms_pjs()
+    # noms_persos = gn.liste_noms_pjs()
 
     # on fait un dict du début de chaque label
     REFERENT = "orga référent"

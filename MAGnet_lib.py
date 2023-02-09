@@ -168,7 +168,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          generer_fichiers_pjs: bool = True,
                          generer_fichiers_pnjs: bool = True,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
-                         table_chrono: bool = True, table_persos: bool = True,
+                         table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, verbal: bool = False):
     if api_doc is None or api_sheets is None or api_drive is None:
@@ -217,7 +217,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         mon_gn.forcer_import_pnjs(noms_pnjs, verbal=verbal)
 
     extraireTexteDeGoogleDoc.extraire_factions(mon_gn, apiDoc=api_doc, verbal=verbal)
-    # print(f"mon_gn.factions = {mon_gn.factions}")
+    # print(f"gn.factions = {gn.factions}")
 
     mon_gn.rebuild_links(verbal)
 
@@ -240,8 +240,8 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     print("*******changelog*********************")
     if changelog:
         generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets)
-        # genererChangeLog(mon_gn, prefixe_fichiers, nbJours=3)
-        # genererChangeLog(mon_gn, prefixe_fichiers, nbJours=4)
+        # genererChangeLog(gn, prefixe_fichiers, nbJours=3)
+        # genererChangeLog(gn, prefixe_fichiers, nbJours=4)
 
     print("*********touslesquelettes*******************")
     if generer_fichiers_pjs:
@@ -252,7 +252,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     ecrire_squelettes_localement(mon_gn, prefixe_fichiers)
     ecrire_squelettes_localement(mon_gn, prefixe_fichiers, pj=False)
     print("*******dumpallscenes*********************")
-    # dumpAllScenes(mon_gn)
+    # dumpAllScenes(gn)
 
     print("******* table objets *********************")
     if table_objets:
@@ -265,6 +265,9 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     print("******* table persos *********************")
     if table_persos:
         ecrire_table_persos(mon_gn, api_drive, api_sheets)
+    if table_pnjs:
+        ecrire_table_pnj(mon_gn, api_drive, api_sheets)
+
     print("******* fin de la génération  *********************")
 
 
@@ -273,7 +276,7 @@ def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
     intrigues_triees = [intrigue for intrigue in mon_gn.intrigues.values()]
     # intrigues_triees = sorted(intrigues_triees,  key= lambda x:x.orgaReferent)
     intrigues_triees = sorted(mon_gn.intrigues.values(), key=lambda x: x.orgaReferent)
-    # for intrigue in mon_gn.intrigues.values():
+    # for intrigue in gn.intrigues.values():
 
     current_orga = "ceci est un placeholder"
     for intrigue in intrigues_triees:
@@ -458,7 +461,7 @@ def squelettes_par_perso(mon_gn, pj=True):
 
     for perso in liste_persos_source:
         print(f"génération du texte des persos : perso en cours de lecture : {perso.nom}")
-        # for perso in mon_gn.dictPJs.values():
+        # for perso in gn.dictPJs.values():
         texte_perso = ""
         texte_perso += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
         texte_perso += f"résumé de la bio : \n"
@@ -834,6 +837,52 @@ def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, file_id)
 
 
+
+def generer_table_pnjs(gn: GN, verbal=False):
+    table_pnj = [["nom PNJ", "description",
+                 "type_pj",
+                 "niveau implication",
+                 "details intervention",
+                 "intrigue", "nom dans l'intrigue", "indice de confiance normalisation"]]
+
+    liste_noms_pnjs = gn.noms_pnjs()
+    for intrigue in gn.intrigues.values():
+        for role in intrigue.rolesContenus.values():
+            if role.est_un_pnj():
+                print(f"clefs (1) pour {role.nom} = {vars(role).keys()}")
+                nom_pnj = role.nom.replace('\n', '\v')
+                description = role.description.replace('\n', '\v')
+                niveau_implication = role.niveauImplication.replace('\n', '\v')
+                perimetre_intervention = role.perimetre_intervention.replace('\n', '\v')
+                score = process.extractOne(nom_pnj, liste_noms_pnjs)
+                type_dans_gn = gn.dictPNJs[score[0]].pj
+
+                table_pnj.append(
+                    [score[0],
+                    description,
+                    string_type_pj(type_dans_gn),
+                    niveau_implication,
+                    perimetre_intervention,
+                    intrigue.nom,
+                    nom_pnj,
+                    score[1]])
+    if verbal:
+        print(table_pnj)
+
+    return table_pnj
+
+def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets):
+    parent = mon_gn.dossier_outputs_drive
+    table = generer_table_pnjs(mon_gn)
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- table des PNJs'
+    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, file_id)
+
+
+
+
+
 def mettre_a_jour_champs(gn: GN):
     # #mise à jour des errors logs
     # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
@@ -849,7 +898,7 @@ def mettre_a_jour_champs(gn: GN):
         for scene in conteneur.scenes:
             if not hasattr(scene, 'date_absolue'):
                 scene.date_absolue = None
-            print(f"la scène {scene.titre}, dateba absolue = {scene.date_absolue}")
+            # print(f"la scène {scene.titre}, dateba absolue = {scene.date_absolue}")
 
     for intrigue in gn.intrigues.values():
         for objet in intrigue.objets:
@@ -858,3 +907,18 @@ def mettre_a_jour_champs(gn: GN):
             if hasattr(objet, 'rfid'):
                 delattr(objet, 'rfid')
 
+    for conteneur in list(gn.dictPJs.values()) \
+                     + list(gn.dictPNJs.values()) \
+                     + list(gn.intrigues.values()):
+        for role in conteneur.rolesContenus.values():
+            print(f"clefs (2) pour {role.nom} = {vars(role).keys()}")
+            if hasattr(role, 'perimetreIntervention'):
+                if not hasattr(role, 'perimetre_intervention'):
+                    role.perimetre_intervention = role.perimetreIntervention
+                delattr(role, 'perimetreIntervention')
+                print(f"PerimetreIntervention supprimé pour {role.nom}")
+
+            if hasattr(role, 'perimetre_Intervention'):
+                if not hasattr(role, 'perimetre_intervention'):
+                    role.perimetre_intervention = role.perimetre_Intervention
+                delattr(role, 'perimetre_Intervention')

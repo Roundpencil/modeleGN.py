@@ -8,9 +8,9 @@ testPerso = Personnage(nom="Jean", concept="Vengeur", driver="Se venger", descri
                        questions_ouvertes="aucune", sexe="m", pj=True)
 
 monGN = GN()
-#mon_gn.personnages().add(testPerso)
+#gn.personnages().add(testPerso)
 monGN.addperso(testPerso)
-#mon_gn.save("c:"\testsave.io")
+#gn.save("c:"\testsave.io")
 
 testIntrigue = Intrigue(description="intrigue de test")
 
