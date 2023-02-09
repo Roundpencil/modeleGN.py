@@ -857,3 +857,4 @@ def mettre_a_jour_champs(gn: GN):
                 objet.code=""
             if hasattr(objet, 'rfid'):
                 delattr(objet, 'rfid')
+

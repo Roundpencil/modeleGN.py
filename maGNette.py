@@ -742,3 +742,13 @@ def convertir_erreur_manager(gn:GN):
     #         print(f"{obj.nom} a été mis à jour")
     #     return nouveaux_erreur_manager
     pass
+
+
+def lister_rerolls(gn:GN):
+    for conteneur in list(gn.dictPJs.values()) \
+                     + list(gn.dictPNJs.values()) \
+                     + list(gn.intrigues.values()):
+        for scene in conteneur.scenes:
+            for role in scene.roles:
+                if role.pj == TypePerso.EST_REROLL:
+                    print(f"{role.nom} est un reroll")
