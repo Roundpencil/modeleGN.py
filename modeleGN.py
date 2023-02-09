@@ -208,6 +208,9 @@ class Personnage(ConteneurDeScene):
     def sommer_pip(self):
         return sum(role.sommer_pip() for role in self.roles)
 
+    def string_type_pj(self):
+        return string_type_pj(self.pj)
+
         # pip = 0
         # for role in self.roles:
         #     pip += role.sommer_pip()
@@ -217,9 +220,9 @@ class Personnage(ConteneurDeScene):
 # rôle
 class Role:
 
-    def __init__(self, conteneur, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i",
+    def __init__(self, conteneur:ConteneurDeScene, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i",
                  pj: TypePerso = TypePerso.EST_PJ,
-                 typeIntrigue="", niveauImplication="", perimetre_intervention="", issu_dune_faction=False,
+                 type_intrigue="", niveau_implication="", perimetre_intervention="", issu_dune_faction=False,
                  pip_globaux=0):
         self.conteneur = conteneur
         self.perso = perso
@@ -244,8 +247,8 @@ class Role:
         self.sommer_pip()
         self.pj = pj
         self.sexe = sexe
-        self.typeIntrigue = typeIntrigue
-        self.niveauImplication = niveauImplication
+        self.typeIntrigue = type_intrigue
+        self.niveauImplication = niveau_implication
         self.scenes = set()
         self.perimetre_intervention = perimetre_intervention
         self.issu_dune_faction = issu_dune_faction
@@ -736,7 +739,7 @@ class GN:
     def associer_pj_a_roles(self, seuilAlerte=70, verbal=True):
         self.associer_pjpnj_a_roles(pj=True, seuilAlerte=seuilAlerte, verbal=verbal)
 
-    def associer_pjpnj_a_roles(self, pj: bool, seuilAlerte=70, verbal=True):
+    def associer_pjpnj_a_roles(self, pj: bool, seuilAlerte=70, verbal=False):
         print("Début de l'association automatique des rôles aux persos")
         noms_persos = self.noms_pjpnjs(pj)
         if pj:

@@ -298,7 +298,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
             # 2 Type d’implication: (Active, Passive, Info, ou Objet)
             # 3 Résumé de l’implication
             pnjAAjouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
-                               pj=TypePerso.EST_PNJ_HORS_JEU, niveauImplication=sections[2].strip(),
+                               pj=TypePerso.EST_PNJ_HORS_JEU, niveau_implication=sections[2].strip(),
                                perimetre_intervention=sections[1].strip())
 
             # print("Je suis en train de regarder {0} et son implication est {1}"
@@ -334,8 +334,8 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
             sections = reroll.split("¤¤¤")
             # même sections que les PJs
             reRollAAjouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
-                                  pj=TypePerso.EST_REROLL, typeIntrigue=sections[2].strip(),
-                                  niveauImplication=sections[1].strip())
+                                  pj=TypePerso.EST_REROLL, type_intrigue=sections[2].strip(),
+                                  niveau_implication=sections[1].strip())
 
             # du coup, on peut l'ajouter aux intrigues
             current_intrigue.rolesContenus[reRollAAjouter.nom] = reRollAAjouter
@@ -463,8 +463,8 @@ def lire_tableau_pj_chalacta(currentIntrigue, pjs):
         roleAAjouter = Role(currentIntrigue,
                             nom=sections[0].split("http")[0].strip(),
                             description=sections[3].strip(),
-                            typeIntrigue=sections[2].strip(),
-                            niveauImplication=sections[1].strip()
+                            type_intrigue=sections[2].strip(),
+                            niveau_implication=sections[1].strip()
                             )
         currentIntrigue.rolesContenus[roleAAjouter.nom] = roleAAjouter
 
@@ -484,8 +484,8 @@ def lire_tableau_pj_5_colonnes(current_intrigue, pjs):
         roleAAjouter = Role(current_intrigue,
                             nom=sections[0].split("http")[0].strip(),
                             description=sections[4].strip(),
-                            typeIntrigue=sections[3].strip(),
-                            niveauImplication=sections[2].strip(),
+                            type_intrigue=sections[3].strip(),
+                            niveau_implication=sections[2].strip(),
                             pip_globaux=sections[1].strip()
                             )
         current_intrigue.rolesContenus[roleAAjouter.nom] = roleAAjouter
@@ -506,8 +506,8 @@ def lire_tableau_pj_6_colonnes(current_intrigue, pjs):
         roleAAjouter = Role(current_intrigue,
                             nom=sections[0].split("http")[0].strip(),
                             description=sections[5].strip(),
-                            typeIntrigue=sections[4].strip(),
-                            niveauImplication=sections[3].strip(),
+                            type_intrigue=sections[4].strip(),
+                            niveau_implication=sections[3].strip(),
                             pipi=sections[1].strip(),
                             pipr=sections[2].strip()
                             )
@@ -950,7 +950,8 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=False):
                 score = fuzzywuzzy.process.extractOne(perso_name, noms_persos)
                 # print(f"score durant lecture faction pour {perso_name} = {score}")
                 if verbal:
-                    print(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
+                    # print(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
+                    pass
                 if temp_dict_pjs.get(score[0]):
                     personnages_a_ajouter = mon_GN.dictPJs[temp_dict_pjs.get(score[0])]
                 else:

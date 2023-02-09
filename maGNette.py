@@ -435,14 +435,14 @@ def listerPNJs(monGN):
 #             if role.est_un_pnj():
 #                 nompnj = role.nom.replace('\n', chr(10))
 #                 description = role.description.replace('\n', "***")
-#                 niveauImplication = role.niveauImplication.replace('\n', chr(10))
+#                 niveau_implication = role.niveau_implication.replace('\n', chr(10))
 #                 perimetre_intervention = role.perimetre_intervention.replace('\n', chr(10))
 #                 score = process.extractOne(nompnj, liste_noms_pnjs)
 #                 typeDansGN = gn.dictPNJs[score[0]].pj
 #                 output += f"{score[0]};" \
 #                           f"{description};" \
 #                           f"{string_type_pj(typeDansGN)};" \
-#                           f"{niveauImplication};" \
+#                           f"{niveau_implication};" \
 #                           f"{perimetre_intervention};" \
 #                           f"{intrigue.nom}; " \
 #                           f"{nompnj}; " \

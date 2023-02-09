@@ -843,29 +843,56 @@ def generer_table_pnjs(gn: GN, verbal=False):
                  "type_pj",
                  "niveau implication",
                  "details intervention",
-                 "intrigue", "nom dans l'intrigue", "indice de confiance normalisation"]]
+                 "intrigue", "nom dans l'intrigue"]]
 
-    liste_noms_pnjs = gn.noms_pnjs()
-    for intrigue in gn.intrigues.values():
-        for role in intrigue.rolesContenus.values():
-            if role.est_un_pnj():
-                print(f"clefs (1) pour {role.nom} = {vars(role).keys()}")
-                nom_pnj = role.nom.replace('\n', '\v')
-                description = role.description.replace('\n', '\v')
-                niveau_implication = role.niveauImplication.replace('\n', '\v')
-                perimetre_intervention = role.perimetre_intervention.replace('\n', '\v')
-                score = process.extractOne(nom_pnj, liste_noms_pnjs)
-                type_dans_gn = gn.dictPNJs[score[0]].pj
+    # liste_noms_pnjs = gn.noms_pnjs()
+    # for intrigue in gn.intrigues.values():
+    #     for role in intrigue.rolesContenus.values():
+    #         if role.est_un_pnj():
+    #             print(f"clefs (1) pour {role.nom} = {vars(role).keys()}")
+    #             nom_pnj = role.nom.replace('\n', '\v')
+    #             description = role.description.replace('\n', '\v')
+    #             niveau_implication = role.niveau_implication.replace('\n', '\v')
+    #             perimetre_intervention = role.perimetre_intervention.replace('\n', '\v')
+    #             score = process.extractOne(nom_pnj, liste_noms_pnjs)
+    #             type_dans_gn = gn.dictPNJs[score[0]].pj
+    #
+    #             table_pnj.append(
+    #                 [score[0],
+    #                 description,
+    #                 string_type_pj(type_dans_gn),
+    #                 niveau_implication,
+    #                 perimetre_intervention,
+    #                 intrigue.nom,
+    #                 nom_pnj,
+    #                 score[1]])
+    print("ping table pnj")
+    print(f"pnjs contenus : {gn.dictPNJs.keys()}")
 
-                table_pnj.append(
-                    [score[0],
-                    description,
-                    string_type_pj(type_dans_gn),
-                    niveau_implication,
-                    perimetre_intervention,
-                    intrigue.nom,
-                    nom_pnj,
-                    score[1]])
+    for pnj in gn.dictPNJs.values():
+        print(f"{pnj.nom}")
+        for role in pnj.roles:
+            print(f"table pnj : pnj en cours d'ajout : {pnj.nom}")
+            print(f"{pnj.nom}")
+            print(f"{role.description}")
+            print(f"{pnj.string_type_pj()}")
+            print(f"{role.niveauImplication}")
+            print(f"{role.perimetre_intervention}")
+            print(f"{role.conteneur.nom}")
+            print(f"{role.nom}")
+
+        table_pnj.extend(
+            [
+                pnj.nom,
+                role.description,
+                pnj.string_type_pj(),
+                role.niveauImplication,
+                role.perimetre_intervention,
+                role.conteneur.nom,
+                role.nom
+            ]
+            for role in pnj.roles
+        )
     if verbal:
         print(table_pnj)
 
