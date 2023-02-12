@@ -15,6 +15,7 @@ import dateparser
 # bugs
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi intrigue 17 sandrine Corrigan apparait
+# todo : comprendre pouruqoi dans 49 un role pparait deux fois
 
 
 # à faire
