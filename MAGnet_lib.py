@@ -10,14 +10,14 @@ import dateparser
 # communication :
 # todo :informer chalacta des factions,
 #  des squelettes pnjs, des tableaux intrigues, des nouveaux tableaux de synthèse (objets / chrono / persos),
-#  des nouveaux fichiers d'erruers, du tag questionnaire
+#  des nouveaux fichiers d'erruers, du tag questionnaire, balise info
 
 # bugs
 # todo comprendre pourquoi pas de load de snyder
+# todo : comprendre pouruqoi intrigue 17 sandrine Corrigan apparait
+
 
 # à faire
-# todo ajouter une gestion des tags infos
-
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
 # todo : faire évoluer grille objets avec le code et le fait qu'on a trouvé un lien vers une fiche objet
@@ -165,7 +165,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          noms_pjs=None, noms_pnjs=None,
                          fichier_erreurs: bool = True,
                          generer_fichiers_pjs: bool = True,
-                         generer_fichiers_pnjs: bool = True,
+                         generer_fichiers_pnjs: bool = True, aides_de_jeu: bool = True,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
                          table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
@@ -266,6 +266,10 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         ecrire_table_persos(mon_gn, api_drive, api_sheets)
     if table_pnjs:
         ecrire_table_pnj(mon_gn, api_drive, api_sheets)
+
+    print("******* aides de jeu *********************")
+    if aides_de_jeu:
+        ecrire_texte_info(mon_gn, api_doc, api_drive)
 
     print("******* fin de la génération  *********************")
 
@@ -523,8 +527,7 @@ def generer_liste_pnj_dedup(monGN, threshold=89, verbal=False):
     if verbal:
         for v in extract:
             print(v)
-    to_return = '\n'.join(extract)
-    return to_return
+    return '\n'.join(extract)
 
 
 def ecrire_liste_pnj_dedup_localement(mon_gn: GN, prefixe: str, threshold=89, verbal=False):
@@ -728,7 +731,8 @@ def generer_table_chrono_condensee(tableau_raw, date_gn):
                 # date, event = story[i + 1]
                 # row.append(f"{date} - {event}")
                 date = story[i + 1].get_formatted_date(date_gn=date_gn)
-                event = story[i + 1].titre
+                event = f"{story[i + 1].titre} \n ({story[i + 1].conteneur.nom})"
+                # event = story[i + 1].titre
                 row.append(f"{date} - {event}")
             # Otherwise, add an empty string
             else:
@@ -770,9 +774,9 @@ def generer_table_chrono_complete(table_raw, date_gn):
         if date not in seen:
             seen.add(date)
             dates.append(date)
-
-    for date in dates:
-        print(f"date triée (normalement) = {date}")
+    #
+    # for date in dates:
+    #     print(f"date triée (normalement) = {date}")
 
     # all_dates = []
     # for scene in all_scenes:
@@ -800,7 +804,7 @@ def generer_table_chrono_complete(table_raw, date_gn):
     for j, story in enumerate(table_raw):
         for event in story[1:]:
             i = date_to_index[event.get_formatted_date(date_gn=date_gn)]
-            matrix[i + 1][j + 1] = '\n'.join([matrix[i + 1][j + 1], event.titre])
+            matrix[i + 1][j + 1] = '\n'.join([matrix[i + 1][j + 1], f"{event.titre} \n ({event.conteneur.nom})"])
 
     return matrix
 
@@ -909,6 +913,37 @@ def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets):
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, file_id)
 
 
+def generer_textes_infos(gn: GN):
+    # on crée un dictionnaire avec toutes les scènes par infos
+    dict_infos = {}
+    for scene in gn.lister_toutes_les_scenes():
+        for info in scene.infos:
+            if info in dict_infos:
+                dict_infos[info].append(scene)
+            else:
+                dict_infos[info] = [scene]
+
+    # on met toutes les scènes dans une string
+    to_return = ""
+    for info in dict_infos:
+        to_return += f"Scènes associées à {info} : \n"
+        for scene in dict_infos[info]:
+            to_return += scene.str_pour_squelette() + '\n'
+        to_return += '***************************** \n'
+    return to_return
+
+
+def ecrire_texte_info(mon_GN: GN, api_doc, api_drive):
+    parent = mon_GN.dossier_outputs_drive
+
+    texte = generer_textes_infos(mon_GN)
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- données pour aides de jeu'
+    mon_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.write_to_doc(
+            api_doc, mon_id, texte
+    )
+
 def mettre_a_jour_champs(gn: GN):
     # #mise à jour des errors logs
     # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
@@ -948,3 +983,7 @@ def mettre_a_jour_champs(gn: GN):
                 if not hasattr(role, 'perimetre_intervention'):
                     role.perimetre_intervention = role.perimetre_Intervention
                 delattr(role, 'perimetre_Intervention')
+
+    for scene in gn.lister_toutes_les_scenes():
+        if not hasattr(scene, 'infos'):
+            scene.infos = set()

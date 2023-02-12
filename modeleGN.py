@@ -220,7 +220,8 @@ class Personnage(ConteneurDeScene):
 # rôle
 class Role:
 
-    def __init__(self, conteneur:ConteneurDeScene, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0, sexe="i",
+    def __init__(self, conteneur: ConteneurDeScene, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0,
+                 sexe="i",
                  pj: TypePerso = TypePerso.EST_PJ,
                  type_intrigue="", niveau_implication="", perimetre_intervention="", issu_dune_faction=False,
                  pip_globaux=0):
@@ -334,14 +335,13 @@ class Intrigue(ConteneurDeScene):
         for role in self.rolesContenus.values():
             # si le personnage que l'on souhaite associer au rôle est déjà associé à un rôle dans l'intrigue
             if role.perso is personnage:
-                # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au sein d'une mêm intrigue
-
-                # todo : nettoyer à un moement le fichier des erreurs d'associations.
-                # en effet, si on fait évoluer la liste des pjs/pnjs mais sans changer l'intrigue, les logs restent alors que le problème est régle...
+                # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au
+                # sein d'une même intrigue
 
                 texteErreur = f"lors de la tentative d'associer le role " \
                               f"{role_a_associer.nom} au personnage {personnage.nom} (meilleur choix) : " \
-                              f"celui-ci a déjà été automatiquement associé au rôle {role.nom} dans {self.nom}"
+                              f"celui-ci a déjà été automatiquement associé au rôle {role.nom} dans {self.nom}" \
+                              f"Est-ce qu'il venait d'une faction ? {role_a_associer.issu_dune_faction}"
                 self.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
                                       texteErreur,
                                       ErreurManager.ORIGINES.ASSOCIATION_AUTO
@@ -360,7 +360,7 @@ class Intrigue(ConteneurDeScene):
 # relations
 class Relation:
     def __init__(self, perso1, perso2, description_vue_par_1="Relation à définir", description_vue_par_2="",
-                 reciproque = True):
+                 reciproque=True):
         self.perso1 = perso1
         self.perso2 = perso2
         self.description_vue_par_1 = description_vue_par_1
@@ -392,6 +392,7 @@ class Scene:
         self.actif = actif
         self.roles = set()
         self.nom_factions = set()  # des strings qui contiennent les noms des factions à embarquer
+        self.infos = set()  # des strings qui contiennent les noms où rapatrier les infos
         self.niveau = niveau  # 1 : dans la chronologie globale,
         # 2, dans tous les personnages de l'intrigue (pour info, donc pour les autres)
         # 3 : personnages impactés uniquement
@@ -595,6 +596,14 @@ class GN:
         self.association_auto = association_auto
         self.date_gn = date_gn
 
+    def lister_toutes_les_scenes(self):
+        to_return = []
+        for conteneur in list(self.dictPJs.values()) \
+                         + list(self.dictPNJs.values()) \
+                         + list(self.intrigues.values()):
+            to_return.extend(iter(conteneur.scenes))
+        return to_return
+
     def ajouter_faction(self, faction: Faction):
         self.factions[faction.nom] = faction
 
@@ -774,7 +783,7 @@ class GN:
 
                 if score[1] < seuilAlerte:
                     texte_erreur = f"Association ({score[1]}) - nom rôle : " \
-                                           f"{role.nom} > perso : {score[0]} dans {perso.nom}"
+                                   f"{role.nom} > perso : {score[0]} dans {perso.nom}"
                     perso.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                            texte_erreur,
                                            ErreurManager.ORIGINES.ASSOCIATION_AUTO)
@@ -799,7 +808,7 @@ class GN:
 
                     if score[1] < seuilAlerte:
                         texte_erreur = f"Association ({score[1]}) - nom rôle : " \
-                                               f"{role.nom} > perso : {score[0]} dans {intrigue.nom}"
+                                       f"{role.nom} > perso : {score[0]} dans {intrigue.nom}"
                         intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                                   texte_erreur,
                                                   ErreurManager.ORIGINES.ASSOCIATION_AUTO
@@ -824,7 +833,7 @@ class GN:
         self.clear_all_associations()
         self.updateOldestUpdate()
         self.ajouter_roles_issus_de_factions(verbal=verbal)  # todo : à tester
-        self.associer_pnj_a_roles(verbal)
+        self.associer_pnj_a_roles(verbal=True)
         self.associer_pj_a_roles(verbal)
         self.trouver_roles_sans_scenes()
 
@@ -916,8 +925,10 @@ class GN:
 
     # todo : quand on loade le fichier faction, clearer les factions pour prendre en compte les suppressions entre deux loading
 
-    # utilisée pour préparer lassociation roles/persos
+    # utilisée pour préparer l'association roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
+    # nettoie aussi toutes les erreurs qui peuvent apparaitre durant l'association,
+    # pour que celles qui restent soient celles d'actualité
     def clear_all_associations(self):
         # for pj in self.dictPJs.values():
         #     pj.roles.clear()

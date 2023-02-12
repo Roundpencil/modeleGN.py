@@ -541,7 +541,8 @@ class Application(tk.Frame):
                     table_objets_var,
                     table_chrono_var,
                     table_persos_var,
-                    table_pnjs_var
+                    table_pnjs_var,
+                    aide_de_jeu_var
                     ]
 
             for checkbox in args:
@@ -601,6 +602,11 @@ class Application(tk.Frame):
                                             variable=table_pnjs_var)
         table_pnjs_check.grid(row=8, column=1)
 
+        aide_de_jeu_var = tk.BooleanVar()
+        aide_de_jeu_var.set(True)
+        aide_de_jeu_check = tk.Checkbutton(regen_window, text="inputs aides de jeu",
+                                            variable=aide_de_jeu_var)
+        aide_de_jeu_check.grid(row=8, column=2)
 
         # Buttons
         cancel_button = tk.Button(regen_window, text="Annuler", command=regen_window.destroy)
@@ -628,7 +634,8 @@ class Application(tk.Frame):
                                   table_pnj_var=table_pnjs_var.get(),
                                   table_intrigues_var=table_intrigues_var.get(),
                                   table_objets_var=table_objets_var.get(),
-                                  verbal_var=verbal_var.get()
+                                  verbal_var=verbal_var.get(),
+                                  aide_de_jeu_var=aide_de_jeu_var.get()
                               )
                               )
 
@@ -641,7 +648,7 @@ class Application(tk.Frame):
             self.intrigue_specifique_entry.config(state='normal')
 
     def regen_personnages_select(self, value):
-        if value == "Rapide" or value == "Complet":
+        if value in ["Rapide", "Complet"]:
             self.personnages_specifique_entry.config(state='disabled')
         elif value == "Spécifique":
             self.personnages_specifique_entry.config(state='normal')
@@ -650,7 +657,7 @@ class Application(tk.Frame):
                       sauver_apres_operation_value,
                       generer_fichiers_drive_value, fichier_erreur_var, export_drive_var, changelog_var,
                       table_chrono_var, table_persos_var, table_pnj_var, table_intrigues_var, table_objets_var,
-                      generer_fichiers_pnjs_var, verbal_var):
+                      generer_fichiers_pnjs_var, verbal_var, aide_de_jeu_var):
 
         if intrigues_value == "Spécifique":
             intrigue_specifique = self.intrigue_specifique_entry.get()
@@ -673,6 +680,7 @@ class Application(tk.Frame):
                              api_drive=self.apiDrive,
                              api_doc=self.apiDoc,
                              api_sheets=self.apiSheets,
+                             aides_de_jeu=aide_de_jeu_var,
                              noms_pjs=self.dict_config['liste_noms_pjs'],
                              noms_pnjs=self.dict_config['liste_noms_pnjs'],
                              nom_fichier_sauvegarde=self.dict_config['nom_fichier_sauvegarde'],

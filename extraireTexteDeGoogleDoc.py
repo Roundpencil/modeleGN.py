@@ -546,6 +546,8 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
                 extraire_il_y_a_scene(balise[10:], scene_a_ajouter)
             elif balise[0:9].lower() == '## date :':
                 extraire_date_absolue(balise[10:], scene_a_ajouter)
+            elif balise[0:8].lower() == '## date:':
+                extraire_date_absolue(balise[9:], scene_a_ajouter)
             elif balise[0:8].lower() == '## date?':
                 extraire_date_absolue(balise[9:], scene_a_ajouter)
             elif balise[0:7].lower() == '## qui?':
@@ -576,7 +578,13 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
 
             elif balise[0:11].lower() == '## faction:':
                 scene_a_ajouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
-
+                #todo : debugger
+            elif balise[0:9].lower() == '## info :':
+                extraire_infos_scene(balise[10:], scene_a_ajouter)
+                # scene_a_ajouter.infos.add(tuple([f.strip() for f in .split(',')]))
+            elif balise[0:8].lower() == '## info:':
+                # scene_a_ajouter.infos.add([f.strip() for f in balise[9:].split(',')])
+                extraire_infos_scene(balise[9:], scene_a_ajouter)
             else:
                 texte_erreur = "balise inconnue : " + balise + " dans le conteneur " + nomConteneur
                 print(texte_erreur)
@@ -587,6 +595,10 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
 
         scene_a_ajouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
         # print("texte de la scene apres insertion : " + scene_a_ajouter.description)
+
+def extraire_infos_scene(texte_lu:str , scene: Scene):
+    for section in texte_lu.split(','):
+        scene.infos.add(section.strip())
 
 
 def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verbal=True, seuil=80):
@@ -654,6 +666,7 @@ def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verba
 
 
 def extraire_date_scene(balise_date, scene_a_ajouter):
+    # réécrite pour merger les fonctions il y a et quand :
     # réécrite pour merger les fonctions il y a et quand :
 
     # est-ce que la date est écrite au format quand ? il y a ?
