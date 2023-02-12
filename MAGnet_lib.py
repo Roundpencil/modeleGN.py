@@ -33,15 +33,17 @@ import dateparser
 #  dans les fiches de persos
 #  dans les scènes : relations nécessaires (nouveau tag)
 
+# todo : permettre d'utiliser un tableau récap comme dans l'exemple de sandrine ?
+
 # confort / logique
 # todo : refaire version console
+
 # todo : webisation des pjs et PNJs > créer une sheet avec le nom des pjs sur un onglet, et le nom des PNJ sur l'autre
 
 # todo : faire un menu qui crée le GN avec les options et crée tous les fichiers qui vont bien
 #  dans un dossier magnet du drive fourni en entrée, et des questions sous la forme de "allez-vous utiliser...?"
 #  pour déterminer les champs à créer
 
-# todo : permettre d'utiliser un tableau récap comme dans l'exemple de sandrine avec une balise tableau récap ?
 
 
 def charger_fichier_init(fichier_init: str):
