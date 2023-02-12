@@ -404,7 +404,7 @@ class Scene:
     def get_date(self):
         return self.date
 
-    def get_formatted_date(self, date_gn=None):
+    def get_formatted_date(self, date_gn=None, jours_semaine=False):
         # print(f"debut du débug affichage dates pour la scène {self.titre}, clef de tri = {self.clef_tri(date_gn)}")
         # print(f"date relative = {self.date}")
         # print(f" date absolue sans prise en compte date gn : {self.get_date_absolue()}")
@@ -417,11 +417,14 @@ class Scene:
             # alors c'est qu'on a une  valeur par défaut => tenter le formattage il y a
             return self.get_formatted_il_y_a()
 
-        days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
         months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
                   "novembre", "décembre"]
 
-        date_string = f"{days[date_absolue_calculee.weekday()]} {date_absolue_calculee.day} {months[date_absolue_calculee.month - 1]} {date_absolue_calculee.year}"
+        if not jours_semaine:
+            date_string = f"{date_absolue_calculee.day} {months[date_absolue_calculee.month - 1]} {date_absolue_calculee.year}"
+        else:
+            days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+            date_string = f"{days[date_absolue_calculee.weekday()]} {date_absolue_calculee.day} {months[date_absolue_calculee.month - 1]} {date_absolue_calculee.year}"
         time_string = f"{date_absolue_calculee.hour}h{date_absolue_calculee.minute}"
 
         return f"{date_string}, {time_string}"
@@ -817,7 +820,7 @@ class GN:
     # les PNJs
     # et les fonctions d'accélération de ré-importations
 
-    def rebuild_links(self, verbal=True):
+    def rebuild_links(self, verbal=False):
         self.clear_all_associations()
         self.updateOldestUpdate()
         self.ajouter_roles_issus_de_factions(verbal=verbal)  # todo : à tester
@@ -885,8 +888,9 @@ class GN:
                     # pour chaque personnage de la faction, on vérifie s'il a une correspondance
                     # dans les persos de la scène, en définissant un seuil d'acceptabilité
                     for personnage_dans_faction in ma_faction.personnages:
-                        print(f"personnage_dans_faction, intrigue.rolesContenus.keys() ="
-                              f" {personnage_dans_faction.nom}, {intrigue.rolesContenus.keys()}")
+                        if verbal:
+                            print(f"personnage_dans_faction, intrigue.rolesContenus.keys() ="
+                                  f" {personnage_dans_faction.nom}, {intrigue.rolesContenus.keys()}")
                         score_role = process.extractOne(personnage_dans_faction.nom, intrigue.rolesContenus.keys())
                         if score_role[1] < seuil_reconciliation_role:
                             texte_info = f"{personnage_dans_faction.nom} " \

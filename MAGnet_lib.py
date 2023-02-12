@@ -6,6 +6,7 @@ import lecteurGoogle
 from modeleGN import *
 import dateparser
 
+
 # communication :
 # todo :informer chalacta des factions,
 #  des squelettes pnjs, des tableaux intrigues, des nouveaux tableaux de synthèse (objets / chrono / persos),
@@ -17,9 +18,9 @@ import dateparser
 # à faire
 # todo ajouter une gestion des tags infos
 
-#todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
+# todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
-#todo : faire évoluer grille objets avec le code et le fait qu'on a trouvé un lien vers une fiche objet
+# todo : faire évoluer grille objets avec le code et le fait qu'on a trouvé un lien vers une fiche objet
 
 # todo : gestion des évènement
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
@@ -79,13 +80,12 @@ def charger_fichier_init(fichier_init: str):
                                          for nom_p in config.get('Optionnels', 'noms_persos', fallback=None).split(',')]
 
         texte_date_gn = config.get('Optionnels', 'date_gn', fallback=None)
-        if texte_date_gn is not None :
+        if texte_date_gn is not None:
             texte_date_gn = texte_date_gn.strip()
             print(f"texte_date_gn = {texte_date_gn} / {type(texte_date_gn)}")
             dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
             print(f"date_gn formattée = {dict_config['date_gn']}")
         print(f"pour ce GN, date_gn = {dict_config.get('date_gn', 'Pas de date lue')}")
-
 
         # dict_optionnels = config.items("Optionnels")
         #
@@ -113,7 +113,6 @@ def charger_fichier_init(fichier_init: str):
         #     dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
         #     print(f"date_gn formattée = {dict_config['date_gn']}")
         # print(f"pour ce GN, date_gn = {dict_config['date_gn']}")
-
 
         # dict_config['dossiers_pjs'] = [config.get("Optionnels", key)
         #                                for key in config.options("Optionnels")
@@ -143,7 +142,7 @@ def charger_fichier_init(fichier_init: str):
 
     except configparser.Error as e:
         # Erreur lors de la lecture d'un paramètre dans le fichier de configuration
-        print("Erreur lors de la lecture du fichier de configuration : {}".format(e))
+        print(f"Erreur lors de la lecture du fichier de configuration : {e}")
         return None
     return dict_config
 
@@ -273,7 +272,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
 def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
     log_erreur = ""
-    intrigues_triees = [intrigue for intrigue in mon_gn.intrigues.values()]
+    # intrigues_triees = list(mon_gn.intrigues.values())
     # intrigues_triees = sorted(intrigues_triees,  key= lambda x:x.orgaReferent)
     intrigues_triees = sorted(mon_gn.intrigues.values(), key=lambda x: x.orgaReferent)
     # for intrigue in gn.intrigues.values():
@@ -302,9 +301,13 @@ def ecrire_erreurs_dans_drive(texte_erreurs, apiDoc, apiDrive, parent):
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Listes des erreurs dans les tableaux des persos'
     mon_id = extraireTexteDeGoogleDoc.add_doc(apiDrive, nom_fichier, parent)
-    result = extraireTexteDeGoogleDoc.write_to_doc(apiDoc, mon_id, texte_erreurs)
-    if result:
+    if result := extraireTexteDeGoogleDoc.write_to_doc(
+            apiDoc, mon_id, texte_erreurs
+    ):
         extraireTexteDeGoogleDoc.formatter_fichier_erreurs(apiDoc, mon_id)
+    # result = extraireTexteDeGoogleDoc.write_to_doc(apiDoc, mon_id, texte_erreurs)
+    # if result:
+    #     extraireTexteDeGoogleDoc.formatter_fichier_erreurs(apiDoc, mon_id)
 
 
 def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
@@ -771,7 +774,6 @@ def generer_table_chrono_complete(table_raw, date_gn):
     for date in dates:
         print(f"date triée (normalement) = {date}")
 
-
     # all_dates = []
     # for scene in all_scenes:
     #     all_dates.append(scene.get_formatted_date(date_gn=date_gn))
@@ -837,13 +839,12 @@ def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, file_id)
 
 
-
 def generer_table_pnjs(gn: GN, verbal=False):
     table_pnj = [["nom PNJ", "description",
-                 "type_pj",
-                 "niveau implication",
-                 "details intervention",
-                 "intrigue", "nom dans l'intrigue"]]
+                  "type_pj",
+                  "niveau implication",
+                  "details intervention",
+                  "intrigue", "nom dans l'intrigue"]]
 
     # liste_noms_pnjs = gn.noms_pnjs()
     # for intrigue in gn.intrigues.values():
@@ -898,6 +899,7 @@ def generer_table_pnjs(gn: GN, verbal=False):
 
     return table_pnj
 
+
 def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.dossier_outputs_drive
     table = generer_table_pnjs(mon_gn)
@@ -905,9 +907,6 @@ def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets):
                   f'- table des PNJs'
     file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, file_id)
-
-
-
 
 
 def mettre_a_jour_champs(gn: GN):
@@ -930,7 +929,7 @@ def mettre_a_jour_champs(gn: GN):
     for intrigue in gn.intrigues.values():
         for objet in intrigue.objets:
             if not hasattr(objet, 'code'):
-                objet.code=""
+                objet.code = ""
             if hasattr(objet, 'rfid'):
                 delattr(objet, 'rfid')
 
