@@ -540,7 +540,8 @@ class Faction:
 class GN:
     def __init__(self,
                  dossiers_intrigues, dossier_output: str,
-                 association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, id_factions=None, date_gn=None):
+                 association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, id_factions=None, date_gn=None,
+                 id_pjs_et_pnjs=None):
 
         # création des objets nécessaires
         self.dictPJs = {}  # idgoogle, personnage
@@ -560,17 +561,23 @@ class GN:
         self.dossier_outputs_drive = None
         self.dossiers_intrigues = None
         self.date_gn = None
+        self.id_pjs_et_pnjs = None
+        # self.liste_noms_pjs = None
+        # self.liste_noms_pnjs = None
+
         self.injecter_config(dossiers_intrigues, dossier_output, association_auto, dossiers_pj=dossiers_pj,
-                             dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn)
+                             dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn,
+                             id_pjs_et_pnjs=id_pjs_et_pnjs)
 
     def injecter_config(self,
                         dossiers_intrigues, dossier_output, association_auto,
-                        dossiers_pj=None, dossiers_pnj=None, id_factions=None, noms_pjs=None,
-                        noms_pnjs=None, date_gn=None):
+                        dossiers_pj=None, dossiers_pnj=None, id_factions=None,
+                        date_gn=None, id_pjs_et_pnjs=None):
         # todo : injecter les noms des PJs et le dossier PNJ
 
-        self.liste_noms_pjs = noms_pjs
-        self.liste_noms_pnjs = noms_pnjs
+        self.id_pjs_et_pnjs = id_pjs_et_pnjs
+        # # self.liste_noms_pjs = liste_noms_pjs
+        # self.liste_noms_pnjs = noms_pnjs
         if isinstance(dossiers_intrigues, list):
             self.dossiers_intrigues = dossiers_intrigues
         else:
@@ -671,7 +678,7 @@ class GN:
     def noms_pjpnjs(self, pj: bool):
         return self.noms_pjs() if pj else self.noms_pnjs()
         # if pj:
-        #     return self.noms_pjs()
+        #     return self.liste_noms_pjs()
         # else:
         #     return self.noms_pnjs()
 

@@ -333,9 +333,10 @@ class Application(tk.Frame):
                                         dossiers_pj=self.dict_config.get('dossiers_pjs'),
                                         dossiers_pnj=self.dict_config.get('dossiers_pnjs'),
                                         id_factions=self.dict_config.get('id_factions'),
-                                        noms_pjs=self.dict_config.get('liste_noms_pjs'),
-                                        noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
-                                        date_gn=self.dict_config.get('date_gn')
+                                        # liste_noms_pjs=self.dict_config.get('liste_noms_pjs'),
+                                        # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
+                                        date_gn=self.dict_config.get('date_gn'),
+                                        id_pjs_et_pnjs=dict_config.get('id_pjs_et_pnjs')
                                         )
                 # print(f"après injection, nous avons : "
                 #       f"dossiers_intrigues={self.dict_config['dossiers_intrigues'],}"
@@ -681,7 +682,7 @@ class Application(tk.Frame):
                              api_doc=self.apiDoc,
                              api_sheets=self.apiSheets,
                              aides_de_jeu=aide_de_jeu_var,
-                             noms_pjs=self.dict_config['liste_noms_pjs'],
+                             liste_noms_pjs=self.dict_config['liste_noms_pjs'],
                              noms_pnjs=self.dict_config['liste_noms_pnjs'],
                              nom_fichier_sauvegarde=self.dict_config['nom_fichier_sauvegarde'],
                              fichier_erreurs=fichier_erreur_var,
