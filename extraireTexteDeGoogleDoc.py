@@ -574,11 +574,11 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
                     scene_a_ajouter.nom_factions.add(f)
 
             elif balise[0:12].lower() == '## factions:':
-                scene_a_ajouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
-
+                # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
+                extraire_factions_scene(balise[13:], scene_a_ajouter)
             elif balise[0:11].lower() == '## faction:':
-                scene_a_ajouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
-                #todo : debugger
+                # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
+                extraire_factions_scene(balise[12:], scene_a_ajouter)
             elif balise[0:9].lower() == '## info :':
                 extraire_infos_scene(balise[10:], scene_a_ajouter)
                 # scene_a_ajouter.infos.add(tuple([f.strip() for f in .split(',')]))
@@ -596,9 +596,17 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
         scene_a_ajouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
         # print("texte de la scene apres insertion : " + scene_a_ajouter.description)
 
-def extraire_infos_scene(texte_lu:str , scene: Scene):
+
+def extraire_factions_scene(texte_lu: str, scene: Scene):
     for section in texte_lu.split(','):
-        scene.infos.add(section.strip())
+        if len(section) > 1:
+            scene.nom_factions.add(section.strip())
+
+
+def extraire_infos_scene(texte_lu: str, scene: Scene):
+    for section in texte_lu.split(','):
+        if len(section) > 1:
+            scene.infos.add(section.strip())
 
 
 def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verbal=True, seuil=80):
@@ -917,7 +925,7 @@ def ref_du_doc(s):
         return -1
 
 
-def extraire_factions(mon_GN: GN, apiDoc, verbal=False):
+def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
     if not hasattr(mon_GN, 'factions'):
         mon_GN.factions = dict()
 
@@ -963,8 +971,7 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=False):
                 score = fuzzywuzzy.process.extractOne(perso_name, noms_persos)
                 # print(f"score durant lecture faction pour {perso_name} = {score}")
                 if verbal:
-                    # print(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
-                    pass
+                    print(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
                 if temp_dict_pjs.get(score[0]):
                     personnages_a_ajouter = mon_GN.dictPJs[temp_dict_pjs.get(score[0])]
                 else:
