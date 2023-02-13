@@ -1,11 +1,12 @@
 import argparse
-
+import logging
 from IHM_MAGnet import *
 
 
 # from maGNette import console_magnet
 
 def main():
+    logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
 
     # lecture des paramètres

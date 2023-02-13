@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from typing import Any
+import logging
 
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
@@ -926,13 +926,8 @@ def ref_du_doc(s):
 
 
 def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
-    if not hasattr(mon_GN, 'factions'):
-        mon_GN.factions = dict()
-
-    if not hasattr(mon_GN, 'id_factions'):
-        mon_GN.id_factions = None
-
     if mon_GN.id_factions is None:
+        logging.info('id faction était None')
         return -1
 
     try:
@@ -947,7 +942,6 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
 
     if verbal:
         print(f"texte = {text}")
-
     # à ce stade, j'ai lu les factions et je peux dépouiller
     # print(f"clefs dictionnaire : {mon_GN.dictPJs.keys()}")
     lines = text.splitlines()
@@ -963,19 +957,25 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
             faction_name = faction_name.strip()
             current_faction = Faction(faction_name)
             mon_GN.factions[faction_name] = current_faction
+            logging.info(f"J'ai ajouté la faction {faction_name}")
         elif line.startswith("## "):
             line = line.replace("## ", "")
             personnages_names = line.strip().split(",")
             for perso_name in personnages_names:
                 perso_name = perso_name.strip()
+                if len(perso_name) < 1:
+                    continue
                 score = fuzzywuzzy.process.extractOne(perso_name, noms_persos)
                 # print(f"score durant lecture faction pour {perso_name} = {score}")
                 if verbal:
                     print(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
+                logging.info(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
                 if temp_dict_pjs.get(score[0]):
                     personnages_a_ajouter = mon_GN.dictPJs[temp_dict_pjs.get(score[0])]
+                    logging.info("et il venait des pjs")
                 else:
                     personnages_a_ajouter = mon_GN.dictPNJs[temp_dict_pnjs.get(score[0])]
+                    logging.info("et il venait des pnjs")
 
                 current_faction.personnages.add(personnages_a_ajouter)
     return 0
@@ -1459,3 +1459,33 @@ def extraire_evenement_de_texte(texte_evenement, nom_evenement, id_url, lastFile
     # pour chaque section, l'attribuer directement
     # ou bien utiliser la lecture de tableau pour la traiter (potentiellement via un dictionnaire)
     pass
+
+
+def lire_gspread_pnj(api_drive, sheet_id):
+    return lire_gspread_pj_pnjs(api_drive, sheet_id, "PNJs", header=['nom_pnj'])
+
+
+def lire_gspread_pj(api_drive, sheet_id):
+    return lire_gspread_pj_pnjs(api_drive, sheet_id, "PJs", header=['nom_pj', 'orga_referent'])
+
+
+def lire_gspread_pj_pnjs(api_drive, sheet_id, sheet_name, header):
+    try:
+        result = api_drive.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name).execute()
+        values = result.get('values', [])
+        # header = values[0]
+        data = []
+        for value in values[1:]:
+            data.append(dict(zip(header, value)))
+        return data
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+        return None
+
+
+# Call the function and pass in the sheet id and sheet name
+sheet_data = get_sheet_data(id_worksheet, "PJ")
+if sheet_data:
+    print(sheet_data)
+else:
+    print("No data found")

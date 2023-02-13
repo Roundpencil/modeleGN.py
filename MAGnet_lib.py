@@ -1,4 +1,5 @@
 import configparser
+import logging
 import os
 
 import extraireTexteDeGoogleDoc
@@ -14,7 +15,6 @@ import dateparser
 
 # bugs
 # todo comprendre pourquoi pas de load de snyder
-# todo : comprendre pouruqoi intrigue 17 sandrine Corrigan apparait
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 
 
@@ -77,70 +77,30 @@ def charger_fichier_init(fichier_init: str):
 
         dict_config['id_factions'] = config.get('Optionnels', 'id_factions', fallback=None)
 
-        dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs', fallback=None)
 
-        dict_config['liste_noms_pjs'] = [nom_p.strip()
-                                         for nom_p in config.get('Optionnels', 'noms_persos', fallback=None).split(',')]
+        dict_config['id_pjs_et_pnjs'] = config.get('Optionnels', 'id_pjs_et_pnjs', fallback=None)
+
+        if dict_config['id_pjs_et_pnjs'] is None:
+            dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs', fallback=None)
+            dict_config['liste_noms_pjs'] = [nom_p.strip()
+                                             for nom_p in config.get('Optionnels', 'noms_persos', fallback=None).split(',')]
 
         texte_date_gn = config.get('Optionnels', 'date_gn', fallback=None)
         if texte_date_gn is not None:
             texte_date_gn = texte_date_gn.strip()
-            print(f"texte_date_gn = {texte_date_gn} / {type(texte_date_gn)}")
+            logging.DEBUG(f"texte_date_gn = {texte_date_gn} / {type(texte_date_gn)}")
             dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
-            print(f"date_gn formattée = {dict_config['date_gn']}")
-        print(f"pour ce GN, date_gn = {dict_config.get('date_gn', 'Pas de date lue')}")
-
-        # dict_optionnels = config.items("Optionnels")
-        #
-        # dict_config['id_factions'] = dict_optionnels.get('id_factions')
-        # print(dict_optionnels)
-        #
-        # dict_config['dossiers_pjs'] = [dict_optionnels.get(key)
-        #                                for key in list(dict_optionnels.keys())
-        #                                if key.startswith("id_dossier_pjs")]
-        #
-        # dict_config['dossiers_pnjs'] = [dict_optionnels.get(key)
-        #                                 for key in dict_optionnels
-        #                                 if key.startswith("id_dossier_pnjs")]
-        #
-        # dict_config['id_factions'] = dict_optionnels.get('id_factions')
-        #
-        # dict_config['fichier_noms_pnjs'] = dict_optionnels.get('nom_fichier_pnjs')
-        #
-        # dict_config['liste_noms_pjs'] = [nom_p.strip()
-        #                                  for nom_p in dict_optionnels.get('noms_persos').split(',')]
-        #
-        # texte_date_gn = dict_optionnels.get('date_gn').strip()
-        # if texte_date_gn is not None:
-        #     print(f"texte_date_gn = {texte_date_gn} / {type(texte_date_gn)}")
-        #     dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
-        #     print(f"date_gn formattée = {dict_config['date_gn']}")
-        # print(f"pour ce GN, date_gn = {dict_config['date_gn']}")
-
-        # dict_config['dossiers_pjs'] = [config.get("Optionnels", key)
-        #                                for key in config.options("Optionnels")
-        #                                if key.startswith("id_dossier_pjs")]
-        #
-        # dict_config['dossiers_pnjs'] = [config.get("Optionnels", key)
-        #                                 for key in config.options("Optionnels")
-        #                                 if key.startswith("id_dossier_pnjs")]
-        #
-        # dict_config['id_factions'] = config.get('Optionnels', 'id_factions')
-        #
-        # dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs')
-        #
-        # dict_config['liste_noms_pjs'] = [nom_p.strip()
-        #                                  for nom_p in config.get('Optionnels', 'noms_persos').split(',')]
-        #
-        # texte_date_gn = config.get('Optionnels', 'date_gn').strip()
-        # if texte_date_gn is not None :
-        #     print(f"texte_date_gn = {texte_date_gn} / {type(texte_date_gn)}")
-        #     dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
-        #     print(f"date_gn formattée = {dict_config['date_gn']}")
-        # print(f"pour ce GN, date_gn = {dict_config['date_gn']}")
+            logging.DEBUG(f"date_gn formattée = {dict_config['date_gn']}")
+        logging.DEBUG(f"pour ce GN, date_gn = {dict_config.get('date_gn', 'Pas de date lue')}")
 
         # création des champs dérivés
-        if dict_config['fichier_noms_pnjs'] is not None:
+        if dict_config['id_pjs_et_pnjs'] is not None:
+            sheet_id = dict_config['id_pjs_et_pnjs']
+            dict_config['liste_noms_pnjs'] = extraireTexteDeGoogleDoc.lire_gspread_pnj(api_drive, sheet_id)
+            dict_config['liste_noms_pjs'] = extraireTexteDeGoogleDoc.lire_gspread_pj(api_drive, sheet_id)
+            #todo : à sortir pour pouvoir exploiter les données via l'aPi
+
+        if dict_config.get('fichier_noms_pnjs', default=None) is not None:
             dict_config['liste_noms_pnjs'] = lire_fichier_pnjs(dict_config['fichier_noms_pnjs'])
 
     except configparser.Error as e:
@@ -953,9 +913,16 @@ def mettre_a_jour_champs(gn: GN):
     #     conteneur.error_log.clear()
     #     print(f"pour le conteneur {conteneur}, errorlog = {conteneur.error_log}")
 
-    # mise à jour des formats de date
+    # mise à jour des formats de date et des factions
     if not hasattr(gn, 'date_gn'):
         gn.date_gn = None
+    if not hasattr(gn, 'factions'):
+        gn.factions = dict()
+    if not hasattr(gn, 'id_factions'):
+        gn.id_factions = None
+
+
+
     for conteneur in list(gn.dictPJs.values()) \
                      + list(gn.dictPNJs.values()) \
                      + list(gn.intrigues.values()):

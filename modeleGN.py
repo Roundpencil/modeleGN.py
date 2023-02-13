@@ -330,7 +330,7 @@ class Intrigue(ConteneurDeScene):
     #   réaliser l'association entre le personnage et le rôle
     #   ajouter le rôle à la liste des rôles du personnage
     #   renvoyer 0
-    def associer_role_a_perso(self, role_a_associer, personnage, verbal=True):
+    def associer_role_a_perso(self, role_a_associer, personnage, verbal=False):
         # pour chaque rôle qui fait partie des rôles de l'intrigue
         for role in self.rolesContenus.values():
             # si le personnage que l'on souhaite associer au rôle est déjà associé à un rôle dans l'intrigue
@@ -340,8 +340,7 @@ class Intrigue(ConteneurDeScene):
 
                 texteErreur = f"lors de la tentative d'associer le role " \
                               f"{role_a_associer.nom} au personnage {personnage.nom} (meilleur choix) : " \
-                              f"celui-ci a déjà été automatiquement associé au rôle {role.nom} dans {self.nom}" \
-                              f"Est-ce qu'il venait d'une faction ? {role_a_associer.issu_dune_faction}"
+                              f"celui-ci a déjà été automatiquement associé au rôle {role.nom} dans {self.nom}"
                 self.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
                                       texteErreur,
                                       ErreurManager.ORIGINES.ASSOCIATION_AUTO
