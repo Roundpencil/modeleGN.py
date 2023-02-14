@@ -996,7 +996,7 @@ class GN:
     def forcer_import_pjpnjs(self, noms_persos, pj: bool, suffixe="_imported", verbal=False,
                              table_orgas_referent=None):
         if table_orgas_referent is None:
-            table_orgas_referent = [None * len(noms_persos)]
+            table_orgas_referent = [None for _ in range(len(noms_persos))]
         print("début de l'ajout des personnages sans fiche")
         # nomsLus = [x.nom for x in self.dictPJs.values()]
         dict_actif = self.dictPJs if pj else self.dictPNJs
@@ -1016,7 +1016,9 @@ class GN:
         #     valeur_pj = TypePerso.EST_PNJ_HORS_JEU
         valeur_pj = TypePerso.EST_PJ if pj else TypePerso.EST_PNJ_HORS_JEU
 
-        for perso, orga_referent in noms_persos, table_orgas_referent:
+        for perso, orga_referent in zip(noms_persos, table_orgas_referent):
+            perso = perso[0]
+            print(f"perso zippé = {perso}, orgazippé = {orga_referent}")
             if perso in noms_lus and verbal:
                 print(f"le personnage {perso} a une correspondance dans les persos déjà présents")
             else:
