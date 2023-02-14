@@ -2,6 +2,8 @@ import configparser
 import logging
 import os
 
+from requests import api
+
 import extraireTexteDeGoogleDoc
 import lecteurGoogle
 from modeleGN import *
@@ -88,16 +90,16 @@ def charger_fichier_init(fichier_init: str):
         texte_date_gn = config.get('Optionnels', 'date_gn', fallback=None)
         if texte_date_gn is not None:
             texte_date_gn = texte_date_gn.strip()
-            logging.DEBUG(f"texte_date_gn = {texte_date_gn} / {type(texte_date_gn)}")
+            logging.debug(f"texte_date_gn = {texte_date_gn} / {type(texte_date_gn)}")
             dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
-            logging.DEBUG(f"date_gn formattée = {dict_config['date_gn']}")
-        logging.DEBUG(f"pour ce GN, date_gn = {dict_config.get('date_gn', 'Pas de date lue')}")
+            logging.debug(f"date_gn formattée = {dict_config['date_gn']}")
+        logging.debug(f"pour ce GN, date_gn = {dict_config.get('date_gn', 'Pas de date lue')}")
 
         # création des champs dérivés
         # if dict_config['id_pjs_et_pnjs'] is not None:
         #     sheet_id = dict_config['id_pjs_et_pnjs']
-        #     dict_config['liste_noms_pnjs'] = extraireTexteDeGoogleDoc.lire_gspread_pnj(api_drive, sheet_id)
-        #     dict_config['liste_noms_pjs'] = extraireTexteDeGoogleDoc.lire_gspread_pj(api_drive, sheet_id)
+        #     dict_config['liste_noms_pnjs'] = extraireTexteDeGoogleDoc.lire_gspread_pnj(api_sheets, sheet_id)
+        #     dict_config['liste_noms_pjs'] = extraireTexteDeGoogleDoc.lire_gspread_pj(api_sheets, sheet_id)
         #
         # if dict_config.get('fichier_noms_pnjs', default=None) is not None:
         #     dict_config['liste_noms_pnjs'] = lire_fichier_pnjs(dict_config['fichier_noms_pnjs'])
@@ -170,23 +172,27 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                            verbal=verbal)
 
 
-    if sheet_it := gn.id_pjs_et_pnjs is not None:
+    liste_orgas = None
+    if (sheet_id := mon_gn.id_pjs_et_pnjs) is not None:
         #dans ce cas on a un tableau global avec toutes les données > on le lit
         # on met à jour les données pour les PNJs pour
-        noms_pnjs = extraireTexteDeGoogleDoc.lire_gspread_pnj(api_drive, sheet_id)
-        dict_nom_pjs = extraireTexteDeGoogleDoc.lire_gspread_pj(api_drive, sheet_id)
-        #todo faire la focntion qui lit les pjs / Pnjs à partir d'un dictionnaire
+        print(f"sheet_id = {sheet_id}, mon_gn.id_pjs_et_pnjs = {mon_gn.id_pjs_et_pnjs}")
+        liste_noms_pnjs = extraireTexteDeGoogleDoc.lire_gspread_pnj(api_sheets, sheet_id)
+        [liste_noms_pjs, liste_orgas] = extraireTexteDeGoogleDoc.lire_gspread_pj(api_sheets, sheet_id)
+        #todo tester
     else:
         # sinon on prend en compte les données envoyées en input, issues des balises du fichier init pour une création
         # et on utilise les focntion classiques d'injections si on trouve des trucs
-        if nom_fichier_pnj := gn.fichier_pnj is not None:
+        if (nom_fichier_pnj := mon_gn.fichier_pnj) is not None:
             liste_noms_pnjs = lire_fichier_pnjs(nom_fichier_pnj)
-            print("début du forçage des PNJs")
-            mon_gn.forcer_import_pnjs(noms_pnjs, verbal=verbal)
 
-        if liste_noms_pjs is not None:
-            print("début du forçage des PJs")
-            mon_gn.forcer_import_pjs(liste_noms_pjs, verbal=verbal)
+    if liste_noms_pnjs is not None:
+        print("début du forçage des PNJs")
+        mon_gn.forcer_import_pnjs(liste_noms_pnjs, verbal=verbal)
+
+    if liste_noms_pjs is not None:
+        print("début du forçage des PJs")
+        mon_gn.forcer_import_pjs(liste_noms_pjs, verbal=verbal, table_orgas_referent=liste_orgas)
 
     extraireTexteDeGoogleDoc.extraire_factions(mon_gn, apiDoc=api_doc, verbal=verbal)
     # print(f"gn.factions = {gn.factions}")
@@ -934,7 +940,8 @@ def mettre_a_jour_champs(gn: GN):
         delattr(gn, 'liste_noms_pjs')
     if hasattr(gn, 'liste_noms_pnjs'):
         delattr(gn, 'liste_noms_pnjs')
-
+    if not hasattr(gn, 'id_pjs_et_pnjs'):
+        gn.id_pjs_et_pnjs = None
 
 
 

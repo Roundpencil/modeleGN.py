@@ -14,7 +14,8 @@ from googleapiclient.errors import HttpError
 SCOPES = [
     'https://www.googleapis.com/auth/drive '
     'https://www.googleapis.com/auth/documents '
-    'https://www.googleapis.com/auth/spreadsheets']
+    'https://www.googleapis.com/auth/spreadsheets '
+]
 
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre des tokens dans la déclaration
 
@@ -44,7 +45,7 @@ def creer_lecteurs_google_apis():
         lecteur_doc = build('docs', 'v1', credentials=creds, static_discovery=False)
         lecteur_sheets = build('sheets', 'v4', credentials=creds, static_discovery=False)
 
-        # api_drive = build('drive', 'v3', credentials=creds)
+        # api_sheets = build('drive', 'v3', credentials=creds)
         # lecteur_doc = build('docs', 'v1', credentials=creds)
         # lecteur_sheets = build('sheets', 'v4', credentials=creds)
 

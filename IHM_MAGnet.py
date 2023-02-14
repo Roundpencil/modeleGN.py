@@ -187,13 +187,13 @@ class Application(tk.Frame):
         #
         # relire_intrigues_button = tk.Button(diagnostic_window, text="Relire toutes les intrigues",
         #                                     command=lambda: extraireTexteDeGoogleDoc.extraire_intrigues(
-        #                                         self.self, self.api_drive, self.api_doc, fast=False)
+        #                                         self.self, self.api_sheets, self.api_doc, fast=False)
         #                                     )
         # relire_intrigues_button.grid(row=1, column=0, sticky="nsew")
         #
         # relire_persos_button = tk.Button(diagnostic_window, text="Relire tous les personnages",
         #                                  command=lambda: extraireTexteDeGoogleDoc.extraire_pjs(
-        #                                      self.self, self.api_drive, self.api_doc, fast=False)
+        #                                      self.self, self.api_sheets, self.api_doc, fast=False)
         #                                  )
         # relire_persos_button.grid(row=2, column=0, sticky="nsew")
         #
@@ -244,7 +244,7 @@ class Application(tk.Frame):
 
         # generer_changelog_drive_button = tk.Button(diagnostic_window, text="Générer changelog dans Drive",
         #                                            command=lambda: generer_tableau_changelog_sur_drive(
-        #                                                self.self, self.api_drive, self.apiSheets)
+        #                                                self.self, self.api_sheets, self.apiSheets)
         #                                            )
         # generer_changelog_drive_button.grid(row=12, column=0, sticky="nsew")
 
@@ -262,13 +262,13 @@ class Application(tk.Frame):
         #                                          command=lambda:
         #                                          ecrire_erreurs_dans_drive(
         #                                              lister_erreurs(self.self, None),
-        #                                              self.api_doc, self.api_drive, self.dict_config['dossier_output']))
+        #                                              self.api_doc, self.api_sheets, self.dict_config['dossier_output']))
         # generer_erreurs_drive_button.grid(row=15, column=0, sticky="nsew")
         #
         # generer_table_intrigues_drive_button = tk.Button(diagnostic_window,
         #                                                  text="Générer table des intrigues sur Drive",
         #                                                  command=lambda: creer_table_intrigues_sur_drive(
-        #                                                      self.self, self.apiSheets, self.api_drive)
+        #                                                      self.self, self.apiSheets, self.api_sheets)
         #                                                  )
         # generer_table_intrigues_drive_button.grid(row=16, column=0, sticky="nsew")
 
@@ -280,13 +280,13 @@ class Application(tk.Frame):
 
         # generer_fiches_pj_drive_button = tk.Button(diagnostic_window, text="Générer fiches PJ dans Drive",
         #                                            command=lambda: generer_squelettes_dans_drive(
-        #                                                self.self, self.api_doc, self.api_drive, True)
+        #                                                self.self, self.api_doc, self.api_sheets, True)
         #                                            )
         # generer_fiches_pj_drive_button.grid(row=18, column=0, sticky="nsew")
         #
         # generer_fiches_pnj_drive_button = tk.Button(diagnostic_window, text="Générer fiches PNJ dans Drive",
         #                                             command=lambda: lambda: generer_squelettes_dans_drive(
-        #                                                 self.self, self.api_doc, self.api_drive, False)
+        #                                                 self.self, self.api_doc, self.api_sheets, False)
         #                                             )
         # generer_fiches_pnj_drive_button.grid(row=19, column=0, sticky="nsew")
 
@@ -336,7 +336,7 @@ class Application(tk.Frame):
                                         # liste_noms_pjs=self.dict_config.get('liste_noms_pjs'),
                                         # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
                                         date_gn=self.dict_config.get('date_gn'),
-                                        id_pjs_et_pnjs=dict_config.get('id_pjs_et_pnjs')
+                                        id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs')
                                         )
                 # print(f"après injection, nous avons : "
                 #       f"dossiers_intrigues={self.dict_config['dossiers_intrigues'],}"
@@ -682,8 +682,8 @@ class Application(tk.Frame):
                              api_doc=self.apiDoc,
                              api_sheets=self.apiSheets,
                              aides_de_jeu=aide_de_jeu_var,
-                             liste_noms_pjs=self.dict_config['liste_noms_pjs'],
-                             noms_pnjs=self.dict_config['liste_noms_pnjs'],
+                             liste_noms_pjs=self.dict_config.get('liste_noms_pjs'),
+                             # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
                              nom_fichier_sauvegarde=self.dict_config['nom_fichier_sauvegarde'],
                              fichier_erreurs=fichier_erreur_var,
                              generer_fichiers_pjs=export_drive_var,
