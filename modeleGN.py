@@ -1,7 +1,5 @@
 import pickle
 import datetime
-import random
-import re
 from enum import IntEnum
 
 from fuzzywuzzy import process
@@ -135,7 +133,7 @@ class ConteneurDeScene:
 # personnage
 class Personnage(ConteneurDeScene):
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
-                 sexe="i", pj: TypePerso = TypePerso.EST_PJ, orgaReferent=None, pitchJoueur="", indicationsCostume="",
+                 sexe="i", pj: TypePerso = TypePerso.EST_PJ, orga_referent=None, pitchJoueur="", indicationsCostume="",
                  textesAnnexes="", url="",
                  datesClefs="", lastChange=datetime.datetime(year=2000, month=1, day=1), forced=False,
                  derniere_edition_fichier=0):
@@ -151,7 +149,7 @@ class Personnage(ConteneurDeScene):
         self.relations = set()  # nom relation, relation
         self.images = set()
         self.description = description
-        self.orgaReferent = orgaReferent if orgaReferent is not None else ""
+        self.orgaReferent = orga_referent if orga_referent is not None else ""
         self.joueurs = {}
         self.pitchJoueur = pitchJoueur
         self.indicationsCostume = indicationsCostume
@@ -1033,7 +1031,7 @@ class GN:
                     if verbal:
                         print(f"{perso} a été créé (coquille vide)")
                     dict_actif[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
-                                                             forced=True, orgaReferent=orga_referent)
+                                                             forced=True, orga_referent=orga_referent)
                     # on met son nom en clef pour se souvenir qu'il a été généré
 
                     # self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,

@@ -2,7 +2,6 @@ import configparser
 import logging
 import os
 
-from requests import api
 
 import extraireTexteDeGoogleDoc
 import lecteurGoogle
@@ -21,6 +20,11 @@ import dateparser
 
 
 # à faire
+#todo : exporter en ligne la table des pnjs
+#todo : la fonction qui supprime la feuille qui s'appelle "feuille1" si elle existe + appels
+#todo : la table des pnjs sans les compresser
+
+
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
 # todo : faire évoluer grille objets avec le code et le fait qu'on a trouvé un lien vers une fiche objet
@@ -258,7 +262,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
     log_erreur = ""
     # intrigues_triees = list(mon_gn.intrigues.values())
-    # intrigues_triees = sorted(intrigues_triees,  key= lambda x:x.orgaReferent)
+    # intrigues_triees = sorted(intrigues_triees,  key= lambda x:x.orga_referent)
     intrigues_triees = sorted(mon_gn.intrigues.values(), key=lambda x: x.orgaReferent)
     # for intrigue in gn.intrigues.values():
 
@@ -367,10 +371,10 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
             else:
                 orga_referent = role.perso.orgaReferent.strip()
             if orga_referent not in dict_orgas_persos:
-                # dict_orgas_persos[role.perso.orgaReferent].append(role.perso.nom)
+                # dict_orgas_persos[role.perso.orga_referent].append(role.perso.nom)
                 dict_orgas_persos[orga_referent] = set()
             # else:
-            #     # dict_orgas_persos[role.perso.orgaReferent] = [role.perso.nom]
+            #     # dict_orgas_persos[role.perso.orga_referent] = [role.perso.nom]
             dict_orgas_persos[orga_referent].add(role.perso.nom)
 
     # à ce stade là on a :
@@ -562,7 +566,7 @@ def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
                                                              intrigue.lastFileEdit.strftime("%d/%m/%Y à %H:%M:%S")])
 
                     # print(restitution)
-                    # restitution.append([role.perso.orgaReferent,
+                    # restitution.append([role.perso.orga_referent,
                     #                     role.perso.nom,
                     #                     intrigue.titre,
                     #                     intrigue.get_full_url(),

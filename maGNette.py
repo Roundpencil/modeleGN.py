@@ -208,7 +208,7 @@ def ajouterPersosSansFiche(monGN, nomspersos):
 
 def afficherLesPersos(monGN):
     for intrigue in monGN.intrigues:
-        # print("propriétaire intrigue : {0} : {1}".format(intrigue.nom, intrigue.orgaReferent))
+        # print("propriétaire intrigue : {0} : {1}".format(intrigue.nom, intrigue.orga_referent))
         # for clef in intrigue.roles.keys():
         #     print(clef + " a pour nom complet : " + str(intrigue.roles[clef].nom))
 
@@ -257,7 +257,7 @@ def listerDatesIntrigues(monGN):
 # def ecrire_squelettes_localement(gn, prefixe=None):
 #     toutesScenes = ""
 #     for perso in gn.dictPJs.values():
-#         toutesScenes += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
+#         toutesScenes += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orga_referent}) : \n"
 #         toutesScenes += f"résumé de la bio : \n"
 #         for item in perso.description:
 #             toutesScenes += f"{item} \n"

@@ -246,7 +246,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
         # prendre la première ligne puis les caractères à partir du label
         # print("debut / fin orga référent : {0}/{1} pour {2}"
         # .format(indexDebutReferent, indexFinReferent, nomIntrigue))
-        # print("Orga référent : " + currentIntrigue.orgaReferent)
+        # print("Orga référent : " + currentIntrigue.orga_referent)
 
     # gestion de la section à faire
     if indexes[TODO]["debut"] == -1:
