@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from typing import Any
+import logging
 
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
@@ -39,7 +39,7 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
 def extraire_evenements(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
     # print(f"je m'apprete à extraire les PNJs depuis {gn.dossiers_pnjs}")
     if mon_gn.dossiers_evenements is None or len(mon_gn.dossiers_evenements) == 0:
-        print(f"impossible de lire le dossier des évènements : il n'existe pas")
+        print("impossible de lire le dossier des évènements : il n'existe pas")
         return
     extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, extraire_evenement_de_texte, mon_gn.dict_evenements,
                                  mon_gn.dossiers_evenements,
@@ -115,7 +115,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 # if not document.get('title')[0:2].isdigit():
                 #     # print("... n'est pas une intrigue")
                 #     continue
-                if ref_du_doc(document.get('title')) == -1:
+                if ref_du_doc(document.get('title')) == -1 or ref_du_doc(document.get('title')) == 0:
                     continue
 
                 # print("... est une intrigue !")
@@ -140,7 +140,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                     # if dict_ids[item['id']].lastProcessing >= item['modifiedTime']:
                     if fast and \
                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
-                        item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
+                                item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
 
                         print(
                             f"et elle n'a pas changé (dernier changement : "
@@ -297,31 +297,31 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
             # 1 Intervention:(Permanente ou Temporaire)
             # 2 Type d’implication: (Active, Passive, Info, ou Objet)
             # 3 Résumé de l’implication
-            pnjAAjouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
+            pnj_a_ajouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
                                pj=TypePerso.EST_PNJ_HORS_JEU, niveau_implication=sections[2].strip(),
                                perimetre_intervention=sections[1].strip())
 
             # print("Je suis en train de regarder {0} et son implication est {1}"
-            # .format(pnjAAjouter.nom, sections[1].strip()))
+            # .format(pnj_a_ajouter.nom, sections[1].strip()))
 
             # cherche ensuite le niveau d'implication du pj
             if sections[1].strip().lower().find('perman') > -1:
-                # print(pnjAAjouter.nom + " est permanent !!")
-                pnjAAjouter.pj = TypePerso.EST_PNJ_PERMANENT
+                # print(pnj_a_ajouter.nom + " est permanent !!")
+                pnj_a_ajouter.pj = TypePerso.EST_PNJ_PERMANENT
             elif sections[1].strip().lower().find('infiltr') > -1:
-                pnjAAjouter.pj = TypePerso.EST_PNJ_INFILTRE
-                # print(pnjAAjouter.nom + " est temporaire !!")
+                pnj_a_ajouter.pj = TypePerso.EST_PNJ_INFILTRE
+                # print(pnj_a_ajouter.nom + " est temporaire !!")
             # elif sections[1].strip().lower().find('temp') > -1:
-            #     pnjAAjouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
-            #     # print(pnjAAjouter.nom + " est temporaire !!")
+            #     pnj_a_ajouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
+            #     # print(pnj_a_ajouter.nom + " est temporaire !!")
             elif len(sections[1].strip()) > 1:
-                pnjAAjouter.pj = TypePerso.EST_PNJ_TEMPORAIRE
-                # print(pnjAAjouter.nom + " est temporaire !!")
+                pnj_a_ajouter.pj = TypePerso.EST_PNJ_TEMPORAIRE
+                # print(pnj_a_ajouter.nom + " est temporaire !!")
 
             # sinon PNJ hors-jeu est la valeur par défaut : ne rien faire
 
             # du coup, on peut l'ajouter aux intrigues
-            current_intrigue.rolesContenus[pnjAAjouter.nom] = pnjAAjouter
+            current_intrigue.rolesContenus[pnj_a_ajouter.nom] = pnj_a_ajouter
 
     # gestion de la section Rerolls
     if indexes[REROLLS]["debut"] > -1:
@@ -333,12 +333,12 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
                 continue
             sections = reroll.split("¤¤¤")
             # même sections que les PJs
-            reRollAAjouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
+            re_roll_a_ajouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
                                   pj=TypePerso.EST_REROLL, type_intrigue=sections[2].strip(),
                                   niveau_implication=sections[1].strip())
 
             # du coup, on peut l'ajouter aux intrigues
-            current_intrigue.rolesContenus[reRollAAjouter.nom] = reRollAAjouter
+            current_intrigue.rolesContenus[re_roll_a_ajouter.nom] = re_roll_a_ajouter
 
     # gestion de la section Objets
     if indexes[OBJETS]["debut"] > -1:
@@ -420,8 +420,8 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
 
     # gestion de la section Scènes
     if indexes[SCENES]["debut"] > -1:
-        texteScenes = texteIntrigue[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
-        texte2scenes(current_intrigue, nomIntrigue, texteScenes)
+        texte_scenes = texteIntrigue[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
+        texte2scenes(current_intrigue, nomIntrigue, texte_scenes)
 
     # gestion de la section Résolution
     if indexes[RESOLUTION]["debut"] > -1:
@@ -460,13 +460,13 @@ def lire_tableau_pj_chalacta(currentIntrigue, pjs):
         # confiance faible ({0}) pour l'association du personnage {1}, trouvé dans le " "tableau, avec le personnage
         # {2} dans l'intrigue {3}".format(nomNormalise[1], str(sections[0]).strip(), nomNormalise[0], nomIntrigue))
 
-        roleAAjouter = Role(currentIntrigue,
+        role_a_ajouter = Role(currentIntrigue,
                             nom=sections[0].split("http")[0].strip(),
                             description=sections[3].strip(),
                             type_intrigue=sections[2].strip(),
                             niveau_implication=sections[1].strip()
                             )
-        currentIntrigue.rolesContenus[roleAAjouter.nom] = roleAAjouter
+        currentIntrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
 def lire_tableau_pj_5_colonnes(current_intrigue, pjs):
@@ -926,13 +926,8 @@ def ref_du_doc(s):
 
 
 def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
-    if not hasattr(mon_GN, 'factions'):
-        mon_GN.factions = dict()
-
-    if not hasattr(mon_GN, 'id_factions'):
-        mon_GN.id_factions = None
-
     if mon_GN.id_factions is None:
+        logging.info('id faction était None')
         return -1
 
     try:
@@ -947,7 +942,6 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
 
     if verbal:
         print(f"texte = {text}")
-
     # à ce stade, j'ai lu les factions et je peux dépouiller
     # print(f"clefs dictionnaire : {mon_GN.dictPJs.keys()}")
     lines = text.splitlines()
@@ -963,19 +957,25 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
             faction_name = faction_name.strip()
             current_faction = Faction(faction_name)
             mon_GN.factions[faction_name] = current_faction
+            logging.info(f"J'ai ajouté la faction {faction_name}")
         elif line.startswith("## "):
             line = line.replace("## ", "")
             personnages_names = line.strip().split(",")
             for perso_name in personnages_names:
                 perso_name = perso_name.strip()
+                if len(perso_name) < 1:
+                    continue
                 score = fuzzywuzzy.process.extractOne(perso_name, noms_persos)
                 # print(f"score durant lecture faction pour {perso_name} = {score}")
                 if verbal:
                     print(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
+                logging.info(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
                 if temp_dict_pjs.get(score[0]):
                     personnages_a_ajouter = mon_GN.dictPJs[temp_dict_pjs.get(score[0])]
+                    logging.info("et il venait des pjs")
                 else:
                     personnages_a_ajouter = mon_GN.dictPNJs[temp_dict_pnjs.get(score[0])]
+                    logging.info("et il venait des pnjs")
 
                 current_faction.personnages.add(personnages_a_ajouter)
     return 0
@@ -1459,3 +1459,53 @@ def extraire_evenement_de_texte(texte_evenement, nom_evenement, id_url, lastFile
     # pour chaque section, l'attribuer directement
     # ou bien utiliser la lecture de tableau pour la traiter (potentiellement via un dictionnaire)
     pass
+
+
+def lire_gspread_pnj(api_sheets, sheet_id):
+    a, b = lire_gspread_pj_pnjs(api_sheets, sheet_id, "PNJs")
+    return a
+
+
+def lire_gspread_pj(api_sheets, sheet_id):
+    return lire_gspread_pj_pnjs(api_sheets, sheet_id, "PJs")
+
+
+def lire_gspread_pj_pnjs(api_sheets, sheet_id, sheet_name):
+    try:
+
+        result = api_sheets.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name,
+                                                        majorDimension="COLUMNS").execute()
+
+        values = result.get('values', [])
+
+        print(f"result =  {values}")
+
+        noms_pjs = values[0][1:]
+        if len(values) > 1:
+            orgas_referents = values[1][1:]
+        else:
+            orgas_referents = None
+
+        # # header = values[0]
+        # noms_pjs = []
+        # if len(values[0]) == 1:
+        #     orga_referent = None
+        #     for value in values[1:]:
+        #         noms_pjs.append(value[0])
+        # else:
+        #     orga_referent = []
+        #     for value in values[1:]:
+        #         noms_pjs.append(value[0])
+        #         orga_referent.append(value[1])
+
+        return noms_pjs, orgas_referents
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+        return None
+
+# # Call the function and pass in the sheet id and sheet name
+# sheet_data = get_sheet_data(id_worksheet, "PJ")
+# if sheet_data:
+#     print(sheet_data)
+# else:
+#     print("No data found")

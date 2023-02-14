@@ -135,7 +135,7 @@ class ConteneurDeScene:
 # personnage
 class Personnage(ConteneurDeScene):
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
-                 sexe="i", pj: TypePerso = TypePerso.EST_PJ, orgaReferent="", pitchJoueur="", indicationsCostume="",
+                 sexe="i", pj: TypePerso = TypePerso.EST_PJ, orgaReferent=None, pitchJoueur="", indicationsCostume="",
                  textesAnnexes="", url="",
                  datesClefs="", lastChange=datetime.datetime(year=2000, month=1, day=1), forced=False,
                  derniere_edition_fichier=0):
@@ -151,7 +151,7 @@ class Personnage(ConteneurDeScene):
         self.relations = set()  # nom relation, relation
         self.images = set()
         self.description = description
-        self.orgaReferent = orgaReferent
+        self.orgaReferent = orgaReferent if orgaReferent is not None else ""
         self.joueurs = {}
         self.pitchJoueur = pitchJoueur
         self.indicationsCostume = indicationsCostume
@@ -330,7 +330,7 @@ class Intrigue(ConteneurDeScene):
     #   réaliser l'association entre le personnage et le rôle
     #   ajouter le rôle à la liste des rôles du personnage
     #   renvoyer 0
-    def associer_role_a_perso(self, role_a_associer, personnage, verbal=True):
+    def associer_role_a_perso(self, role_a_associer, personnage, verbal=False):
         # pour chaque rôle qui fait partie des rôles de l'intrigue
         for role in self.rolesContenus.values():
             # si le personnage que l'on souhaite associer au rôle est déjà associé à un rôle dans l'intrigue
@@ -340,8 +340,7 @@ class Intrigue(ConteneurDeScene):
 
                 texteErreur = f"lors de la tentative d'associer le role " \
                               f"{role_a_associer.nom} au personnage {personnage.nom} (meilleur choix) : " \
-                              f"celui-ci a déjà été automatiquement associé au rôle {role.nom} dans {self.nom}" \
-                              f"Est-ce qu'il venait d'une faction ? {role_a_associer.issu_dune_faction}"
+                              f"celui-ci a déjà été automatiquement associé au rôle {role.nom} dans {self.nom}"
                 self.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
                                       texteErreur,
                                       ErreurManager.ORIGINES.ASSOCIATION_AUTO
@@ -541,7 +540,8 @@ class Faction:
 class GN:
     def __init__(self,
                  dossiers_intrigues, dossier_output: str,
-                 association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, id_factions=None, date_gn=None):
+                 association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, id_factions=None, date_gn=None,
+                 id_pjs_et_pnjs=None, fichier_pnjs = None):
 
         # création des objets nécessaires
         self.dictPJs = {}  # idgoogle, personnage
@@ -561,17 +561,25 @@ class GN:
         self.dossier_outputs_drive = None
         self.dossiers_intrigues = None
         self.date_gn = None
+        self.id_pjs_et_pnjs = None
+        self.fichier_pnjs = None
+        # self.liste_noms_pjs = None
+        # self.liste_noms_pnjs = None
+
         self.injecter_config(dossiers_intrigues, dossier_output, association_auto, dossiers_pj=dossiers_pj,
-                             dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn)
+                             dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn,
+                             id_pjs_et_pnjs=id_pjs_et_pnjs, fichier_pnjs = fichier_pnjs)
 
     def injecter_config(self,
                         dossiers_intrigues, dossier_output, association_auto,
-                        dossiers_pj=None, dossiers_pnj=None, id_factions=None, noms_pjs=None,
-                        noms_pnjs=None, date_gn=None):
+                        dossiers_pj=None, dossiers_pnj=None, id_factions=None,
+                        date_gn=None, id_pjs_et_pnjs=None, fichier_pnjs = None):
         # todo : injecter les noms des PJs et le dossier PNJ
 
-        self.liste_noms_pjs = noms_pjs
-        self.liste_noms_pnjs = noms_pnjs
+        self.id_pjs_et_pnjs = id_pjs_et_pnjs
+        self.fichier_pnjs = fichier_pnjs
+        # # self.liste_noms_pjs = liste_noms_pjs
+        # self.liste_noms_pnjs = noms_pnjs
         if isinstance(dossiers_intrigues, list):
             self.dossiers_intrigues = dossiers_intrigues
         else:
@@ -672,7 +680,7 @@ class GN:
     def noms_pjpnjs(self, pj: bool):
         return self.noms_pjs() if pj else self.noms_pnjs()
         # if pj:
-        #     return self.noms_pjs()
+        #     return self.liste_noms_pjs()
         # else:
         #     return self.noms_pnjs()
 
@@ -980,13 +988,17 @@ class GN:
     #                 self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=EST_PJ,
     #                                                            forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
 
-    def forcer_import_pjs(self, noms_persos, suffixe="_imported", verbal=False):
-        return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=True, suffixe=suffixe, verbal=verbal)
+    def forcer_import_pjs(self, noms_persos, suffixe="_imported", table_orgas_referent=False, verbal=False):
+        return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=True, suffixe=suffixe, verbal=verbal,
+                                         table_orgas_referent=table_orgas_referent)
 
     def forcer_import_pnjs(self, noms_persos, suffixe="_imported", verbal=False):
         return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=False, suffixe=suffixe, verbal=verbal)
 
-    def forcer_import_pjpnjs(self, noms_persos, pj: bool, suffixe="_imported", verbal=False):
+    def forcer_import_pjpnjs(self, noms_persos, pj: bool, suffixe="_imported", verbal=False,
+                             table_orgas_referent=None):
+        if table_orgas_referent is None:
+            table_orgas_referent = [None for _ in range(len(noms_persos))]
         print("début de l'ajout des personnages sans fiche")
         # nomsLus = [x.nom for x in self.dictPJs.values()]
         dict_actif = self.dictPJs if pj else self.dictPNJs
@@ -1006,8 +1018,8 @@ class GN:
         #     valeur_pj = TypePerso.EST_PNJ_HORS_JEU
         valeur_pj = TypePerso.EST_PJ if pj else TypePerso.EST_PNJ_HORS_JEU
 
-        persos_sans_correspondance = []
-        for perso in noms_persos:
+        for perso, orga_referent in zip(noms_persos, table_orgas_referent):
+            print(f"perso zippé = {perso}, orgazippé = {orga_referent}")
             if perso in noms_lus and verbal:
                 print(f"le personnage {perso} a une correspondance dans les persos déjà présents")
             else:
@@ -1021,7 +1033,8 @@ class GN:
                     if verbal:
                         print(f"{perso} a été créé (coquille vide)")
                     dict_actif[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
-                                                             forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
+                                                             forced=True, orgaReferent=orga_referent)
+                    # on met son nom en clef pour se souvenir qu'il a été généré
 
                     # self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
                     #                                            forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
