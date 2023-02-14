@@ -13,7 +13,7 @@ import dateparser
 # communication :
 # todo :informer chalacta des factions,
 #  des squelettes pnjs, des tableaux intrigues, des nouveaux tableaux de synthèse (objets / chrono / persos),
-#  des nouveaux fichiers d'erruers, du tag questionnaire, balise info
+#  des nouveaux fichiers d'erruers, du tag questionnaire, balise info, tables des pjs et pnjs
 
 # bugs
 # todo comprendre pourquoi pas de load de snyder
@@ -40,12 +40,9 @@ import dateparser
 # confort / logique
 # todo : refaire version console
 
-# todo : webisation des pjs et PNJs > créer une sheet avec le nom des pjs sur un onglet, et le nom des PNJ sur l'autre
-
 # todo : faire un menu qui crée le GN avec les options et crée tous les fichiers qui vont bien
 #  dans un dossier magnet du drive fourni en entrée, et des questions sous la forme de "allez-vous utiliser...?"
 #  pour déterminer les champs à créer
-
 
 
 def charger_fichier_init(fichier_init: str):
@@ -79,13 +76,13 @@ def charger_fichier_init(fichier_init: str):
 
         dict_config['id_factions'] = config.get('Optionnels', 'id_factions', fallback=None)
 
-
         dict_config['id_pjs_et_pnjs'] = config.get('Optionnels', 'id_pjs_et_pnjs', fallback=None)
 
         if dict_config['id_pjs_et_pnjs'] is None:
             dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs', fallback=None)
             dict_config['liste_noms_pjs'] = [nom_p.strip()
-                                             for nom_p in config.get('Optionnels', 'noms_persos', fallback=None).split(',')]
+                                             for nom_p in
+                                             config.get('Optionnels', 'noms_persos', fallback=None).split(',')]
 
         texte_date_gn = config.get('Optionnels', 'date_gn', fallback=None)
         if texte_date_gn is not None:
@@ -126,7 +123,7 @@ def lire_fichier_pnjs(nom_fichier: str):
 def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier_sauvegarde: str,
                          sans_chargement_fichier=False,
                          sauver_apres_operation=True,
-                         liste_noms_pjs=None, #noms_pnjs=None,
+                         liste_noms_pjs=None,  # noms_pnjs=None,
                          fichier_erreurs: bool = True,
                          generer_fichiers_pjs: bool = True,
                          generer_fichiers_pnjs: bool = True, aides_de_jeu: bool = True,
@@ -173,12 +170,11 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                            fast=fast_persos,
                                            verbal=verbal)
 
-
     liste_orgas = None
     liste_noms_pnjs = None
     print(f"mon_gn.id_pjs_et_pnjs = {mon_gn.id_pjs_et_pnjs}")
     if (sheet_id := mon_gn.id_pjs_et_pnjs) is not None:
-        #dans ce cas on a un tableau global avec toutes les données > on le lit
+        # dans ce cas on a un tableau global avec toutes les données > on le lit
         # on met à jour les données pour les PNJs pour
         print(f"sheet_id = {sheet_id}, mon_gn.id_pjs_et_pnjs = {mon_gn.id_pjs_et_pnjs}")
         liste_noms_pnjs = extraireTexteDeGoogleDoc.lire_gspread_pnj(api_sheets, sheet_id)
@@ -186,12 +182,11 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         print(f"liste_noms_pnjs = {liste_noms_pnjs}")
         print(f"liste_noms_pjs = {liste_noms_pjs}")
         print(f"liste_orgas = {liste_orgas}")
-        #todo tester
+        # todo tester
     elif (nom_fichier_pnj := mon_gn.fichier_pnj) is not None:
         liste_noms_pnjs = lire_fichier_pnjs(nom_fichier_pnj)
         # sinon on prend en compte les données envoyées en input, issues des balises du fichier init pour une création
         # et on utilise les focntion classiques d'injections si on trouve des trucs
-
 
     if liste_noms_pnjs is not None:
         print("début du forçage des PNJs")
@@ -347,13 +342,14 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
 
 
 def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
-    dict_orgas_persos = dict()
+    dict_orgas_persos = {}
     tableau_scene_orgas = []
-    tous_les_conteneurs = list(mon_gn.dictPJs.values()) + list(mon_gn.intrigues.values())
-    toutes_les_scenes = []
-    for conteneur in tous_les_conteneurs:
-        for scene in conteneur.scenes:
-            toutes_les_scenes.append(scene)
+    # tous_les_conteneurs = list(mon_gn.dictPJs.values()) + list(mon_gn.intrigues.values())
+    # toutes_les_scenes = []
+    # for conteneur in tous_les_conteneurs:
+    #     for scene in conteneur.scenes:
+    #         toutes_les_scenes.append(scene)
+    toutes_les_scenes = mon_gn.lister_toutes_les_scenes()
 
     toutes_les_scenes = sorted(toutes_les_scenes, key=lambda s: s.derniere_mise_a_jour, reverse=True)
 
@@ -510,16 +506,17 @@ def generer_liste_pnj_dedup(monGN, threshold=89, verbal=False):
     noms_pnjs = list(set(noms_pnjs))
     extract = process.dedupe(noms_pnjs, threshold=threshold)
     extract = sorted(extract)
+
     if verbal:
         for v in extract:
             print(v)
-    return '\n'.join(extract)
+    return extract
 
 
 def ecrire_liste_pnj_dedup_localement(mon_gn: GN, prefixe: str, threshold=89, verbal=False):
-    to_print = generer_liste_pnj_dedup(mon_gn, threshold, verbal)
+    to_print = '\n'.join(generer_liste_pnj_dedup(mon_gn, threshold, verbal))
     if prefixe is not None:
-        with open(prefixe + ' - liste_pnjs_dedupliqués.txt', 'w', encoding="utf-8") as f:
+        with open(f"{prefixe} - liste_pnjs_dedupliqués.txt", 'w', encoding="utf-8") as f:
             f.write(to_print)
             f.close()
 
@@ -927,8 +924,9 @@ def ecrire_texte_info(mon_GN: GN, api_doc, api_drive):
                   f'- données pour aides de jeu'
     mon_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.write_to_doc(
-            api_doc, mon_id, texte
+        api_doc, mon_id, texte
     )
+
 
 def mettre_a_jour_champs(gn: GN):
     # #mise à jour des errors logs
@@ -951,7 +949,6 @@ def mettre_a_jour_champs(gn: GN):
         gn.id_pjs_et_pnjs = None
     if not hasattr(gn, 'fichier_pnjs'):
         gn.fichier_pnjs = None
-
 
     for conteneur in list(gn.dictPJs.values()) \
                      + list(gn.dictPNJs.values()) \
