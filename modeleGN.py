@@ -541,7 +541,7 @@ class GN:
     def __init__(self,
                  dossiers_intrigues, dossier_output: str,
                  association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, id_factions=None, date_gn=None,
-                 id_pjs_et_pnjs=None):
+                 id_pjs_et_pnjs=None, fichier_pnjs = None):
 
         # création des objets nécessaires
         self.dictPJs = {}  # idgoogle, personnage
@@ -562,20 +562,22 @@ class GN:
         self.dossiers_intrigues = None
         self.date_gn = None
         self.id_pjs_et_pnjs = None
+        self.fichier_pnjs = None
         # self.liste_noms_pjs = None
         # self.liste_noms_pnjs = None
 
         self.injecter_config(dossiers_intrigues, dossier_output, association_auto, dossiers_pj=dossiers_pj,
                              dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn,
-                             id_pjs_et_pnjs=id_pjs_et_pnjs)
+                             id_pjs_et_pnjs=id_pjs_et_pnjs, fichier_pnjs = fichier_pnjs)
 
     def injecter_config(self,
                         dossiers_intrigues, dossier_output, association_auto,
                         dossiers_pj=None, dossiers_pnj=None, id_factions=None,
-                        date_gn=None, id_pjs_et_pnjs=None):
+                        date_gn=None, id_pjs_et_pnjs=None, fichier_pnjs = None):
         # todo : injecter les noms des PJs et le dossier PNJ
 
         self.id_pjs_et_pnjs = id_pjs_et_pnjs
+        self.fichier_pnjs = fichier_pnjs
         # # self.liste_noms_pjs = liste_noms_pjs
         # self.liste_noms_pnjs = noms_pnjs
         if isinstance(dossiers_intrigues, list):
@@ -1017,7 +1019,6 @@ class GN:
         valeur_pj = TypePerso.EST_PJ if pj else TypePerso.EST_PNJ_HORS_JEU
 
         for perso, orga_referent in zip(noms_persos, table_orgas_referent):
-            perso = perso[0]
             print(f"perso zippé = {perso}, orgazippé = {orga_referent}")
             if perso in noms_lus and verbal:
                 print(f"le personnage {perso} a une correspondance dans les persos déjà présents")

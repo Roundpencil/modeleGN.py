@@ -1462,39 +1462,43 @@ def extraire_evenement_de_texte(texte_evenement, nom_evenement, id_url, lastFile
 
 
 def lire_gspread_pnj(api_sheets, sheet_id):
-    return lire_gspread_pj_pnjs(api_sheets, sheet_id, "PNJs", header=['nom_pnj'])[0]
+    a, b = lire_gspread_pj_pnjs(api_sheets, sheet_id, "PNJs")
+    return a
 
 
 def lire_gspread_pj(api_sheets, sheet_id):
-    return lire_gspread_pj_pnjs(api_sheets, sheet_id, "PJs", header=['nom_pj', 'orga_referent'])
+    return lire_gspread_pj_pnjs(api_sheets, sheet_id, "PJs")
 
 
-def lire_gspread_pj_pnjs(api_sheets, sheet_id, sheet_name, header):
+def lire_gspread_pj_pnjs(api_sheets, sheet_id, sheet_name):
     try:
 
-        values = [["pouet", "pouet"]]
-        body = {'range': sheet_name,
-                'values': values,
-                'majorDimension': 'ROWS'
-                }
-
-        result = api_sheets.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name).execute()
+        result = api_sheets.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name,
+                                                        majorDimension="COLUMNS").execute()
 
         values = result.get('values', [])
 
-        # header = values[0]
-        noms_pjs = []
-        if len(values) == 1:
-            orga_referent = None
-            for value in values[1:]:
-                noms_pjs.append(value[0])
-        else:
-            orga_referent = []
-            for value in values[1:]:
-                noms_pjs.append(values[0])
-                orga_referent.append(values[1])
+        print(f"result =  {values}")
 
-        return [noms_pjs, orga_referent]
+        noms_pjs = values[0][1:]
+        if len(values) > 1:
+            orgas_referents = values[1][1:]
+        else:
+            orgas_referents = None
+
+        # # header = values[0]
+        # noms_pjs = []
+        # if len(values[0]) == 1:
+        #     orga_referent = None
+        #     for value in values[1:]:
+        #         noms_pjs.append(value[0])
+        # else:
+        #     orga_referent = []
+        #     for value in values[1:]:
+        #         noms_pjs.append(value[0])
+        #         orga_referent.append(value[1])
+
+        return noms_pjs, orgas_referents
     except HttpError as error:
         print(f"An error occurred: {error}")
         return None

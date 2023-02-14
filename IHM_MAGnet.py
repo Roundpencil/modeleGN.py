@@ -336,7 +336,8 @@ class Application(tk.Frame):
                                         # liste_noms_pjs=self.dict_config.get('liste_noms_pjs'),
                                         # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
                                         date_gn=self.dict_config.get('date_gn'),
-                                        id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs')
+                                        id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
+                                        fichier_pnjs=self.dict_config.get('fichier_pnjs')
                                         )
                 # print(f"après injection, nous avons : "
                 #       f"dossiers_intrigues={self.dict_config['dossiers_intrigues'],}"

@@ -53,7 +53,7 @@ def charger_fichier_init(fichier_init: str):
     config = configparser.ConfigParser()
     config.read(fichier_init)
 
-    dict_config = dict()
+    dict_config = {}
     try:
         # lecture des informations essentielles
         # dict_config['dossier_intrigues'] = [x.strip() for x in config.get('Essentiels', 'intrigues').split(',')]
@@ -145,7 +145,9 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
             mon_gn.association_auto,
             mon_gn.dossiers_pjs,
             mon_gn.dossiers_pnjs,
-            mon_gn.id_factions
+            mon_gn.id_factions,
+            fichier_pnjs=mon_gn.fichier_pnjs,
+            id_pjs_et_pnjs=mon_gn.id_pjs_et_pnjs
         )
         mon_gn = new_gn
     else:
@@ -173,18 +175,23 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
 
     liste_orgas = None
+    liste_noms_pnjs = None
+    print(f"mon_gn.id_pjs_et_pnjs = {mon_gn.id_pjs_et_pnjs}")
     if (sheet_id := mon_gn.id_pjs_et_pnjs) is not None:
         #dans ce cas on a un tableau global avec toutes les données > on le lit
         # on met à jour les données pour les PNJs pour
         print(f"sheet_id = {sheet_id}, mon_gn.id_pjs_et_pnjs = {mon_gn.id_pjs_et_pnjs}")
         liste_noms_pnjs = extraireTexteDeGoogleDoc.lire_gspread_pnj(api_sheets, sheet_id)
-        [liste_noms_pjs, liste_orgas] = extraireTexteDeGoogleDoc.lire_gspread_pj(api_sheets, sheet_id)
+        liste_noms_pjs, liste_orgas = extraireTexteDeGoogleDoc.lire_gspread_pj(api_sheets, sheet_id)
+        print(f"liste_noms_pnjs = {liste_noms_pnjs}")
+        print(f"liste_noms_pjs = {liste_noms_pjs}")
+        print(f"liste_orgas = {liste_orgas}")
         #todo tester
-    else:
+    elif (nom_fichier_pnj := mon_gn.fichier_pnj) is not None:
+        liste_noms_pnjs = lire_fichier_pnjs(nom_fichier_pnj)
         # sinon on prend en compte les données envoyées en input, issues des balises du fichier init pour une création
         # et on utilise les focntion classiques d'injections si on trouve des trucs
-        if (nom_fichier_pnj := mon_gn.fichier_pnj) is not None:
-            liste_noms_pnjs = lire_fichier_pnjs(nom_fichier_pnj)
+
 
     if liste_noms_pnjs is not None:
         print("début du forçage des PNJs")
@@ -933,7 +940,7 @@ def mettre_a_jour_champs(gn: GN):
     if not hasattr(gn, 'date_gn'):
         gn.date_gn = None
     if not hasattr(gn, 'factions'):
-        gn.factions = dict()
+        gn.factions = {}
     if not hasattr(gn, 'id_factions'):
         gn.id_factions = None
     if hasattr(gn, 'liste_noms_pjs'):
@@ -942,7 +949,8 @@ def mettre_a_jour_champs(gn: GN):
         delattr(gn, 'liste_noms_pnjs')
     if not hasattr(gn, 'id_pjs_et_pnjs'):
         gn.id_pjs_et_pnjs = None
-
+    if not hasattr(gn, 'fichier_pnjs'):
+        gn.fichier_pnjs = None
 
 
     for conteneur in list(gn.dictPJs.values()) \
