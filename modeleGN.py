@@ -278,6 +278,9 @@ class Role:
     def est_un_pnj(self):
         return est_un_pnj(self.pj)
 
+    def est_un_pj(self):
+        return est_un_pj(self.pj)
+
     def sommer_pip(self):
         # print(f"je suis en train de sommer {self.nom}")
         self.pip_total = int(self.pip_globaux) + int(self.pipi) + int(self.pipr)

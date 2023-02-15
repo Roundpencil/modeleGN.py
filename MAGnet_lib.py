@@ -22,8 +22,6 @@ import dateparser
 # à faire - rapide
 # todo sortir les erreurs sur les fichiers d'assocaitions factions
 
-#todo : la table des pnjs sans les détailler dans un onglet à part
-
 # todo : un onglet chrono en plus au format  : s
 #  Dates	Horaires	Episodes / Intrigues	Titre	Evênement	PJ concernés	PNJ concernés
 
@@ -832,17 +830,34 @@ def generer_table_chrono_complete(table_raw, date_gn):
 
     return matrix
 
+def generer_table_chrono_scenes(mon_gn: GN):
+    # Dates	Horaires	Episodes / Intrigues	Titre	Evênement	PJ concernés	PNJ concernés
+    toutes_scenes = Scene.trier_scenes(mon_gn.lister_toutes_les_scenes())
+    to_return = [['Date', 'Intrigue', 'Scène', 'PJs concernés', 'PNJ, concernés']]
+    for scene in toutes_scenes:
+        to_return.append([
+            scene.get_formatted_date(mon_gn.date_gn),
+            scene.conteneur.nom,
+            scene.titre,
+            ', '.join([role.perso.nom for role in scene.roles if role is not None and role.est_un_pj()]),
+            ', '.join([role.perso.nom for role in scene.roles if role is not None and role.est_un_pnj()]),
+        ])
+    return to_return
+
 
 def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.dossier_outputs_drive
     table_raw = generer_table_chrono_condensee_raw(mon_gn)
     table_simple = generer_table_chrono_condensee(table_raw, mon_gn.date_gn)
     table_complete = generer_table_chrono_complete(table_raw, mon_gn.date_gn)
+    table_chrono_scenes = generer_table_chrono_scenes(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- synthèse chrono'
     file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="condensée")
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_complete, file_id, feuille="étendue")
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_chrono_scenes, file_id,
+                                                        feuille="toutes les scènes")
     extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, file_id)
 
 
