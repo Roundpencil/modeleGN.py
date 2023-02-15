@@ -19,7 +19,7 @@ def main():
                         help="si on veut reparcourir toutes les intrigues")
 
     group2 = parser.add_mutually_exclusive_group()
-    group2.add_argument("--perso", "-p", type=str, default="-01", help="si un seul perso doit être lu")
+    group2.add_argument("--personnage", "-p", type=str, default="-01", help="si un seul personnage doit être lu")
     group2.add_argument("--allpjs", "-ap", action="store_true", help="si on veut reparcourir tous les pjs")
 
     parser.add_argument("--initfile", "-f", type=str, default="config.init",

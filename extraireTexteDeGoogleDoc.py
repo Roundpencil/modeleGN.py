@@ -456,7 +456,7 @@ def lire_tableau_pj_chalacta(currentIntrigue, pjs):
 
         # déplacé dans l'objet GN à faire tourner en fin de traitement, notamment si changement des Persos depuis le
         # dernier run
-        # print("perso découpé avant ajout : " + str(sections)) nomNormalise = process.extractOne(str(
+        # print("personnage découpé avant ajout : " + str(sections)) nomNormalise = process.extractOne(str(
         # sections[0]).strip(), noms_persos) # print("nom normalisé pour " + str(sections[0].strip()) + " : " +
         # nomNormalise[0] + " - " + str(nomNormalise[1])) if nomNormalise[1] < 70: print("WARNING : indice de
         # confiance faible ({0}) pour l'association du personnage {1}, trouvé dans le " "tableau, avec le personnage
@@ -651,7 +651,7 @@ def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verba
             #                                                                                   conteneur.nom,
             #                                                                                   score))
 
-            # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'est peut-être trompé de perso!
+            # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'est peut-être trompé de personnage!
             if score is not None:
                 if score[1] < seuil:
                     warning_text = f"Association Scene ({score[1]}) - nom dans scène : {nom_du_role} " \
@@ -781,7 +781,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     JOUEURV2 = "joueur v2"
     JOUEUSE1 = "joueuse v1"
     JOUEUSE2 = "joueuse v2"
-    PITCH = "pitch perso"
+    PITCH = "pitch personnage"
     COSTUME = "indications costumes"
     FACTION1 = "faction principale"
     FACTION2 = "faction secondaire"
@@ -801,7 +801,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     # print(f"indexes : {indexes}")
 
     if indexes[REFERENT]["debut"] == -1:
-        print("pas de référent avec le perso " + nom_perso_en_cours)
+        print("pas de référent avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.orgaReferent = texte_persos[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[
                                           0][
@@ -809,7 +809,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
     if indexes[JOUEURV1]["debut"] == -1:
         if verbal:
-            print("Pas de joueur 1 avec le perso " + nom_perso_en_cours)
+            print("Pas de joueur 1 avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.joueurs['V1'] = texte_persos[indexes[JOUEURV1]["debut"]:indexes[JOUEURV1]["fin"]].splitlines()[
                                            0][
@@ -817,7 +817,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
     if indexes[JOUEURV2]["debut"] == -1:
         if verbal:
-            print("Pas de joueur 2 avec le perso " + nom_perso_en_cours)
+            print("Pas de joueur 2 avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.joueurs['V2'] = texte_persos[indexes[JOUEURV2]["debut"]:indexes[JOUEURV2]["fin"]].splitlines()[
                                            0][
@@ -825,7 +825,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
     if indexes[JOUEUSE1]["debut"] == -1:
         if verbal:
-            print("Pas de joueuse 1 avec le perso " + nom_perso_en_cours)
+            print("Pas de joueuse 1 avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.joueurs['V1'] = texte_persos[indexes[JOUEUSE1]["debut"]:indexes[JOUEUSE1]["fin"]].splitlines()[
                                            0][
@@ -833,7 +833,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
     if indexes[JOUEUSE2]["debut"] == -1:
         if verbal:
-            print("Pas de joueuse 2 avec le perso " + nom_perso_en_cours)
+            print("Pas de joueuse 2 avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.joueurs['V2'] = texte_persos[indexes[JOUEUSE2]["debut"]:indexes[JOUEUSE2]["fin"]].splitlines()[
                                            0][
@@ -841,20 +841,20 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
     if indexes[PITCH]["debut"] == -1:
         if verbal:
-            print("Pas de pitch  avec le perso " + nom_perso_en_cours)
+            print("Pas de pitch  avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.pitch = texte_persos[indexes[PITCH]["debut"]:indexes[PITCH]["fin"]].splitlines()[1:]
 
     if indexes[COSTUME]["debut"] == -1:
         if verbal:
-            print("Pas d'indication costume avec le perso " + nom_perso_en_cours)
+            print("Pas d'indication costume avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.indicationsCostume = texte_persos[indexes[COSTUME]["debut"] + len(COSTUME) + len(" : "):
                                                          indexes[COSTUME]["fin"]]
 
     if indexes[FACTION1]["debut"] == -1:
         if verbal:
-            print("Pas de faction 1 avec le perso " + nom_perso_en_cours)
+            print("Pas de faction 1 avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.factions.append(texte_persos[indexes[FACTION1]["debut"]:indexes[FACTION1]["fin"]].splitlines()[
                                            0][
@@ -862,7 +862,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
     if indexes[FACTION2]["debut"] == -1:
         if verbal:
-            print("Pas de faction 2 avec le perso " + nom_perso_en_cours)
+            print("Pas de faction 2 avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.factions.append(texte_persos[indexes[FACTION2]["debut"]:indexes[FACTION2]["fin"]].splitlines()[
                                            0][
@@ -870,34 +870,34 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
     if indexes[BIO]["debut"] == -1:
         if verbal:
-            print("Pas de BIO avec le perso " + nom_perso_en_cours)
+            print("Pas de BIO avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.description = texte_persos[indexes[BIO]["debut"]:
                                                   indexes[BIO]["fin"]].splitlines()[1:]
 
     if indexes[PSYCHO]["debut"] == -1:
         if verbal:
-            print("Pas de psycho avec le perso " + nom_perso_en_cours)
+            print("Pas de psycho avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.concept = texte_persos[indexes[PSYCHO]["debut"]:
                                               indexes[PSYCHO]["fin"]].splitlines()[1:]
 
     if indexes[MOTIVATIONS]["debut"] == -1:
         if verbal:
-            print("Pas de motivations avec le perso " + nom_perso_en_cours)
+            print("Pas de motivations avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.driver = texte_persos[indexes[MOTIVATIONS]["debut"]:indexes[MOTIVATIONS]["fin"]].splitlines()[1:]
 
     if indexes[CHRONOLOGIE]["debut"] == -1:
         if verbal:
-            print("Pas de chronologie avec le perso " + nom_perso_en_cours)
+            print("Pas de chronologie avec le personnage " + nom_perso_en_cours)
     else:
         perso_en_cours.datesClefs = texte_persos[
                                     indexes[CHRONOLOGIE]["debut"]:indexes[CHRONOLOGIE]["fin"]].splitlines()[1:]
 
     if indexes[SCENES]["debut"] == -1:
         if verbal:
-            print("Pas de scènes dans le perso " + nom_perso_en_cours)
+            print("Pas de scènes dans le personnage " + nom_perso_en_cours)
     else:
         # print(f"début balise scène : {indexes[SCENES]['debut']}, fin balise scènes : {indexes[SCENES]['fin']} ")
         texte_scenes = texte_persos[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
@@ -915,7 +915,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     # et on enregistre la date de dernière mise à jour de l'intrigue
     perso_en_cours.lastProcessing = datetime.datetime.now()
 
-    # print(f"perso à la fin de l'importation {perso_en_cours}")
+    # print(f"personnage à la fin de l'importation {perso_en_cours}")
     return perso_en_cours
 
 

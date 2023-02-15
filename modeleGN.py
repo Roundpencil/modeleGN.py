@@ -94,9 +94,9 @@ class ConteneurDeScene:
         # retirer l'intrigue du GN > à faire au niveau de l'appel
         # casser toutes les relations role <> personnages
         for role in self.rolesContenus.values():
-            # print(f"Role à dissocier  : {role.nom} de {role.perso}")
-            if role.perso is not None:
-                role.perso.roles.remove(role)
+            # print(f"Role à dissocier  : {role.nom} de {role.personnage}")
+            if role.personnage is not None:
+                role.personnage.roles.remove(role)
                 del role
         # self.roles.clear()
 
@@ -165,14 +165,14 @@ class Personnage(ConteneurDeScene):
 
     def clear(self):
         for role in self.roles:
-            role.perso = None
+            role.personnage = None
         self.roles.clear()
 
     def ajouter_role(self, r):
         self.roles.add(r)
 
     # def __str__(self):
-    #     return "nom perso : " + self.nom
+    #     return "nom personnage : " + self.nom
 
     def __str__(self):
         to_return = ""
@@ -215,18 +215,16 @@ class Personnage(ConteneurDeScene):
         return ', '.join(toutes)
 
 
-
-
 # rôle
 class Role:
 
-    def __init__(self, conteneur: ConteneurDeScene, perso=None, nom="rôle sans nom", description="", pipi=0, pipr=0,
+    def __init__(self, conteneur: ConteneurDeScene, personnage=None, nom="rôle sans nom", description="", pipi=0, pipr=0,
                  sexe="i",
                  pj: TypePerso = TypePerso.EST_PJ,
                  type_intrigue="", niveau_implication="", perimetre_intervention="", issu_dune_faction=False,
                  pip_globaux=0):
         self.conteneur = conteneur
-        self.perso = perso
+        self.personnage = personnage
         self.nom = nom
         self.description = description
         try:
@@ -258,10 +256,10 @@ class Role:
         toReturn = ""
         toReturn += f"provenance : {self.conteneur.nom}" + "\n"
         toReturn += f"nom dans provenance : {self.nom}" + "\n"
-        if self.perso is None:
-            toReturn += "perso : aucun" + "\n"
+        if self.personnage is None:
+            toReturn += "personnage : aucun" + "\n"
         else:
-            toReturn += f"perso : {self.perso.nom}" + "\n"
+            toReturn += f"personnage : {self.personnage.nom}" + "\n"
         toReturn += f"description : {self.description}" + "\n"
         # toReturn += "pipr : " + str(self.pipr) + "\n"
         # toReturn += "pipi : " + str(self.pipi) + "\n"
@@ -337,7 +335,7 @@ class Intrigue(ConteneurDeScene):
         # pour chaque rôle qui fait partie des rôles de l'intrigue
         for role in self.rolesContenus.values():
             # si le personnage que l'on souhaite associer au rôle est déjà associé à un rôle dans l'intrigue
-            if role.perso is personnage:
+            if role.personnage is personnage:
                 # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au
                 # sein d'une même intrigue
 
@@ -352,8 +350,8 @@ class Intrigue(ConteneurDeScene):
                 if verbal:  # et si on a demandé à ce que la fonction raconte sa vie, on détaille
                     print(texteErreur)
                 return -1
-        role_a_associer.perso = personnage
-        # au passage on update le niveau de perso (surtout utile pour les PNJs), en prenant toujours le max
+        role_a_associer.personnage = personnage
+        # au passage on update le niveau de personnage (surtout utile pour les PNJs), en prenant toujours le max
         personnage.pj = max(personnage.pj, role_a_associer.pj)
         personnage.roles.add(role_a_associer)
         return 0
@@ -475,10 +473,10 @@ class Scene:
         to_return += f"titre scène : {self.titre} - date  : {self.get_formatted_date(date_gn)} \n"
         str_roles_persos = 'Roles (Perso) : '
         for role in self.roles:
-            if role.perso is None:
-                str_roles_persos += f"{role.nom} (pas de perso affecté) / "
+            if role.personnage is None:
+                str_roles_persos += f"{role.nom} (pas de personnage affecté) / "
             else:
-                str_roles_persos += f" {role.nom} ({role.perso.nom}) / "
+                str_roles_persos += f" {role.nom} ({role.personnage.nom}) / "
         to_return += f"roles  : {str_roles_persos[:-2]} \n"
         to_return += f"provenance : {self.conteneur.nom} \n"
         # to_return += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
@@ -515,7 +513,7 @@ class Scene:
         try:
             return int(float(self.date))
         except ValueError:
-            print(f"la date {self.date} n'est pas un nombre")
+            logging.debug(f"la date {self.date} n'est pas un nombre")
             return sys.maxsize * -1 - 1
 
     # renvoie une donnée de type [a, b, c] où a est la date absolue, b la date relative et c la date texte
@@ -544,7 +542,7 @@ class GN:
     def __init__(self,
                  dossiers_intrigues, dossier_output: str,
                  association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, id_factions=None, date_gn=None,
-                 id_pjs_et_pnjs=None, fichier_pnjs = None):
+                 id_pjs_et_pnjs=None, fichier_pnjs=None):
 
         # création des objets nécessaires
         self.dictPJs = {}  # idgoogle, personnage
@@ -571,12 +569,12 @@ class GN:
 
         self.injecter_config(dossiers_intrigues, dossier_output, association_auto, dossiers_pj=dossiers_pj,
                              dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn,
-                             id_pjs_et_pnjs=id_pjs_et_pnjs, fichier_pnjs = fichier_pnjs)
+                             id_pjs_et_pnjs=id_pjs_et_pnjs, fichier_pnjs=fichier_pnjs)
 
     def injecter_config(self,
                         dossiers_intrigues, dossier_output, association_auto,
                         dossiers_pj=None, dossiers_pnj=None, id_factions=None,
-                        date_gn=None, id_pjs_et_pnjs=None, fichier_pnjs = None):
+                        date_gn=None, id_pjs_et_pnjs=None, fichier_pnjs=None):
         # todo : injecter les noms des PJs et le dossier PNJ
 
         self.id_pjs_et_pnjs = id_pjs_et_pnjs
@@ -626,17 +624,15 @@ class GN:
 
     def effacer_personnages_forces(self):
         for key_personnage in list(self.dictPJs.keys()):
-            # print(f"perso = {self.dictPJs[key_personnage].nom}, forced = {self.dictPJs[key_personnage].forced}")
+            # print(f"personnage = {self.dictPJs[key_personnage].nom}, forced = {self.dictPJs[key_personnage].forced}")
             if self.dictPJs[key_personnage].forced:
                 perso = self.dictPJs.pop(key_personnage)
                 perso.clear()
         for key_personnage in list(self.dictPNJs.keys()):
-            # print(f"perso = {self.dictPJs[key_personnage].nom}, forced = {self.dictPJs[key_personnage].forced}")
+            # print(f"personnage = {self.dictPJs[key_personnage].nom}, forced = {self.dictPJs[key_personnage].forced}")
             if self.dictPNJs[key_personnage].forced:
                 perso = self.dictPNJs.pop(key_personnage)
                 perso.clear()
-
-
 
     # permet de mettre à jour la date d'intrigue la plus ancienne
     # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
@@ -690,7 +686,7 @@ class GN:
     #                 score = process.extractOne(role.nom, nomsPnjs)
     #                 if score is None:
     #                     print(f"probleme lors de l'association de {role.nom} avec la liste : {nomsPnjs}")
-    #                 # role.perso = self.listePnjs[score[0]]
+    #                 # role.personnage = self.listePnjs[score[0]]
     #                 # print(f"je m'apprête à associer PNJ {role.nom}, identifié comme {score} ")
     #                 # print(f"\t à {self.dictPNJs[score[0]].nom} (taille du dictionnaire PNJ = {len(self.dictPNJs)}")
     #                 intrigue.associer_role_a_perso(role_a_associer=role, personnage=self.dictPNJs[score[0]])
@@ -719,8 +715,8 @@ class GN:
     #             # print(f"je suis en train d'essayer d'associer le rôle {role.nom} issu du personnage {pj.nom}")
     #             score = process.extractOne(role.nom, nomsPjs)
     #             # print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
-    #             role.perso = dictNomsPJ[score[0]]
-    #             role.perso.roles.add(role)
+    #             role.personnage = dictNomsPJ[score[0]]
+    #             role.personnage.roles.add(role)
     #
     #             if score[1] < seuilAlerte:
     #                 texteErreur = f"Warning association ({score[1]}) - nom rôle : " \
@@ -784,12 +780,12 @@ class GN:
                 score = process.extractOne(role.nom, noms_persos)
                 if verbal:
                     print(f"Pour {role.nom} dans {role.conteneur.nom}, score = {score}")
-                role.perso = dict_noms_persos[score[0]]
-                role.perso.roles.add(role)
+                role.personnage = dict_noms_persos[score[0]]
+                role.personnage.roles.add(role)
 
                 if score[1] < seuilAlerte:
                     texte_erreur = f"Association ({score[1]}) - nom rôle : " \
-                                   f"{role.nom} > perso : {score[0]} dans {perso.nom}"
+                                   f"{role.nom} > personnage : {score[0]} dans {perso.nom}"
                     perso.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                            texte_erreur,
                                            ErreurManager.ORIGINES.ASSOCIATION_AUTO)
@@ -815,7 +811,7 @@ class GN:
 
                     if score[1] < seuilAlerte:
                         texte_erreur = f"Association ({score[1]}) - nom rôle : " \
-                                       f"{role.nom} > perso : {score[0]} dans {intrigue.nom}"
+                                       f"{role.nom} > personnage : {score[0]} dans {intrigue.nom}"
                         intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                                   texte_erreur,
                                                   ErreurManager.ORIGINES.ASSOCIATION_AUTO
@@ -839,8 +835,8 @@ class GN:
     def rebuild_links(self, verbal=False):
         self.clear_all_associations()
         self.updateOldestUpdate()
-        self.ajouter_roles_issus_de_factions(verbal=verbal)  # todo : à tester
-        self.associer_pnj_a_roles(verbal=True)
+        self.ajouter_roles_issus_de_factions(verbal=True)
+        self.associer_pnj_a_roles()
         self.associer_pj_a_roles(verbal)
         self.trouver_roles_sans_scenes()
 
@@ -890,9 +886,9 @@ class GN:
             for scene in intrigue.scenes:
                 for nom_faction in scene.nom_factions:
                     # quand on trouve une faction on cherche dans le GN le bon nom
-                    print(f"nom_faction, self.factions = {nom_faction}, {self.factions.keys()}")
+                    logging.debug(f"nom_faction, self.factions = {nom_faction}, {self.factions.keys()}")
                     score_faction = process.extractOne(nom_faction, self.factions.keys())
-                    print(f"score_faction = {score_faction}")
+                    logging.debug(f"score_faction = {score_faction}")
                     if score_faction[1] < seuil_nom_faction:
                         texte_erreur = f"la faction {nom_faction} " \
                                        f"a été associée à {score_faction[0]} " \
@@ -920,7 +916,8 @@ class GN:
                             role_a_ajouter = Role(intrigue,
                                                   nom=personnage_dans_faction.nom,
                                                   description=f"Role ajouté via la faction {nom_faction}",
-                                                  issu_dune_faction=True
+                                                  issu_dune_faction=True,
+                                                  personnage=personnage_dans_faction
                                                   )
                             intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
                             # l'ajouter à la scène
@@ -949,7 +946,7 @@ class GN:
         for intrigue in self.intrigues.values():
             # intrigue.clear_error_log()
             for role in intrigue.rolesContenus.values():
-                role.perso = None
+                role.personnage = None
             intrigue.error_log.clear(ErreurManager.ORIGINES.ASSOCIATION_AUTO)
             intrigue.error_log.clear(ErreurManager.ORIGINES.FACTION)
             intrigue.error_log.clear(ErreurManager.ORIGINES.PERSOS_SANS_SCENE)
@@ -963,28 +960,28 @@ class GN:
     #     print("début de l'ajout des personnages sans fiche")
     #     nomsLus = [x.nom for x in self.dictPJs.values()]
     #     print(f"noms lus = {nomsLus}")
-    #     # pour chaque perso de ma liste :
+    #     # pour chaque personnage de ma liste :
     #     # SI son nom est dans les persos > ne rien faire
     #     # SINON, lui créer une coquille vide
     #     persosSansCorrespondance = []
-    #     for perso in nomsPersos:
-    #         if perso in nomsLus and verbal:
-    #             print(f"le personnage {perso} a une correspondance dans les persos déjà présents")
+    #     for personnage in nomsPersos:
+    #         if personnage in nomsLus and verbal:
+    #             print(f"le personnage {personnage} a une correspondance dans les persos déjà présents")
     #         else:
     #             # persosSansCorrespondance.append(
-    #             #     [perso,
-    #             #      process.extractOne(perso, nomsLus)[0],
-    #             #      process.extractOne(perso, nomsLus)[1]])
-    #             scoreproche = process.extractOne(perso, nomsLus)
-    #             # print(f"avant assicoation, {perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
+    #             #     [personnage,
+    #             #      process.extractOne(personnage, nomsLus)[0],
+    #             #      process.extractOne(personnage, nomsLus)[1]])
+    #             scoreproche = process.extractOne(personnage, nomsLus)
+    #             # print(f"avant assicoation, {personnage} correspond à {scoreproche[0]} à {scoreproche[1]}%")
     #             if scoreproche is not None and scoreproche[1] >= 75:
     #                 if verbal:
-    #                     print(f"{perso} correspond à {scoreproche[0]} à {scoreproche[1]}%")
+    #                     print(f"{personnage} correspond à {scoreproche[0]} à {scoreproche[1]}%")
     #                 # donc on ne fait rien
     #             else:
     #                 if verbal:
-    #                     print(f"{perso} a été créé (coquille vide)")
-    #                 self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=EST_PJ,
+    #                     print(f"{personnage} a été créé (coquille vide)")
+    #                 self.dictPJs[personnage + suffixe] = Personnage(nom=personnage, pj=EST_PJ,
     #                                                            forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
 
     def forcer_import_pjs(self, noms_persos, suffixe="_imported", table_orgas_referent=False, verbal=False):
@@ -1008,7 +1005,7 @@ class GN:
         #     dict_actif = self.dictPNJs
         noms_lus = self.noms_pjpnjs(pj)
         print(f"noms lus = {noms_lus}")
-        # pour chaque perso de ma liste :
+        # pour chaque personnage de ma liste :
         # SI son nom est dans les persos > ne rien faire
         # SINON, lui créer une coquille vide
         # if pj:
@@ -1018,12 +1015,12 @@ class GN:
         valeur_pj = TypePerso.EST_PJ if pj else TypePerso.EST_PNJ_HORS_JEU
 
         for perso, orga_referent in zip(noms_persos, table_orgas_referent):
-            print(f"perso zippé = {perso}, orgazippé = {orga_referent}")
+            print(f"personnage zippé = {perso}, orgazippé = {orga_referent}")
             if perso in noms_lus and verbal:
                 print(f"le personnage {perso} a une correspondance dans les persos déjà présents")
             else:
                 score_proche = process.extractOne(perso, noms_lus)
-                # print(f"avant assicoation, {perso} correspond à {score_proche[0]} à {score_proche[1]}%")
+                # print(f"avant assicoation, {personnage} correspond à {score_proche[0]} à {score_proche[1]}%")
                 if score_proche is not None and score_proche[1] >= 75:
                     if verbal:
                         print(f"{perso} correspond à {score_proche[0]} à {score_proche[1]}%")
@@ -1035,7 +1032,7 @@ class GN:
                                                              forced=True, orga_referent=orga_referent)
                     # on met son nom en clef pour se souvenir qu'il a été généré
 
-                    # self.dictPJs[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
+                    # self.dictPJs[personnage + suffixe] = Personnage(nom=personnage, pj=valeur_pj,
                     #                                            forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
 
 

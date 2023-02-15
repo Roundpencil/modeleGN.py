@@ -35,7 +35,7 @@ def update_roles_from_drive(intrigue, spreadsheet_id, credentials_path):
         if role is None:
             print(f"Le role {role_name} n'a pas été trouvé dans l'intrigue {intrigue.nom}, vérifiez la typo")
             continue
-        role.perso = perso
+        role.personnage = perso
         perso.roles.add(role)
 
 
@@ -152,7 +152,7 @@ def generer_csv_association(roles_dict, filename):
             pipr = role.pipr
             pipi = role.pipi
             sexe = role.sexe
-            personnage = role.perso if role.perso else ""
+            personnage = role.personnage if role.personnage else ""
             # Écrire les valeurs dans le fichier CSV
             writer.writerow([nom, description, pipr, pipi, sexe, personnage])
     print("Fichier CSV généré avec succès: {}".format(filename))
@@ -179,7 +179,7 @@ def lire_association_roles_depuis_csv(roles_list, filename):
                 # Trouver le rôle correspondant dans la liste de rôles
                 role = next((role for role in roles_list if role.nom == nom), None)
                 if role:
-                    # Mettre à jour le champ perso de ce rôle
+                    # Mettre à jour le champ personnage de ce rôle
                     role.perso = personnage
             print("Les informations de personnages ont été mises à jour.")
     except FileNotFoundError:

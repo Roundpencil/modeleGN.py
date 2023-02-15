@@ -22,7 +22,7 @@ def main():
                         help="si on veut reparcourir toutes les intrigues")
 
     group2 = parser.add_mutually_exclusive_group()
-    group2.add_argument("--perso", "-p", type=str, default="-01", help="si un seul perso doit être lu")
+    group2.add_argument("--personnage", "-p", type=str, default="-01", help="si un seul personnage doit être lu")
     group2.add_argument("--allpjs", "-ap", action="store_true", help="si on veut reparcourir tous les pjs")
 
     parser.add_argument("--initfile", "-f", type=str, default="config.ini",
@@ -214,7 +214,7 @@ def afficherLesPersos(monGN):
 
         for role in intrigue.rolesContenus.values():
             print("pour le rôle " + role.nom)
-            print("Personnage : " + role.perso.nom)
+            print("Personnage : " + role.personnage.nom)
             texteScenes = ""
             for scene in role.scenes:
                 texteScenes += scene.titre + "; "
@@ -246,39 +246,39 @@ def listerDatesIntrigues(monGN):
 
 # def listerRolesPerso(gn, nomPerso):
 #     nomPerso = process.extractOne(nomPerso, noms_persos)[0]
-#     for perso in gn.dictPJs.values():
-#         if perso.nom == nomPerso:
+#     for personnage in gn.dictPJs.values():
+#         if personnage.nom == nomPerso:
 #             # print(f"{nomPerso} trouvé")
-#             for role in perso.rolesContenus:
+#             for role in personnage.rolesContenus:
 #                 print(role)
 #             break
 
 
 # def ecrire_squelettes_localement(gn, prefixe=None):
 #     toutesScenes = ""
-#     for perso in gn.dictPJs.values():
-#         toutesScenes += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orga_referent}) : \n"
+#     for personnage in gn.dictPJs.values():
+#         toutesScenes += f"Début du squelette pour {personnage.nom} (Orga Référent : {personnage.orga_referent}) : \n"
 #         toutesScenes += f"résumé de la bio : \n"
-#         for item in perso.description:
+#         for item in personnage.description:
 #             toutesScenes += f"{item} \n"
 #         toutesScenes += f"Psychologie : "
-#         for item in perso.concept:
+#         for item in personnage.concept:
 #             toutesScenes += f"{item} \n"
 #         toutesScenes += f"Motivations et objectifs : \n"
-#         for item in perso.driver:
+#         for item in personnage.driver:
 #             toutesScenes += f"{item} \n"
 #         toutesScenes += f"Chronologie : \n "
-#         for item in perso.datesClefs:
+#         for item in personnage.datesClefs:
 #             toutesScenes += f"{item} \n"
 #         toutesScenes += "\n *** Scenes associées : *** \n"
 #
 #         mesScenes = []
-#         for role in perso.roles:
+#         for role in personnage.roles:
 #             for scene in role.scenes:
 #                 # print(f"{scene.titre} trouvée")
 #                 mesScenes.append(scene)
 #
-#         # for scene in perso.scenes:
+#         # for scene in personnage.scenes:
 #         #     mesScenes.append(scene)
 #
 #         # print(f"{nomPerso} trouvé")
@@ -328,9 +328,9 @@ def squelettes_persos_en_kit(monGN):
         #     # print(scene)
         #     texte_intro += str(scene) + '\n'
         texte_intro += '****************************************************** \n'
-        # squelettes_persos[perso.nom] = dict()
-        # squelettes_persos[perso.nom]['intro'] = texte_intro
-        # squelettes_persos[perso.nom]['scenes'] = mes_scenes
+        # squelettes_persos[personnage.nom] = dict()
+        # squelettes_persos[personnage.nom]['intro'] = texte_intro
+        # squelettes_persos[personnage.nom]['scenes'] = mes_scenes
 
         squelettes_persos[perso.nom] = {'intro': texte_intro, 'scenes': mes_scenes}
     return squelettes_persos
@@ -375,7 +375,7 @@ def tousLesSquelettesPNJ(monGN: GN, prefixe):
                 # print(f"{scene.titre} trouvée")
                 mesScenes.append(scene)
 
-        # for scene in perso.scenes:
+        # for scene in personnage.scenes:
         #     mesScenes.append(scene)
 
         # print(f"{nomPerso} trouvé")
@@ -401,10 +401,10 @@ def tousLesSquelettesPNJ(monGN: GN, prefixe):
 # def squelettePerso(gn, nomPerso):
 #     mesScenes = []
 #     nomPerso = process.extractOne(nomPerso, noms_persos)[0]
-#     for perso in gn.dictPJs.values():
-#         if perso.nom == nomPerso:
+#     for personnage in gn.dictPJs.values():
+#         if personnage.nom == nomPerso:
 #             # print(f"{nomPerso} trouvé")
-#             for role in perso.rolesContenus:
+#             for role in personnage.rolesContenus:
 #                 for scene in role.scenes:
 #                     # print(f"{scene.titre} trouvée")
 #                     mesScenes.append(scene)
@@ -517,8 +517,8 @@ def normaliserNomsPNJs(monGN):
         print(f"{choices[0][0]};{choices[1][0]};{choices[1][1]}")
 
         # le premier choix sera toujours de 100, vu qu'il se sera trouvé lui-même
-        # si le second choix est > 90 il y a de fortes chances qu'on ait le même perso
-        # sinon on ne prend pas de risques et on garde le meme perso
+        # si le second choix est > 90 il y a de fortes chances qu'on ait le même personnage
+        # sinon on ne prend pas de risques et on garde le meme personnage
         if choices[1][1] > 90:
             nomsNormalises[nomsPNJs[i]] = [choices[1][0], choices[1][1]]
         else:
