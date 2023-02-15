@@ -19,11 +19,15 @@ import dateparser
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 
 
-# à faire
+# à faire - rapide
 #todo : exporter en ligne la table des pnjs
-#todo : la fonction qui supprime la feuille qui s'appelle "feuille1" si elle existe + appels
-#todo : la table des pnjs sans les compresser
+#todo : la table des pnjs sans les détailler dans un onglet à part
 
+# todo : un onglet chrono en plus au format  : s
+#  Dates	Horaires	Episodes / Intrigues	Titre	Evênement	PJ concernés	PNJ concernés
+
+
+# à faire - plus long
 
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
@@ -39,7 +43,6 @@ import dateparser
 #  dans les fiches de persos
 #  dans les scènes : relations nécessaires (nouveau tag)
 
-# todo : permettre d'utiliser un tableau récap comme dans l'exemple de sandrine ?
 
 # confort / logique
 # todo : refaire version console
@@ -809,6 +812,7 @@ def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets):
     file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="condensée")
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_complete, file_id, feuille="étendue")
+    extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, file_id)
 
 
 def generer_tableau_recap_persos(gn: GN):

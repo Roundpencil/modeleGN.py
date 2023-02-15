@@ -142,7 +142,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                     # if dict_ids[item['id']].lastProcessing >= item['modifiedTime']:
                     if fast and \
                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
-                                item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
+                        item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
 
                         print(
                             f"et elle n'a pas changé (dernier changement : "
@@ -300,8 +300,8 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
             # 2 Type d’implication: (Active, Passive, Info, ou Objet)
             # 3 Résumé de l’implication
             pnj_a_ajouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
-                               pj=TypePerso.EST_PNJ_HORS_JEU, niveau_implication=sections[2].strip(),
-                               perimetre_intervention=sections[1].strip())
+                                 pj=TypePerso.EST_PNJ_HORS_JEU, niveau_implication=sections[2].strip(),
+                                 perimetre_intervention=sections[1].strip())
 
             # print("Je suis en train de regarder {0} et son implication est {1}"
             # .format(pnj_a_ajouter.nom, sections[1].strip()))
@@ -336,8 +336,8 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
             sections = reroll.split("¤¤¤")
             # même sections que les PJs
             re_roll_a_ajouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
-                                  pj=TypePerso.EST_REROLL, type_intrigue=sections[2].strip(),
-                                  niveau_implication=sections[1].strip())
+                                     pj=TypePerso.EST_REROLL, type_intrigue=sections[2].strip(),
+                                     niveau_implication=sections[1].strip())
 
             # du coup, on peut l'ajouter aux intrigues
             current_intrigue.rolesContenus[re_roll_a_ajouter.nom] = re_roll_a_ajouter
@@ -463,11 +463,11 @@ def lire_tableau_pj_chalacta(currentIntrigue, pjs):
         # {2} dans l'intrigue {3}".format(nomNormalise[1], str(sections[0]).strip(), nomNormalise[0], nomIntrigue))
 
         role_a_ajouter = Role(currentIntrigue,
-                            nom=sections[0].split("http")[0].strip(),
-                            description=sections[3].strip(),
-                            type_intrigue=sections[2].strip(),
-                            niveau_implication=sections[1].strip()
-                            )
+                              nom=sections[0].split("http")[0].strip(),
+                              description=sections[3].strip(),
+                              type_intrigue=sections[2].strip(),
+                              niveau_implication=sections[1].strip()
+                              )
         currentIntrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
@@ -1477,10 +1477,9 @@ def lire_gspread_pj_pnjs(api_sheets, sheet_id, sheet_name):
 
         result = api_sheets.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name,
                                                         majorDimension="COLUMNS").execute()
-
         values = result.get('values', [])
 
-        print(f"result =  {values}")
+        logging.debug(f"result =  {values}")
 
         noms_pjs = values[0][1:]
         if len(values) > 1:
@@ -1488,26 +1487,27 @@ def lire_gspread_pj_pnjs(api_sheets, sheet_id, sheet_name):
         else:
             orgas_referents = None
 
-        # # header = values[0]
-        # noms_pjs = []
-        # if len(values[0]) == 1:
-        #     orga_referent = None
-        #     for value in values[1:]:
-        #         noms_pjs.append(value[0])
-        # else:
-        #     orga_referent = []
-        #     for value in values[1:]:
-        #         noms_pjs.append(value[0])
-        #         orga_referent.append(value[1])
-
         return noms_pjs, orgas_referents
     except HttpError as error:
         print(f"An error occurred: {error}")
         return None
 
-# # Call the function and pass in the sheet id and sheet name
-# sheet_data = get_sheet_data(id_worksheet, "PJ")
-# if sheet_data:
-#     print(sheet_data)
-# else:
-#     print("No data found")
+
+def supprimer_feuille_1(api_sheets, spreadsheet_id):
+    sheets = api_sheets.spreadsheets().get(spreadsheetId=spreadsheet_id).execute().get('sheets', '')
+    for sheet in sheets:
+        if sheet.get("properties", {}).get("title", "") == "Feuille 1":
+            sheet_id = sheet.get("properties", {}).get("sheetId", 0)
+            api_sheets.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={
+                "requests": [
+                    {
+                        "deleteSheet": {
+                            "sheetId": sheet_id
+                        }
+                    }
+                ]
+            }).execute()
+            print("Sheet '{}' deleted.".format("Feuille 1"))
+            break
+    else:
+        print("Sheet '{}' not found.".format("Feuille 1"))
