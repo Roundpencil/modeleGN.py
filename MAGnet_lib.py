@@ -154,6 +154,10 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     else:
         mon_gn.effacer_personnages_forces()
 
+    for perso in mon_gn.dictPJs.values():
+        print(f"nom du perso = {perso.nom} / {perso.forced}")
+    print(f"noms persos = {mon_gn.noms_pjs()}")
+
     extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn,
                                                 api_drive=api_drive,
                                                 api_doc=api_doc,
@@ -186,7 +190,6 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         print(f"liste_noms_pnjs = {liste_noms_pnjs}")
         print(f"liste_noms_pjs = {liste_noms_pjs}")
         print(f"liste_orgas = {liste_orgas}")
-        # todo tester
     elif (nom_fichier_pnj := mon_gn.fichier_pnj) is not None:
         liste_noms_pnjs = lire_fichier_pnjs(nom_fichier_pnj)
         # sinon on prend en compte les données envoyées en input, issues des balises du fichier init pour une création

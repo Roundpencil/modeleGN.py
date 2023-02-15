@@ -620,23 +620,18 @@ class GN:
             raise ValueError(f"La faction {nom} n'a pas été trouvée")
 
     def effacer_personnages_forces(self):
-        # print(list(self.dictPJs.values()) + list(self.dictPNJs.values()))
-        # for personnage in self.dictPJs.values():
-        #     if personnage.forced:
-        #         self.dictPNJs.pop(personnage.nom, None)
-        #         personnage.clear()
-        # # print(list(self.dictPJs.values()) + list(self.dictPNJs.values()))
-        # # for personnage in list(self.dictPJs.values()) + list(self.dictPNJs.values()):
-        # #     if personnage.forced:
-        # #         self.dictPJs.pop(personnage.nom, None)
-        # #         self.dictPNJs.pop(personnage.nom, None)
-        # #         personnage.clear()
+        for key_personnage in list(self.dictPJs.keys()):
+            # print(f"perso = {self.dictPJs[key_personnage].nom}, forced = {self.dictPJs[key_personnage].forced}")
+            if self.dictPJs[key_personnage].forced:
+                perso = self.dictPJs.pop(key_personnage)
+                perso.clear()
+        for key_personnage in list(self.dictPNJs.keys()):
+            # print(f"perso = {self.dictPJs[key_personnage].nom}, forced = {self.dictPJs[key_personnage].forced}")
+            if self.dictPNJs[key_personnage].forced:
+                perso = self.dictPNJs.pop(key_personnage)
+                perso.clear()
 
-        for personnage in list(self.dictPJs.values()) + list(self.dictPNJs.values()):
-            if personnage.forced:
-                self.dictPJs.pop(personnage.url, None)
-                self.dictPNJs.pop(personnage.url, None)
-                personnage.clear()
+
 
     # permet de mettre à jour la date d'intrigue la plus ancienne
     # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif

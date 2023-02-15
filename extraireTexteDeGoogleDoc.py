@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import logging
 
+import re
+
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
 
