@@ -24,6 +24,13 @@ import dateparser
 
 # à faire - plus long
 
+# todo : ajouter deux sections "tableau relations" :
+#  une qui conteint toutjours 4 colonnes
+#  "X... Voit la relation avec... Comme... Et si non réciproque..."
+#  dans les fiches de persos
+#  dans les scènes : relations nécessaires (nouveau tag)
+#  une qui contient toujours 2 colonnes multilatérale
+
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
 # todo : faire évoluer grille objets avec le code et le fait qu'on a trouvé un lien vers une fiche objet
@@ -33,10 +40,7 @@ import dateparser
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 #  ne pas oublier qu'un évènement se rattache à un tringue, et donc à des roles, PAS DES PERSOS
 
-# todo : ajouter une section "tableau relations" qui conteint toutjours 4 colonnes
-#  "X... Voit la relation avec... Comme... Et si non réciproque..."
-#  dans les fiches de persos
-#  dans les scènes : relations nécessaires (nouveau tag)
+
 
 
 # confort / logique
@@ -116,14 +120,14 @@ def charger_fichier_init(fichier_init: str):
 def lire_fichier_pnjs(nom_fichier: str):
     to_return = []
     try:
-        with open(nom_fichier, 'r', encoding="utf-8") as f:
-        # with open(nom_fichier, 'r') as f:
+        # with open(nom_fichier, 'r', encoding="utf-8") as f:
+        with open(nom_fichier, 'r') as f:
             for ligne in f:
                 nom = ligne.strip()
                 to_return.append(nom)
     except FileNotFoundError:
         print(f"Le fichier {nom_fichier} - {os.getcwd()} n'a pas été trouvé.")
-    logging.debug(f"après ajout du fichier des pnjs, le tableau conteitn = {to_return}")
+    logging.debug(f"après ajout du fichier des pnjs, le tableau contient = {to_return}")
     return to_return
 
 
