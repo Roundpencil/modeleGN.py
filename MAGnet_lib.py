@@ -834,6 +834,14 @@ def generer_table_chrono_scenes(mon_gn: GN):
     # Dates	Horaires	Episodes / Intrigues	Titre	Evênement	PJ concernés	PNJ concernés
     toutes_scenes = Scene.trier_scenes(mon_gn.lister_toutes_les_scenes())
     to_return = [['Date', 'Intrigue', 'Scène', 'PJs concernés', 'PNJ, concernés']]
+
+    for scene in toutes_scenes:
+        logging.debug(f"scene = {scene.titre}")
+        for role in scene.roles:
+            logging.debug(f"\t role = {role.nom}")
+            logging.debug(f"\t \t perso = {role.perso}")
+            logging.debug(f"\t \t \t nom perso = {role.perso.nom}")
+
     for scene in toutes_scenes:
         to_return.append([
             scene.get_formatted_date(mon_gn.date_gn),
