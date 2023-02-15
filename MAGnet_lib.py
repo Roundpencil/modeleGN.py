@@ -20,7 +20,8 @@ import dateparser
 
 
 # à faire - rapide
-#todo : exporter en ligne la table des pnjs
+# todo sortir les erreurs sur les fichiers d'assocaitions factions
+
 #todo : la table des pnjs sans les détailler dans un onglet à part
 
 # todo : un onglet chrono en plus au format  : s
@@ -86,6 +87,7 @@ def charger_fichier_init(fichier_init: str):
         dict_config['id_pjs_et_pnjs'] = config.get('Optionnels', 'id_pjs_et_pnjs', fallback=None)
 
         if dict_config['id_pjs_et_pnjs'] is None:
+            logging.debug("Je suis en train de lire le fichier de config et je n'ai pas trouvé d'id pjpnj en ligne")
             dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs', fallback=None)
             dict_config['liste_noms_pjs'] = [nom_p.strip()
                                              for nom_p in
@@ -118,12 +120,13 @@ def charger_fichier_init(fichier_init: str):
 def lire_fichier_pnjs(nom_fichier: str):
     to_return = []
     try:
-        with open(nom_fichier, 'r') as f:
+        with open(nom_fichier, 'r', encoding="utf-8") as f:
             for ligne in f:
                 nom = ligne.strip()
                 to_return.append(nom)
     except FileNotFoundError:
         print(f"Le fichier {nom_fichier} - {os.getcwd()} n'a pas été trouvé.")
+    logging.debug(f"après ajout du fichier des pnjs, le tableau conteitn = {to_return}")
     return to_return
 
 
@@ -133,7 +136,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          liste_noms_pjs=None,  # noms_pnjs=None,
                          fichier_erreurs: bool = True,
                          generer_fichiers_pjs: bool = True,
-                         generer_fichiers_pnjs: bool = True, aides_de_jeu: bool = True,
+                         generer_fichiers_pnjs: bool = True, pnjs_dedupliques: bool = True, aides_de_jeu: bool = True,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
                          table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
@@ -161,6 +164,10 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         print(f"nom du perso = {perso.nom} / {perso.forced}")
     print(f"noms persos = {mon_gn.noms_pjs()}")
 
+    for perso in mon_gn.dictPNJs.values():
+        print(f"nom du pnj = {perso.nom} / {perso.forced}")
+    print(f"noms pnjs = {mon_gn.noms_pnjs()}")
+
     extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn,
                                                 api_drive=api_drive,
                                                 api_doc=api_doc,
@@ -183,7 +190,9 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     liste_orgas = None
     liste_noms_pnjs = None
-    print(f"mon_gn.id_pjs_et_pnjs = {mon_gn.id_pjs_et_pnjs}")
+    logging.debug(f"mon_gn.id_pjs_et_pnjs = {mon_gn.id_pjs_et_pnjs}")
+    logging.debug(f"nom fichier pnj = {mon_gn.fichier_pnjs}")
+
     if (sheet_id := mon_gn.id_pjs_et_pnjs) is not None:
         # dans ce cas on a un tableau global avec toutes les données > on le lit
         # on met à jour les données pour les PNJs pour
@@ -193,21 +202,26 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         print(f"liste_noms_pnjs = {liste_noms_pnjs}")
         print(f"liste_noms_pjs = {liste_noms_pjs}")
         print(f"liste_orgas = {liste_orgas}")
-    elif (nom_fichier_pnj := mon_gn.fichier_pnj) is not None:
-        liste_noms_pnjs = lire_fichier_pnjs(nom_fichier_pnj)
+    elif (nom_fichier_pnjs := mon_gn.fichier_pnjs) is not None:
+        liste_noms_pnjs = lire_fichier_pnjs(nom_fichier_pnjs)
+        logging.debug(f"après ajout, liste nom = {liste_noms_pnjs}")
+
         # sinon on prend en compte les données envoyées en input, issues des balises du fichier init pour une création
         # et on utilise les focntion classiques d'injections si on trouve des trucs
 
     if liste_noms_pnjs is not None:
         print("début du forçage des PNJs")
         mon_gn.forcer_import_pnjs(liste_noms_pnjs, verbal=verbal)
+        logging.debug("PNJs forcés ok")
 
     if liste_noms_pjs is not None:
         print("début du forçage des PJs")
         mon_gn.forcer_import_pjs(liste_noms_pjs, verbal=verbal, table_orgas_referent=liste_orgas)
+        logging.debug("PJs forcés ok")
 
     extraireTexteDeGoogleDoc.extraire_factions(mon_gn, apiDoc=api_doc, verbal=verbal)
     # print(f"gn.factions = {gn.factions}")
+    logging.debug("factions lues")
 
     mon_gn.rebuild_links(verbal)
 
@@ -257,6 +271,9 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         ecrire_table_persos(mon_gn, api_drive, api_sheets)
     if table_pnjs:
         ecrire_table_pnj(mon_gn, api_drive, api_sheets)
+    if pnjs_dedupliques:
+        creer_table_pnj_dedupliquee_sur_drive(mon_gn, api_sheets, api_drive)
+
 
     print("******* aides de jeu *********************")
     if aides_de_jeu:
@@ -412,6 +429,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
     dossier_output = mon_gn.dossier_outputs_drive
     mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_output)
     extraireTexteDeGoogleDoc.exporter_changelog(tableau_scene_orgas, mon_id, dict_orgas_persos, api_sheets)
+    extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, mon_id)
 
 
 def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
@@ -434,6 +452,17 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
     # extraire_texte_de_google_doc.exporter_table_intrigue(api_doc, nom_fichier, dossier_export, df)
     # extraire_texte_de_google_doc.ecrire_table_google_sheets(api_sheets, df, mon_id)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_intrigues, mon_id)
+
+
+def creer_table_pnj_dedupliquee_sur_drive(mon_gn: GN, api_sheets, api_drive):
+    table_pnj = [["Nom"]]
+    for nom in generer_liste_pnj_dedup(mon_gn):
+        table_pnj.append([nom])
+
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Suggestion liste PNJs dédupliqués'
+    dossier_export = mon_gn.dossier_outputs_drive
+    mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_export)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_pnj, mon_id)
 
 
 def generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive, pj=True):
@@ -516,6 +545,8 @@ def generer_liste_pnj_dedup(monGN, threshold=89, verbal=False):
     noms_pnjs = list(set(noms_pnjs))
     extract = process.dedupe(noms_pnjs, threshold=threshold)
     extract = sorted(extract)
+
+    logging.debug(f"liste des pnjs dédup : {extract}")
 
     if verbal:
         for v in extract:
@@ -837,34 +868,14 @@ def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, file_id)
 
 
-def generer_table_pnjs(gn: GN, verbal=False):
+def generer_table_pnjs_etendue(gn: GN, verbal=False):
     table_pnj = [["nom PNJ", "description",
                   "type_pj",
                   "niveau implication",
                   "details intervention",
                   "intrigue", "nom dans l'intrigue"]]
 
-    # liste_noms_pnjs = gn.noms_pnjs()
-    # for intrigue in gn.intrigues.values():
-    #     for role in intrigue.rolesContenus.values():
-    #         if role.est_un_pnj():
-    #             print(f"clefs (1) pour {role.nom} = {vars(role).keys()}")
-    #             nom_pnj = role.nom.replace('\n', '\v')
-    #             description = role.description.replace('\n', '\v')
-    #             niveau_implication = role.niveau_implication.replace('\n', '\v')
-    #             perimetre_intervention = role.perimetre_intervention.replace('\n', '\v')
-    #             score = process.extractOne(nom_pnj, liste_noms_pnjs)
-    #             type_dans_gn = gn.dictPNJs[score[0]].pj
-    #
-    #             table_pnj.append(
-    #                 [score[0],
-    #                 description,
-    #                 string_type_pj(type_dans_gn),
-    #                 niveau_implication,
-    #                 perimetre_intervention,
-    #                 intrigue.nom,
-    #                 nom_pnj,
-    #                 score[1]])
+
     print("ping table pnj")
     print(f"pnjs contenus : {gn.dictPNJs.keys()}")
 
@@ -898,13 +909,50 @@ def generer_table_pnjs(gn: GN, verbal=False):
     return table_pnj
 
 
+def generer_table_pnjs_simple(gn: GN, verbal=False):
+    table_pnj = [["nom PNJ",
+                  "type_pj",
+                  "intrigues"]]
+
+    logging.debug(f"pnjs contenus : {gn.dictPNJs.keys()}")
+
+    table_pnj.extend(
+        [
+            pnj.nom,
+            pnj.string_type_pj(),
+            pnj.toutes_les_apparitions(),
+        ]
+        for pnj in gn.dictPNJs.values()
+    )
+
+    if verbal:
+        for pnj in gn.dictPNJs.values():
+            print(f"{pnj.nom}")
+            for role in pnj.roles:
+                print(f"table pnj : pnj en cours d'ajout : {pnj.nom}")
+                print(f"{pnj.nom}")
+                print(f"{role.description}")
+                print(f"{pnj.string_type_pj()}")
+                print(f"{role.niveauImplication}")
+                print(f"{role.perimetre_intervention}")
+                print(f"{role.conteneur.nom}")
+                print(f"{role.nom}")
+
+    if verbal:
+        print(table_pnj)
+
+    return table_pnj
+
+
 def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.dossier_outputs_drive
-    table = generer_table_pnjs(mon_gn)
+    table_etendue = generer_table_pnjs_etendue(mon_gn)
+    table_simple = generer_table_pnjs_simple(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- table des PNJs'
     file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, file_id)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, file_id)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_etendue, file_id, feuille="détaillée")
 
 
 def generer_textes_infos(gn: GN):

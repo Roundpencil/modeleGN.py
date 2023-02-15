@@ -1,3 +1,4 @@
+import logging
 import pickle
 import datetime
 from enum import IntEnum
@@ -209,10 +210,11 @@ class Personnage(ConteneurDeScene):
     def string_type_pj(self):
         return string_type_pj(self.pj)
 
-        # pip = 0
-        # for role in self.roles:
-        #     pip += role.sommer_pip()
-        # return pip
+    def toutes_les_apparitions(self):
+        toutes = [role.conteneur.nom for role in self.roles]
+        return ', '.join(toutes)
+
+
 
 
 # rôle
@@ -796,6 +798,7 @@ class GN:
         # identifier la bonne fonction à appliquer
         critere = est_un_pj if pj else est_un_pnj
 
+        logging.debug(f"liste des noms sur lesquels sera basée l'association de {pj} : {noms_persos}")
         # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant
         for intrigue in self.intrigues.values():
             for role in intrigue.rolesContenus.values():

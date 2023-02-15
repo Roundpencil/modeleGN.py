@@ -337,7 +337,7 @@ class Application(tk.Frame):
                                         # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
                                         date_gn=self.dict_config.get('date_gn'),
                                         id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
-                                        fichier_pnjs=self.dict_config.get('fichier_pnjs')
+                                        fichier_pnjs=self.dict_config.get('fichier_noms_pnjs')
                                         )
                 # print(f"après injection, nous avons : "
                 #       f"dossiers_intrigues={self.dict_config['dossiers_intrigues'],}"
@@ -544,7 +544,8 @@ class Application(tk.Frame):
                     table_chrono_var,
                     table_persos_var,
                     table_pnjs_var,
-                    aide_de_jeu_var
+                    aide_de_jeu_var,
+                    table_pnjs_dedupliques_var
                     ]
 
             for checkbox in args:
@@ -610,6 +611,13 @@ class Application(tk.Frame):
                                             variable=aide_de_jeu_var)
         aide_de_jeu_check.grid(row=8, column=2)
 
+        table_pnjs_dedupliques_var = tk.BooleanVar()
+        table_pnjs_dedupliques_var.set(True)
+        table_pnjs_dedupliques_check = tk.Checkbutton(regen_window, text="table PNJs dédupliqués",
+                                            variable=table_pnjs_dedupliques_var)
+        table_pnjs_dedupliques_check.grid(row=8, column=3)
+
+
         # Buttons
         cancel_button = tk.Button(regen_window, text="Annuler", command=regen_window.destroy)
         cancel_button.grid(row=9, column=0)
@@ -637,7 +645,8 @@ class Application(tk.Frame):
                                   table_intrigues_var=table_intrigues_var.get(),
                                   table_objets_var=table_objets_var.get(),
                                   verbal_var=verbal_var.get(),
-                                  aide_de_jeu_var=aide_de_jeu_var.get()
+                                  aide_de_jeu_var=aide_de_jeu_var.get(),
+                                  table_pnjs_dedupliques_var = table_pnjs_dedupliques_var.get()
                               )
                               )
 
@@ -658,7 +667,7 @@ class Application(tk.Frame):
     def process_regen(self, intrigues_value, personnages_value, sans_chargement_fichier_value,
                       sauver_apres_operation_value,
                       generer_fichiers_drive_value, fichier_erreur_var, export_drive_var, changelog_var,
-                      table_chrono_var, table_persos_var, table_pnj_var, table_intrigues_var, table_objets_var,
+                      table_chrono_var, table_persos_var, table_pnj_var, table_pnjs_dedupliques_var, table_intrigues_var, table_objets_var,
                       generer_fichiers_pnjs_var, verbal_var, aide_de_jeu_var):
 
         if intrigues_value == "Spécifique":
@@ -695,6 +704,7 @@ class Application(tk.Frame):
                              table_chrono=table_chrono_var,
                              table_persos=table_persos_var,
                              table_pnjs=table_pnj_var,
+                             pnjs_dedupliques=table_pnjs_dedupliques_var,
                              fast_intrigues=(intrigues_value == "Rapide"),
                              fast_persos=(personnages_value == "Rapide"),
                              singletest_perso=personnages_specifique,
@@ -703,19 +713,6 @@ class Application(tk.Frame):
                              sauver_apres_operation=sauver_apres_operation_value,
                              verbal=verbal_var)
 
-
-# ajouter les options actuellement forcées à true
-
-
-#                               self.dict_config['dossier_intrigues'] = dossier_intrigues
-# self.dict_config['dossiers_pjs'] = dossiers_pjs
-# self.dict_config['id_factions'] = id_factions
-# self.dict_config['dossier_output_squelettes_pjs'] = dossier_output_squelettes_pjs
-# self.dict_config['noms_persos'] = noms_persos
-# self.dict_config['nom_fichier_pnjs'] = nom_fichier_pnjs
-# self.dict_config['association_auto'] = association_auto
-# self.dict_config['type_fiche'] = type_fiche
-# self.dict_config['nom_fichier_sauvegarde'] = nom_fichier_sauvegarde
 
 def main():
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
