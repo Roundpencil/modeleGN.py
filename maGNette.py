@@ -268,7 +268,7 @@ def listerDatesIntrigues(monGN):
 #         for item in personnage.driver:
 #             toutesScenes += f"{item} \n"
 #         toutesScenes += f"Chronologie : \n "
-#         for item in personnage.datesClefs:
+#         for item in personnage.dates_clefs:
 #             toutesScenes += f"{item} \n"
 #         toutesScenes += "\n *** Scenes associées : *** \n"
 #

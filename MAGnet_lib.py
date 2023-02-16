@@ -902,20 +902,20 @@ def generer_table_pnjs_etendue(gn: GN, verbal=False):
                   "intrigue", "nom dans l'intrigue"]]
 
 
-    print("ping table pnj")
-    print(f"pnjs contenus : {gn.dictPNJs.keys()}")
+    # print("ping table pnj")
+    # print(f"pnjs contenus : {gn.dictPNJs.keys()}")
 
     for pnj in gn.dictPNJs.values():
-        print(f"{pnj.nom}")
-        for role in pnj.roles:
-            print(f"table pnj : pnj en cours d'ajout : {pnj.nom}")
-            print(f"{pnj.nom}")
-            print(f"{role.description}")
-            print(f"{pnj.string_type_pj()}")
-            print(f"{role.niveauImplication}")
-            print(f"{role.perimetre_intervention}")
-            print(f"{role.conteneur.nom}")
-            print(f"{role.nom}")
+    #     print(f"{pnj.nom}")
+    #     for role in pnj.roles:
+    #         print(f"table pnj : pnj en cours d'ajout : {pnj.nom}")
+    #         print(f"{pnj.nom}")
+    #         print(f"{role.description}")
+    #         print(f"{pnj.string_type_pj()}")
+    #         print(f"{role.niveauImplication}")
+    #         print(f"{role.perimetre_intervention}")
+    #         print(f"{role.conteneur.nom}")
+    #         print(f"{role.nom}")
 
         table_pnj.extend(
             [

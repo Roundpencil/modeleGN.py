@@ -16,8 +16,8 @@ class TypePerso(IntEnum):
     EST_PJ = 6
 
 
-def est_un_pnj(niveauPJ):
-    return niveauPJ in [
+def est_un_pnj(niveau_pj):
+    return niveau_pj in [
         TypePerso.EST_PNJ_HORS_JEU,
         TypePerso.EST_PNJ_TEMPORAIRE,
         TypePerso.EST_PNJ_INFILTRE,
@@ -122,10 +122,12 @@ class ConteneurDeScene:
                     # print(f"Les deux scènes ont le même titre !")
                     if ma_scene.description == sa_scene.description:
                         # print(f"et la même description !")
-                        # print(f"dernières mises à jour : ma_scene : {ma_scene.derniere_mise_a_jour} / sa_scène : {sa_scene.derniere_mise_a_jour}")
+                        # print(f"dernières mises à jour : ma_scene : {ma_scene.derniere_mise_a_jour} /
+                        # sa_scène : {sa_scene.derniere_mise_a_jour}")
                         ma_scene.derniere_mise_a_jour = sa_scene.derniere_mise_a_jour
                         ma_scene.modifie_par = sa_scene.modifie_par
-                        # print(f"et, après update : ma_scene : {ma_scene.derniere_mise_a_jour} / sa_scène : {sa_scene.derniere_mise_a_jour}")
+                        # print(f"et, après update : ma_scene : {ma_scene.derniere_mise_a_jour}
+                        # / sa_scène : {sa_scene.derniere_mise_a_jour}")
                     elif verbal:
                         print("mais pas la même description !")
                     break
@@ -134,9 +136,9 @@ class ConteneurDeScene:
 # personnage
 class Personnage(ConteneurDeScene):
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
-                 sexe="i", pj: TypePerso = TypePerso.EST_PJ, orga_referent=None, pitchJoueur="", indicationsCostume="",
-                 textesAnnexes="", url="",
-                 datesClefs="", lastChange=datetime.datetime(year=2000, month=1, day=1), forced=False,
+                 sexe="i", pj: TypePerso = TypePerso.EST_PJ, orga_referent=None, pitchJoueur="", indications_costume="",
+                 textes_annexes="", url="",
+                 dates_clefs="", lastChange=datetime.datetime(year=2000, month=1, day=1), forced=False,
                  derniere_edition_fichier=0):
         super(Personnage, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
         self.nom = nom
@@ -153,12 +155,12 @@ class Personnage(ConteneurDeScene):
         self.orgaReferent = orga_referent if orga_referent is not None else ""
         self.joueurs = {}
         self.pitchJoueur = pitchJoueur
-        self.indicationsCostume = indicationsCostume
+        self.indicationsCostume = indications_costume
         self.factions = []
-        self.datesClefs = datesClefs
+        self.datesClefs = dates_clefs
         # trouver comment interpréter les textes en dessous des tableaux
         # : des scènes ?
-        self.textesAnnexes = textesAnnexes
+        self.textesAnnexes = textes_annexes
         # self.url = url
         self.lastProcessing = lastChange
         self.forced = forced
@@ -218,7 +220,8 @@ class Personnage(ConteneurDeScene):
 # rôle
 class Role:
 
-    def __init__(self, conteneur: ConteneurDeScene, personnage=None, nom="rôle sans nom", description="", pipi=0, pipr=0,
+    def __init__(self, conteneur: ConteneurDeScene, personnage=None, nom="rôle sans nom", description="", pipi=0,
+                 pipr=0,
                  sexe="i",
                  pj: TypePerso = TypePerso.EST_PJ,
                  type_intrigue="", niveau_implication="", perimetre_intervention="", issu_dune_faction=False,
@@ -359,22 +362,25 @@ class Intrigue(ConteneurDeScene):
 
 # relations
 class Relation:
-    def __init__(self, perso1, perso2, description_vue_par_1="Relation à définir", description_vue_par_2="",
-                 reciproque=True):
-        self.perso1 = perso1
-        self.perso2 = perso2
-        self.description_vue_par_1 = description_vue_par_1
-        self.description_vue_par_2 = description_vue_par_2
-        self.reciproque = reciproque
+    def __init__(self):
+        self.persos_vue_relation = {}  # personnage - voit la relation comme
 
-    def partenaire(self, perso):
-        if perso is self.perso1:
-            return self.perso2
+    @staticmethod
+    def creer_relation_bilaterale(perso_a, perso_b, description_a, description_b=None):
+        to_return = Relation()
+        to_return.persos_vue_relation = {
+            perso_a: description_a,
+            perso_b: description_a if description_b is None else description_b
 
-        if perso is self.perso2:
-            return self.perso1
+        }
+        return to_return
 
-        raise Exception("Personnage inconnu dans cette relation")
+    @staticmethod
+    def creer_relation_multilaterale(persos, description):
+        to_return = Relation()
+        for perso in persos:
+            to_return.persos_vue_relation[perso] = description
+        return to_return
 
 
 # Scènes
@@ -432,37 +438,37 @@ class Scene:
 
     def get_formatted_il_y_a(self):
         # print("date/type > {0}/{1}".format(self.date, type(self.date)))
-        if type(self.date) == float or type(self.date) == int or str(self.date[1:]).isnumeric():
-            if type(self.date) == str:
-                ma_date = float(self.date[1:])
-            else:
-                ma_date = -1 * self.date
-
-            if ma_date == 0:
-                return "Il y a 0 jours"
-
-            date_texte = 'Il y a '
-            nb_annees = ma_date // 365
-            nb_mois = (ma_date - nb_annees * 365) // 30.5
-            nb_jours = ma_date - nb_annees * 365 - nb_mois * 30.5
-
-            if nb_annees > 1:
-                date_texte += str(nb_annees)[:-2] + " ans, "
-            elif nb_annees == 1:
-                date_texte += "1 an, "
-
-            if nb_mois > 0:
-                date_texte += str(nb_mois)[:-2] + " mois, "
-
-            if nb_jours > 1:
-                date_texte += str(nb_jours)[:-2] + " jours, "
-            elif nb_jours > 0:
-                date_texte += "1 jour, "
-            return date_texte[0:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
-
-        else:
+        if (
+                type(self.date) != float
+                and type(self.date) != int
+                and not str(self.date[1:]).isnumeric()
+        ):
             # print("la date <{0}> n'est pas un nombre".format(self.date))
             return self.date
+
+        ma_date = float(self.date[1:]) if type(self.date) == str else -1 * self.date
+
+        if ma_date == 0:
+            return "Il y a 0 jours"
+
+        date_texte = 'Il y a '
+        nb_annees = ma_date // 365
+        nb_mois = (ma_date - nb_annees * 365) // 30.5
+        nb_jours = ma_date - nb_annees * 365 - nb_mois * 30.5
+
+        if nb_annees > 1:
+            date_texte += f"{str(nb_annees)[:-2]} ans, "
+        elif nb_annees == 1:
+            date_texte += "1 an, "
+
+        if nb_mois > 0:
+            date_texte += f"{str(nb_mois)[:-2]} mois, "
+
+        if nb_jours > 1:
+            date_texte += f"{str(nb_jours)[:-2]} jours, "
+        elif nb_jours > 0:
+            date_texte += "1 jour, "
+        return date_texte[:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
 
     def ajouter_role(self, role):
         self.roles.add(role)
@@ -639,19 +645,16 @@ class GN:
     # Tant que les modifs dans google sont postérieures à la date de dernière modif > les prendre en compte
     # Après > arréter
     def updateOldestUpdate(self):
-        pairesDatesIdIntrigues = dict()
-        for intrigue in self.intrigues.values():
-            pairesDatesIdIntrigues[intrigue.lastProcessing] = intrigue.url
-        if len(pairesDatesIdIntrigues) > 0:
+        if pairesDatesIdIntrigues := {
+            intrigue.lastProcessing: intrigue.url
+            for intrigue in self.intrigues.values()
+        }:
             self.oldestUpdateIntrigue = min(pairesDatesIdIntrigues.keys())
             self.oldestUpdatedIntrigue = pairesDatesIdIntrigues[self.oldestUpdateIntrigue]
 
-        pairesDatesIdPJ = dict()
-        for pj in self.dictPJs.values():
-            # print(pj.nom)
-            pairesDatesIdPJ[pj.lastProcessing] = pj.url
-        # print(pairesDatesIdPJ)
-        if len(pairesDatesIdPJ) > 0:
+        if pairesDatesIdPJ := {
+            pj.lastProcessing: pj.url for pj in self.dictPJs.values()
+        }:
             self.oldestUpdatePJ = min(pairesDatesIdPJ.keys())
             # print(f"oldestdate pj : {self.oldestUpdatePJ} ")
             self.oldestUpdatedPJ = pairesDatesIdPJ[self.oldestUpdatePJ]
@@ -678,7 +681,7 @@ class GN:
         # else:
         #     return self.noms_pnjs()
 
-    # def associerPNJsARoles(self, seuilAlerte=90, verbal=True):
+    # def associerPNJsARoles(self, seuil_alerte=90, verbal=True):
     #     nomsPnjs = self.liste_noms_pnjs()
     #     for intrigue in self.intrigues.values():
     #         for role in intrigue.rolesContenus.values():
@@ -690,14 +693,14 @@ class GN:
     #                 # print(f"je m'apprête à associer PNJ {role.nom}, identifié comme {score} ")
     #                 # print(f"\t à {self.dictPNJs[score[0]].nom} (taille du dictionnaire PNJ = {len(self.dictPNJs)}")
     #                 intrigue.associer_role_a_perso(role_a_associer=role, personnage=self.dictPNJs[score[0]])
-    #                 if score[1] < seuilAlerte:
+    #                 if score[1] < seuil_alerte:
     #                     texteErreur = f"Warning association ({score[1]}) " \
     #                                   f"- nom rôle : {role.nom} > PNJ : {score[0]} dans {intrigue.nom}"
     #                     intrigue.add_to_error_log(texteErreur)
     #                     if verbal:
     #                         print(texteErreur)
     #
-    # def associer_pj_a_roles(self, seuilAlerte=70, verbal=True):
+    # def associer_pj_a_roles(self, seuil_alerte=70, verbal=True):
     #     print("Début de l'association automatique des rôles aux persos")
     #     nomsPjs = self.liste_noms_pjs()
     #     if verbal:
@@ -718,7 +721,7 @@ class GN:
     #             role.personnage = dictNomsPJ[score[0]]
     #             role.personnage.roles.add(role)
     #
-    #             if score[1] < seuilAlerte:
+    #             if score[1] < seuil_alerte:
     #                 texteErreur = f"Warning association ({score[1]}) - nom rôle : " \
     #                               f"{role.nom} > PJ : {score[0]} dans {pj.nom}"
     #                 pj.add_to_error_log(texteErreur)
@@ -737,7 +740,7 @@ class GN:
     #                 check = intrigue.associer_role_a_perso(role_a_associer=role, personnage=dictNomsPJ[score[0]],
     #                                                        verbal=verbal)
     #
-    #                 if score[1] < seuilAlerte:
+    #                 if score[1] < seuil_alerte:
     #                     texteErreur = f"Warning association ({score[1]}) - nom rôle : " \
     #                                   f"{role.nom} > PJ : {score[0]} dans {intrigue.nom}"
     #                     intrigue.add_to_error_log(texteErreur)
@@ -747,13 +750,13 @@ class GN:
     #
     #     print("Fin de l'association automatique des rôles aux persos")
 
-    def associer_pnj_a_roles(self, seuilAlerte=70, verbal=True):
-        self.associer_pjpnj_a_roles(pj=False, seuilAlerte=seuilAlerte, verbal=verbal)
+    def associer_pnj_a_roles(self, seuil_alerte=70, verbal=True):
+        self.associer_pjpnj_a_roles(pj=False, seuil_alerte=seuil_alerte, verbal=verbal)
 
-    def associer_pj_a_roles(self, seuilAlerte=70, verbal=True):
-        self.associer_pjpnj_a_roles(pj=True, seuilAlerte=seuilAlerte, verbal=verbal)
+    def associer_pj_a_roles(self, seuil_alerte=70, verbal=True):
+        self.associer_pjpnj_a_roles(pj=True, seuil_alerte=seuil_alerte, verbal=verbal)
 
-    def associer_pjpnj_a_roles(self, pj: bool, seuilAlerte=70, verbal=False):
+    def associer_pjpnj_a_roles(self, pj: bool, seuil_alerte=70, verbal=False):
         print("Début de l'association automatique des rôles aux persos")
         noms_persos = self.noms_pjpnjs(pj)
         if pj:
@@ -771,6 +774,40 @@ class GN:
 
         # Associer les rôles sans passer par la case tableau d'association
         # pour les rôles issus des scènes dans les fiches de PJs
+        self.associer_roles_issus_de_pj(dict_noms_persos, dict_reference, noms_persos, seuil_alerte, verbal)
+
+        # faire l'association dans les intrigues à partir du nom de l'intrigue
+        # identifier la bonne fonction à appliquer
+        self.associer_roles_issus_dintrigues(dict_noms_persos, noms_persos, pj, seuil_alerte, verbal)
+
+        print("Fin de l'association automatique des rôles aux persos")
+
+    def associer_roles_issus_dintrigues(self, dict_noms_persos, noms_persos, pj, seuil_alerte, verbal):
+        critere = est_un_pj if pj else est_un_pnj
+        logging.debug(f"liste des noms sur lesquels sera basée l'association de {pj} : {noms_persos}")
+        # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant
+        for intrigue in self.intrigues.values():
+            for role in intrigue.rolesContenus.values():
+                if critere(role.pj):
+                    # print(f"nom du role testé = {role.nom}")
+                    score = process.extractOne(role.nom, noms_persos)
+                    if verbal:
+                        print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
+                    check = intrigue.associer_role_a_perso(role_a_associer=role, personnage=dict_noms_persos[score[0]],
+                                                           verbal=verbal)
+
+                    if score[1] < seuil_alerte:
+                        texte_erreur = f"Association ({score[1]}) - nom rôle : " \
+                                       f"{role.nom} > personnage : {score[0]} dans {intrigue.nom}"
+                        intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+                                                  texte_erreur,
+                                                  ErreurManager.ORIGINES.ASSOCIATION_AUTO
+                                                  )
+                        if verbal:
+                            # print(f"je paaaaaarle {score[1]}")
+                            print(texte_erreur)
+
+    def associer_roles_issus_de_pj(self, dict_noms_persos, dict_reference, noms_persos, seuilAlerte, verbal):
         for perso in dict_reference.values():
             # print(f"je suis en train de chercher des roles dans le pj {pj.nom}")
             # print(f"noms de roles trouvés : {pj.rolesContenus}")
@@ -792,35 +829,6 @@ class GN:
                     if verbal:
                         # print(f"je paaaaaarle {score[1]}")
                         print(texte_erreur)
-
-        # faire l'association dans les intrigues à partir du nom de l'intrigue
-        # identifier la bonne fonction à appliquer
-        critere = est_un_pj if pj else est_un_pnj
-
-        logging.debug(f"liste des noms sur lesquels sera basée l'association de {pj} : {noms_persos}")
-        # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant
-        for intrigue in self.intrigues.values():
-            for role in intrigue.rolesContenus.values():
-                if critere(role.pj):
-                    # print(f"nom du role testé = {role.nom}")
-                    score = process.extractOne(role.nom, noms_persos)
-                    if verbal:
-                        print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
-                    check = intrigue.associer_role_a_perso(role_a_associer=role, personnage=dict_noms_persos[score[0]],
-                                                           verbal=verbal)
-
-                    if score[1] < seuilAlerte:
-                        texte_erreur = f"Association ({score[1]}) - nom rôle : " \
-                                       f"{role.nom} > personnage : {score[0]} dans {intrigue.nom}"
-                        intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-                                                  texte_erreur,
-                                                  ErreurManager.ORIGINES.ASSOCIATION_AUTO
-                                                  )
-                        if verbal:
-                            # print(f"je paaaaaarle {score[1]}")
-                            print(texte_erreur)
-
-        print("Fin de l'association automatique des rôles aux persos")
 
     @staticmethod
     def load(filename):
