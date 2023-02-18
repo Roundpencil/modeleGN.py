@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import pickle
 import datetime
@@ -256,21 +257,21 @@ class Role:
         self.issu_dune_faction = issu_dune_faction
 
     def __str__(self):
-        toReturn = ""
-        toReturn += f"provenance : {self.conteneur.nom}" + "\n"
-        toReturn += f"nom dans provenance : {self.nom}" + "\n"
+        to_return = ""
+        to_return += f"provenance : {self.conteneur.nom}" + "\n"
+        to_return += f"nom dans provenance : {self.nom}" + "\n"
         if self.personnage is None:
-            toReturn += "personnage : aucun" + "\n"
+            to_return += "personnage : aucun" + "\n"
         else:
-            toReturn += f"personnage : {self.personnage.nom}" + "\n"
-        toReturn += f"description : {self.description}" + "\n"
-        # toReturn += "pipr : " + str(self.pipr) + "\n"
-        # toReturn += "pipi : " + str(self.pipi) + "\n"
-        toReturn += f"pj : {string_type_pj(self.pj)}" + "\n"
-        # toReturn += "sexe : " + self.sexe + "\n"
-        toReturn += f"typeIntrigue : {self.typeIntrigue}" + "\n"
-        toReturn += f"niveauImplication : {self.niveauImplication}" + "\n"
-        return toReturn
+            to_return += f"personnage : {self.personnage.nom}" + "\n"
+        to_return += f"description : {self.description}" + "\n"
+        # to_return += "pipr : " + str(self.pipr) + "\n"
+        # to_return += "pipi : " + str(self.pipi) + "\n"
+        to_return += f"pj : {string_type_pj(self.pj)}" + "\n"
+        # to_return += "sexe : " + self.sexe + "\n"
+        to_return += f"typeIntrigue : {self.typeIntrigue}" + "\n"
+        to_return += f"niveauImplication : {self.niveauImplication}" + "\n"
+        return to_return
 
     def ajouter_a_scene(self, sceneAAjouter):
         self.scenes.add(sceneAAjouter)
@@ -501,12 +502,10 @@ class Scene:
         if self.date_absolue is not None:
             return self.date_absolue
         elif date_du_jeu is not None:
-            try:
+            with contextlib.suppress(ValueError):
                 float_date = float(self.date)
                 date_absolue = date_du_jeu - datetime.timedelta(days=int(float_date) * -1)
                 return date_absolue
-            except ValueError:
-                pass
         return datetime.datetime.min
 
     def get_date_jours(self):

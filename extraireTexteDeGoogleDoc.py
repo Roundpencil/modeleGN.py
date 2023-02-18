@@ -223,7 +223,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     TODO = "etat de l’intrigue"
     PITCH = "résumé de l’intrigue"
     PJS = "personnages impliqués"
-    PNJS = "pnjs impliqués"
+    PNJS = "texte_pnjs impliqués"
     REROLLS = "rerolls possibles"
     OBJETS = "objets liés"
     SCENESFX = "scènes nécessaires et fx"
@@ -266,14 +266,14 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     # print("pitch lu dans l'intrigue après mise à jour : " + currentIntrigue.pitch)
 
     # gestion de la section PJ
-    pjs = texteIntrigue[indexes[PJS]["debut"]:indexes[PJS]["fin"]].split("¤¤¤¤¤")
-    nb_colonnes = len(pjs[0].split("¤¤¤"))
+    texte_pjs = texteIntrigue[indexes[PJS]["debut"]:indexes[PJS]["fin"]]
+    tableau_pjs, nb_colonnes = reconstituer_tableau(texte_pjs)
     if nb_colonnes == 4:
-        lire_tableau_pj_chalacta(current_intrigue, pjs)
+        lire_tableau_pj_chalacta(current_intrigue, tableau_pjs)
     elif nb_colonnes == 5:
-        lire_tableau_pj_5_colonnes(current_intrigue, pjs)
+        lire_tableau_pj_5_colonnes(current_intrigue, tableau_pjs)
     elif nb_colonnes == 6:
-        lire_tableau_pj_6_colonnes(current_intrigue, pjs)
+        lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs)
     else:
         current_intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                                   "Tableau des personnages dans l'intrigue non standard",
@@ -285,38 +285,35 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
         # print(f'bloc PNJs = {texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]]}')
         # print(f"dans l'intrigue {currentIntrigue.nom}")
 
-        pnjs = texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]].split('¤¤¤¤¤')
+        texte_pnjs = texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]]
+        tableau_pnjs = reconstituer_tableau(texte_pnjs)
         # faire un tableau avec une ligne par PNJ
-        for pnj in pnjs[1:]:  # on enlève la première ligne qui contient les titres
+        for pnj in tableau_pnjs:
             # print(f"section pnj en cours de lecture : {pnj}")
             # print(f"taille = {len(pnj)}")
-            if len(pnj) < 14:
-                # dans ce cas, c'est une ligne vide
-                # print(f"pnj {pnj}  est vide")
-                continue
-            sections = pnj.split("¤¤¤")
+
             # 0 Nom duPNJ et / ou fonction :
             # 1 Intervention:(Permanente ou Temporaire)
             # 2 Type d’implication: (Active, Passive, Info, ou Objet)
             # 3 Résumé de l’implication
-            pnj_a_ajouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
-                                 pj=TypePerso.EST_PNJ_HORS_JEU, niveau_implication=sections[2].strip(),
-                                 perimetre_intervention=sections[1].strip())
+            pnj_a_ajouter = Role(current_intrigue, nom=pnj[0], description=pnj[3],
+                                 pj=TypePerso.EST_PNJ_HORS_JEU, niveau_implication=pnj[2],
+                                 perimetre_intervention=pnj[1])
 
             # print("Je suis en train de regarder {0} et son implication est {1}"
-            # .format(pnj_a_ajouter.nom, sections[1].strip()))
+            # .format(pnj_a_ajouter.nom, pnj[1].strip()))
 
             # cherche ensuite le niveau d'implication du pj
-            if sections[1].strip().lower().find('perman') > -1:
+            if pnj[1].lower().find('perman') > -1:
                 # print(pnj_a_ajouter.nom + " est permanent !!")
                 pnj_a_ajouter.pj = TypePerso.EST_PNJ_PERMANENT
-            elif sections[1].strip().lower().find('infiltr') > -1:
+            elif pnj[1].lower().find('infiltr') > -1:
                 pnj_a_ajouter.pj = TypePerso.EST_PNJ_INFILTRE
                 # print(pnj_a_ajouter.nom + " est temporaire !!")
-            # elif sections[1].strip().lower().find('temp') > -1:
+            # elif pnj[1].strip().lower().find('temp') > -1:
             #     pnj_a_ajouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
             #     # print(pnj_a_ajouter.nom + " est temporaire !!")
-            elif len(sections[1].strip()) > 1:
+            elif len(pnj[1]) > 1:
                 pnj_a_ajouter.pj = TypePerso.EST_PNJ_TEMPORAIRE
                 # print(pnj_a_ajouter.nom + " est temporaire !!")
 
@@ -333,11 +330,11 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
             if len(reroll) < 14:
                 # dans ce cas, c'est une ligne vide
                 continue
-            sections = reroll.split("¤¤¤")
-            # même sections que les PJs
-            re_roll_a_ajouter = Role(current_intrigue, nom=sections[0].strip(), description=sections[3].strip(),
-                                     pj=TypePerso.EST_REROLL, type_intrigue=sections[2].strip(),
-                                     niveau_implication=sections[1].strip())
+            pnj = reroll.split("¤¤¤")
+            # même pnj que les PJs
+            re_roll_a_ajouter = Role(current_intrigue, nom=pnj[0].strip(), description=pnj[3].strip(),
+                                     pj=TypePerso.EST_REROLL, type_intrigue=pnj[2].strip(),
+                                     niveau_implication=pnj[1].strip())
 
             # du coup, on peut l'ajouter aux intrigues
             current_intrigue.rolesContenus[re_roll_a_ajouter.nom] = re_roll_a_ajouter
@@ -350,29 +347,29 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
             if len(objet) < 14:
                 # dans ce cas, c'est une ligne vide
                 continue
-            sections = objet.split("¤¤¤")
+            pnj = objet.split("¤¤¤")
             # vérifier si nous sommes avec un objet RFID (4 colonnes) ou sans (3 colonnes)
             mon_objet = None
-            if len(sections) == 4:
-                mon_objet = Objet(description=sections[0].strip(),
-                                  specialEffect=sections[1].strip() if sections[1].strip().lower() != "non" else '',
-                                  emplacementDebut=sections[2].strip(),
-                                  fourniPar=sections[3].strip())
-                # if sections[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
-                #     mon_objet.specialEffect = sections[1].strip()
+            if len(pnj) == 4:
+                mon_objet = Objet(description=pnj[0].strip(),
+                                  specialEffect=pnj[1].strip() if pnj[1].strip().lower() != "non" else '',
+                                  emplacementDebut=pnj[2].strip(),
+                                  fourniPar=pnj[3].strip())
+                # if pnj[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
+                #     mon_objet.specialEffect = pnj[1].strip()
 
-            elif len(sections) == 3:
-                mon_objet = Objet(description=sections[0].strip(),
-                                  emplacementDebut=sections[1].strip(),
-                                  fourniPar=sections[2].strip())
-            elif len(sections) == 6:
-                mon_objet = Objet(code=sections[0].strip(),
-                                  description=sections[1].strip(),
-                                  specialEffect=sections[2].strip() if sections[2].strip().lower() != "non" else '',
-                                  emplacementDebut=sections[3].strip(),
-                                  fourniPar=sections[4].strip())
+            elif len(pnj) == 3:
+                mon_objet = Objet(description=pnj[0].strip(),
+                                  emplacementDebut=pnj[1].strip(),
+                                  fourniPar=pnj[2].strip())
+            elif len(pnj) == 6:
+                mon_objet = Objet(code=pnj[0].strip(),
+                                  description=pnj[1].strip(),
+                                  specialEffect=pnj[2].strip() if pnj[2].strip().lower() != "non" else '',
+                                  emplacementDebut=pnj[3].strip(),
+                                  fourniPar=pnj[4].strip())
             else:
-                print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {sections}")
+                print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {pnj}")
 
             if mon_objet is not None:
                 current_intrigue.objets.add(mon_objet)
@@ -442,89 +439,66 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     return current_intrigue
 
 
-def lire_tableau_pj_chalacta(currentIntrigue, pjs):
-    for pj in pjs[1:]:  # on commence en 1 pour éviter de prendre la première ligne
+def lire_tableau_pj_chalacta(current_intrigue, tableau_pjs):
+    for pj in tableau_pjs:  # on commence en 1 pour éviter de prendre la première ligne
         # print("taille du prochain PJ : " +str(len(pj)))
-        if len(pj) < 14:  # dans ce cas, c'est qu'un a une ligne du tableau vide
-            # print("pas assez de caractères je me suis arrêté")
-            continue  # il y a de fortes chances que le PJ ne contienne que des renvois à la ligne
-        sections = pj.split("¤¤¤")
-        # print("j'ai trouvé " + str(len(sections)) + " sections")
 
-        if len(sections) < 4:  # testé pour éviter de se taper les lignes vides après le tableau
+        if len(pj) < 4:  # testé pour éviter de se taper les lignes vides après le tableau
             continue
 
-        # déplacé dans l'objet GN à faire tourner en fin de traitement, notamment si changement des Persos depuis le
-        # dernier run
-        # print("personnage découpé avant ajout : " + str(sections)) nomNormalise = process.extractOne(str(
-        # sections[0]).strip(), noms_persos) # print("nom normalisé pour " + str(sections[0].strip()) + " : " +
-        # nomNormalise[0] + " - " + str(nomNormalise[1])) if nomNormalise[1] < 70: print("WARNING : indice de
-        # confiance faible ({0}) pour l'association du personnage {1}, trouvé dans le " "tableau, avec le personnage
-        # {2} dans l'intrigue {3}".format(nomNormalise[1], str(sections[0]).strip(), nomNormalise[0], nomIntrigue))
-
-        role_a_ajouter = Role(currentIntrigue,
-                              nom=sections[0].split("http")[0].strip(),
-                              description=sections[3].strip(),
-                              type_intrigue=sections[2].strip(),
-                              niveau_implication=sections[1].strip()
+        role_a_ajouter = Role(current_intrigue,
+                              nom=pj[0].split("http")[0],
+                              description=pj[3],
+                              type_intrigue=pj[2],
+                              niveau_implication=pj[1]
                               )
-        currentIntrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
+        current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
-def lire_tableau_pj_5_colonnes(current_intrigue, pjs):
-    for pj in pjs[1:]:  # on commence en 1 pour éviter de prendre la première ligne
+def lire_tableau_pj_5_colonnes(current_intrigue, tableau_pjs):
+    for pj in tableau_pjs:  # on commence en 1 pour éviter de prendre la première ligne
         # print("taille du prochain PJ : " +str(len(pj)))
-        if len(pj) < 18:  # dans ce cas, c'est qu'un a une ligne du tableau vide
-            # print("pas assez de caractères je me suis arrêté")
-            continue  # il y a de fortes chances que le PJ ne contienne que des renvois à la ligne
-        sections = pj.split("¤¤¤")
-        # print("j'ai trouvé " + str(len(sections)) + " sections")
 
-        if len(sections) < 4:  # testé pour éviter de se taper les lignes vides après le tableau
+        if len(pj) < 5:  # testé pour éviter de se taper les lignes vides après le tableau
             continue
 
-        roleAAjouter = Role(current_intrigue,
-                            nom=sections[0].split("http")[0].strip(),
-                            description=sections[4].strip(),
-                            type_intrigue=sections[3].strip(),
-                            niveau_implication=sections[2].strip(),
-                            pip_globaux=sections[1].strip()
-                            )
-        current_intrigue.rolesContenus[roleAAjouter.nom] = roleAAjouter
+        role_a_ajouter = Role(current_intrigue,
+                              nom=pj[0].split("http")[0],
+                              description=pj[4],
+                              type_intrigue=pj[3],
+                              niveau_implication=pj[2],
+                              pip_globaux=pj[1]
+                              )
+        current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
-def lire_tableau_pj_6_colonnes(current_intrigue, pjs):
-    for pj in pjs[1:]:  # on commence en 1 pour éviter de prendre la première ligne
+def lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs):
+    for pj in tableau_pjs:  # on commence en 1 pour éviter de prendre la première ligne
         print("taille du prochain PJ : " + str(len(pj)))
-        if len(pj) < 22:  # dans ce cas, c'est qu'un a une ligne du tableau vide
-            # print("pas assez de caractères je me suis arrêté")
-            continue  # il y a de fortes chances que le PJ ne contienne que des renvois à la ligne
-        sections = pj.split("¤¤¤")
-        # print("j'ai trouvé " + str(len(sections)) + " sections")
 
-        if len(sections) < 6:  # testé pour éviter de se taper les lignes vides après le tableau
+        if len(pj) < 6:  # testé pour éviter de se taper les lignes vides après le tableau
             continue
 
-        roleAAjouter = Role(current_intrigue,
-                            nom=sections[0].split("http")[0].strip(),
-                            description=sections[5].strip(),
-                            type_intrigue=sections[4].strip(),
-                            niveau_implication=sections[3].strip(),
-                            pipi=sections[1].strip(),
-                            pipr=sections[2].strip()
+        role_a_ajouter = Role(current_intrigue,
+                            nom=pj[0].split("http")[0],
+                            description=pj[5],
+                            type_intrigue=pj[4],
+                            niveau_implication=pj[3],
+                            pipi=pj[1],
+                            pipr=pj[2]
                             )
-        current_intrigue.rolesContenus[roleAAjouter.nom] = roleAAjouter
+        current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
-def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableauRolesExistant=True):
+def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
     noms_roles = None
-    if tableauRolesExistant:
+    if tableau_roles_existant:
         # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de référence des noms dans l'intrigue
         noms_roles = conteneur.get_noms_roles()
         # print(f"pour {currentIntrigue.nom}, noms_roles =  {noms_roles}")
 
     # print(f"Texte section scène : {texteScenes}")
-    scenes = texteScenes.split("###")
+    scenes = texte_scenes.split("###")
     for scene in scenes:
         # print("taille de la scène : " + str(len(scene)))
         if len(scene) < 10:
@@ -588,7 +562,7 @@ def texte2scenes(conteneur: ConteneurDeScene, nomConteneur, texteScenes, tableau
                 # scene_a_ajouter.infos.add([f.strip() for f in balise[9:].split(',')])
                 extraire_infos_scene(balise[9:], scene_a_ajouter)
             else:
-                texte_erreur = "balise inconnue : " + balise + " dans le conteneur " + nomConteneur
+                texte_erreur = "balise inconnue : " + balise + " dans le conteneur " + nom_conteneur
                 print(texte_erreur)
                 scene_a_ajouter.description += balise
                 conteneur.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
@@ -1431,14 +1405,13 @@ def reconstituer_tableau(texte_lu: str):
     lignes = texte_tableau.split(lecteurGoogle.FIN_LIGNE)
     to_return = []
 
-
     for ligne in lignes[1:]:
         tmp_ligne = [element.strip() for element in ligne.split(lecteurGoogle.SEPARATEUR_COLONNES)]
         taille_ligne = sum([len(element) for element in tmp_ligne])
         if taille_ligne > 1:
             to_return.append(tmp_ligne)
 
-    print(to_return)
+    # print(to_return)
     return to_return, len(to_return[0]) if to_return else None
 
 

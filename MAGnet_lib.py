@@ -31,6 +31,11 @@ import dateparser
 #  dans les scènes : relations nécessaires (nouveau tag)
 #  une qui contient toujours 2 colonnes multilatérale
 
+#todo : détail des relations
+# ajouter la lecture des balises dans les scenes > associer des roles entre eux
+# ajouter la lecture des balises dans les personnages > associer des personnages entre eux
+# ajouter une méthode qui, à partir d'un personnage, donne toutes les relations associées
+
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
 # todo : faire évoluer grille objets avec le code et le fait qu'on a trouvé un lien vers une fiche objet
