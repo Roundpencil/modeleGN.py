@@ -410,12 +410,11 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
     # les scènes triées dans l'ordre de dernière modif
     # tous les orgas dans un set
     for ma_scene in toutes_les_scenes:
-        dict_scene = dict()
-        dict_scene['nom_scene'] = ma_scene.titre
-        dict_scene['date'] = ma_scene.derniere_mise_a_jour.strftime("%Y-%m-%d %H:%M:%S")
-        dict_scene['qui'] = ma_scene.modifie_par
-        dict_scene['document'] = ma_scene.conteneur.get_full_url()
-        dict_orgas = dict()
+        dict_scene = {'nom_scene': ma_scene.titre,
+                      'date': ma_scene.derniere_mise_a_jour.strftime("%Y-%m-%d %H:%M:%S"),
+                      'qui': ma_scene.modifie_par, 'document': ma_scene.conteneur.get_full_url()
+                      }
+        dict_orgas = {}
         # dict_scene['dict_orgas'] = dict_orgas
         for role in ma_scene.roles:
             if role.est_un_pnj():
@@ -442,16 +441,19 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
     table_intrigues = [
         ["nom intrigue", "nombre de scenes", "dernière édition", "modifié par", "Orga referent", "statut", "Problèmes",
          "url"]]
-    for intrigue in mon_gn.intrigues.values():
-        table_intrigues.append([intrigue.nom,
-                                len(intrigue.scenes),
-                                intrigue.lastFileEdit.strftime("%Y-%m-%d %H:%M:%S"),
-                                intrigue.modifie_par,
-                                intrigue.orgaReferent,
-                                intrigue.questions_ouvertes,
-                                intrigue.error_log.nb_erreurs(),
-                                intrigue.get_full_url()])
-
+    table_intrigues.extend(
+        [
+            intrigue.nom,
+            len(intrigue.scenes),
+            intrigue.lastFileEdit.strftime("%Y-%m-%d %H:%M:%S"),
+            intrigue.modifie_par,
+            intrigue.orgaReferent,
+            intrigue.questions_ouvertes,
+            intrigue.error_log.nb_erreurs(),
+            intrigue.get_full_url(),
+        ]
+        for intrigue in mon_gn.intrigues.values()
+    )
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Etat des intrigues'
     dossier_export = mon_gn.dossier_outputs_drive
     mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_export)
@@ -462,9 +464,7 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
 
 def creer_table_pnj_dedupliquee_sur_drive(mon_gn: GN, api_sheets, api_drive):
     table_pnj = [["Nom"]]
-    for nom in generer_liste_pnj_dedup(mon_gn):
-        table_pnj.append([nom])
-
+    table_pnj.extend([nom] for nom in generer_liste_pnj_dedup(mon_gn))
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Suggestion liste PNJs dédupliqués'
     dossier_export = mon_gn.dossier_outputs_drive
     mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_export)
@@ -534,7 +534,7 @@ def ecrire_squelettes_localement(mon_gn: GN, prefixe=None, pj=True):
     toutes_scenes = "".join(squelettes_persos.values())
 
     if prefixe is not None:
-        with open(prefixe + ' - squelettes.txt', 'w', encoding="utf-8") as f:
+        with open(f'{prefixe} - squelettes.txt', 'w', encoding="utf-8") as f:
             f.write(toutes_scenes)
             f.close()
 
