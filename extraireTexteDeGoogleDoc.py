@@ -1422,34 +1422,24 @@ def formatter_fichier_erreurs(api_doc, doc_id):
     return result
 
 
-# def reconstituer_tableau(texte_lu, separateur_ligne="¤¤¤¤¤", separateur_colonne="¤¤¤"):
-#     first_hash_index = texte_lu.find(separateur_ligne)
-#     last_hash_index = texte_lu.rfind(separateur_ligne)
-#     if first_hash_index == -1 or last_hash_index == -1:
-#         return None
-#
-#     texte_tableau = texte_lu[first_hash_index:last_hash_index + 1]
-#     lignes = texte_tableau.split(separateur_ligne)
-#     to_return = []
-#     for ligne in lignes[1:]:
-#         to_return.append(ligne.split(separateur_colonne))
-#
-#     return to_return
-
-def reconstituer_tableau(texte_lu: str, separateur_ligne="¤¤¤¤¤", separateur_colonne="¤¤¤"):
-    first_hash_index = texte_lu.find(separateur_ligne)
-    last_hash_index = texte_lu.rfind(separateur_ligne)
-    if first_hash_index == -1 or last_hash_index == -1:
+def reconstituer_tableau(texte_lu: str):
+    last_hash_index = texte_lu.rfind(lecteurGoogle.FIN_LIGNE)
+    if last_hash_index == -1:
         return None, None
 
-    texte_tableau = texte_lu[first_hash_index:last_hash_index + 1]
-    lignes = texte_tableau.split(separateur_ligne)
+    texte_tableau = texte_lu[:last_hash_index + 1]
+    lignes = texte_tableau.split(lecteurGoogle.FIN_LIGNE)
     to_return = []
-    for ligne in lignes[1:]:
-        to_return.append(ligne.split(separateur_colonne))
 
-    num_columns = len(to_return[0]) if to_return else None
-    return to_return, num_columns
+
+    for ligne in lignes[1:]:
+        tmp_ligne = [element.strip() for element in ligne.split(lecteurGoogle.SEPARATEUR_COLONNES)]
+        taille_ligne = sum([len(element) for element in tmp_ligne])
+        if taille_ligne > 1:
+            to_return.append(tmp_ligne)
+
+    print(to_return)
+    return to_return, len(to_return[0]) if to_return else None
 
 
 def extraire_evenement_de_texte(texte_evenement, nom_evenement, id_url, lastFileEdit, derniere_modification_par, monGN,

@@ -19,6 +19,9 @@ SCOPES = [
 
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre des tokens dans la déclaration
 
+SEPARATEUR_COLONNES = "¤¤c¤¤"
+SEPARATEUR_LIGNES = "¤¤l¤¤"
+FIN_LIGNE = SEPARATEUR_COLONNES + SEPARATEUR_LIGNES
 
 # crée deux lecteurs, api_doc et ApiDoc, pour pouvoir lire plus facilement les fichiers par la suite
 def creer_lecteurs_google_apis():
@@ -89,8 +92,8 @@ def read_structural_elements(elements):
             for row in table.get('tableRows'):
                 cells = row.get('tableCells')
                 for cell in cells:
-                    text += read_structural_elements(cell.get('content')) + "¤¤¤"
-                text += "¤¤"
+                    text += read_structural_elements(cell.get('content')) + SEPARATEUR_COLONNES
+                text += SEPARATEUR_LIGNES
         elif 'tableOfContents' in value:
             # The text in the TOC is also in a Structural Element.
             toc = value.get('tableOfContents')

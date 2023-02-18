@@ -81,8 +81,8 @@ class ConteneurDeScene:
     def get_noms_roles(self):
         return self.rolesContenus.keys()
 
-    def ajouter_scene(self, nomScene):
-        scene_a_ajouter = Scene(self, nomScene)
+    def ajouter_scene(self, nom_scene):
+        scene_a_ajouter = Scene(self, nom_scene)
         scene_a_ajouter.derniere_mise_a_jour = self.lastFileEdit
         self.scenes.add(scene_a_ajouter)
         return scene_a_ajouter
