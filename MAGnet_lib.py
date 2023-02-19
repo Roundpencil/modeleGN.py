@@ -2,7 +2,6 @@ import configparser
 import logging
 import os
 
-
 import extraireTexteDeGoogleDoc
 import lecteurGoogle
 from modeleGN import *
@@ -20,16 +19,13 @@ import dateparser
 # todo : trouver pouruqoi riri n'est pas dans la table détaillée des pnjs
 
 # à faire - rapide
-#todo : ajouter la gestion des relations dans les fonctions  de clearing
+# todo : ajouter la gestion des relations dans les fonctions  de clearing
 
 # à faire - plus long
-#todo : détail des relations
 # todo : ajouter le clear des relations dans les fonctions de clear
-# todo : ajouter les relations dans la génération des squelettes
-# todo : tester les relations multis et bilatérales
 
 # todo ajouter la lecture des balises dans les personnages > associer des personnages entre eux
-# todo ajouter une méthode qui, à partir d'un personnage, donne toutes les relations associées
+#  vérifier que le code actuel ne permet pas de le faire en passant par l'option None de la méthode
 
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
@@ -39,8 +35,6 @@ import dateparser
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 #  ne pas oublier qu'un évènement se rattache à un tringue, et donc à des roles, PAS DES PERSOS
-
-
 
 
 # confort / logique
@@ -275,7 +269,6 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     if pnjs_dedupliques:
         creer_table_pnj_dedupliquee_sur_drive(mon_gn, api_sheets, api_drive)
 
-
     print("******* aides de jeu *********************")
     if aides_de_jeu:
         ecrire_texte_info(mon_gn, api_doc, api_drive)
@@ -310,14 +303,14 @@ def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
     return log_erreur
 
 
-def ecrire_erreurs_dans_drive(texte_erreurs, apiDoc, apiDrive, parent):
+def ecrire_erreurs_dans_drive(texte_erreurs, api_doc, api_drive, parent):
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Listes des erreurs dans les tableaux des persos'
-    mon_id = extraireTexteDeGoogleDoc.add_doc(apiDrive, nom_fichier, parent)
+    mon_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, parent)
     if result := extraireTexteDeGoogleDoc.write_to_doc(
-            apiDoc, mon_id, texte_erreurs
+            api_doc, mon_id, texte_erreurs
     ):
-        extraireTexteDeGoogleDoc.formatter_fichier_erreurs(apiDoc, mon_id)
+        extraireTexteDeGoogleDoc.formatter_fichier_erreurs(api_doc, mon_id)
     # result = extraireTexteDeGoogleDoc.write_to_doc(apiDoc, mon_id, texte_erreurs)
     # if result:
     #     extraireTexteDeGoogleDoc.formatter_fichier_erreurs(apiDoc, mon_id)
@@ -466,13 +459,13 @@ def creer_table_pnj_dedupliquee_sur_drive(mon_gn: GN, api_sheets, api_drive):
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_pnj, mon_id)
 
 
-def generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive, pj=True):
-    parent = mon_GN.dossier_outputs_drive
+def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True):
+    parent = mon_gn.dossier_outputs_drive
     pj_pnj = "PJ" if pj else "PNJ"
     nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes {pj_pnj}'
     nouveau_dossier = extraireTexteDeGoogleDoc.creer_dossier(api_drive, parent, nom_dossier)
 
-    d = squelettes_par_perso(mon_GN, pj=pj)
+    d = squelettes_par_perso(mon_gn, pj=pj)
     for nom_perso in d:
         # créer le fichier et récupérer l'ID
         nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
@@ -538,10 +531,10 @@ def ecrire_squelettes_localement(mon_gn: GN, prefixe=None, pj=True):
     return toutes_scenes
 
 
-def generer_liste_pnj_dedup(monGN, threshold=89, verbal=False):
+def generer_liste_pnj_dedup(mon_gn, threshold=89, verbal=False):
     noms_pnjs = []
     # nomsNormalises = dict()
-    for intrigue in monGN.intrigues.values():
+    for intrigue in mon_gn.intrigues.values():
         for role in intrigue.rolesContenus.values():
             if role.est_un_pnj():
                 noms_pnjs.append(role.nom)
@@ -565,7 +558,7 @@ def ecrire_liste_pnj_dedup_localement(mon_gn: GN, prefixe: str, threshold=89, ve
             f.close()
 
 
-def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
+def generer_changelog(mon_gn, prefixe, nbJours=1, verbal=False):
     date_reference = datetime.date.today() - datetime.timedelta(days=nbJours)
 
     # on crée un tableau avec tous lse changements :
@@ -573,8 +566,8 @@ def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
     # structure souhaitée :
     # orga referent / persos / titre intrigue/ url intrigue | date changement intrigue
 
-    restitution = dict()
-    for intrigue in monGN.intrigues.values():
+    restitution = {}
+    for intrigue in mon_gn.intrigues.values():
         if intrigue.lastFileEdit.date() > date_reference:
             for role in intrigue.rolesContenus.values():
                 if role.personnage is not None and est_un_pj(role.personnage.pj):
@@ -583,7 +576,8 @@ def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
                     if len(referent) < 3:
                         referent = "Orga sans nom"
 
-                    # print(f"je m'apprête à ajouter une ligne pour {referent} : {role.personnage.nom} dans {intrigue.nom}")
+                    # print(f"je m'apprête à ajouter une ligne pour {referent} :
+                    # {role.personnage.nom} dans {intrigue.nom}")
                     nom_perso = role.personnage.nom
                     # nomIntrigue = intrigue.nom
 
@@ -630,7 +624,7 @@ def generer_changelog(monGN, prefixe, nbJours=1, verbal=False):
         print(texte)
 
     if prefixe is not None:
-        with open(prefixe + ' - changements - ' + str(nbJours) + 'j.txt', 'w', encoding="utf-8") as f:
+        with open(f'{prefixe} - changements - {str(nbJours)}j.txt', 'w', encoding="utf-8") as f:
             f.write(texte)
             f.close()
 
@@ -663,11 +657,11 @@ def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
         config.write(configfile)
 
 
-def generer_table_objets(monGN):
+def generer_table_objets(mon_gn):
     to_return = [['code', 'description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'utilisé où?',
                   'fiche objet trouvée?']]
 
-    for intrigue in monGN.intrigues.values():
+    for intrigue in mon_gn.intrigues.values():
         for objet in intrigue.objets:
             code = objet.code.replace('\n', '\v')
             description = objet.description.replace('\n', '\v')
@@ -791,7 +785,8 @@ def generer_table_chrono_complete(table_raw, date_gn):
 
     # all_date = set()
     # for scene in all_scenes:
-    #     print(f"clef-formatted-titre = {scene.clef_tri(date_gn)} / {scene.get_formatted_date(date_gn=date_gn)} / {scene.titre}")
+    #     print(f"clef-formatted-titre = {scene.clef_tri(date_gn)}
+    #     / {scene.get_formatted_date(date_gn=date_gn)} / {scene.titre}")
     #     all_date.add(scene.get_formatted_date(date_gn=date_gn))
 
     dates = []
@@ -834,6 +829,7 @@ def generer_table_chrono_complete(table_raw, date_gn):
             matrix[i + 1][j + 1] = '\n'.join([matrix[i + 1][j + 1], f"{event.titre} \n ({event.conteneur.nom})"])
 
     return matrix
+
 
 def generer_table_chrono_scenes(mon_gn: GN):
     # Dates	Horaires	Episodes / Intrigues	Titre	Evênement	PJ concernés	PNJ concernés
@@ -903,21 +899,20 @@ def generer_table_pnjs_etendue(gn: GN, verbal=False):
                   "details intervention",
                   "intrigue", "nom dans l'intrigue"]]
 
-
     # print("ping table pnj")
     # print(f"pnjs contenus : {gn.dictPNJs.keys()}")
 
     for pnj in gn.dictPNJs.values():
-    #     print(f"{pnj.nom}")
-    #     for role in pnj.roles:
-    #         print(f"table pnj : pnj en cours d'ajout : {pnj.nom}")
-    #         print(f"{pnj.nom}")
-    #         print(f"{role.description}")
-    #         print(f"{pnj.string_type_pj()}")
-    #         print(f"{role.niveauImplication}")
-    #         print(f"{role.perimetre_intervention}")
-    #         print(f"{role.conteneur.nom}")
-    #         print(f"{role.nom}")
+        #     print(f"{pnj.nom}")
+        #     for role in pnj.roles:
+        #         print(f"table pnj : pnj en cours d'ajout : {pnj.nom}")
+        #         print(f"{pnj.nom}")
+        #         print(f"{role.description}")
+        #         print(f"{pnj.string_type_pj()}")
+        #         print(f"{role.niveauImplication}")
+        #         print(f"{role.perimetre_intervention}")
+        #         print(f"{role.conteneur.nom}")
+        #         print(f"{role.nom}")
 
         table_pnj.extend(
             [
