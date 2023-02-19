@@ -223,9 +223,9 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     TODO = "etat de l’intrigue"
     PITCH = "résumé de l’intrigue"
     PJS = "personnages impliqués"
-    PNJS = "texte_pnjs impliqués"
-    REROLLS = "texte_rerolls possibles"
-    OBJETS = "texte_objets liés"
+    PNJS = "pnjs impliqués"
+    REROLLS = "rerolls possibles"
+    OBJETS = "objets liés"
     SCENESFX = "scènes nécessaires et fx"
     TIMELINE = "chronologie des événements"
     SCENES = "détail de l’intrigue"
@@ -269,6 +269,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
 
     # gestion de la section PJ
     texte_pjs = texteIntrigue[indexes[PJS]["debut"]:indexes[PJS]["fin"]]
+    logging.debug(f"texte des pjs = {texte_pjs}")
     tableau_pjs, nb_colonnes = reconstituer_tableau(texte_pjs)
     if nb_colonnes == 4:
         lire_tableau_pj_chalacta(current_intrigue, tableau_pjs)
@@ -288,11 +289,13 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
         # print(f"dans l'intrigue {currentIntrigue.nom}")
 
         texte_pnjs = texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]]
-        tableau_pnjs = reconstituer_tableau(texte_pnjs)
+        tableau_pnjs, _ = reconstituer_tableau(texte_pnjs)
         # faire un tableau avec une ligne par PNJ
+        print(f"tableau pnj décodé : {tableau_pnjs}")
         for pnj in tableau_pnjs:
             # print(f"section pnj en cours de lecture : {pnj}")
             # print(f"taille = {len(pnj)}")
+            print(f"pnj en cours = {pnj}")
 
             # 0 Nom duPNJ et / ou fonction :
             # 1 Intervention:(Permanente ou Temporaire)
@@ -327,7 +330,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     # gestion de la section Rerolls
     if indexes[REROLLS]["debut"] > -1:
         texte_rerolls = texteIntrigue[indexes[REROLLS]["debut"]:indexes[REROLLS]["fin"]]
-        tab_rerolls = reconstituer_tableau(texte_rerolls)
+        tab_rerolls, _ = reconstituer_tableau(texte_rerolls)
         # faire un tableau avec une ligne par Reroll
         for reroll in tab_rerolls:  # on enlève la première ligne qui contient les titres
             # même pnj que les PJs
@@ -563,96 +566,99 @@ def extraire_infos_scene(texte_lu: str, scene: Scene):
 
 
 def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verbal=True, seuil=80):
-    roles = liste_noms.split(",")
-    scene_a_ajouter.noms_roles_lus = roles
-
-    tab_corr = qui_2_roles(roles, conteneur, noms_roles)
-    print(f"a partir de la liste de noms : {roles} j'ai généré : \n {tab_corr}")
-    for element in tab_corr:
-        nom_du_role, role_a_ajouter, score = element
-        if score == 0:
-            texte_erreur = f"Erreur, le nom : {nom_du_role} n'a pu être associé à aucun rôle " \
-                           f"dans {scene_a_ajouter.titre}"
-            if verbal:
-                print(texte_erreur)
-            conteneur.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
-                                       texte_erreur,
-                                       ErreurManager.ORIGINES.SCENE)
-        else:
-            role_a_ajouter.ajouter_a_scene(scene_a_ajouter)
-            if score < seuil:
-                warning_text = f"Association Scene ({score}) - nom dans scène : {nom_du_role} " \
-                               f"> Role : {score} dans {conteneur.nom}/{scene_a_ajouter.titre}"
-                conteneur.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-                                           warning_text,
-                                           ErreurManager.ORIGINES.SCENE)
-                if verbal:
-                    print(warning_text)
-
     # roles = liste_noms.split(",")
     # scene_a_ajouter.noms_roles_lus = roles
-    # # print("rôles trouvés en lecture brute : " + str(roles))
     #
-    # # dans ce cas, on prend les noms du tableau, qui fon fois, et on s'en sert pour identifier
-    # # les noms de la scène
-    # for nom_du_role in roles:
-    #     if len(nom_du_role) < 2:
-    #         continue
-    #     # SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles
-    #     # > on les crée sans se poser de questions
-    #     if noms_roles is None:
-    #         # print("Je suis entrée dans une situation ou il n'y avait pas de référence des noms")
-    #
-    #         # on cherche s'il existe déjà un rôle avec ce nom dans le conteneur
-    #         # roleAAjouter = None
-    #         nom_du_role = nom_du_role.strip()
-    #         if nom_du_role in conteneur.rolesContenus:
-    #             # print(f"nom trouvé dans le contenu : {nom_du_role}")
-    #             role_a_ajouter = conteneur.rolesContenus[nom_du_role]
-    #         else:
-    #             # print(f"nouveau role créé dans le contenu : {nom_du_role}")
-    #             role_a_ajouter = Role(conteneur, nom=nom_du_role)
-    #             conteneur.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
-    #
-    #         role_a_ajouter.ajouter_a_scene(scene_a_ajouter)
-    #
-    #         # print(f"le rôle {roleAAjouter.nom} est associé aux scènes {[s.titre for s in roleAAjouter.scenes]}")
-    #
-    #         # print(f"après opération d'ajout de role, les roles contienntn {conteneur.rolesContenus} ")
-    #
+    # tab_corr = qui_2_roles(roles, conteneur, noms_roles)
+    # print(f"a partir de la liste de noms : {roles} j'ai généré : \n {tab_corr}")
+    # for element in tab_corr:
+    #     nom_du_role, role_a_ajouter, score = element
+    #     if score == 0:
+    #         texte_erreur = f"Erreur, le nom : {nom_du_role} n'a pu être associé à aucun rôle " \
+    #                        f"dans {scene_a_ajouter.titre}"
+    #         if verbal:
+    #             print(texte_erreur)
+    #         conteneur.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+    #                                    texte_erreur,
+    #                                    ErreurManager.ORIGINES.SCENE)
     #     else:
-    #         # Sinon, il faut normaliser et extraire les rôles
-    #         # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
-    #         score = process.extractOne(nom_du_role.strip(), noms_roles)
-    #         # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
-    #         #                                                                                   conteneur.nom,
-    #         #                                                                                   score))
-    #
-    #         # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'est peut-être trompé de personnage!
-    #         if score is not None:
-    #             if score[1] < seuil:
-    #                 warning_text = f"Association Scene ({score[1]}) - nom dans scène : {nom_du_role} " \
-    #                                f"> Role : {score[0]} dans {conteneur.nom}/{scene_a_ajouter.titre}"
-    #                 conteneur.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-    #                                            warning_text,
-    #                                            ErreurManager.ORIGINES.SCENE)
-    #                 if verbal:
-    #                     print(warning_text)
-    #
-    #             # trouver le rôle à ajouter à la scène en lisant l'intrigue
-    #             mon_role = conteneur.rolesContenus[score[0]]
-    #             mon_role.ajouter_a_scene(scene_a_ajouter)
-    #         else:
-    #             texte_erreur = f"Erreur, process renvoie None pour nom scène : " \
-    #                            f"{nom_du_role} dans {scene_a_ajouter.titre}"
-    #             if verbal:
-    #                 print(texte_erreur)
-    #             conteneur.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
-    #                                        texte_erreur,
+    #         role_a_ajouter.ajouter_a_scene(scene_a_ajouter)
+    #         # if score != 100:
+    #         #     conteneur.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
+    #         if score < seuil:
+    #             warning_text = f"Association Scene ({score}) - nom dans scène : {nom_du_role} " \
+    #                            f"> Role : {role_a_ajouter.nom} dans {conteneur.nom}/{scene_a_ajouter.titre}"
+    #             conteneur.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+    #                                        warning_text,
     #                                        ErreurManager.ORIGINES.SCENE)
+    #             if verbal:
+    #                 print(warning_text)
+
+    roles = liste_noms.split(",")
+    scene_a_ajouter.noms_roles_lus = roles
+    # print("rôles trouvés en lecture brute : " + str(roles))
+
+    # dans ce cas, on prend les noms du tableau, qui fon fois, et on s'en sert pour identifier
+    # les noms de la scène
+    for nom_du_role in roles:
+        if len(nom_du_role) < 2:
+            continue
+        # SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles
+        # > on les crée sans se poser de questions
+        if noms_roles is None:
+            # print("Je suis entrée dans une situation ou il n'y avait pas de référence des noms")
+
+            # on cherche s'il existe déjà un rôle avec ce nom dans le conteneur
+            # roleAAjouter = None
+            nom_du_role = nom_du_role.strip()
+            if nom_du_role in conteneur.rolesContenus:
+                # print(f"nom trouvé dans le contenu : {nom_du_role}")
+                role_a_ajouter = conteneur.rolesContenus[nom_du_role]
+            else:
+                # print(f"nouveau role créé dans le contenu : {nom_du_role}")
+                role_a_ajouter = Role(conteneur, nom=nom_du_role)
+                conteneur.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
+
+            role_a_ajouter.ajouter_a_scene(scene_a_ajouter)
+
+            # print(f"le rôle {roleAAjouter.nom} est associé aux scènes {[s.titre for s in roleAAjouter.scenes]}")
+
+            # print(f"après opération d'ajout de role, les roles contienntn {conteneur.rolesContenus} ")
+
+        else:
+            # Sinon, il faut normaliser et extraire les rôles
+            # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
+            score = process.extractOne(nom_du_role.strip(), noms_roles)
+            # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
+            #                                                                                   conteneur.nom,
+            #                                                                                   score))
+
+            # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'est peut-être trompé de personnage!
+            if score is not None:
+                if score[1] < seuil:
+                    warning_text = f"Association Scene ({score[1]}) - nom dans scène : {nom_du_role} " \
+                                   f"> Role : {score[0]} dans {conteneur.nom}/{scene_a_ajouter.titre}"
+                    conteneur.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+                                               warning_text,
+                                               ErreurManager.ORIGINES.SCENE)
+                    if verbal:
+                        print(warning_text)
+
+                # trouver le rôle à ajouter à la scène en lisant l'intrigue
+                mon_role = conteneur.rolesContenus[score[0]]
+                mon_role.ajouter_a_scene(scene_a_ajouter)
+            else:
+                texte_erreur = f"Erreur, process renvoie None pour nom scène : " \
+                               f"{nom_du_role} dans {scene_a_ajouter.titre}"
+                if verbal:
+                    print(texte_erreur)
+                conteneur.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                           texte_erreur,
+                                           ErreurManager.ORIGINES.SCENE)
+
 
 def qui_2_roles(roles: list[str], conteneur, noms_roles_dans_conteneur):
-    to_return = [] #nom, role,score
+    to_return = []  # nom, role,score
     # print("rôles trouvés en lecture brute : " + str(roles))
 
     # dans ce cas, on prend les noms du tableau, qui fon fois, et on s'en sert pour identifier
@@ -698,6 +704,8 @@ def qui_2_roles(roles: list[str], conteneur, noms_roles_dans_conteneur):
                 to_return.append([nom_du_role, None, 0])
 
     return to_return
+
+
 def extraire_date_scene(balise_date, scene_a_ajouter):
     # réécrite pour merger les fonctions il y a et quand :
     # réécrite pour merger les fonctions il y a et quand :
@@ -1460,7 +1468,8 @@ def reconstituer_tableau(texte_lu: str):
         if taille_ligne > 1:
             to_return.append(tmp_ligne)
 
-    logging.debug(f"a partir de la chaine {texte_lu} \n j'ai reconstitué le tableau \n {to_return}")
+    # logging.debug(f"a partir de la chaine {texte_lu} ")
+    logging.debug(f"j'ai reconstitué le tableau \n {to_return}")
     return to_return, len(to_return[0]) if to_return else None
 
 

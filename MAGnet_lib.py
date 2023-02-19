@@ -20,7 +20,8 @@ import dateparser
 # todo : trouver pouruqoi riri n'est pas dans la table détaillée des pnjs
 
 # à faire - rapide
-
+#todo : changer les scènes dans les persos pour qui2perso >> la focntion de rôles n'est plus adaptée
+# créer des dummmy roles au fil de la lecture, avec une table des persos implicite
 
 # à faire - plus long
 
