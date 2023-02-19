@@ -255,6 +255,7 @@ class Role:
         self.scenes = set()
         self.perimetre_intervention = perimetre_intervention
         self.issu_dune_faction = issu_dune_faction
+        self.relations = set()
 
     def __str__(self):
         to_return = ""
@@ -365,6 +366,7 @@ class Intrigue(ConteneurDeScene):
 class Relation:
     def __init__(self):
         self.persos_vue_relation = {}  # personnage - voit la relation comme
+        self.est_reciproque = True
 
     @staticmethod
     def creer_relation_bilaterale(perso_a, perso_b, description_a, description_b=None):
@@ -374,6 +376,7 @@ class Relation:
             perso_b: description_a if description_b is None or len(description_b) < 1 else description_b
 
         }
+        to_return.est_reciproque = description_b is None or len(description_b) < 1
         return to_return
 
     @staticmethod

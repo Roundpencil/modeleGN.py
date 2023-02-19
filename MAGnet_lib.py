@@ -20,22 +20,16 @@ import dateparser
 # todo : trouver pouruqoi riri n'est pas dans la table détaillée des pnjs
 
 # à faire - rapide
-#todo : changer les scènes dans les persos pour qui2perso >> la focntion de rôles n'est plus adaptée
-# créer des dummmy roles au fil de la lecture, avec une table des persos implicite
+#todo : ajouter la gestion des relations dans les fonctions  de clearing
 
 # à faire - plus long
-
-# todo : ajouter deux sections "tableau relations" :
-#  une qui conteint toutjours 4 colonnes
-#  "X... Voit la relation avec... Comme... Et si non réciproque..."
-#  dans les fiches de persos
-#  dans les scènes : relations nécessaires (nouveau tag)
-#  une qui contient toujours 2 colonnes multilatérale
-
 #todo : détail des relations
-# ajouter la lecture des balises dans les scenes > associer des roles entre eux
-# ajouter la lecture des balises dans les personnages > associer des personnages entre eux
-# ajouter une méthode qui, à partir d'un personnage, donne toutes les relations associées
+# todo : ajouter le clear des relations dans les fonctions de clear
+# todo : ajouter les relations dans la génération des squelettes
+# todo : tester les relations multis et bilatérales
+
+# todo ajouter la lecture des balises dans les personnages > associer des personnages entre eux
+# todo ajouter une méthode qui, à partir d'un personnage, donne toutes les relations associées
 
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
