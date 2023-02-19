@@ -371,7 +371,7 @@ class Relation:
         to_return = Relation()
         to_return.persos_vue_relation = {
             perso_a: description_a,
-            perso_b: description_a if description_b is None else description_b
+            perso_b: description_a if description_b is None or len(description_b) < 1 else description_b
 
         }
         return to_return

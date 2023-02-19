@@ -102,11 +102,11 @@ def read_structural_elements(elements):
 
 
 # renvoie un dictionnaire [label]["debut"/"fin"]
-def identifier_sections_fiche(labelsATrouver, texte_document):
+def identifier_sections_fiche(labels_a_trouver, texte_document):
     texte_document = texte_document.lower()
     indexes = {
         label: {"debut": texte_document.find(label)}
-        for label in labelsATrouver
+        for label in labels_a_trouver
     }
     # indexes = dict()
     # for label in labelsATrouver:
@@ -130,13 +130,13 @@ def identifier_sections_fiche(labelsATrouver, texte_document):
             table_debuts_fins_labels[tous_les_indexes[i]] = len(texte_document)
             break
     # enfin, on met à jour la table des labels pour avoir la fin à côté du début
-    for label in labelsATrouver:
+    for label in labels_a_trouver:
         indexes[label]["fin"] = table_debuts_fins_labels[indexes[label]["debut"]]
         # print("label {0} : [{1}:{2}]".format(label, indexes[label]["debut"], indexes[label]["fin"]))
     return indexes
 
 
-def generer_liste_items(monGN, apiDrive, nom_fichier):
+def generer_liste_items(mon_gn, api_drive, nom_fichier):
     # nom_fichier = nom_fichier
 
     # faire la requête pour lire tous les dossiers en entrée
@@ -158,7 +158,7 @@ def generer_liste_items(monGN, apiDrive, nom_fichier):
         # results = api_doc.files().list(
         #     pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
         #     fields="nextPageToken, files(mon_id, name, modifiedTime)").execute()
-        results = apiDrive.files().list(
+        results = api_drive.files().list(
             pageSize=100, q=requete,
             fields="nextPageToken, files(id, name, modifiedTime, lastModifyingUser)").execute()
 

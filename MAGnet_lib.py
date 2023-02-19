@@ -17,7 +17,7 @@ import dateparser
 # bugs
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
-
+# todo : trouver pouruqoi riri n'est pas dans la table détaillée des pnjs
 
 # à faire - rapide
 
