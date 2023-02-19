@@ -1065,6 +1065,8 @@ def mettre_a_jour_champs(gn: GN):
                 if not hasattr(role, 'perimetre_intervention'):
                     role.perimetre_intervention = role.perimetre_Intervention
                 delattr(role, 'perimetre_Intervention')
+            if not hasattr(role, 'relations'):
+                role.relations = set()
 
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'infos'):
