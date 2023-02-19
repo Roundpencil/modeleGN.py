@@ -224,8 +224,8 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     PITCH = "résumé de l’intrigue"
     PJS = "personnages impliqués"
     PNJS = "texte_pnjs impliqués"
-    REROLLS = "rerolls possibles"
-    OBJETS = "objets liés"
+    REROLLS = "texte_rerolls possibles"
+    OBJETS = "texte_objets liés"
     SCENESFX = "scènes nécessaires et fx"
     TIMELINE = "chronologie des événements"
     SCENES = "détail de l’intrigue"
@@ -324,83 +324,51 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
 
     # gestion de la section Rerolls
     if indexes[REROLLS]["debut"] > -1:
-        rerolls = texteIntrigue[indexes[REROLLS]["debut"]:indexes[REROLLS]["fin"]].split('¤¤¤¤¤')
+        texte_rerolls = texteIntrigue[indexes[REROLLS]["debut"]:indexes[REROLLS]["fin"]]
+        tab_rerolls = reconstituer_tableau(texte_rerolls)
         # faire un tableau avec une ligne par Reroll
-        for reroll in rerolls[1:]:  # on enlève la première ligne qui contient les titres
-            if len(reroll) < 14:
-                # dans ce cas, c'est une ligne vide
-                continue
-            pnj = reroll.split("¤¤¤")
+        for reroll in tab_rerolls:  # on enlève la première ligne qui contient les titres
             # même pnj que les PJs
-            re_roll_a_ajouter = Role(current_intrigue, nom=pnj[0].strip(), description=pnj[3].strip(),
-                                     pj=TypePerso.EST_REROLL, type_intrigue=pnj[2].strip(),
-                                     niveau_implication=pnj[1].strip())
+            re_roll_a_ajouter = Role(current_intrigue, nom=reroll[0], description=reroll[3],
+                                     pj=TypePerso.EST_REROLL, type_intrigue=reroll[2],
+                                     niveau_implication=reroll[1])
 
             # du coup, on peut l'ajouter aux intrigues
             current_intrigue.rolesContenus[re_roll_a_ajouter.nom] = re_roll_a_ajouter
 
     # gestion de la section Objets
     if indexes[OBJETS]["debut"] > -1:
-        objets = texteIntrigue[indexes[OBJETS]["debut"]:indexes[OBJETS]["fin"]].split('¤¤¤¤¤')
+        texte_objets = texteIntrigue[indexes[OBJETS]["debut"]:indexes[OBJETS]["fin"]]
+        tab_objets, nb_colonnes = reconstituer_tableau(texte_objets)
         # faire un tableau avec une ligne par objet
-        for objet in objets[1:]:  # on enlève la première ligne qui contient les titres
-            if len(objet) < 14:
-                # dans ce cas, c'est une ligne vide
-                continue
-            pnj = objet.split("¤¤¤")
-            # vérifier si nous sommes avec un objet RFID (4 colonnes) ou sans (3 colonnes)
+        for objet in tab_objets:  # on enlève la première ligne qui contient les titres
+
             mon_objet = None
-            if len(pnj) == 4:
-                mon_objet = Objet(description=pnj[0].strip(),
-                                  specialEffect=pnj[1].strip() if pnj[1].strip().lower() != "non" else '',
-                                  emplacementDebut=pnj[2].strip(),
-                                  fourniPar=pnj[3].strip())
+            if nb_colonnes == 4:
+                mon_objet = Objet(description=objet[0].strip(),
+                                  specialEffect=objet[1].strip() if objet[1].strip().lower() != "non" else '',
+                                  emplacementDebut=objet[2].strip(),
+                                  fourniPar=objet[3].strip())
                 # if pnj[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
                 #     mon_objet.specialEffect = pnj[1].strip()
 
-            elif len(pnj) == 3:
-                mon_objet = Objet(description=pnj[0].strip(),
-                                  emplacementDebut=pnj[1].strip(),
-                                  fourniPar=pnj[2].strip())
-            elif len(pnj) == 6:
-                mon_objet = Objet(code=pnj[0].strip(),
-                                  description=pnj[1].strip(),
-                                  specialEffect=pnj[2].strip() if pnj[2].strip().lower() != "non" else '',
-                                  emplacementDebut=pnj[3].strip(),
-                                  fourniPar=pnj[4].strip())
+            elif nb_colonnes == 3:
+                mon_objet = Objet(description=objet[0].strip(),
+                                  emplacementDebut=objet[1].strip(),
+                                  fourniPar=objet[2].strip())
+            elif nb_colonnes == 6:
+                mon_objet = Objet(code=objet[0].strip(),
+                                  description=objet[1].strip(),
+                                  specialEffect=objet[2].strip() if objet[2].strip().lower() != "non" else '',
+                                  emplacementDebut=objet[3].strip(),
+                                  fourniPar=objet[4].strip())
             else:
-                print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {pnj}")
+                print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {mon_objet}")
 
             if mon_objet is not None:
                 current_intrigue.objets.add(mon_objet)
                 mon_objet.inIntrigues.add(current_intrigue)
 
-        # objets = texteIntrigue[indexes[OBJETS]["debut"]:indexes[OBJETS]["fin"]]
-        # tab_objets, nb_colonnes = reconstituer_tableau(objets)
-        # for ligne in tab_objets[1:]:
-        #     mon_objet = None
-        #     if nb_colonnes == 3:
-        #         mon_objet = Objet(description=ligne[0].strip(), emplacementDebut=ligne[1].strip(),
-        #                           fourniPar=ligne[2].strip())
-        #     elif nb_colonnes == 4:
-        #         mon_objet = Objet(description=ligne[0].strip(),
-        #                           specialEffect=ligne[1].strip() if ligne[1].strip().lower() != "non" else '',
-        #                           emplacementDebut=ligne[2].strip(),
-        #                           fourniPar=ligne[3].strip())
-        #         # if ligne[1].strip().lower() != "non":
-        #         #     # si on a mis non pour le RFID ca ne veut pas dire oui :)
-        #         #     mon_objet.specialEffect = ligne[1].strip()
-        #     elif nb_colonnes == 6:
-        #         mon_objet = Objet(code=ligne[0].strip(),
-        #                           description=ligne[1].strip(),
-        #                           specialEffect=ligne[2].strip() if ligne[2].strip().lower() != "non" else '',
-        #                           emplacementDebut=ligne[3].strip(),
-        #                           fourniPar=ligne[4].strip())
-        #     else:
-        #         print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {ligne}")
-        #     if mon_objet is not None:
-        #         current_intrigue.objets.add(mon_objet)
-        #         mon_objet.inIntrigues.add(current_intrigue)
 
     # gestion de la section FX
     if indexes[SCENESFX]["debut"] > -1:
