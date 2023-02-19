@@ -232,8 +232,8 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     RESOLUTION = "résolution de l’intrigue"
     NOTES = "notes supplémentaires"
     QUESTIONNAIRE = "questionnaire inscription"
-    RELATIONS_BI = "relations bilatérales"
-    RELATIONS_MULTI = "Relations multilatéales"
+    RELATIONS_BI = "relations bilatérales induites par cette intrigue"
+    RELATIONS_MULTI = "relations multilatérales induites par cette intrigue"
 
     labels = [REFERENT, TODO, PITCH, PJS, PNJS, REROLLS, OBJETS, SCENESFX,
               TIMELINE, SCENES, RESOLUTION, NOTES, QUESTIONNAIRE, RELATIONS_BI, RELATIONS_MULTI]
@@ -408,6 +408,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     if indexes[RELATIONS_BI]["debut"] > -1:
         texte_relations_bi = texteIntrigue[indexes[RELATIONS_BI]["debut"]:indexes[RELATIONS_BI]["fin"]]
         tab_relations_bi, _ = reconstituer_tableau(texte_relations_bi)
+        print(f"tab relations_bi = {tab_relations_bi}")
         for ligne_relation_bi in tab_relations_bi:
             if len(ligne_relation_bi[0]) == 0 or len(ligne_relation_bi[1]) == 0:
                 texte_erreur = f"Le personnage {ligne_relation_bi[0] if len(ligne_relation_bi[1]) ==0 else ligne_relation_bi[1]}" \
@@ -425,8 +426,8 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
             perso_b = tab_retour[1][1]
             relation_a_ajouter = Relation.creer_relation_bilaterale(perso_a,
                                                           perso_b,
-                                                          tab_relations_bi[2],
-                                                          tab_relations_bi[3])
+                                                          ligne_relation_bi[2],
+                                                          ligne_relation_bi[3])
             perso_a.relations.add(relation_a_ajouter)
             perso_b.relations.add(relation_a_ajouter)
 

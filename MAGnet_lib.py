@@ -481,7 +481,7 @@ def generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive, pj=True):
         extraireTexteDeGoogleDoc.inserer_squelettes_dans_drive(nouveau_dossier, api_doc, api_drive, texte, nom_fichier)
 
 
-def squelettes_par_perso(mon_gn, pj=True):
+def squelettes_par_perso(mon_gn: GN, pj=True):
     squelettes_persos = {}
     if pj:
         liste_persos_source = mon_gn.dictPJs.values()
@@ -506,8 +506,10 @@ def squelettes_par_perso(mon_gn, pj=True):
         texte_perso += f"Chronologie : \n "
         for item in perso.datesClefs:
             texte_perso += f"{item} \n"
-        texte_perso += "\n *** Scenes associées : *** \n"
+        texte_perso += "\n *** Relations : *** \n"
+        texte_perso += perso.str_relations()
 
+        texte_perso += "\n *** Scenes associées : *** \n"
         mes_scenes = []
         for role in perso.roles:
             for scene in role.scenes:

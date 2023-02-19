@@ -217,6 +217,19 @@ class Personnage(ConteneurDeScene):
         toutes = [role.conteneur.nom for role in self.roles]
         return ', '.join(toutes)
 
+    def str_relations(self):
+        to_return = ""
+        for role in self.roles:
+            for relation in role.relations:
+                dict_relations, est_reciproque = relation.trouver_partenaires(role)
+                for role_associe in dict_relations:
+                    if role_associe.perso is None:
+                        to_return += f"En relation avec le rôle {role_associe} (sans perso) >> " \
+                                         f"{dict_relations[role_associe]}"
+                    else:
+                        to_return += f"En relation avec {role_associe.perso} >> " \
+                                         f"{dict_relations[role_associe]}"
+                    to_return += "\n" if est_reciproque else "(non réciproque) \n"
 
 # rôle
 class Role:
@@ -386,6 +399,12 @@ class Relation:
             to_return.persos_vue_relation[perso] = description
         return to_return
 
+    def trouver_partenaires(self, mon_role: Role):
+        return {
+            role: value
+            for role, value in self.persos_vue_relation.items()
+            if role != mon_role
+        }, self.est_reciproque
 
 # Scènes
 class Scene:
