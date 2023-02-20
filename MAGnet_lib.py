@@ -15,6 +15,8 @@ import dateparser
 
 # bugs
 # todo : comprendre pourquoi relation frères a un eric en plus et il manque toujours quelqu'un
+#  >> c'est au moement de la rstituion ou de la constituion??
+
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 

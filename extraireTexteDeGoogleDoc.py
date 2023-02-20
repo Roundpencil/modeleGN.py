@@ -451,34 +451,34 @@ def extraire_relations_bi(conteneur: ConteneurDeScene, tab_relations_bi: list[[s
         perso_b.relations.add(relation_a_ajouter)
 
 
-def extraire_relation_multi(current_intrigue, tab_relations_multi, verbal=False,
+def extraire_relation_multi(conteneur, tab_relations_multi, verbal=False,
                             avec_tableau_des_persos=True, seuil=70):
     for ligne_relation_muti in tab_relations_multi:
         noms_roles = ligne_relation_muti[0].split(', ')
         description_relation_multi = ligne_relation_muti[1]
-        tab_retour_multi = qui_2_roles(noms_roles, current_intrigue,
-                                       current_intrigue.get_noms_roles(), avec_tableau_des_persos)
+        tab_retour_multi = qui_2_roles(noms_roles, conteneur,
+                                       conteneur.get_noms_roles(), avec_tableau_des_persos)
         roles_dans_relation_multi = []
         for correspondance in tab_retour_multi:
             nom, role, score = correspondance
             if score == 0:
                 texte_erreur = f"Erreur, le nom : {nom} dans la relation {description_relation_multi} " \
                                f"n'a pas été associée à un rôle"
-                current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
-                                                  texte_erreur,
-                                                  ErreurManager.ORIGINES.SCENE)
+                conteneur.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                           texte_erreur,
+                                           ErreurManager.ORIGINES.SCENE)
                 if verbal:
                     print(texte_erreur)
                 continue
 
             # si le role n'est pas None, l'ajouter à la liste des rôles qui feront partie de la relation
             roles_dans_relation_multi.append(role)
-            if score < (seuil):
+            if score < seuil:
                 warning_text = f"Association relation ({score}%) - nom  : {nom} " \
-                               f"> Role : {role.nom} dans {current_intrigue.nom}"
-                current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-                                                  warning_text,
-                                                  ErreurManager.ORIGINES.SCENE)
+                               f"> Role : {role.nom} dans {conteneur.nom}"
+                conteneur.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+                                           warning_text,
+                                           ErreurManager.ORIGINES.SCENE)
             # à ce stade, on a viré les %, généré des messages d'alerte et préparé les listes
             relation_multi_a_ajouter = Relation.creer_relation_multilaterale(roles_dans_relation_multi,
                                                                              description_relation_multi
@@ -1016,7 +1016,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
         tableau_relation_multi_brut, _ = reconstituer_tableau(texte_relation_bi)
         tableau_relation_multi_complet = []
         for ligne in tableau_relation_multi_brut:
-            nouvelle_ligne = [nom_perso_en_cours + ligne[0], ligne[1]]
+            nouvelle_ligne = [f"{nom_perso_en_cours}, {ligne[0]}", ligne[1]]
             tableau_relation_multi_complet.append(nouvelle_ligne)
         extraire_relation_multi(perso_en_cours, tableau_relation_multi_complet,
                                 verbal=verbal, avec_tableau_des_persos=False)
