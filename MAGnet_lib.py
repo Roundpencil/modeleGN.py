@@ -14,9 +14,9 @@ import dateparser
 #  des nouveaux fichiers d'erruers, du tag questionnaire, balise info, tables des pjs et pnjs, nouvelle chrono
 
 # bugs
+# todo : comprendre pourquoi relation frères a un eric en plus et il manque toujours quelqu'un
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
-# todo : trouver pouruqoi riri n'est pas dans la table détaillée des pnjs
 
 # à faire - rapide
 # todo : ajouter la gestion des relations dans les fonctions  de clearing
