@@ -408,70 +408,83 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     if indexes[RELATIONS_BI]["debut"] > -1:
         texte_relations_bi = texteIntrigue[indexes[RELATIONS_BI]["debut"]:indexes[RELATIONS_BI]["fin"]]
         tab_relations_bi, _ = reconstituer_tableau(texte_relations_bi)
-        print(f"tab relations_bi = {tab_relations_bi}")
-        for ligne_relation_bi in tab_relations_bi:
-            if len(ligne_relation_bi[0]) == 0 or len(ligne_relation_bi[1]) == 0:
-                texte_erreur = f"Le personnage {ligne_relation_bi[0] if len(ligne_relation_bi[1]) ==0 else ligne_relation_bi[1]}" \
-                               f"n'a pas de partenaire dans sa relation"
-                current_intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
-                                                          texte_erreur,
-                                                          ErreurManager.ORIGINES.SCENE)
-                continue
-
-            tab_retour = qui_2_roles(
-                [ligne_relation_bi[0], ligne_relation_bi[1]],
-                current_intrigue,
-                current_intrigue.get_noms_roles())
-            perso_a = tab_retour[0][1]
-            perso_b = tab_retour[1][1]
-            relation_a_ajouter = Relation.creer_relation_bilaterale(perso_a,
-                                                          perso_b,
-                                                          ligne_relation_bi[2],
-                                                          ligne_relation_bi[3])
-            perso_a.relations.add(relation_a_ajouter)
-            perso_b.relations.add(relation_a_ajouter)
+        extraire_relations_bi(current_intrigue, tab_relations_bi)
 
     if indexes[RELATIONS_MULTI]["debut"] > -1:
         texte_relations_multi = texteIntrigue[indexes[RELATIONS_MULTI]["debut"]:indexes[RELATIONS_MULTI]["fin"]]
         tab_relations_multi, _ = reconstituer_tableau(texte_relations_multi)
         # on a alors un tableau à deux colonnes avec les noms des persos et leurs relations
-        for ligne_relation_muti in tab_relations_multi:
-            noms_roles = ligne_relation_muti[0].split(', ')
-            description_relation_multi = ligne_relation_muti[1]
-            tab_retour_multi = qui_2_roles(noms_roles, current_intrigue, current_intrigue.get_noms_roles())
-            roles_dans_relation_multi = []
-            for correspondance in tab_retour_multi:
-                nom, role, score = correspondance
-                if score == 0:
-                    texte_erreur = f"Erreur, le nom : {nom} dans la relation {description_relation_multi} " \
-                                   f"n'a pas été associée à un rôle"
-                    current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
-                                               texte_erreur,
-                                               ErreurManager.ORIGINES.SCENE)
-                    if verbal:
-                        print(texte_erreur)
-                    continue
-
-                #si le role n'est pas None, l'ajouter à la liste des rôles qui feront partie de la relation
-                roles_dans_relation_multi.append(role)
-                if score < (seuil:=70):
-                    warning_text = f"Association relation ({score}%) - nom  : {nom} " \
-                                   f"> Role : {role.nom} dans {current_intrigue.nom}"
-                    current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-                                               warning_text,
-                                               ErreurManager.ORIGINES.SCENE)
-                # à ce stade, on a viré les %, généré des messages d'alerte et préparé les listes
-                relation_multi_a_ajouter = Relation.creer_relation_multilaterale(roles_dans_relation_multi,
-                                                                                 description_relation_multi
-                                                                                 )
-                for role in roles_dans_relation_multi:
-                    role.relations.add(relation_multi_a_ajouter)
+        extraire_relation_multi(current_intrigue, tab_relations_multi, verbal)
 
     # print("liste des persos : ")
     # for role in currentIntrigue.roles:
     #     print(role)
 
     return current_intrigue
+
+
+def extraire_relations_bi(conteneur: ConteneurDeScene, tab_relations_bi: list[[str, str, str, str]],
+                          avec_tableau_persos:bool =True):
+    print(f"tab relations_bi = {tab_relations_bi}")
+    for ligne_relation_bi in tab_relations_bi:
+        if len(ligne_relation_bi[0]) == 0 or len(ligne_relation_bi[1]) == 0:
+            texte_erreur = f"Le personnage {ligne_relation_bi[0] if len(ligne_relation_bi[1]) == 0 else ligne_relation_bi[1]}" \
+                           f"n'a pas de partenaire dans sa relation"
+            conteneur.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                               texte_erreur,
+                                               ErreurManager.ORIGINES.SCENE)
+            continue
+
+        tab_retour = qui_2_roles(
+            [ligne_relation_bi[0], ligne_relation_bi[1]],
+            conteneur,
+            conteneur.get_noms_roles(),
+            avec_tableau_des_persos=avec_tableau_persos
+        )
+        perso_a = tab_retour[0][1]
+        perso_b = tab_retour[1][1]
+        relation_a_ajouter = Relation.creer_relation_bilaterale(perso_a,
+                                                                perso_b,
+                                                                ligne_relation_bi[2],
+                                                                ligne_relation_bi[3])
+        perso_a.relations.add(relation_a_ajouter)
+        perso_b.relations.add(relation_a_ajouter)
+
+
+def extraire_relation_multi(current_intrigue, tab_relations_multi, verbal=False,
+                            avec_tableau_des_persos=True, seuil=70):
+    for ligne_relation_muti in tab_relations_multi:
+        noms_roles = ligne_relation_muti[0].split(', ')
+        description_relation_multi = ligne_relation_muti[1]
+        tab_retour_multi = qui_2_roles(noms_roles, current_intrigue,
+                                       current_intrigue.get_noms_roles(), avec_tableau_des_persos)
+        roles_dans_relation_multi = []
+        for correspondance in tab_retour_multi:
+            nom, role, score = correspondance
+            if score == 0:
+                texte_erreur = f"Erreur, le nom : {nom} dans la relation {description_relation_multi} " \
+                               f"n'a pas été associée à un rôle"
+                current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                                  texte_erreur,
+                                                  ErreurManager.ORIGINES.SCENE)
+                if verbal:
+                    print(texte_erreur)
+                continue
+
+            # si le role n'est pas None, l'ajouter à la liste des rôles qui feront partie de la relation
+            roles_dans_relation_multi.append(role)
+            if score < (seuil):
+                warning_text = f"Association relation ({score}%) - nom  : {nom} " \
+                               f"> Role : {role.nom} dans {current_intrigue.nom}"
+                current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+                                                  warning_text,
+                                                  ErreurManager.ORIGINES.SCENE)
+            # à ce stade, on a viré les %, généré des messages d'alerte et préparé les listes
+            relation_multi_a_ajouter = Relation.creer_relation_multilaterale(roles_dans_relation_multi,
+                                                                             description_relation_multi
+                                                                             )
+            for role in roles_dans_relation_multi:
+                role.relations.add(relation_multi_a_ajouter)
 
 
 def lire_tableau_pj_chalacta(current_intrigue, tableau_pjs):
@@ -527,7 +540,7 @@ def lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs):
 
 def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
     # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de référence des noms dans l'intrigue
-    noms_roles = conteneur.get_noms_roles() if tableau_roles_existant else None
+    noms_roles = conteneur.get_noms_roles()
     # print(f"pour {currentIntrigue.nom}, noms_roles =  {noms_roles}")
 
     # print(f"Texte section scène : {texteScenes}")
@@ -560,10 +573,10 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, table
             elif balise[0:8].lower() == '## date?':
                 extraire_date_absolue(balise[9:], scene_a_ajouter)
             elif balise[0:7].lower() == '## qui?':
-                extraire_qui_scene(balise[8:], conteneur, noms_roles, scene_a_ajouter)
+                extraire_qui_scene(balise[8:], conteneur, noms_roles, scene_a_ajouter, avec_tableau_des_persos=False)
 
             elif balise[0:8].lower() == '## qui ?':
-                extraire_qui_scene(balise[9:], conteneur, noms_roles, scene_a_ajouter)
+                extraire_qui_scene(balise[9:], conteneur, noms_roles, scene_a_ajouter, avec_tableau_des_persos=False)
 
             elif balise[0:11].lower() == '## niveau :':
                 scene_a_ajouter.niveau = balise[12:].strip()
@@ -618,11 +631,12 @@ def extraire_infos_scene(texte_lu: str, scene: Scene):
             scene.infos.add(section.strip())
 
 
-def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verbal=True, seuil=80):
+def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verbal=True, seuil=80,
+                       avec_tableau_des_persos: bool = True):
     roles = liste_noms.split(",")
     scene_a_ajouter.noms_roles_lus = roles
 
-    tab_corr = qui_2_roles(roles, conteneur, noms_roles)
+    tab_corr = qui_2_roles(roles, conteneur, noms_roles, avec_tableau_des_persos)
     logging.debug(f"a partir de la liste de noms : {roles} j'ai généré : \n {tab_corr}")
     for element in tab_corr:
         nom_du_role, role_a_ajouter, score = element
@@ -710,11 +724,14 @@ def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verba
     #                                        ErreurManager.ORIGINES.SCENE)
 
 
-def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, noms_roles_dans_conteneur: list[str]):
+def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, noms_roles_dans_conteneur: list[str],
+                avec_tableau_des_persos: bool = True):
     to_return = []  # nom, role,score
     # print("rôles trouvés en lecture brute : " + str(roles))
 
-    if noms_roles_dans_conteneur is None:
+    if not avec_tableau_des_persos:
+        # todo : remplacer l'ajout systématique de perso par une recherche et un ajout si KO
+
         # SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles
         # > on les crée sans se poser de questions
 
@@ -732,50 +749,28 @@ def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, noms_roles_dans_c
                 to_return.append([nom_du_role, role_a_ajouter, 100])
                 conteneur.rolesContenus[nom_du_role] = role_a_ajouter
 
-        #et on s'arrête là
+        # et on s'arrête là
         return to_return
 
-    # dans ce cas, on prend les noms du tableau, qui fon fois, et on s'en sert pour identifier
+    # dans ce cas, on prend les noms du tableau, qui font fois, et on s'en sert pour identifier
     # les noms de la scène
     for nom_du_role in roles:
         if len(nom_du_role) < 2:
             continue
-        # SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles
-        # > on les crée sans se poser de questions
-        if noms_roles_dans_conteneur is None:
-            # print("Je suis entrée dans une situation ou il n'y avait pas de référence des noms")
 
-            # on cherche s'il existe déjà un rôle avec ce nom dans le conteneur
-            # roleAAjouter = None
-            nom_du_role = nom_du_role.strip()
-            if nom_du_role in conteneur.rolesContenus:
-                # print(f"nom trouvé dans le contenu : {nom_du_role}")
-                role_a_ajouter = conteneur.rolesContenus[nom_du_role]
-            else:
-                # print(f"nouveau role créé dans le contenu : {nom_du_role}")
-                role_a_ajouter = Role(conteneur, nom=nom_du_role)
-                conteneur.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
+        # Sinon, il faut normaliser et extraire les rôles
+        # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
+        score = process.extractOne(nom_du_role.strip(), noms_roles_dans_conteneur)
+        # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
+        #                                                                                   conteneur.nom,
+        #                                                                                   score))
 
-            to_return.append([nom_du_role, role_a_ajouter, 100])
-
-            # print(f"le rôle {roleAAjouter.nom} est associé aux scènes {[s.titre for s in roleAAjouter.scenes]}")
-
-            # print(f"après opération d'ajout de role, les roles contienntn {conteneur.rolesContenus} ")
-
+        if score is not None:
+            # trouver le rôle à ajouter à la scène en lisant l'intrigue
+            mon_role = conteneur.rolesContenus[score[0]]
+            to_return.append([nom_du_role, mon_role, score[1]])
         else:
-            # Sinon, il faut normaliser et extraire les rôles
-            # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
-            score = process.extractOne(nom_du_role.strip(), noms_roles_dans_conteneur)
-            # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
-            #                                                                                   conteneur.nom,
-            #                                                                                   score))
-
-            if score is not None:
-                # trouver le rôle à ajouter à la scène en lisant l'intrigue
-                mon_role = conteneur.rolesContenus[score[0]]
-                to_return.append([nom_du_role, mon_role, score[1]])
-            else:
-                to_return.append([nom_du_role, None, 0])
+            to_return.append([nom_du_role, None, 0])
 
     return to_return
 
@@ -897,9 +892,12 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     INTRIGUES = "intrigues"
     RELATIONS = "relations avec les autres persos"
     SCENES = "scènes"
+    RELATIONS_BI = "relations bilatérales"
+    RELATIONS_MULTI = "relations multilatérales"
 
     labels = [REFERENT, JOUEURV1, JOUEURV2, PITCH, COSTUME, FACTION1, FACTION2,
-              BIO, PSYCHO, MOTIVATIONS, CHRONOLOGIE, RELATIONS, INTRIGUES, JOUEUSE1, JOUEUSE2, SCENES]
+              BIO, PSYCHO, MOTIVATIONS, CHRONOLOGIE, RELATIONS, INTRIGUES, JOUEUSE1, JOUEUSE2, SCENES,
+              RELATIONS_BI, RELATIONS_MULTI]
 
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_persos_low)
 
@@ -999,6 +997,31 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     else:
         perso_en_cours.datesClefs = texte_persos[
                                     indexes[CHRONOLOGIE]["debut"]:indexes[CHRONOLOGIE]["fin"]].splitlines()[1:]
+
+    if indexes[RELATIONS_BI]["debut"] == -1:
+        if verbal:
+            print("Pas de relations bilatérales avec le personnage " + nom_perso_en_cours)
+    else:
+        texte_relation_bi = texte_persos[indexes[RELATIONS_BI]["debut"]:indexes[RELATIONS_BI]["fin"]]
+        tableau_relation_bi_brut, _ = reconstituer_tableau(texte_relation_bi)
+        print(f"tab brut : {tableau_relation_bi_brut}")
+        tableau_relation_bi_complet = [[nom_perso_en_cours] + ligne for ligne in tableau_relation_bi_brut]
+        extraire_relations_bi(perso_en_cours, tableau_relation_bi_complet, avec_tableau_persos=False)
+
+    if indexes[RELATIONS_MULTI]["debut"] == -1:
+        if verbal:
+            print("Pas de relations multilatérales avec le personnage " + nom_perso_en_cours)
+    else:
+        texte_relation_bi = texte_persos[indexes[RELATIONS_MULTI]["debut"]:indexes[RELATIONS_MULTI]["fin"]]
+        tableau_relation_multi_brut, _ = reconstituer_tableau(texte_relation_bi)
+        tableau_relation_multi_complet = []
+        for ligne in tableau_relation_multi_brut:
+            nouvelle_ligne = [nom_perso_en_cours + ligne[0], ligne[1]]
+            tableau_relation_multi_complet.append(nouvelle_ligne)
+        extraire_relation_multi(perso_en_cours, tableau_relation_multi_complet,
+                                verbal=verbal, avec_tableau_des_persos=False)
+
+
 
     if indexes[SCENES]["debut"] == -1:
         if verbal:
@@ -1542,9 +1565,9 @@ def reconstituer_tableau(texte_lu: str):
         if taille_ligne > 1:
             to_return.append(tmp_ligne)
 
-    # logging.debug(f"a partir de la chaine {texte_lu} ")
+    logging.debug(f"a partir de la chaine {texte_lu} ")
     logging.debug(f"j'ai reconstitué le tableau \n {to_return}")
-    return to_return, len(to_return[0]) if to_return else None
+    return to_return, (len(to_return[0]) if to_return else None)
 
 
 def extraire_evenement_de_texte(texte_evenement, nom_evenement, id_url, lastFileEdit, derniere_modification_par, monGN,
