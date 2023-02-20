@@ -725,11 +725,12 @@ def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, noms_roles_dans_c
             nom_du_role = nom_du_role.strip()
             if nom_du_role in conteneur.rolesContenus:
                 # print(f"nom trouvé dans le contenu : {nom_du_role}")
-                to_return.append(conteneur.rolesContenus[nom_du_role])
+                to_return.append([nom_du_role, conteneur.rolesContenus[nom_du_role], 100])
             else:
                 # print(f"nouveau role créé dans le contenu : {nom_du_role}")
                 role_a_ajouter = Role(conteneur, nom=nom_du_role)
-                to_return.append(role_a_ajouter)
+                to_return.append([nom_du_role, role_a_ajouter, 100])
+                conteneur.rolesContenus[nom_du_role] = role_a_ajouter
 
         #et on s'arrête là
         return to_return
