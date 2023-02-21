@@ -23,14 +23,12 @@ import dateparser
 # todo : ajouter la gestion des relations dans les fonctions  de clearing
 
 # à faire - plus long
-# todo : ajouter le clear des relations dans les fonctions de clear
-
 # todo ajouter la lecture des balises dans les personnages > associer des personnages entre eux
 #  vérifier que le code actuel ne permet pas de le faire en passant par l'option None de la méthode
 
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
-# todo : faire évoluer grille objets avec le code et le fait qu'on a trouvé un lien vers une fiche objet
+# todo : faire évoluer grille objets avec et le fait qu'on a trouvé un lien vers une fiche objet (via le code)
 
 # todo : gestion des évènement
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
@@ -44,9 +42,6 @@ import dateparser
 # todo : faire un menu qui crée le GN avec les options et crée tous les fichiers qui vont bien
 #  dans un dossier magnet du drive fourni en entrée, et des questions sous la forme de "allez-vous utiliser...?"
 #  pour déterminer les champs à créer
-
-# todo sortir les erreurs sur les fichiers d'assocaitions factions
-
 
 def charger_fichier_init(fichier_init: str):
     # init configuration
