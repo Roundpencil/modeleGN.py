@@ -76,27 +76,27 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 #     continue
                 if ref_du_doc(document.get('title')) != int(single_test):
                     continue
-                else:
-                    print(f"j'ai trouvé le doc #{single_test} : {document.get('title')}")
-                    # if item['id'] in gn.intrigues.keys():
-                    #     gn.intrigues[item['id']].clear()
-                    #     del gn.intrigues[item['id']]
 
-                    objet_de_reference = None
-                    if item['id'] in dict_ids.keys():
-                        # dict_ids[item['id']].clear()
-                        objet_de_reference = dict_ids.pop(item['id'])
+                print(f"j'ai trouvé le doc #{single_test} : {document.get('title')}")
+                # if item['id'] in gn.intrigues.keys():
+                #     gn.intrigues[item['id']].clear()
+                #     del gn.intrigues[item['id']]
 
-                    nouvel_objet = extraire_objets_de_document(document, item, mon_gn, fonction_extraction,
-                                                               saveLastChange=False, verbal=verbal)
+                objet_de_reference = None
+                if item['id'] in dict_ids.keys():
+                    # dict_ids[item['id']].clear()
+                    objet_de_reference = dict_ids.pop(item['id'])
 
-                    if objet_de_reference is not None:
-                        if isinstance(nouvel_objet, ConteneurDeScene):
-                            nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
-                        objet_de_reference.clear()
+                nouvel_objet = extraire_objets_de_document(document, item, mon_gn, fonction_extraction,
+                                                           saveLastChange=False, verbal=verbal)
 
-                    break
-                    # on a trouvé le bon doc, on arrête de chercher
+                if objet_de_reference is not None:
+                    if isinstance(nouvel_objet, ConteneurDeScene):
+                        nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
+                    objet_de_reference.clear()
+
+                break
+                # on a trouvé le bon doc, on arrête de chercher
             except HttpError as err:
                 print(f'An error occurred: {err}')
                 # return #ajouté pour débugger

@@ -11,12 +11,11 @@ import dateparser
 # communication :
 # todo :informer chalacta des factions,
 #  des squelettes pnjs, des tableaux intrigues, des nouveaux tableaux de synthèse (objets / chrono / persos),
-#  des nouveaux fichiers d'erruers, du tag questionnaire, balise info, tables des pjs et pnjs, nouvelle chrono
+#  des nouveaux fichiers d'erruers, du tag questionnaire, balise info, tables des pjs et pnjs, nouvelle chrono,
+#  relations
 
 # bugs
-# todo : comprendre pourquoi relation frères a un eric en plus et il manque toujours quelqu'un
-#  >> c'est au moement de la rstituion ou de la constituion??
-
+# todo : comprendre pouruqoi le ¤ reste dans certains tableaux
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 
