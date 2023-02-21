@@ -479,12 +479,13 @@ def extraire_relation_multi(conteneur, tab_relations_multi, verbal=False,
                 conteneur.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                            warning_text,
                                            ErreurManager.ORIGINES.SCENE)
-            # à ce stade, on a viré les %, généré des messages d'alerte et préparé les listes
-            relation_multi_a_ajouter = Relation.creer_relation_multilaterale(roles_dans_relation_multi,
-                                                                             description_relation_multi
-                                                                             )
-            for role in roles_dans_relation_multi:
-                role.relations.add(relation_multi_a_ajouter)
+
+        # à ce stade, on a viré les %, généré des messages d'alerte et préparé les listes
+        relation_multi_a_ajouter = Relation.creer_relation_multilaterale(roles_dans_relation_multi,
+                                                                         description_relation_multi
+                                                                         )
+        for role in roles_dans_relation_multi:
+            role.relations.add(relation_multi_a_ajouter)
 
 
 def lire_tableau_pj_chalacta(current_intrigue, tableau_pjs):
