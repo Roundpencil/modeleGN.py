@@ -1552,11 +1552,15 @@ def formatter_fichier_erreurs(api_doc, doc_id):
 
 
 def reconstituer_tableau(texte_lu: str):
+    # logging.debug(f"chaine en entrée = {repr(texte_lu)}")
     last_hash_index = texte_lu.rfind(lecteurGoogle.FIN_LIGNE)
     if last_hash_index == -1:
         return None, None
 
-    texte_tableau = texte_lu[:last_hash_index + 1]
+    texte_tableau = texte_lu[:last_hash_index]
+
+    # texte_tableau = texte_lu[:last_hash_index + 1]
+    # logging.debug(f"chaine réduite = {repr(texte_tableau)}")
     lignes = texte_tableau.split(lecteurGoogle.FIN_LIGNE)
     to_return = []
 
@@ -1566,8 +1570,9 @@ def reconstituer_tableau(texte_lu: str):
         if taille_ligne > 1:
             to_return.append(tmp_ligne)
 
-    logging.debug(f"a partir de la chaine {texte_lu} ")
-    logging.debug(f"j'ai reconstitué le tableau \n {to_return}")
+    logging.debug(f"a partir de la chaine {repr(texte_lu)} "
+                  f"j'ai reconstitué le tableau \n {to_return}"
+                  )
     return to_return, (len(to_return[0]) if to_return else None)
 
 
