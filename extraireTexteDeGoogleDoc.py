@@ -1,7 +1,5 @@
 from __future__ import print_function
 
-import logging
-
 import re
 
 import fuzzywuzzy.process
@@ -20,7 +18,7 @@ def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=Fals
 
 
 def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
-    # print(f"je m'apprete à extraire les PJs depuis {gn.dossiers_pjs}")
+    # print(f"je m'apprête à extraire les PJs depuis {gn.dossiers_pjs}")
     extraire_texte_de_google_doc(
         mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
         singletest,
@@ -51,7 +49,7 @@ def extraire_evenements(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=F
 
 def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, dict_ids: dict, folder_array,
                                  single_test="-01", verbal=False, fast=True):
-    items = lecteurGoogle.generer_liste_items(mon_gn, api_drive=apiDrive, nom_fichier=folder_array)
+    items = lecteurGoogle.generer_liste_items(api_drive=apiDrive, nom_fichier=folder_array)
     # print(f"folder = {folder_array}  items = {items}")
 
     if not items:
@@ -83,7 +81,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 #     del gn.intrigues[item['id']]
 
                 objet_de_reference = None
-                if item['id'] in dict_ids.keys():
+                if item['id'] in dict_ids:
                     # dict_ids[item['id']].clear()
                     objet_de_reference = dict_ids.pop(item['id'])
 
@@ -127,7 +125,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
                 #   SI l'intrigue existe dans le GN ?
                 # if item['id'] in gn.intrigues .keys():
-                if item['id'] in dict_ids.keys():
+                if item['id'] in dict_ids:
 
                     #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
                     # print("l'intrigue fait déjà partie du GN ! ")
@@ -142,7 +140,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                     # if dict_ids[item['id']].lastProcessing >= item['modifiedTime']:
                     if fast and \
                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
-                        item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
+                                item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
 
                         print(
                             f"et elle n'a pas changé (dernier changement : "
@@ -424,11 +422,12 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
 
 
 def extraire_relations_bi(conteneur: ConteneurDeScene, tab_relations_bi: list[[str, str, str, str]],
-                          avec_tableau_persos:bool =True):
+                          avec_tableau_persos: bool = True):
     print(f"tab relations_bi = {tab_relations_bi}")
     for ligne_relation_bi in tab_relations_bi:
         if len(ligne_relation_bi[0]) == 0 or len(ligne_relation_bi[1]) == 0:
-            texte_erreur = f"Le personnage {ligne_relation_bi[0] if len(ligne_relation_bi[1]) == 0 else ligne_relation_bi[1]}" \
+            texte_erreur = f"Le personnage " \
+                           f"{ligne_relation_bi[0] if len(ligne_relation_bi[1]) == 0 else ligne_relation_bi[1]}" \
                            f"n'a pas de partenaire dans sa relation"
             conteneur.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                                texte_erreur,
@@ -574,10 +573,12 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, table
             elif balise[0:8].lower() == '## date?':
                 extraire_date_absolue(balise[9:], scene_a_ajouter)
             elif balise[0:7].lower() == '## qui?':
-                extraire_qui_scene(balise[8:], conteneur, noms_roles, scene_a_ajouter, avec_tableau_des_persos=False)
+                extraire_qui_scene(balise[8:], conteneur, noms_roles, scene_a_ajouter,
+                                   avec_tableau_des_persos=tableau_roles_existant)
 
             elif balise[0:8].lower() == '## qui ?':
-                extraire_qui_scene(balise[9:], conteneur, noms_roles, scene_a_ajouter, avec_tableau_des_persos=False)
+                extraire_qui_scene(balise[9:], conteneur, noms_roles, scene_a_ajouter,
+                                   avec_tableau_des_persos=tableau_roles_existant)
 
             elif balise[0:11].lower() == '## niveau :':
                 scene_a_ajouter.niveau = balise[12:].strip()
@@ -701,7 +702,8 @@ def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verba
     #         #                                                                                   conteneur.nom,
     #         #                                                                                   score))
     #
-    #         # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning : on s'est peut-être trompé de personnage!
+    #         # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning :
+    #         on s'est peut-être trompé de personnage!
     #         if score is not None:
     #             if score[1] < seuil:
     #                 warning_text = f"Association Scene ({score[1]}) - nom dans scène : {nom_du_role} " \
@@ -1022,8 +1024,6 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
         extraire_relation_multi(perso_en_cours, tableau_relation_multi_complet,
                                 verbal=verbal, avec_tableau_des_persos=False)
 
-
-
     if indexes[SCENES]["debut"] == -1:
         if verbal:
             print("Pas de scènes dans le personnage " + nom_perso_en_cours)
@@ -1032,7 +1032,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
         texte_scenes = texte_persos[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
 
         # print(f"ping j'ai trouvé la balise scènes, elle contient : {texteScenes}")
-        texte2scenes(perso_en_cours, nom_perso_en_cours, texte_scenes, False)
+        texte2scenes(perso_en_cours, nom_perso_en_cours, texte_scenes, tableau_roles_existant=False)
         # for scene in perso_en_cours.scenes:
         #     print(f"Scene présente : {scene}")
         # print(f"rôles contenus dans {nomPJ} : {perso_en_cours.rolesContenus}")
@@ -1113,9 +1113,9 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
 
 
 def inserer_squelettes_dans_drive(parent_id: str, api_doc, api_drive, text: str, nom_fichier, titre=False):
-    id = add_doc(api_drive, nom_fichier, parent_id)
-    write_to_doc(api_doc, id, text, titre=titre)
-    formatter_titres_scenes_dans_squelettes(api_doc, id)
+    file_id = add_doc(api_drive, nom_fichier, parent_id)
+    write_to_doc(api_doc, file_id, text, titre=titre)
+    formatter_titres_scenes_dans_squelettes(api_doc, file_id)
 
 
 def check_if_doc_exists(service, file_id):

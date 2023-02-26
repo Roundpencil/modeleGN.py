@@ -136,7 +136,7 @@ def identifier_sections_fiche(labels_a_trouver, texte_document):
     return indexes
 
 
-def generer_liste_items(mon_gn, api_drive, nom_fichier):
+def generer_liste_items(api_drive, nom_fichier):
     # nom_fichier = nom_fichier
 
     # faire la requête pour lire tous les dossiers en entrée

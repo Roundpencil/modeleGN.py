@@ -1,4 +1,3 @@
-import sys
 import tkinter as tk
 import traceback
 from tkinter import filedialog
@@ -43,16 +42,17 @@ class Application(tk.Frame):
         self.current_file_label.grid(row=5, column=0, columnspan=2, sticky='w')
         self.lire_fichier_config()
 
-    def update_button_state(self):
+    def updater_boutons_disponibles(self):
         if not self.dict_config:
-            self.regen_button.config(state="disabled")
-            self.diagnostic_button.config(state="disabled")
-            self.edit_config_button.config(state="disabled")
-
+            self.updateur_de_boutons_disponibles("disabled")
         else:
-            self.regen_button.config(state="normal")
-            self.diagnostic_button.config(state="normal")
-            self.edit_config_button.config(state="normal")
+            self.updateur_de_boutons_disponibles("normal")
+
+    # TODO Rename this here and in `updater_boutons_disponibles`
+    def updateur_de_boutons_disponibles(self, state):
+        self.regen_button.config(state=state)
+        self.diagnostic_button.config(state=state)
+        self.edit_config_button.config(state=state)
 
     # def create_widgets(self):
     #     self.new_gn_button = tk.Button(self, text="Créer nouveau GN", command=self.create_new_gn)
@@ -169,7 +169,7 @@ class Application(tk.Frame):
                        "noms_persos": noms_persos.split(","),
                        "fichier_noms_pnjs": nom_fichier_pnjs}
 
-        nom_fichier = nom_fichier_sauvegarde + ".ini"
+        nom_fichier = f"{nom_fichier_sauvegarde}.ini"
         ecrire_fichier_config(dict_config, nom_fichier)
         self.lire_fichier_config(nom_fichier)
         # Do something with the config_dict, like saving it to a file
@@ -262,7 +262,8 @@ class Application(tk.Frame):
         #                                          command=lambda:
         #                                          ecrire_erreurs_dans_drive(
         #                                              lister_erreurs(self.self, None),
-        #                                              self.api_doc, self.api_sheets, self.dict_config['dossier_output']))
+        #                                              self.api_doc, self.api_sheets,
+        #                                              self.dict_config['dossier_output']))
         # generer_erreurs_drive_button.grid(row=15, column=0, sticky="nsew")
         #
         # generer_table_intrigues_drive_button = tk.Button(diagnostic_window,
@@ -323,7 +324,7 @@ class Application(tk.Frame):
         try:
             self.dict_config = charger_fichier_init(config_file)
             # print("ping")
-            self.update_button_state()
+            self.updater_boutons_disponibles()
             self.current_file_label.config(text=config_file)
             try:
                 self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'])
@@ -366,7 +367,7 @@ class Application(tk.Frame):
             print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")
             traceback.print_exc()
             self.dict_config = None
-            self.update_button_state()
+            self.updater_boutons_disponibles()
 
     def modify_config(self):
         config_window = tk.Toplevel(self.master)
@@ -451,7 +452,7 @@ class Application(tk.Frame):
                        "noms_persos": noms_persos.split(","),
                        "fichier_noms_pnjs": nom_fichier_pnjs}
 
-        nom_fichier = nom_fichier_sauvegarde + ".ini"
+        nom_fichier = f"{nom_fichier_sauvegarde}.ini"
         ecrire_fichier_config(dict_config, nom_fichier)
         self.lire_fichier_config(nom_fichier)
         # Do something with the config_dict, like saving it to a file
@@ -489,7 +490,7 @@ class Application(tk.Frame):
 
         self.intrigue_specifique_entry = tk.Entry(regen_window)
         self.intrigue_specifique_entry.grid(row=1, column=3)
-        self. intrigue_specifique_entry.config(state='disabled')
+        self.intrigue_specifique_entry.config(state='disabled')
 
         # Personnages
         personnages_label = tk.Label(regen_window, text="Personnages")
@@ -603,21 +604,20 @@ class Application(tk.Frame):
         table_pnjs_var = tk.BooleanVar()
         table_pnjs_var.set(True)
         table_pnjs_check = tk.Checkbutton(regen_window, text="Table des pnjs",
-                                            variable=table_pnjs_var)
+                                          variable=table_pnjs_var)
         table_pnjs_check.grid(row=8, column=1)
 
         aide_de_jeu_var = tk.BooleanVar()
         aide_de_jeu_var.set(True)
         aide_de_jeu_check = tk.Checkbutton(regen_window, text="inputs aides de jeu",
-                                            variable=aide_de_jeu_var)
+                                           variable=aide_de_jeu_var)
         aide_de_jeu_check.grid(row=8, column=2)
 
         table_pnjs_dedupliques_var = tk.BooleanVar()
         table_pnjs_dedupliques_var.set(True)
         table_pnjs_dedupliques_check = tk.Checkbutton(regen_window, text="table PNJs dédupliqués",
-                                            variable=table_pnjs_dedupliques_var)
+                                                      variable=table_pnjs_dedupliques_var)
         table_pnjs_dedupliques_check.grid(row=8, column=3)
-
 
         # Buttons
         cancel_button = tk.Button(regen_window, text="Annuler", command=regen_window.destroy)
@@ -635,9 +635,8 @@ class Application(tk.Frame):
                                   personnages_value=personnages_var.get(),
                                   sans_chargement_fichier_value=charger_fichier_var.get(),
                                   sauver_apres_operation_value=sauver_apres_operation_var.get(),
-                                  generer_fichiers_drive_value=generer_fichiers_drive_var.get(),
                                   fichier_erreur_var=fichier_erreurs_var.get(),
-                                  export_drive_var=generer_fichiers_drive_var.get(),
+                                  generer_fichiers_pjs_var=generer_fichiers_drive_var.get(),
                                   generer_fichiers_pnjs_var=generer_fichiers_pnjs_var.get(),
                                   changelog_var=changelog_var.get(),
                                   table_chrono_var=table_chrono_var.get(),
@@ -647,7 +646,7 @@ class Application(tk.Frame):
                                   table_objets_var=table_objets_var.get(),
                                   verbal_var=verbal_var.get(),
                                   aide_de_jeu_var=aide_de_jeu_var.get(),
-                                  table_pnjs_dedupliques_var = table_pnjs_dedupliques_var.get()
+                                  table_pnjs_dedupliques_var=table_pnjs_dedupliques_var.get()
                               )
                               )
 
@@ -666,9 +665,9 @@ class Application(tk.Frame):
             self.personnages_specifique_entry.config(state='normal')
 
     def process_regen(self, intrigues_value, personnages_value, sans_chargement_fichier_value,
-                      sauver_apres_operation_value,
-                      generer_fichiers_drive_value, fichier_erreur_var, export_drive_var, changelog_var,
-                      table_chrono_var, table_persos_var, table_pnj_var, table_pnjs_dedupliques_var, table_intrigues_var, table_objets_var,
+                      sauver_apres_operation_value, fichier_erreur_var, generer_fichiers_pjs_var, changelog_var,
+                      table_chrono_var, table_persos_var, table_pnj_var, table_pnjs_dedupliques_var,
+                      table_intrigues_var, table_objets_var,
                       generer_fichiers_pnjs_var, verbal_var, aide_de_jeu_var):
 
         if intrigues_value == "Spécifique":
@@ -697,7 +696,7 @@ class Application(tk.Frame):
                              # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
                              nom_fichier_sauvegarde=self.dict_config['nom_fichier_sauvegarde'],
                              fichier_erreurs=fichier_erreur_var,
-                             generer_fichiers_pjs=export_drive_var,
+                             generer_fichiers_pjs=generer_fichiers_pjs_var,
                              generer_fichiers_pnjs=generer_fichiers_pnjs_var,
                              changelog=changelog_var,
                              table_intrigues=table_intrigues_var,
