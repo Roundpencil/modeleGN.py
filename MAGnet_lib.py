@@ -15,7 +15,6 @@ import dateparser
 #  relations
 
 # bugs
-# todo : comprendre pouruqoi le ¤ reste dans certains tableaux
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 
