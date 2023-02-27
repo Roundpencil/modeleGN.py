@@ -165,6 +165,7 @@ class Personnage(ConteneurDeScene):
         # self.url = url
         self.lastProcessing = lastChange
         self.forced = forced
+        self.commentaires = []
 
     def clear(self):
         for role in self.roles:
@@ -173,6 +174,9 @@ class Personnage(ConteneurDeScene):
 
     def ajouter_role(self, r):
         self.roles.add(r)
+
+    def ajouter_commentaires(self, commentaires: list):
+        self.commentaires.extend(commentaires)
 
     # def __str__(self):
     #     return "nom personnage : " + self.nom
@@ -330,6 +334,7 @@ class Intrigue(ConteneurDeScene):
 
         self.lastFileEdit = derniere_edition_fichier
         self.objets = set()
+        self.commentaires = []
 
     def __str__(self):
         return self.nom
@@ -342,6 +347,9 @@ class Intrigue(ConteneurDeScene):
         for objet in self.objets:
             objet.inIntrigues.remove(self)
         # self.objets.clear()
+
+    def ajouter_commentaires(self, commentaires: list):
+        self.commentaires.extend(commentaires)
 
     # vérifier que le personnge que l'on souhaite associer à un rôle n'est pas déjà associé à un autre rôle
     # dans le même conteneur
@@ -1230,3 +1238,10 @@ class Intervention:
         self.pj_impliques = []
         self.pnj_impliques = []
         self.description = description
+
+
+class Commentaire:
+    def __init__(self, texte: str, auteur: str, destinataires: list[str]):
+        self.texte = texte
+        self.auteur = auteur
+        self.destinataires = set(destinataires)

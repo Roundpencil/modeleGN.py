@@ -4,6 +4,7 @@ import re
 
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
+from requests import api
 
 import lecteurGoogle
 from modeleGN import *
@@ -86,7 +87,11 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                     objet_de_reference = dict_ids.pop(item['id'])
 
                 nouvel_objet = extraire_objets_de_document(document, item, mon_gn, fonction_extraction,
-                                                           saveLastChange=False, verbal=verbal)
+                                                           save_last_change=False, verbal=verbal)
+                #et on ajoute les commentaires :
+                commentaires = extraire_commentaires_de_document_drive(apiDrive, item['id'])
+                if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
+                    nouvel_objet.ajouter_commentaires(commentaires)
 
                 if objet_de_reference is not None:
                     if isinstance(nouvel_objet, ConteneurDeScene):
@@ -103,18 +108,12 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
         # dans ce cas, on lit tout, jusqu'à ce qu'on tombe sur une entrée qui n'a pas été modifiée
         for item in items:
             try:
-                # print ("poung")
-
-                # print ("ping")
                 # Retrieve the documents contents from the Docs api_doc.
                 document = apiDoc.documents().get(documentId=item['id']).execute()
 
                 print(f"Titre document : {document.get('title')}")
-                # print(document.get('title')[0:2])
 
-                # if not document.get('title')[0:2].isdigit():
-                #     # print("... n'est pas une intrigue")
-                #     continue
+                # si la ref du doc est -1 ou 0 il ne nous interesse pas
                 if ref_du_doc(document.get('title')) in [-1, 0]:
                     continue
 
@@ -140,7 +139,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                     # if dict_ids[item['id']].lastProcessing >= item['modifiedTime']:
                     if fast and \
                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
-                                item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
+                        item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
 
                         print(
                             f"et elle n'a pas changé (dernier changement : "
@@ -163,6 +162,10 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
 
                 # puis, dans tous les cas, on la crée
                 nouvel_objet = extraire_objets_de_document(document, item, mon_gn, fonction_extraction, verbal=verbal)
+                commentaires = extraire_commentaires_de_document_drive(apiDrive, item['id'])
+                if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
+                    nouvel_objet.ajouter_commentaires(commentaires)
+
                 if objet_de_reference is not None:
                     if isinstance(nouvel_objet, ConteneurDeScene):
                         nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
@@ -173,7 +176,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 # return #ajouté pour débugger
 
 
-def extraire_objets_de_document(document, item, mon_gn, fonctionExtraction, saveLastChange=True, verbal=False):
+def extraire_objets_de_document(document, item, mon_gn, fonction_extraction, save_last_change=True, verbal=False):
     # print("et du coup, il est temps de créer un nouveau fichier")
     # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
     contenu_document = document.get('body').get('content')
@@ -193,15 +196,16 @@ def extraire_objets_de_document(document, item, mon_gn, fonctionExtraction, save
     except Exception:
         derniere_modification_par = "Utilisateur inconnu"
 
-    mon_objet = fonctionExtraction(text, document.get('title'), item["id"], last_file_edit, derniere_modification_par,
-                                   mon_gn, verbal)
+    mon_objet = fonction_extraction(text, document.get('title'), item["id"], last_file_edit, derniere_modification_par,
+                                    mon_gn, verbal)
     # mon_objet.url = item["id"]
-    # et on enregistre la date de dernière mise à jour de l'intrigue
+    # on enregistre la date de dernière mise à jour
 
-    if mon_objet is not None and saveLastChange:
+    if mon_objet is not None and save_last_change:
         mon_objet.lastProcessing = datetime.datetime.now()
     # print(f'url intrigue = {mon_objet.url}')
     # print(f"intrigue {mon_objet.nom}, date de modification : {item['modifiedTime']}")
+
     return mon_objet
 
 
@@ -1555,7 +1559,7 @@ def reconstituer_tableau(texte_lu: str):
     # logging.debug(f"chaine en entrée = {repr(texte_lu)}")
     last_hash_index = texte_lu.rfind(lecteurGoogle.FIN_LIGNE)
     if last_hash_index == -1:
-        return None, None
+        return [], 0
 
     texte_tableau = texte_lu[:last_hash_index]
 
@@ -1573,7 +1577,7 @@ def reconstituer_tableau(texte_lu: str):
     logging.debug(f"a partir de la chaine {repr(texte_lu)} "
                   f"j'ai reconstitué le tableau \n {to_return}"
                   )
-    return to_return, (len(to_return[0]) if to_return else None)
+    return to_return if to_return else [], (len(to_return[0]) if to_return else 0)
 
 
 def extraire_evenement_de_texte(texte_evenement, nom_evenement, id_url, lastFileEdit, derniere_modification_par, monGN,
@@ -1635,3 +1639,52 @@ def supprimer_feuille_1(api_sheets, spreadsheet_id):
             break
     else:
         print("Sheet '{}' not found.".format("Feuille 1"))
+
+
+def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):
+    try:
+        liste = api_drive.comments().list(fileId=id_fichier,
+                                          fields="comments(content, replies, resolved, author)").execute()
+    except HttpError as error:
+        print(f"Erreur durant la lecture des commentaires: {error}")
+        return []
+
+    to_return = []
+    for current_dict_commentaire in liste['comments']:
+        # on vérifie qu'il n'est pas fermé ou résolu
+        if current_dict_commentaire.get('resolved', False) or \
+                current_dict_commentaire.get('deleted', False):
+            continue
+
+        #on ajoute son texte et on va chercher ses réponses
+        texte_commentaire = current_dict_commentaire.get("content", "")
+        for reply in current_dict_commentaire.get("replies", []):
+            if reply.get('resolved', False) or reply.get('deleted', False):
+                continue
+            texte_commentaire += '\n' + reply.get("content", "")
+
+        # à ce stade là on a choppé tout le texte
+
+        #on choppe l'auteur
+        try:
+            auteur = current_dict_commentaire['author']['displayName']
+        except KeyError:
+            logging.debug(f"problème avec le nom de l'auteur "
+                          f"{current_dict_commentaire.get('author', 'auteur illisible')}")
+            logging.debug(f"clef présentes dans le dictionnaire : "
+                          f"{current_dict_commentaire.keys()}")
+
+            auteur = "auteur sans nom"
+
+        # regarde pour qui c'est:
+        pattern = r"@[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+"
+        destinataires = re.findall(pattern, texte_commentaire)
+        destinataires = [d[1:] for d in destinataires]
+
+        to_return.append(Commentaire(texte_commentaire, auteur, destinataires))
+
+    return to_return
+
+
+
+

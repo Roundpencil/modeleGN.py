@@ -1,5 +1,4 @@
 import configparser
-import logging
 import os
 
 import extraireTexteDeGoogleDoc
@@ -1041,6 +1040,8 @@ def mettre_a_jour_champs(gn: GN):
                 objet.code = ""
             if hasattr(objet, 'rfid'):
                 delattr(objet, 'rfid')
+            if not hasattr(objet, 'commentaires'):
+                objet.commentaires = []
 
     for conteneur in list(gn.dictPJs.values()) \
                      + list(gn.dictPNJs.values()) \
@@ -1063,3 +1064,11 @@ def mettre_a_jour_champs(gn: GN):
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'infos'):
             scene.infos = set()
+
+    for objet in gn.dictPNJs.values():
+        if not hasattr(objet, 'commentaires'):
+            objet.commentaires = []
+
+    for objet in gn.dictPJs.values():
+        if not hasattr(objet, 'commentaires'):
+            objet.commentaires = []

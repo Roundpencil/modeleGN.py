@@ -155,9 +155,6 @@ def generer_liste_items(api_drive, nom_fichier):
 
     try:
         # Call the Drive v3 API
-        # results = api_doc.files().list(
-        #     pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
-        #     fields="nextPageToken, files(mon_id, name, modifiedTime)").execute()
         results = api_drive.files().list(
             pageSize=100, q=requete,
             fields="nextPageToken, files(id, name, modifiedTime, lastModifyingUser)").execute()
