@@ -1679,7 +1679,7 @@ def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):
         # regarde pour qui c'est:
         pattern = r"@[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+"
         destinataires = re.findall(pattern, texte_commentaire)
-        destinataires = [d[1:] for d in destinataires]
+        destinataires = [d[1:].lower() for d in destinataires]
 
         to_return.append(Commentaire(texte_commentaire, auteur, destinataires))
 

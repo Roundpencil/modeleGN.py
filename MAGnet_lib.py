@@ -5,6 +5,7 @@ import extraireTexteDeGoogleDoc
 import lecteurGoogle
 from modeleGN import *
 import dateparser
+import csv
 
 
 # communication :
@@ -128,6 +129,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          generer_fichiers_pnjs: bool = True, pnjs_dedupliques: bool = True, aides_de_jeu: bool = True,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
                          table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
+                         table_commentaires: bool = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, verbal: bool = False):
     if api_doc is None or api_sheets is None or api_drive is None:
@@ -262,6 +264,10 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         ecrire_table_pnj(mon_gn, api_drive, api_sheets)
     if pnjs_dedupliques:
         creer_table_pnj_dedupliquee_sur_drive(mon_gn, api_sheets, api_drive)
+
+    print("******* table commentaires *********************")
+    if table_commentaires:
+        ecrire_table_commentaires(mon_gn, api_drive, api_doc, api_sheets)
 
     print("******* aides de jeu *********************")
     if aides_de_jeu:
@@ -1003,20 +1009,86 @@ def ecrire_texte_info(mon_GN: GN, api_doc, api_drive):
         api_doc, mon_id, texte
     )
 
-def generer_table_commentaires(gn : GN):
-    orgas_commentaires = {}
-    # on commence par faire un dictionnaire des commentaires par orgas
-    for intrigue in gn.intrigues.values():
-        for commentaire in intrigue.commentaires:
-            auteur = commentaire.auteur
-            if auteur not in orgas_commentaires:
-                orgas_commentaires[auteur] = {'commentaires': [], 'orgas_associes':set()} #commentaires, orgas
-            orgas_commentaires[auteur]['commentaires'].append(commentaire)
-            for associe in commentaire.destinataires:
-                orgas_commentaires[auteur]['orgas_associes'].add(associe)
-    #il manque l'intrigue si on veut faire un talbuea par intrigue > attendre le retour de chat gpt :)
-    #ensuite on fait un tableau par orga
 
+def generer_table_commentaires(gn: GN):
+    # Get a list of all unique authors and destinataires
+    intrigues = gn.intrigues.values()
+    destinataires = set()
+    dict_auteur_intrigues = {}  # [auteur][intrigue] > commentaires
+
+    # for intrigue in intrigues:
+    #     for commentaire in intrigue.commentaires:
+    #         if commentaire.auteur not in dict_auteur_intrigues:
+    #             dict_auteur_intrigues[commentaire.auteur] = set()
+    #         dict_auteur_intrigues[commentaire.auteur].add(intrigue)
+    #         destinataires.update(commentaire.destinataires)
+    for intrigue in intrigues:
+        for commentaire in intrigue.commentaires:
+            if commentaire.auteur not in dict_auteur_intrigues:
+                dict_auteur_intrigues[commentaire.auteur] = {}
+            if intrigue not in dict_auteur_intrigues[commentaire.auteur]:
+                dict_auteur_intrigues[commentaire.auteur][intrigue] = set()
+            # print(f"clef dict_auteur_intrigues[commentaire.auteur] : {dict_auteur_intrigues[commentaire.auteur]}")
+            dict_auteur_intrigues[commentaire.auteur][intrigue].add(commentaire)
+            destinataires.update(commentaire.destinataires)
+
+    dict_auteurs_tableaux = {auteur: [["Intrigue"] + list(destinataires)] for auteur in dict_auteur_intrigues}
+
+    # Create a 2D list with intrigue names as row headers and destinataires as column headers
+    for auteur in dict_auteur_intrigues:
+        for intrigue in dict_auteur_intrigues[auteur]:
+            row = [intrigue.nom] + [""] * len(destinataires)
+            # for commentaire in intrigue.commentaires:
+            for commentaire in dict_auteur_intrigues[auteur][intrigue]:
+                # if auteur != commentaire.auteur:
+                #     continue
+                for destinataire in commentaire.destinataires:
+                    column_index = list(destinataires).index(destinataire)
+                    row[column_index + 1] = "x"
+            dict_auteurs_tableaux[auteur].append(row)
+
+    # Write the 2D list to a CSV file
+    for auteur in dict_auteurs_tableaux:
+        with open(f"comment_table_{auteur}.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerows(dict_auteurs_tableaux[auteur])
+
+    return dict_auteurs_tableaux, dict_auteur_intrigues
+
+
+def generer_texte_commentaires(dict_auteur_intrigues):
+    to_return = ""
+    for auteur in dict_auteur_intrigues:
+        to_return += f"\t \t {auteur}, voici les commentaires ouverts dont tu es l'auteur \n"
+        for intrigue in dict_auteur_intrigues[auteur]:
+            to_return += f"\t pour l'intrigue {intrigue} : \n\n"
+            for commentaire in dict_auteur_intrigues[auteur][intrigue]:
+                to_return += commentaire.texte + '\n\n'
+            to_return += '\n'
+        to_return += '******************************************* \n'
+    return to_return
+
+
+def ecrire_table_commentaires(gn: GN, api_drive, api_doc, api_sheets):
+    parent = gn.dossier_outputs_drive
+    dict_auteurs_tableaux, dict_auteur_intrigues = generer_table_commentaires(gn)
+    texte = generer_texte_commentaires(dict_auteur_intrigues)
+
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- commentaires ouverts dans les documents'
+    mon_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.write_to_doc(
+        api_doc, mon_id, texte
+    )
+
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- table des commentaires'
+
+    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
+    for auteur in dict_auteurs_tableaux:
+        extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, dict_auteurs_tableaux[auteur], file_id,
+                                                            feuille=auteur)
+    extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, file_id)
 
 
 def mettre_a_jour_champs(gn: GN):
@@ -1055,8 +1127,10 @@ def mettre_a_jour_champs(gn: GN):
                 objet.code = ""
             if hasattr(objet, 'rfid'):
                 delattr(objet, 'rfid')
-            if not hasattr(objet, 'commentaires'):
-                objet.commentaires = []
+            if hasattr(objet, 'commentaires'):
+                delattr(objet, 'commentaires')
+        if not hasattr(intrigue, 'commentaires'):
+            intrigue.commentaires = []
 
     for conteneur in list(gn.dictPJs.values()) \
                      + list(gn.dictPNJs.values()) \
@@ -1080,10 +1154,10 @@ def mettre_a_jour_champs(gn: GN):
         if not hasattr(scene, 'infos'):
             scene.infos = set()
 
-    for objet in gn.dictPNJs.values():
-        if not hasattr(objet, 'commentaires'):
-            objet.commentaires = []
+    for pnj in gn.dictPNJs.values():
+        if not hasattr(pnj, 'commentaires'):
+            pnj.commentaires = []
 
-    for objet in gn.dictPJs.values():
-        if not hasattr(objet, 'commentaires'):
-            objet.commentaires = []
+    for pj in gn.dictPJs.values():
+        if not hasattr(pj, 'commentaires'):
+            pj.commentaires = []
