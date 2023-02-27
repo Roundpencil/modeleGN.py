@@ -1003,6 +1003,21 @@ def ecrire_texte_info(mon_GN: GN, api_doc, api_drive):
         api_doc, mon_id, texte
     )
 
+def generer_table_commentaires(gn : GN):
+    orgas_commentaires = {}
+    # on commence par faire un dictionnaire des commentaires par orgas
+    for intrigue in gn.intrigues.values():
+        for commentaire in intrigue.commentaires:
+            auteur = commentaire.auteur
+            if auteur not in orgas_commentaires:
+                orgas_commentaires[auteur] = {'commentaires': [], 'orgas_associes':set()} #commentaires, orgas
+            orgas_commentaires[auteur]['commentaires'].append(commentaire)
+            for associe in commentaire.destinataires:
+                orgas_commentaires[auteur]['orgas_associes'].add(associe)
+    #il manque l'intrigue si on veut faire un talbuea par intrigue > attendre le retour de chat gpt :)
+    #ensuite on fait un tableau par orga
+
+
 
 def mettre_a_jour_champs(gn: GN):
     # #mise à jour des errors logs
