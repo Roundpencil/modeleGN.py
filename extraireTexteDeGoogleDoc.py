@@ -1661,7 +1661,7 @@ def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):
         for reply in current_dict_commentaire.get("replies", []):
             if reply.get('resolved', False) or reply.get('deleted', False):
                 continue
-            texte_commentaire += '\n' + reply.get("content", "")
+            texte_commentaire += f"'\n' {reply.get('author', '')} dit : {reply.get('content', '')}"
 
         # à ce stade là on a choppé tout le texte
 

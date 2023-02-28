@@ -605,19 +605,25 @@ class Application(tk.Frame):
         table_pnjs_var.set(True)
         table_pnjs_check = tk.Checkbutton(regen_window, text="Table des pnjs",
                                           variable=table_pnjs_var)
-        table_pnjs_check.grid(row=8, column=1)
+        table_pnjs_check.grid(row=8, column=0)
 
         aide_de_jeu_var = tk.BooleanVar()
         aide_de_jeu_var.set(True)
         aide_de_jeu_check = tk.Checkbutton(regen_window, text="inputs aides de jeu",
                                            variable=aide_de_jeu_var)
-        aide_de_jeu_check.grid(row=8, column=2)
+        aide_de_jeu_check.grid(row=8, column=1)
 
         table_pnjs_dedupliques_var = tk.BooleanVar()
         table_pnjs_dedupliques_var.set(True)
         table_pnjs_dedupliques_check = tk.Checkbutton(regen_window, text="table PNJs dédupliqués",
                                                       variable=table_pnjs_dedupliques_var)
-        table_pnjs_dedupliques_check.grid(row=8, column=3)
+        table_pnjs_dedupliques_check.grid(row=8, column=2)
+
+        table_commentaires_var = tk.BooleanVar()
+        table_commentaires_var.set(True)
+        table_commentaires_check = tk.Checkbutton(regen_window, text="table PNJs dédupliqués",
+                                                      variable=table_commentaires_var)
+        table_commentaires_check.grid(row=8, column=3)
 
         # Buttons
         cancel_button = tk.Button(regen_window, text="Annuler", command=regen_window.destroy)
@@ -646,7 +652,8 @@ class Application(tk.Frame):
                                   table_objets_var=table_objets_var.get(),
                                   verbal_var=verbal_var.get(),
                                   aide_de_jeu_var=aide_de_jeu_var.get(),
-                                  table_pnjs_dedupliques_var=table_pnjs_dedupliques_var.get()
+                                  table_pnjs_dedupliques_var=table_pnjs_dedupliques_var.get(),
+                                  table_commentaires_var=table_commentaires_var.get()
                               )
                               )
 
@@ -667,6 +674,7 @@ class Application(tk.Frame):
     def process_regen(self, intrigues_value, personnages_value, sans_chargement_fichier_value,
                       sauver_apres_operation_value, fichier_erreur_var, generer_fichiers_pjs_var, changelog_var,
                       table_chrono_var, table_persos_var, table_pnj_var, table_pnjs_dedupliques_var,
+                      table_commentaires_var,
                       table_intrigues_var, table_objets_var,
                       generer_fichiers_pnjs_var, verbal_var, aide_de_jeu_var):
 
@@ -705,6 +713,7 @@ class Application(tk.Frame):
                              table_persos=table_persos_var,
                              table_pnjs=table_pnj_var,
                              pnjs_dedupliques=table_pnjs_dedupliques_var,
+                             table_commentaires = table_commentaires_var,
                              fast_intrigues=(intrigues_value == "Rapide"),
                              fast_persos=(personnages_value == "Rapide"),
                              singletest_perso=personnages_specifique,

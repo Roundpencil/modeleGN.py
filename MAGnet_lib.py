@@ -489,7 +489,7 @@ def squelettes_par_perso(mon_gn: GN, pj=True):
         for item in perso.concept:
             texte_perso += f"{item} \n"
         texte_perso += f"Motivations et objectifs : \n"
-        print(f"driver avant insertion {perso.driver}")
+        logging.debug(f"driver avant insertion {perso.driver}")
         for item in perso.driver:
             texte_perso += f"{item} \n"
         texte_perso += f"Chronologie : \n "
@@ -840,12 +840,22 @@ def generer_table_chrono_scenes(mon_gn: GN):
     #         logging.debug(f"\t \t \t nom personnage = {role.personnage.nom}")
 
     for scene in toutes_scenes:
+        # logging.debug(f"debugging chrono - pour la scene {scene.titre}")
+        # for role in scene.roles:
+        #     if role.est_un_pnj():
+        #         logging.debug(f"role.nom = {role.nom}")
+        #         logging.debug(f"role.personnage = {role.personnage}")
+        #         logging.debug(f"role.personnage.nom = {role.personnage.nom}")
+
         to_return.append([
             scene.get_formatted_date(mon_gn.date_gn),
             scene.conteneur.nom,
             scene.titre,
-            ', '.join([role.personnage.nom for role in scene.roles if role is not None and role.est_un_pj()]),
-            ', '.join([role.personnage.nom for role in scene.roles if role is not None and role.est_un_pnj()]),
+            # ', '.join([role.personnage.nom for role in scene.roles if role is not None and role.est_un_pj()]),
+            # ', '.join([role.personnage.nom for role in scene.roles if role is not None and role.est_un_pnj()]),
+            ', '.join([role.str_avec_perso() for role in scene.roles if role is not None and role.est_un_pj()]),
+            ', '.join([role.str_avec_perso() for role in scene.roles if role is not None and role.est_un_pnj()]),
+
         ])
     return to_return
 
@@ -1145,6 +1155,12 @@ def mettre_a_jour_champs(gn: GN):
                 delattr(role, 'perimetre_Intervention')
             if not hasattr(role, 'relations'):
                 role.relations = set()
+            if not hasattr(role, 'personnage'):
+                if hasattr(role, 'perso'):
+                    role.personnage = role.perso
+                    delattr(role, 'perso')
+                else:
+                    role.personnage = None
 
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'infos'):

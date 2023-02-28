@@ -293,6 +293,10 @@ class Role:
         to_return += f"niveauImplication : {self.niveauImplication}" + "\n"
         return to_return
 
+    def str_avec_perso(self):
+        return f"{self.nom} ({self.personnage.nom})" if self.personnage is not None \
+            else f"{self.nom} (pas de personnage associé)"
+
     def ajouter_a_scene(self, sceneAAjouter):
         self.scenes.add(sceneAAjouter)
         sceneAAjouter.roles.add(self)
@@ -822,7 +826,7 @@ class GN:
                     # print(f"nom du role testé = {role.nom}")
                     score = process.extractOne(role.nom, noms_persos)
                     if verbal:
-                        print(f"Pour {role.nom} dans {intrigue.nom}, score = {score}")
+                        print(f"Rôles issus d'intrigues - Pour {role.nom} dans {intrigue.nom}, score = {score}")
                     check = intrigue.associer_role_a_perso(role_a_associer=role, personnage=dict_noms_persos[score[0]],
                                                            verbal=verbal)
 
@@ -846,7 +850,7 @@ class GN:
                     print(f"je suis en train d'essayer d'associer le rôle {role.nom} issu du personnage {perso.nom}")
                 score = process.extractOne(role.nom, noms_persos)
                 if verbal:
-                    print(f"Pour {role.nom} dans {role.conteneur.nom}, score = {score}")
+                    print(f"Rôles issus de pjs - Pour {role.nom} dans {role.conteneur.nom}, score = {score}")
                 role.personnage = dict_noms_persos[score[0]]
                 role.personnage.roles.add(role)
 
@@ -873,7 +877,7 @@ class GN:
     def rebuild_links(self, verbal=False):
         self.clear_all_associations()
         self.updateOldestUpdate()
-        self.ajouter_roles_issus_de_factions(verbal=True)
+        self.ajouter_roles_issus_de_factions()
         self.associer_pnj_a_roles()
         self.associer_pj_a_roles(verbal)
         self.trouver_roles_sans_scenes()
@@ -1053,7 +1057,7 @@ class GN:
         valeur_pj = TypePerso.EST_PJ if pj else TypePerso.EST_PNJ_HORS_JEU
 
         for perso, orga_referent in zip(noms_persos, table_orgas_referent):
-            print(f"personnage zippé = {perso}, orgazippé = {orga_referent}")
+            # print(f"personnage zippé = {perso}, orgazippé = {orga_referent}")
             if perso in noms_lus and verbal:
                 print(f"le personnage {perso} a une correspondance dans les persos déjà présents")
             else:
