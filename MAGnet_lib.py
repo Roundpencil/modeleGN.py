@@ -258,8 +258,6 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         ecrire_table_persos(mon_gn, api_drive, api_sheets)
     if table_pnjs:
         ecrire_table_pnj(mon_gn, api_drive, api_sheets)
-    if pnjs_dedupliques:
-        creer_table_pnj_dedupliquee_sur_drive(mon_gn, api_sheets, api_drive)
 
     print("******* table commentaires *********************")
     if table_commentaires:
@@ -444,15 +442,6 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
     # extraire_texte_de_google_doc.exporter_table_intrigue(api_doc, nom_fichier, dossier_export, df)
     # extraire_texte_de_google_doc.ecrire_table_google_sheets(api_sheets, df, mon_id)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_intrigues, mon_id)
-
-
-def creer_table_pnj_dedupliquee_sur_drive(mon_gn: GN, api_sheets, api_drive):
-    table_pnj = [["Nom"]]
-    table_pnj.extend([nom] for nom in generer_liste_pnj_dedup(mon_gn))
-    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Suggestion liste PNJs dédupliqués'
-    dossier_export = mon_gn.dossier_outputs_drive
-    mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_export)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_pnj, mon_id)
 
 
 def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True):
@@ -974,8 +963,28 @@ def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets):
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- table des PNJs'
     file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, file_id)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_etendue, file_id, feuille="détaillée")
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="En synthèse")
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_etendue, file_id, feuille="Vision détaillée")
+
+    table_pnj_dedup = generer_table_pnj_dedupliquee(mon_gn)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_pnj_dedup, file_id,
+                                                        feuille="Suggestion liste dedupliquée")
+    extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, file_id)
+
+def generer_table_pnj_dedupliquee(mon_gn: GN):
+    # table_pnj = [["Nom"]]
+    # table_pnj.extend([nom] for nom in generer_liste_pnj_dedup(mon_gn))
+
+    table_pnj = [["Nom", "Déjà présent avec exactement ce nom?"]]
+    noms_actuels = mon_gn.noms_pnjs()
+    noms_dedup = generer_liste_pnj_dedup(mon_gn)
+    for nom in noms_dedup:
+        if nom in noms_actuels:
+            table_pnj.append([nom, "oui"])
+        else:
+            table_pnj.append([nom, "non"])
+
+    return table_pnj
 
 
 def generer_textes_infos(gn: GN):
@@ -1010,7 +1019,7 @@ def ecrire_texte_info(mon_GN: GN, api_doc, api_drive):
     )
 
 
-def generer_table_commentaires(gn: GN):
+def generer_table_commentaires(gn: GN, prefixe = None):
     # Get a list of all unique authors and destinataires
     intrigues = gn.intrigues.values()
     destinataires = set()
@@ -1047,11 +1056,12 @@ def generer_table_commentaires(gn: GN):
                     row[column_index + 1] = "x"
             dict_auteurs_tableaux[auteur].append(row)
 
-    # Write the 2D list to a CSV file
-    for auteur in dict_auteurs_tableaux:
-        with open(f"comment_table_{auteur}.csv", "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerows(dict_auteurs_tableaux[auteur])
+    if prefixe is not None :
+        # Write the 2D list to a CSV file
+        for auteur in dict_auteurs_tableaux:
+            with open(f"{prefixe} comment_table_{auteur}.csv", "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerows(dict_auteurs_tableaux[auteur])
 
     return dict_auteurs_tableaux, dict_auteur_intrigues
 

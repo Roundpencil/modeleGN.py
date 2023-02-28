@@ -533,7 +533,7 @@ class Application(tk.Frame):
         master_state.set(True)
         master_checkbox = tk.Checkbutton(regen_window, text="cocher / décocher tout", variable=master_state,
                                          command=lambda: update_checkboxes(master_state))
-        master_checkbox.grid(row=5, column=2)
+        master_checkbox.grid(sticky="W", row=5, column=2)
 
         def update_checkboxes(etat_a_forcer):
             args = [generer_fichiers_drive_var,
@@ -547,7 +547,7 @@ class Application(tk.Frame):
                     table_persos_var,
                     table_pnjs_var,
                     aide_de_jeu_var,
-                    table_pnjs_dedupliques_var
+                    table_commentaires_var
                     ]
 
             for checkbox in args:
@@ -557,73 +557,73 @@ class Application(tk.Frame):
         generer_fichiers_drive_var.set(True)
         generer_fichiers_drive_check = tk.Checkbutton(regen_window, text="Squelettes PJs",
                                                       variable=generer_fichiers_drive_var)
-        generer_fichiers_drive_check.grid(row=6, column=0)
+        generer_fichiers_drive_check.grid(sticky="W", row=6, column=0)
 
         generer_fichiers_pnjs_var = tk.BooleanVar()
         generer_fichiers_pnjs_var.set(True)
         generer_fichiers_pnjs_check = tk.Checkbutton(regen_window, text="Squelettes PNJs",
                                                      variable=generer_fichiers_pnjs_var)
-        generer_fichiers_pnjs_check.grid(row=6, column=1)
+        generer_fichiers_pnjs_check.grid(sticky="W", row=6, column=1)
 
         fichier_erreurs_var = tk.BooleanVar()
         fichier_erreurs_var.set(True)
         fichier_erreurs_check = tk.Checkbutton(regen_window, text="Fichier erreurs",
                                                variable=fichier_erreurs_var)
-        fichier_erreurs_check.grid(row=6, column=2)
+        fichier_erreurs_check.grid(sticky="W", row=6, column=2)
 
         changelog_var = tk.BooleanVar()
         changelog_var.set(True)
         changelog_check = tk.Checkbutton(regen_window, text="Changelog",
                                          variable=changelog_var)
-        changelog_check.grid(row=6, column=3)
+        changelog_check.grid(sticky="W", row=6, column=3)
 
         table_intrigues_var = tk.BooleanVar()
         table_intrigues_var.set(True)
         table_intrigues_check = tk.Checkbutton(regen_window, text="Table des intrigues",
                                                variable=table_intrigues_var)
-        table_intrigues_check.grid(row=7, column=0)
+        table_intrigues_check.grid(sticky="W", row=7, column=0)
 
         table_objets_var = tk.BooleanVar()
         table_objets_var.set(True)
         table_objets_check = tk.Checkbutton(regen_window, text="Table des objets",
                                             variable=table_objets_var)
-        table_objets_check.grid(row=7, column=1)
+        table_objets_check.grid(sticky="W", row=7, column=1)
 
         table_chrono_var = tk.BooleanVar()
         table_chrono_var.set(True)
         table_chrono_check = tk.Checkbutton(regen_window, text="Chronologie des persos",
                                             variable=table_chrono_var)
-        table_chrono_check.grid(row=7, column=2)
+        table_chrono_check.grid(sticky="W", row=7, column=2)
 
         table_persos_var = tk.BooleanVar()
         table_persos_var.set(True)
         table_persos_check = tk.Checkbutton(regen_window, text="Table des persos",
                                             variable=table_persos_var)
-        table_persos_check.grid(row=7, column=3)
+        table_persos_check.grid(sticky="W", row=7, column=3)
 
         table_pnjs_var = tk.BooleanVar()
         table_pnjs_var.set(True)
         table_pnjs_check = tk.Checkbutton(regen_window, text="Table des pnjs",
                                           variable=table_pnjs_var)
-        table_pnjs_check.grid(row=8, column=0)
+        table_pnjs_check.grid(sticky="W", row=8, column=0)
 
         aide_de_jeu_var = tk.BooleanVar()
         aide_de_jeu_var.set(True)
         aide_de_jeu_check = tk.Checkbutton(regen_window, text="inputs aides de jeu",
                                            variable=aide_de_jeu_var)
-        aide_de_jeu_check.grid(row=8, column=1)
+        aide_de_jeu_check.grid(sticky="W", row=8, column=1)
 
-        table_pnjs_dedupliques_var = tk.BooleanVar()
-        table_pnjs_dedupliques_var.set(True)
-        table_pnjs_dedupliques_check = tk.Checkbutton(regen_window, text="table PNJs dédupliqués",
-                                                      variable=table_pnjs_dedupliques_var)
-        table_pnjs_dedupliques_check.grid(row=8, column=2)
+        # table_pnjs_dedupliques_var = tk.BooleanVar()
+        # table_pnjs_dedupliques_var.set(True)
+        # table_pnjs_dedupliques_check = tk.Checkbutton(regen_window, text="table PNJs dédupliqués",
+        #                                               variable=table_pnjs_dedupliques_var)
+        # table_pnjs_dedupliques_check.grid(row=8, column=2)
 
         table_commentaires_var = tk.BooleanVar()
         table_commentaires_var.set(True)
-        table_commentaires_check = tk.Checkbutton(regen_window, text="table PNJs dédupliqués",
-                                                      variable=table_commentaires_var)
-        table_commentaires_check.grid(row=8, column=3)
+        table_commentaires_check = tk.Checkbutton(regen_window, text="extraire les commentaires",
+                                                  variable=table_commentaires_var)
+        table_commentaires_check.grid(sticky="W", row=8, column=2)
 
         # Buttons
         cancel_button = tk.Button(regen_window, text="Annuler", command=regen_window.destroy)
@@ -652,7 +652,6 @@ class Application(tk.Frame):
                                   table_objets_var=table_objets_var.get(),
                                   verbal_var=verbal_var.get(),
                                   aide_de_jeu_var=aide_de_jeu_var.get(),
-                                  table_pnjs_dedupliques_var=table_pnjs_dedupliques_var.get(),
                                   table_commentaires_var=table_commentaires_var.get()
                               )
                               )
@@ -713,7 +712,7 @@ class Application(tk.Frame):
                              table_persos=table_persos_var,
                              table_pnjs=table_pnj_var,
                              pnjs_dedupliques=table_pnjs_dedupliques_var,
-                             table_commentaires = table_commentaires_var,
+                             table_commentaires=table_commentaires_var,
                              fast_intrigues=(intrigues_value == "Rapide"),
                              fast_persos=(personnages_value == "Rapide"),
                              singletest_perso=personnages_specifique,
