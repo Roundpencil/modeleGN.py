@@ -840,12 +840,6 @@ def generer_table_chrono_scenes(mon_gn: GN):
     #         logging.debug(f"\t \t \t nom personnage = {role.personnage.nom}")
 
     for scene in toutes_scenes:
-        # logging.debug(f"debugging chrono - pour la scene {scene.titre}")
-        # for role in scene.roles:
-        #     if role.est_un_pnj():
-        #         logging.debug(f"role.nom = {role.nom}")
-        #         logging.debug(f"role.personnage = {role.personnage}")
-        #         logging.debug(f"role.personnage.nom = {role.personnage.nom}")
 
         to_return.append([
             scene.get_formatted_date(mon_gn.date_gn),
