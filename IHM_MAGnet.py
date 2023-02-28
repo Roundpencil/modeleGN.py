@@ -20,8 +20,8 @@ class Application(tk.Frame):
         self.apiSheets = None
 
         # Create the buttons
-        self.create_gn_button = tk.Button(self.master, text="Créer nouveau GN", command=self.create_new_gn)
-        self.create_gn_button.grid(row=0, column=0, sticky="nsew")
+        # self.create_gn_button = tk.Button(self.master, text="Créer nouveau GN", command=self.create_new_gn)
+        # self.create_gn_button.grid(row=0, column=0, sticky="nsew")
 
         self.regen_button = tk.Button(self.master, text="Régénérer", command=self.regen)
         self.regen_button.grid(row=1, column=0, sticky="nsew")
@@ -32,10 +32,10 @@ class Application(tk.Frame):
         self.config_button = tk.Button(self.master, text="Changer fichier de configuration",
                                        command=self.change_config_file)
         self.config_button.grid(row=3, column=0, sticky="nsew")
-
-        self.edit_config_button = tk.Button(self.master, text="Modifier  fichier de configuration",
-                                            command=self.modify_config)
-        self.edit_config_button.grid(row=4, column=0, sticky="nsew")
+        #
+        # self.edit_config_button = tk.Button(self.master, text="Modifier  fichier de configuration",
+        #                                     command=self.modify_config)
+        # self.edit_config_button.grid(row=4, column=0, sticky="nsew")
 
         # Create the label
         self.current_file_label = tk.Label(self.master, text="Fichier ini actuel : Aucun")
@@ -48,11 +48,11 @@ class Application(tk.Frame):
         else:
             self.updateur_de_boutons_disponibles("normal")
 
-    # TODO Rename this here and in `updater_boutons_disponibles`
+
     def updateur_de_boutons_disponibles(self, state):
         self.regen_button.config(state=state)
         self.diagnostic_button.config(state=state)
-        self.edit_config_button.config(state=state)
+        # self.edit_config_button.config(state=state)
 
     # def create_widgets(self):
     #     self.new_gn_button = tk.Button(self, text="Créer nouveau GN", command=self.create_new_gn)
