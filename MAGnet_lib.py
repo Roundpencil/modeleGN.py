@@ -9,10 +9,6 @@ import csv
 
 
 # communication :
-# todo :informer chalacta des factions,
-#  des squelettes pnjs, des tableaux intrigues, des nouveaux tableaux de synthèse (objets / chrono / persos),
-#  des nouveaux fichiers d'erruers, du tag questionnaire, balise info, tables des pjs et pnjs, nouvelle chrono,
-#  relations
 
 # bugs
 # todo comprendre pourquoi pas de load de snyder
