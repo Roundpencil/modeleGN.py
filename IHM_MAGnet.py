@@ -672,7 +672,7 @@ class Application(tk.Frame):
 
     def process_regen(self, intrigues_value, personnages_value, sans_chargement_fichier_value,
                       sauver_apres_operation_value, fichier_erreur_var, generer_fichiers_pjs_var, changelog_var,
-                      table_chrono_var, table_persos_var, table_pnj_var, table_pnjs_dedupliques_var,
+                      table_chrono_var, table_persos_var, table_pnj_var,
                       table_commentaires_var,
                       table_intrigues_var, table_objets_var,
                       generer_fichiers_pnjs_var, verbal_var, aide_de_jeu_var):
@@ -711,7 +711,6 @@ class Application(tk.Frame):
                              table_chrono=table_chrono_var,
                              table_persos=table_persos_var,
                              table_pnjs=table_pnj_var,
-                             pnjs_dedupliques=table_pnjs_dedupliques_var,
                              table_commentaires=table_commentaires_var,
                              fast_intrigues=(intrigues_value == "Rapide"),
                              fast_persos=(personnages_value == "Rapide"),

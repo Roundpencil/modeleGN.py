@@ -122,7 +122,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          liste_noms_pjs=None,  # noms_pnjs=None,
                          fichier_erreurs: bool = True,
                          generer_fichiers_pjs: bool = True,
-                         generer_fichiers_pnjs: bool = True, pnjs_dedupliques: bool = True, aides_de_jeu: bool = True,
+                         generer_fichiers_pnjs: bool = True, aides_de_jeu: bool = True,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
                          table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
                          table_commentaires: bool = True,
