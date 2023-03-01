@@ -9,7 +9,7 @@ class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.master = master
-        self.master.title("MAGnet")
+        self.master.title("MAGnet, la moulinette")
         self.master.geometry("450x150")
         # self.grid()
         # self.create_widgets()
@@ -723,8 +723,10 @@ class Application(tk.Frame):
 
 def main():
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
-    root = tk.Tk()
-    app = Application(master=root)
+    app = tk.Tk()
+    app.title('MAGnet, la moulinette')
+    # app = Application(master=root)
+    app.iconbitmap(r'MAGnet.ico')
     app.mainloop()
 
 

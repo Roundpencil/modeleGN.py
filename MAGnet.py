@@ -1,7 +1,8 @@
 import argparse
+import base64
 import logging
 from IHM_MAGnet import *
-
+import icone_64
 
 # from maGNette import console_magnet
 
@@ -61,6 +62,9 @@ def main():
     if not args.console:
         print("Lancement de l'IHM")
         root = tk.Tk()
+
+        root.iconbitmap(r'coin-MAGNet.ico')
+
         app = Application(master=root)
         app.mainloop()
 
@@ -71,3 +75,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
