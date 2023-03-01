@@ -29,7 +29,7 @@ def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False,
 def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
     # print(f"je m'apprête à extraire les PNJs depuis {gn.dossiers_pnjs}")
     if mon_gn.dossiers_pnjs is None or len(mon_gn.dossiers_pnjs) == 0:
-        print("impossible de lire le dossier des PNJs : il n'existe pas")
+        logging.debug("pas de dossier pnj trouvé dans le gn")
         return
     extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPNJs,
                                  mon_gn.dossiers_pnjs,
@@ -40,7 +40,7 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
 def extraire_evenements(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
     # print(f"je m'apprete à extraire les PNJs depuis {gn.dossiers_pnjs}")
     if mon_gn.dossiers_evenements is None or len(mon_gn.dossiers_evenements) == 0:
-        print("impossible de lire le dossier des évènements : il n'existe pas")
+        logging.debug("pas de dossier évènement trouvé dans le gn")
         return
     extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, extraire_evenement_de_texte, mon_gn.dict_evenements,
                                  mon_gn.dossiers_evenements,
@@ -67,7 +67,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 # Retrieve the documents contents from the Docs api_doc.
                 document = apiDoc.documents().get(documentId=item['id']).execute()
 
-                print(f"Titre document : {document.get('title')}")
+                print(f"Document en cours de lecture : {document.get('title')}")
 
                 # Alors on se demande si c'est le bon doc
                 # if document.get('title')[0:3].strip() != str(single_test):  # numéro de l'intrigue
@@ -88,7 +88,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
 
                 nouvel_objet = extraire_objets_de_document(document, item, mon_gn, fonction_extraction,
                                                            save_last_change=False, verbal=verbal)
-                #et on ajoute les commentaires :
+                # et on ajoute les commentaires :
                 commentaires = extraire_commentaires_de_document_drive(apiDrive, item['id'])
                 if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
                     nouvel_objet.ajouter_commentaires(commentaires)
@@ -111,7 +111,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 # Retrieve the documents contents from the Docs api_doc.
                 document = apiDoc.documents().get(documentId=item['id']).execute()
 
-                print(f"Titre document : {document.get('title')}")
+                print(f"Document en cours de lecture : {document.get('title')}")
 
                 # si la ref du doc est -1 ou 0 il ne nous interesse pas
                 if ref_du_doc(document.get('title')) in [-1, 0]:
@@ -142,7 +142,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                         item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
 
                         print(
-                            f"et elle n'a pas changé (dernier changement : "
+                            f"et il n'a pas changé (dernier changement : "
                             f"{datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')}) "
                             f"depuis le dernier passage ({dict_ids[item['id']].lastProcessing})")
                         # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
@@ -1656,7 +1656,7 @@ def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):
                 current_dict_commentaire.get('deleted', False):
             continue
 
-        #on ajoute son texte et on va chercher ses réponses
+        # on ajoute son texte et on va chercher ses réponses
         texte_commentaire = current_dict_commentaire.get("content", "")
         for reply in current_dict_commentaire.get("replies", []):
             if reply.get('resolved', False) or reply.get('deleted', False):
@@ -1665,7 +1665,7 @@ def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):
 
         # à ce stade là on a choppé tout le texte
 
-        #on choppe l'auteur
+        # on choppe l'auteur
         try:
             auteur = current_dict_commentaire['author']['displayName']
         except KeyError:
@@ -1684,7 +1684,3 @@ def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):
         to_return.append(Commentaire(texte_commentaire, auteur, destinataires))
 
     return to_return
-
-
-
-

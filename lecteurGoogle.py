@@ -158,7 +158,7 @@ def generer_liste_items(api_drive, nom_fichier):
     requete = "".join(f"'{mon_id}' in parents or " for mon_id in nom_fichier)
 
     requete = requete[:-3]
-    print(f"requete = {requete}")
+    logging.debug(f"requete = {requete}")
 
     # pour tenter de comprendre comment on spécifie le mimetype
     # requete = "mimeType == application/vnd.google-apps.document"

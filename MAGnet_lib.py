@@ -148,12 +148,12 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         mon_gn.effacer_personnages_forces()
 
     for perso in mon_gn.dictPJs.values():
-        print(f"nom du personnage = {perso.nom} / {perso.forced}")
-    print(f"noms persos = {mon_gn.noms_pjs()}")
+        logging.debug(f"nom du personnage = {perso.nom} / {perso.forced}")
+    logging.debug(f"noms persos = {mon_gn.noms_pjs()}")
 
     for perso in mon_gn.dictPNJs.values():
-        print(f"nom du pnj = {perso.nom} / {perso.forced}")
-    print(f"noms pnjs = {mon_gn.noms_pnjs()}")
+        logging.debug(f"nom du pnj = {perso.nom} / {perso.forced}")
+    logging.debug(f"noms pnjs = {mon_gn.noms_pnjs()}")
 
     extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn,
                                                 api_drive=api_drive,
@@ -183,12 +183,12 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     if (sheet_id := mon_gn.id_pjs_et_pnjs) is not None:
         # dans ce cas on a un tableau global avec toutes les données > on le lit
         # on met à jour les données pour les PNJs pour
-        print(f"sheet_id = {sheet_id}, mon_gn.id_pjs_et_pnjs = {mon_gn.id_pjs_et_pnjs}")
+        logging.debug(f"sheet_id = {sheet_id}, mon_gn.id_pjs_et_pnjs = {mon_gn.id_pjs_et_pnjs}")
         liste_noms_pnjs = extraireTexteDeGoogleDoc.lire_gspread_pnj(api_sheets, sheet_id)
         liste_noms_pjs, liste_orgas = extraireTexteDeGoogleDoc.lire_gspread_pj(api_sheets, sheet_id)
-        print(f"liste_noms_pnjs = {liste_noms_pnjs}")
-        print(f"liste_noms_pjs = {liste_noms_pjs}")
-        print(f"liste_orgas = {liste_orgas}")
+        logging.debug(f"liste_noms_pnjs = {liste_noms_pnjs}")
+        logging.debug(f"liste_noms_pjs = {liste_noms_pjs}")
+        logging.debug(f"liste_orgas = {liste_orgas}")
     elif (nom_fichier_pnjs := mon_gn.fichier_pnjs) is not None:
         liste_noms_pnjs = lire_fichier_pnjs(nom_fichier_pnjs)
         logging.debug(f"après ajout, liste nom = {liste_noms_pnjs}")
@@ -197,12 +197,12 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         # et on utilise les focntion classiques d'injections si on trouve des trucs
 
     if liste_noms_pnjs is not None:
-        print("début du forçage des PNJs")
+        logging.debug("début du forçage des PNJs")
         mon_gn.forcer_import_pnjs(liste_noms_pnjs, verbal=verbal)
         logging.debug("PNJs forcés ok")
 
     if liste_noms_pjs is not None:
-        print("début du forçage des PJs")
+        logging.debug("début du forçage des PJs")
         mon_gn.forcer_import_pjs(liste_noms_pjs, verbal=verbal, table_orgas_referent=liste_orgas)
         logging.debug("PJs forcés ok")
 
@@ -215,59 +215,57 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     if sauver_apres_operation:
         mon_gn.save(nom_fichier_sauvegarde)
 
-    print("****************************")
-    print("****************************")
-    print("****************************")
+    print("****** fin de la lecture du drive *********")
+    print("*******************************************")
+    print("*******************************************")
     prefixe_fichiers = str(datetime.date.today())
-    print("*********toutesleserreurs*******************")
+    print("***génération du fichier des erreurs ******")
     if fichier_erreurs:
         texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
         ecrire_erreurs_dans_drive(texte_erreurs, api_doc, api_drive, mon_gn.dossier_outputs_drive)
 
-    print("******* statut intrigues *********************")
+    print("******* statut intrigues *******************")
     if table_intrigues:
         creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive)
 
-    print("*******changelog*********************")
+    print("*******changelog*****************************")
     if changelog:
         generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets)
         # genererChangeLog(gn, prefixe_fichiers, nbJours=3)
         # genererChangeLog(gn, prefixe_fichiers, nbJours=4)
 
-    print("*********touslesquelettes*******************")
+    print("*********touslesquelettes*********************")
     if generer_fichiers_pjs:
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=True)
     if generer_fichiers_pnjs:
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=False)
 
-    ecrire_squelettes_localement(mon_gn, prefixe_fichiers)
-    ecrire_squelettes_localement(mon_gn, prefixe_fichiers, pj=False)
-    print("*******dumpallscenes*********************")
-    # dumpAllScenes(gn)
+    # ecrire_squelettes_localement(mon_gn, prefixe_fichiers)
+    # ecrire_squelettes_localement(mon_gn, prefixe_fichiers, pj=False)
 
-    print("******* table objets *********************")
+    print("************* table objets *******************")
     if table_objets:
         ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets)
 
-    print("******* table planning *********************")
+    print("******* table planning ***********************")
     if table_chrono:
         ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets)
 
-    print("******* table persos *********************")
+    print("************ table persos ********************")
     if table_persos:
         ecrire_table_persos(mon_gn, api_drive, api_sheets)
     if table_pnjs:
         ecrire_table_pnj(mon_gn, api_drive, api_sheets)
 
-    print("******* table commentaires *********************")
+    print("******* table commentaires *******************")
     if table_commentaires:
         ecrire_table_commentaires(mon_gn, api_drive, api_doc, api_sheets)
 
-    print("******* aides de jeu *********************")
+    print("******* aides de jeu *************************")
     if aides_de_jeu:
         ecrire_texte_info(mon_gn, api_doc, api_drive)
 
-    print("******* fin de la génération  *********************")
+    print("******* fin de la génération  ****************")
 
 
 def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
@@ -466,8 +464,14 @@ def squelettes_par_perso(mon_gn: GN, pj=True):
     else:
         liste_persos_source = mon_gn.dictPNJs.values()
 
-    for perso in liste_persos_source:
-        print(f"génération du texte des persos : personnage en cours de lecture : {perso.nom}")
+    # for perso in liste_persos_source:
+    #     print(f"génération du texte des persos : personnage en cours d'écriture : {perso.nom}")
+    nb_persos_source = len(liste_persos_source)
+    pj_pnj = "pjs" if pj else "pnjs"
+    for index, perso in enumerate(liste_persos_source, start=1):
+        print(f"génération des fichiers des {pj_pnj} ({index}/{nb_persos_source})"
+              f": personnage en cours d'écriture : {perso.nom}")
+
         # for personnage in gn.dictPJs.values():
         texte_perso = ""
         texte_perso += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
