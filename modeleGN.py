@@ -931,39 +931,6 @@ class GN:
             intrigue.error_log.clear(ErreurManager.ORIGINES.FACTION)
             intrigue.error_log.clear(ErreurManager.ORIGINES.PERSOS_SANS_SCENE)
 
-    # def forcer_import_pnjs(self, liste_pnjs):
-    #     for nom in liste_pnjs:
-    #         #on met comme clef le nom en l'absence d'URL
-    #         self.dictPNJs[nom] = Personnage(nom=nom, forced=True, pj=EST_PNJ_HORS_JEU)
-
-    # def forcer_import_pjs(self, nomsPersos, suffixe="_imported", verbal=False):
-    #     print("début de l'ajout des personnages sans fiche")
-    #     nomsLus = [x.nom for x in self.dictPJs.values()]
-    #     print(f"noms lus = {nomsLus}")
-    #     # pour chaque personnage de ma liste :
-    #     # SI son nom est dans les persos > ne rien faire
-    #     # SINON, lui créer une coquille vide
-    #     persosSansCorrespondance = []
-    #     for personnage in nomsPersos:
-    #         if personnage in nomsLus and verbal:
-    #             print(f"le personnage {personnage} a une correspondance dans les persos déjà présents")
-    #         else:
-    #             # persosSansCorrespondance.append(
-    #             #     [personnage,
-    #             #      process.extractOne(personnage, nomsLus)[0],
-    #             #      process.extractOne(personnage, nomsLus)[1]])
-    #             scoreproche = process.extractOne(personnage, nomsLus)
-    #             # print(f"avant assicoation, {personnage} correspond à {scoreproche[0]} à {scoreproche[1]}%")
-    #             if scoreproche is not None and scoreproche[1] >= 75:
-    #                 if verbal:
-    #                     print(f"{personnage} correspond à {scoreproche[0]} à {scoreproche[1]}%")
-    #                 # donc on ne fait rien
-    #             else:
-    #                 if verbal:
-    #                     print(f"{personnage} a été créé (coquille vide)")
-    #                 self.dictPJs[personnage + suffixe] = Personnage(nom=personnage, pj=EST_PJ,
-    #                                                            forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
-
     def forcer_import_pjs(self, noms_persos, suffixe="_imported", table_orgas_referent=False, verbal=False):
         return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=True, suffixe=suffixe, verbal=verbal,
                                          table_orgas_referent=table_orgas_referent)
@@ -1141,10 +1108,11 @@ class Evenement:
                  synopsis="",
                  id_url="",
                  derniere_edition_date=None,
-                 derniere_edition_par=""):
+                 derniere_edition_par=""
+                 ):
         self.nom_evenement = nom_evenement
         self.id_url = id_url
-        self.derniere_edition_date = derniere_edition_date
+        # self.derniere_edition_date = derniere_edition_date
         self.derniere_edition_par = derniere_edition_par
         self.code_evenement = code_evenement
         self.referent = referent
@@ -1161,6 +1129,9 @@ class Evenement:
         self.briefs_pnj = []
         self.infos_pj = []
         self.infos_factions = []
+        if derniere_edition_date is None:
+            derniere_edition_date = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
+        self.lastProcessing = derniere_edition_date
 
 
 class BriefPNJPourEvenement:

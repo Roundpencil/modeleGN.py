@@ -343,7 +343,8 @@ class Application(tk.Frame):
                              dossiers_pj=self.dict_config.get('dossiers_pjs'),
                              dossiers_pnj=self.dict_config.get('dossiers_pjs'),
                              id_factions=self.dict_config.get('id_factions'),
-                             id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs')
+                             id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
+                             dossiers_evenements=self.dict_config.get('dossiers_evenements')
                              )
             if self.apiDoc is None or self.apiSheets is None or self.apiDrive is None:
                 self.apiDrive, self.apiDoc, self.apiSheets = lecteurGoogle.creer_lecteurs_google_apis()

@@ -121,7 +121,6 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 if ref_du_doc(document.get('title')) in [-1, 0]:
                     continue
 
-
                 # print("... est une intrigue !")
 
                 objet_de_reference = None
@@ -222,61 +221,74 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     current_intrigue = Intrigue(nom=nomIntrigue, url=idUrl, derniere_edition_fichier=lastFileEdit)
     current_intrigue.modifie_par = derniere_modification_par
     monGN.intrigues[idUrl] = current_intrigue
+
     # noms_persos = gn.liste_noms_pjs()
 
     # on fait un dict du début de chaque label
-    REFERENT = "orga référent"
-    TODO = "etat de l’intrigue"
-    PITCH = "résumé de l’intrigue"
-    PJS = "personnages impliqués"
-    PNJS = "pnjs impliqués"
-    REROLLS = "rerolls possibles"
-    OBJETS = "objets liés"
-    SCENESFX = "scènes nécessaires et fx"
-    TIMELINE = "chronologie des événements"
-    SCENES = "détail de l’intrigue"
-    RESOLUTION = "résolution de l’intrigue"
-    NOTES = "notes supplémentaires"
-    QUESTIONNAIRE = "questionnaire inscription"
-    RELATIONS_BI = "relations bilatérales induites par cette intrigue"
-    RELATIONS_MULTI = "relations multilatérales induites par cette intrigue"
+    class Labels(Enum):
+        REFERENT = "orga référent :"
+        TODO = "etat de l’intrigue :"
+        PITCH = "résumé de l’intrigue"
+        PJS = "personnages impliqués"
+        PNJS = "pnjs impliqués"
+        REROLLS = "rerolls possibles"
+        OBJETS = "objets liés"
+        SCENESFX = "scènes nécessaires et fx"
+        TIMELINE = "chronologie des événements"
+        SCENES = "détail de l’intrigue"
+        RESOLUTION = "résolution de l’intrigue"
+        NOTES = "notes supplémentaires"
+        QUESTIONNAIRE = "questionnaire inscription"
+        RELATIONS_BI = "relations bilatérales induites par cette intrigue"
+        RELATIONS_MULTI = "relations multilatérales induites par cette intrigue"
 
-    labels = [REFERENT, TODO, PITCH, PJS, PNJS, REROLLS, OBJETS, SCENESFX,
-              TIMELINE, SCENES, RESOLUTION, NOTES, QUESTIONNAIRE, RELATIONS_BI, RELATIONS_MULTI]
+    labels = [l.value for l in Labels]
 
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texteIntrigue)
 
-    # gestion de la section OrgaRéférent
-    if indexes[REFERENT]["debut"] == -1:
-        print("problème référent avec l'intrigue " + nomIntrigue)
-    else:
-        current_intrigue.orgaReferent = texteIntrigue[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[
-                                            0][
-                                        len(REFERENT) + len(" : "):].strip()
-        # prendre la première ligne puis les caractères à partir du label
-        # print("debut / fin orga référent : {0}/{1} pour {2}"
-        # .format(indexDebutReferent, indexFinReferent, nomIntrigue))
-        # print("Orga référent : " + currentIntrigue.orga_referent)
+    dict_methodes = {
+        Labels.REFERENT: intrigue_referent,
+        Labels.TODO: intrigue_todo,
+        Labels.PITCH: intrigue_pitch,
+        Labels.PJS: intrigue_pjs,
+        Labels.PNJS: intrigue_pnjs,
+        Labels.REROLLS: intrigue_rerolls,
+        Labels.OBJETS: intrigue_objets,
+        Labels.SCENESFX: intrigue_scenesfx,
+        Labels.TIMELINE: intrigue_timeline,
+        Labels.SCENES: intrigue_scenes,
+        Labels.RESOLUTION: intrigue_resolution,
+        Labels.NOTES: intrigue_notes,
+        Labels.QUESTIONNAIRE: intrigue_questionnaire,
+        Labels.RELATIONS_BI: intrigue_relations_bi,
+        Labels.RELATIONS_MULTI: intrigue_relations_multi
+    }
 
-    # gestion de la section à faire
-    if indexes[TODO]["debut"] == -1:
-        print("problème état de l'intrigue avec l'intrigue " + nomIntrigue)
-    else:
-        # currentIntrigue.questions_ouvertes = ''.join(
-        #     texteIntrigue[indexes[TODO]["debut"]:indexes[TODO]["fin"]].splitlines()[1:])
-        current_intrigue.questions_ouvertes = texteIntrigue[indexes[TODO]["debut"] + len(TODO):indexes[TODO]["fin"]]
+    for label in Labels:
+        if indexes[label.value]["debut"] == -1:
+            print(f"pas de {label} avec l'intrigue {nomIntrigue}")
+        else:
+            ma_methode = dict_methodes[label]
+            texte = texteIntrigue[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+            ma_methode(texte, current_intrigue, label.value)
 
-    # gestion de la section Résumé
-    current_intrigue.pitch = ''.join(
-        texteIntrigue[indexes[PITCH]["debut"]:indexes[PITCH]["fin"]].splitlines(keepends=True)[1:])
-    # print("section pitch trouvée : " + section)
-    # print("pitch isolé after découpage : " + ''.join(section.splitlines(keepends=True)[1:]))
-    # print("pitch lu dans l'intrigue après mise à jour : " + currentIntrigue.pitch)
+    return current_intrigue
 
-    # gestion de la section PJ
-    texte_pjs = texteIntrigue[indexes[PJS]["debut"]:indexes[PJS]["fin"]]
-    logging.debug(f"texte des pjs = {texte_pjs}")
-    tableau_pjs, nb_colonnes = reconstituer_tableau(texte_pjs)
+
+def intrigue_referent(texte: str, intrigue: Intrigue, texte_label: str):
+    intrigue.orgaReferent = retirer_label(texte, texte_label)
+
+
+def intrigue_todo(texte: str, intrigue: Intrigue, texte_label: str):
+    intrigue.questions_ouvertes = retirer_label(texte, texte_label)
+
+
+def intrigue_pitch(texte: str, intrigue: Intrigue, texte_label: str):
+    intrigue.pitch = retirer_premiere_ligne(texte)
+
+
+def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
+    tableau_pjs, nb_colonnes = reconstituer_tableau(texte)
     if nb_colonnes == 4:
         lire_tableau_pj_chalacta(current_intrigue, tableau_pjs)
     elif nb_colonnes == 5:
@@ -289,144 +301,130 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
                                                   ErreurManager.ORIGINES.SCENE)
         print("Erreur : tableau d'intrigue non standard")
 
-    # gestion de la section PNJs
-    if indexes[PNJS]["debut"] > -1:
-        # print(f'bloc PNJs = {texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]]}')
-        # print(f"dans l'intrigue {currentIntrigue.nom}")
 
-        texte_pnjs = texteIntrigue[indexes[PNJS]["debut"]:indexes[PNJS]["fin"]]
-        tableau_pnjs, _ = reconstituer_tableau(texte_pnjs)
-        # faire un tableau avec une ligne par PNJ
-        print(f"tableau pnj décodé : {tableau_pnjs}")
-        for pnj in tableau_pnjs:
-            # print(f"section pnj en cours de lecture : {pnj}")
-            # print(f"taille = {len(pnj)}")
-            print(f"pnj en cours = {pnj}")
+def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
+    tableau_pnjs, _ = reconstituer_tableau(texte)
+    # faire un tableau avec une ligne par PNJ
+    print(f"tableau pnj décodé : {tableau_pnjs}")
+    for pnj in tableau_pnjs:
+        # print(f"section pnj en cours de lecture : {pnj}")
+        # print(f"taille = {len(pnj)}")
+        print(f"pnj en cours = {pnj}")
 
-            # 0 Nom duPNJ et / ou fonction :
-            # 1 Intervention:(Permanente ou Temporaire)
-            # 2 Type d’implication: (Active, Passive, Info, ou Objet)
-            # 3 Résumé de l’implication
-            pnj_a_ajouter = Role(current_intrigue, nom=pnj[0], description=pnj[3],
-                                 pj=TypePerso.EST_PNJ_HORS_JEU, niveau_implication=pnj[2],
-                                 perimetre_intervention=pnj[1])
+        # 0 Nom duPNJ et / ou fonction :
+        # 1 Intervention:(Permanente ou Temporaire)
+        # 2 Type d’implication: (Active, Passive, Info, ou Objet)
+        # 3 Résumé de l’implication
+        pnj_a_ajouter = Role(current_intrigue, nom=pnj[0], description=pnj[3],
+                             pj=TypePerso.EST_PNJ_HORS_JEU, niveau_implication=pnj[2],
+                             perimetre_intervention=pnj[1])
 
-            # print("Je suis en train de regarder {0} et son implication est {1}"
-            # .format(pnj_a_ajouter.nom, pnj[1].strip()))
+        # print("Je suis en train de regarder {0} et son implication est {1}"
+        # .format(pnj_a_ajouter.nom, pnj[1].strip()))
 
-            # cherche ensuite le niveau d'implication du pj
-            if pnj[1].lower().find('perman') > -1:
-                # print(pnj_a_ajouter.nom + " est permanent !!")
-                pnj_a_ajouter.pj = TypePerso.EST_PNJ_PERMANENT
-            elif pnj[1].lower().find('infiltr') > -1:
-                pnj_a_ajouter.pj = TypePerso.EST_PNJ_INFILTRE
-                # print(pnj_a_ajouter.nom + " est temporaire !!")
-            # elif pnj[1].strip().lower().find('temp') > -1:
-            #     pnj_a_ajouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
-            #     # print(pnj_a_ajouter.nom + " est temporaire !!")
-            elif len(pnj[1]) > 1:
-                pnj_a_ajouter.pj = TypePerso.EST_PNJ_TEMPORAIRE
-                # print(pnj_a_ajouter.nom + " est temporaire !!")
+        # cherche ensuite le niveau d'implication du pj
+        if pnj[1].lower().find('perman') > -1:
+            # print(pnj_a_ajouter.nom + " est permanent !!")
+            pnj_a_ajouter.pj = TypePerso.EST_PNJ_PERMANENT
+        elif pnj[1].lower().find('infiltr') > -1:
+            pnj_a_ajouter.pj = TypePerso.EST_PNJ_INFILTRE
+            # print(pnj_a_ajouter.nom + " est temporaire !!")
+        # elif pnj[1].strip().lower().find('temp') > -1:
+        #     pnj_a_ajouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
+        #     # print(pnj_a_ajouter.nom + " est temporaire !!")
+        elif len(pnj[1]) > 1:
+            pnj_a_ajouter.pj = TypePerso.EST_PNJ_TEMPORAIRE
+            # print(pnj_a_ajouter.nom + " est temporaire !!")
 
-            # sinon PNJ hors-jeu est la valeur par défaut : ne rien faire
+        # sinon PNJ hors-jeu est la valeur par défaut : ne rien faire
 
-            # du coup, on peut l'ajouter aux intrigues
-            current_intrigue.rolesContenus[pnj_a_ajouter.nom] = pnj_a_ajouter
+        # du coup, on peut l'ajouter aux intrigues
+        current_intrigue.rolesContenus[pnj_a_ajouter.nom] = pnj_a_ajouter
 
-    # gestion de la section Rerolls
-    if indexes[REROLLS]["debut"] > -1:
-        texte_rerolls = texteIntrigue[indexes[REROLLS]["debut"]:indexes[REROLLS]["fin"]]
-        tab_rerolls, _ = reconstituer_tableau(texte_rerolls)
-        # faire un tableau avec une ligne par Reroll
-        for reroll in tab_rerolls:  # on enlève la première ligne qui contient les titres
-            # même pnj que les PJs
-            re_roll_a_ajouter = Role(current_intrigue, nom=reroll[0], description=reroll[3],
-                                     pj=TypePerso.EST_REROLL, type_intrigue=reroll[2],
-                                     niveau_implication=reroll[1])
 
-            # du coup, on peut l'ajouter aux intrigues
-            current_intrigue.rolesContenus[re_roll_a_ajouter.nom] = re_roll_a_ajouter
+def intrigue_rerolls(texte: str, intrigue: Intrigue, texte_label: str):
+    tab_rerolls, _ = reconstituer_tableau(texte)
+    # faire un tableau avec une ligne par Reroll
+    for reroll in tab_rerolls:  # on enlève la première ligne qui contient les titres
+        # même pnj que les PJs
+        re_roll_a_ajouter = Role(intrigue, nom=reroll[0], description=reroll[3],
+                                 pj=TypePerso.EST_REROLL, type_intrigue=reroll[2],
+                                 niveau_implication=reroll[1])
 
-    # gestion de la section Objets
-    if indexes[OBJETS]["debut"] > -1:
-        texte_objets = texteIntrigue[indexes[OBJETS]["debut"]:indexes[OBJETS]["fin"]]
-        tab_objets, nb_colonnes = reconstituer_tableau(texte_objets)
-        # faire un tableau avec une ligne par objet
-        for objet in tab_objets:  # on enlève la première ligne qui contient les titres
+        # du coup, on peut l'ajouter aux intrigues
+        intrigue.rolesContenus[re_roll_a_ajouter.nom] = re_roll_a_ajouter
 
-            mon_objet = None
-            if nb_colonnes == 4:
-                mon_objet = Objet(description=objet[0].strip(),
-                                  specialEffect=objet[1].strip() if objet[1].strip().lower() != "non" else '',
-                                  emplacementDebut=objet[2].strip(),
-                                  fourniPar=objet[3].strip())
-                # if pnj[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
-                #     mon_objet.specialEffect = pnj[1].strip()
 
-            elif nb_colonnes == 3:
-                mon_objet = Objet(description=objet[0].strip(),
-                                  emplacementDebut=objet[1].strip(),
-                                  fourniPar=objet[2].strip())
-            elif nb_colonnes == 6:
-                mon_objet = Objet(code=objet[0].strip(),
-                                  description=objet[1].strip(),
-                                  specialEffect=objet[2].strip() if objet[2].strip().lower() != "non" else '',
-                                  emplacementDebut=objet[3].strip(),
-                                  fourniPar=objet[4].strip())
-            else:
-                print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {mon_objet}")
+def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
+    tab_objets, nb_colonnes = reconstituer_tableau(texte)
+    # faire un tableau avec une ligne par objet
+    for objet in tab_objets:  # on enlève la première ligne qui contient les titres
 
-            if mon_objet is not None:
-                current_intrigue.objets.add(mon_objet)
-                mon_objet.inIntrigues.add(current_intrigue)
+        mon_objet = None
+        if nb_colonnes == 4:
+            mon_objet = Objet(description=objet[0].strip(),
+                              specialEffect=objet[1].strip() if objet[1].strip().lower() != "non" else '',
+                              emplacementDebut=objet[2].strip(),
+                              fourniPar=objet[3].strip())
+            # if pnj[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
+            #     mon_objet.specialEffect = pnj[1].strip()
 
-    # gestion de la section FX
-    if indexes[SCENESFX]["debut"] > -1:
-        current_intrigue.scenesEnJeu = ''.join(
-            texteIntrigue[indexes[SCENESFX]["debut"]:indexes[SCENESFX]["fin"]].splitlines()[1:])
+        elif nb_colonnes == 3:
+            mon_objet = Objet(description=objet[0].strip(),
+                              emplacementDebut=objet[1].strip(),
+                              fourniPar=objet[2].strip())
+        elif nb_colonnes == 6:
+            mon_objet = Objet(code=objet[0].strip(),
+                              description=objet[1].strip(),
+                              specialEffect=objet[2].strip() if objet[2].strip().lower() != "non" else '',
+                              emplacementDebut=objet[3].strip(),
+                              fourniPar=objet[4].strip())
+        else:
+            print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {mon_objet}")
 
-    # gestion de la section Questionnaire
-    if indexes[QUESTIONNAIRE]["debut"] > -1:
-        current_intrigue.questionnaire = ''.join(
-            texteIntrigue[indexes[QUESTIONNAIRE]["debut"]:indexes[QUESTIONNAIRE]["fin"]].splitlines()[1:])
+        if mon_objet is not None:
+            current_intrigue.objets.add(mon_objet)
+            mon_objet.inIntrigues.add(current_intrigue)
 
-    # gestion de la section Timeline
-    if indexes[TIMELINE]["debut"] > -1:
-        current_intrigue.timeline = ''.join(
-            texteIntrigue[indexes[TIMELINE]["debut"]:indexes[TIMELINE]["fin"]].splitlines()[1:])
 
-    # gestion de la section Scènes
-    if indexes[SCENES]["debut"] > -1:
-        texte_scenes = texteIntrigue[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
-        texte2scenes(current_intrigue, nomIntrigue, texte_scenes)
+def intrigue_scenesfx(texte: str, intrigue: Intrigue, texte_label: str):
+    tableau_evenements, nb_colonnes = reconstituer_tableau(texte)
+    if nb_colonnes != 4:
+        logging.debug(f" Problème avec le tableau évènement : {tableau_evenements}")
+        return
+    # todo : finir cette focntion
 
-    # gestion de la section Résolution
-    if indexes[RESOLUTION]["debut"] > -1:
-        current_intrigue.resolution = ''.join(
-            texteIntrigue[indexes[RESOLUTION]["debut"]:indexes[RESOLUTION]["fin"]].splitlines()[1:])
 
-    # gestion de la section notes
-    # print("debut/fin notes : {0}/{1}".format(indexes[NOTES]["debut"], indexes[NOTES]["fin"]))
-    if indexes[NOTES]["debut"] > -1:
-        current_intrigue.notes = ''.join(texteIntrigue[indexes[NOTES]["debut"]:indexes[NOTES]["fin"]].splitlines()[1:])
+def intrigue_timeline(texte: str, intrigue: Intrigue, texte_label: str):
+    intrigue.timeline = retirer_premiere_ligne(texte)
 
-    # gestion des relations bilatérales
-    if indexes[RELATIONS_BI]["debut"] > -1:
-        texte_relations_bi = texteIntrigue[indexes[RELATIONS_BI]["debut"]:indexes[RELATIONS_BI]["fin"]]
-        tab_relations_bi, _ = reconstituer_tableau(texte_relations_bi)
-        extraire_relations_bi(current_intrigue, tab_relations_bi)
 
-    if indexes[RELATIONS_MULTI]["debut"] > -1:
-        texte_relations_multi = texteIntrigue[indexes[RELATIONS_MULTI]["debut"]:indexes[RELATIONS_MULTI]["fin"]]
-        tab_relations_multi, _ = reconstituer_tableau(texte_relations_multi)
-        # on a alors un tableau à deux colonnes avec les noms des persos et leurs relations
-        extraire_relation_multi(current_intrigue, tab_relations_multi, verbal)
+def intrigue_scenes(texte: str, intrigue: Intrigue, texte_label: str):
+    texte = retirer_label(texte, texte_label)
+    texte2scenes(intrigue, intrigue.nom, texte)
 
-    # print("liste des persos : ")
-    # for role in currentIntrigue.roles:
-    #     print(role)
 
-    return current_intrigue
+def intrigue_resolution(texte: str, intrigue: Intrigue, texte_label: str):
+    intrigue.resolution = retirer_premiere_ligne(texte)
+
+
+def intrigue_notes(texte: str, intrigue: Intrigue, texte_label: str):
+    intrigue.notes = retirer_premiere_ligne(texte)
+
+
+def intrigue_questionnaire(texte: str, intrigue: Intrigue, texte_label: str):
+    intrigue.questionnaire = retirer_premiere_ligne(texte)
+
+
+def intrigue_relations_bi(texte: str, intrigue: Intrigue, texte_label: str):
+    tab_relations_bi, _ = reconstituer_tableau(texte)
+    extraire_relations_bi(intrigue, tab_relations_bi)
+
+
+def intrigue_relations_multi(texte: str, intrigue: Intrigue, texte_label: str):
+    tab_relations_multi, _ = reconstituer_tableau(texte)
+    # on a alors un tableau à deux colonnes avec les noms des persos et leurs relations
+    extraire_relation_multi(intrigue, tab_relations_multi)
 
 
 def extraire_relations_bi(conteneur: ConteneurDeScene, tab_relations_bi: list[[str, str, str, str]],
@@ -671,69 +669,6 @@ def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verba
                 if verbal:
                     print(warning_text)
 
-    # roles = liste_noms.split(",")
-    # scene_a_ajouter.noms_roles_lus = roles
-    # # print("rôles trouvés en lecture brute : " + str(roles))
-    #
-    # # dans ce cas, on prend les noms du tableau, qui fon fois, et on s'en sert pour identifier
-    # # les noms de la scène
-    # for nom_du_role in roles:
-    #     if len(nom_du_role) < 2:
-    #         continue
-    #     # SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles
-    #     # > on les crée sans se poser de questions
-    #     if noms_roles is None:
-    #         # print("Je suis entrée dans une situation ou il n'y avait pas de référence des noms")
-    #
-    #         # on cherche s'il existe déjà un rôle avec ce nom dans le conteneur
-    #         # roleAAjouter = None
-    #         nom_du_role = nom_du_role.strip()
-    #         if nom_du_role in conteneur.rolesContenus:
-    #             # print(f"nom trouvé dans le contenu : {nom_du_role}")
-    #             role_a_ajouter = conteneur.rolesContenus[nom_du_role]
-    #         else:
-    #             # print(f"nouveau role créé dans le contenu : {nom_du_role}")
-    #             role_a_ajouter = Role(conteneur, nom=nom_du_role)
-    #             conteneur.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
-    #
-    #         role_a_ajouter.ajouter_a_scene(scene_a_ajouter)
-    #
-    #         # print(f"le rôle {roleAAjouter.nom} est associé aux scènes {[s.titre for s in roleAAjouter.scenes]}")
-    #
-    #         # print(f"après opération d'ajout de role, les roles contienntn {conteneur.rolesContenus} ")
-    #
-    #     else:
-    #         # Sinon, il faut normaliser et extraire les rôles
-    #         # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
-    #         score = process.extractOne(nom_du_role.strip(), noms_roles)
-    #         # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
-    #         #                                                                                   conteneur.nom,
-    #         #                                                                                   score))
-    #
-    #         # si on a trouvé quelqu'un MAIs qu'on est <80% >> afficher un warning :
-    #         on s'est peut-être trompé de personnage!
-    #         if score is not None:
-    #             if score[1] < seuil:
-    #                 warning_text = f"Association Scene ({score[1]}) - nom dans scène : {nom_du_role} " \
-    #                                f"> Role : {score[0]} dans {conteneur.nom}/{scene_a_ajouter.titre}"
-    #                 conteneur.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-    #                                            warning_text,
-    #                                            ErreurManager.ORIGINES.SCENE)
-    #                 if verbal:
-    #                     print(warning_text)
-    #
-    #             # trouver le rôle à ajouter à la scène en lisant l'intrigue
-    #             mon_role = conteneur.rolesContenus[score[0]]
-    #             mon_role.ajouter_a_scene(scene_a_ajouter)
-    #         else:
-    #             texte_erreur = f"Erreur, process renvoie None pour nom scène : " \
-    #                            f"{nom_du_role} dans {scene_a_ajouter.titre}"
-    #             if verbal:
-    #                 print(texte_erreur)
-    #             conteneur.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
-    #                                        texte_erreur,
-    #                                        ErreurManager.ORIGINES.SCENE)
-
 
 def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, noms_roles_dans_conteneur: list[str],
                 avec_tableau_des_persos: bool = True):
@@ -938,6 +873,7 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
     current_evenement.declencheur = dict_fiche.get("Déclencheur", "")
     current_evenement.consequences_evenement = dict_fiche.get("Conséquences évènement", "")
 
+
 def evenement_lire_synopsis(texte: str, current_evenement: Evenement, texte_label: str):
     current_evenement.synopsis = '\n'.join(texte.splitlines()[1:])
 
@@ -945,6 +881,7 @@ def evenement_lire_synopsis(texte: str, current_evenement: Evenement, texte_labe
 def evenement_lire_lies(texte: str, current_evenement: Evenement, texte_label: str):
     logging.debug(f"balise {texte_label} non prise en charge = {texte}")
     pass
+
 
 def evenement_lire_briefs(texte: str, current_evenement: Evenement, texte_label: str):
     texte = retirer_premiere_ligne(texte)
@@ -972,6 +909,7 @@ def evenement_lire_infos_pj(texte: str, current_evenement: Evenement, texte_labe
                                       infos_a_fournir=ligne[1])
         current_evenement.infos_pj.append(info_pj)
 
+
 def evenement_infos_factions(texte: str, current_evenement: Evenement, texte_label: str):
     texte = retirer_premiere_ligne(texte)
     tableau_factions, nb_colonnes = reconstituer_tableau(texte)
@@ -991,11 +929,12 @@ def evenement_lire_objets(texte: str, current_evenement: Evenement, texte_label:
         return
 
     for ligne in tableau_objets:
-        objet = ObjetDansEvenement(code = ligne[0],
+        objet = ObjetDansEvenement(code=ligne[0],
                                    description=ligne[1],
                                    commence=ligne[2],
                                    termine=ligne[3])
         current_evenement.objets.append(objet)
+
 
 def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label: str):
     texte = retirer_premiere_ligne(texte)
@@ -1013,12 +952,19 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
                                     )
         current_evenement.interventions.append(intervention)
 
+
 def evenement_lire_autres(texte: str, current_evenement: Evenement, texte_label: str):
     logging.debug(f"balise {texte_label} non prise en charge = {texte}")
     pass
 
-def retirer_premiere_ligne(texte):
+
+def retirer_premiere_ligne(texte: str):
     return '\n'.join(texte.splitlines()[1:])
+
+
+def retirer_label(texte: str, label: str):
+    return texte[len(label):].strip()
+
 
 def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, mon_gn,
                              verbal=False, pj: TypePerso = TypePerso.EST_PJ):
@@ -1708,7 +1654,7 @@ def formatter_fichier_erreurs(api_doc, doc_id):
     return result
 
 
-def reconstituer_tableau(texte_lu: str, sans_la_premiere_ligne = True):
+def reconstituer_tableau(texte_lu: str, sans_la_premiere_ligne=True):
     # logging.debug(f"chaine en entrée = {repr(texte_lu)}")
     last_hash_index = texte_lu.rfind(lecteurGoogle.FIN_LIGNE)
     if last_hash_index == -1:

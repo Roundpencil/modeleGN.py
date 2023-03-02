@@ -135,14 +135,15 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     if sans_chargement_fichier:
         print("recréation d'un GN from scratch")
         new_gn = GN(
-            mon_gn.dossiers_intrigues,
-            mon_gn.dossier_outputs_drive,
-            mon_gn.association_auto,
-            mon_gn.dossiers_pjs,
-            mon_gn.dossiers_pnjs,
-            mon_gn.id_factions,
+            dossiers_intrigues=mon_gn.dossiers_intrigues,
+            dossier_output=mon_gn.dossier_outputs_drive,
+            association_auto=mon_gn.association_auto,
+            dossiers_pj=mon_gn.dossiers_pjs,
+            dossiers_pnj=mon_gn.dossiers_pnjs,
+            id_factions=mon_gn.id_factions,
             fichier_pnjs=mon_gn.fichier_pnjs,
-            id_pjs_et_pnjs=mon_gn.id_pjs_et_pnjs
+            id_pjs_et_pnjs=mon_gn.id_pjs_et_pnjs,
+            dossiers_evenements=mon_gn.dossiers_evenements
         )
         mon_gn = new_gn
     else:
