@@ -15,7 +15,8 @@ import csv
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 
 # à faire - rapide
-# todo : ajouter la gestion des relations dans les fonctions  de clearing
+# todo : ajouter un onglet dans les commentaires qui dit ou sont les commentaires pour moi
+# todo ajouter une colonne dans les PNJs dédupliqués pour dire à qui ils ont été affectés
 
 # à faire - plus long
 # todo ajouter la lecture des balises dans les personnages > associer des personnages entre eux
