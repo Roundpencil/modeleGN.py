@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import logging
 import re
+from enum import Enum
 
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
@@ -868,6 +869,109 @@ def calculer_jours_il_y_a(balise_date):
         return balise_date.strip()
 
 
+def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url: str, lastFileEdit,
+                                derniere_modification_par: str, gn: GN, verbal=False):
+    # Créer un nouvel évènement
+    nom_evenement_en_cours = re.sub(r"^\d+\s*-", '', nom_evenement).strip()
+
+    current_evenement = Evenement(nom_evenement=nom_evenement_en_cours,
+                                  id_url=id_url,
+                                  derniere_edition_date=lastFileEdit,
+                                  derniere_edition_par=derniere_modification_par)
+
+    class Labels(Enum):
+        FICHE = "fiche technique"
+        SYNOPSIS = "synopsis - déroulement envisagé"
+        LIES = "événements liés"
+        BRIEFS = "brief PNJS"
+        INFOS_PJS = "pj impliqués et informations à fournir"
+        INFOS_FACTIONS = "factions impliquées et informations à fournir"
+        OBJETS = "objets utilisés"
+        CHRONO = "chronologie de l'évènement"
+        AUTRES = "informations supplémentaires"
+
+    labels = [e.value for e in Labels]
+    indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_evenement.lower())
+
+    # utliser un dictionnaire pour savoir quelle section lire
+    dict_methodes = {
+        Labels.FICHE: evenement_lire_fiche,
+        Labels.SYNOPSIS: evenement_lire_synopsis,
+        Labels.LIES: evenement_lire_lies,
+        Labels.BRIEFS: evenement_lire_briefs,
+        Labels.INFOS_PJS: evenement_lire_infos_pj,
+        Labels.INFOS_FACTIONS: evenement_infos_factions,
+        Labels.OBJETS: evenement_lire_objets,
+        Labels.CHRONO: evenement_lire_chrono,
+        Labels.AUTRES: evenement_lire_autres
+    }
+
+    # lire les sections dans le fichier et appliquer la bonne méthode
+    for label in Labels:
+        if indexes[label.value]["debut"] == -1:
+            print(f"pas de {label.value} avec l'évènement {nom_evenement_en_cours}")
+        else:
+            texte_section = texte_evenement[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+            methode_a_appliquer = dict_methodes[label]
+            methode_a_appliquer(texte_section, current_evenement, label.value)
+
+
+def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: str):
+    texte = '\n'.join(texte.splitlines()[1:])
+    tableau_fiche, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
+    if nb_colonnes != 2:
+        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_fiche}")
+        return
+
+    dict_fiche = dict(tableau_fiche)
+    current_evenement.code_evenement = dict_fiche.get("Code de l'évènement", "")
+    current_evenement.referent = dict_fiche.get("Référent", "")
+    current_evenement.intrigue_liee = dict_fiche.get("Intrigue liée", "")
+    current_evenement.lieu = dict_fiche.get("Lieu", "")
+    current_evenement.date = dict_fiche.get('Jour, au format “J1”, “J2”, etc.', "")
+    current_evenement.heure_de_demarrage = dict_fiche.get("Heure de démarrage", "")
+    current_evenement.declencheur = dict_fiche.get("Déclencheur", "")
+    current_evenement.consequences_evenement = dict_fiche.get("Conséquences Événement", "")
+
+def evenement_lire_synopsis(texte: str, current_evenement: Evenement, texte_label: str):
+    current_evenement.synopsis = '\n'.join(texte.splitlines()[1:])
+
+
+def evenement_lire_lies(texte: str, current_evenement: Evenement, texte_label: str):
+    pass
+
+def evenement_lire_briefs(texte: str, current_evenement: Evenement, texte_label: str):
+    texte = '\n'.join(texte.splitlines()[1:])
+    tableau_briefs, nb_colonnes = reconstituer_tableau(texte)
+    if nb_colonnes != 4:
+        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_briefs}")
+        return
+
+    for ligne in tableau_briefs:
+        current_brief = BriefPNJPourEvenement(nom_pnj=ligne[0],
+                                              costumes_et_accessoires=ligne [1])
+
+
+def evenement_lire_infos_pj(texte: str, current_evenement: Evenement, texte_label: str):
+    pass
+
+
+def evenement_infos_factions(texte: str, current_evenement: Evenement, texte_label: str):
+    pass
+
+
+def evenement_lire_objets(texte: str, current_evenement: Evenement, texte_label: str):
+    pass
+
+
+def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label: str):
+    pass
+
+
+def evenement_lire_autres(texte: str, current_evenement: Evenement, texte_label: str):
+    pass
+
+
 def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, mon_gn,
                              verbal=False, pj: TypePerso = TypePerso.EST_PJ):
     print(f"Lecture de {nom_doc}")
@@ -1556,7 +1660,7 @@ def formatter_fichier_erreurs(api_doc, doc_id):
     return result
 
 
-def reconstituer_tableau(texte_lu: str):
+def reconstituer_tableau(texte_lu: str, sans_la_premiere_ligne = True):
     # logging.debug(f"chaine en entrée = {repr(texte_lu)}")
     last_hash_index = texte_lu.rfind(lecteurGoogle.FIN_LIGNE)
     if last_hash_index == -1:
@@ -1569,7 +1673,9 @@ def reconstituer_tableau(texte_lu: str):
     lignes = texte_tableau.split(lecteurGoogle.FIN_LIGNE)
     to_return = []
 
-    for ligne in lignes[1:]:
+    base_index = 1 if sans_la_premiere_ligne else 0
+
+    for ligne in lignes[base_index:]:
         tmp_ligne = [element.strip() for element in ligne.split(lecteurGoogle.SEPARATEUR_COLONNES)]
         taille_ligne = sum([len(element) for element in tmp_ligne])
         if taille_ligne > 1:
@@ -1579,17 +1685,6 @@ def reconstituer_tableau(texte_lu: str):
                   f"j'ai reconstitué le tableau \n {to_return}"
                   )
     return to_return if to_return else [], (len(to_return[0]) if to_return else 0)
-
-
-def extraire_evenement_de_texte(texte_evenement, nom_evenement, id_url, lastFileEdit, derniere_modification_par, monGN,
-                                verbal=False):
-    # Créer un nouvel évènement
-
-    # lire les sections dans le fichier
-
-    # pour chaque section, l'attribuer directement
-    # ou bien utiliser la lecture de tableau pour la traiter (potentiellement via un dictionnaire)
-    pass
 
 
 def lire_gspread_pnj(api_sheets, sheet_id):

@@ -1117,6 +1117,7 @@ class ErreurManager:
 
 class Evenement:
     def __init__(self,
+                 nom_evenement = "",
                  code_evenement="",
                  referent="",
                  etat="",
@@ -1126,7 +1127,14 @@ class Evenement:
                  heure_de_demarrage="",
                  declencheur="",
                  consequences_evenement="",
-                 synopsis=""):
+                 synopsis="",
+                 id_url = "",
+                 derniere_edition_date = None,
+                 derniere_edition_par = ""):
+        self.nom_evenement = nom_evenement
+        self.id_url = id_url
+        self.derniere_edition_date = derniere_edition_date
+        self.derniere_edition_par = derniere_edition_par
         self.code_evenement = code_evenement
         self.referent = referent
         self.etat = etat
