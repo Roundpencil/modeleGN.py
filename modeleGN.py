@@ -715,7 +715,6 @@ class GN:
         # else:
         #     return self.noms_pnjs()
 
-
     def associer_pnj_a_roles(self, seuil_alerte=70, verbal=False):
         self.associer_pjpnj_a_roles(pj=False, seuil_alerte=seuil_alerte, verbal=verbal)
 
@@ -1117,7 +1116,7 @@ class ErreurManager:
 
 class Evenement:
     def __init__(self,
-                 nom_evenement = "",
+                 nom_evenement="",
                  code_evenement="",
                  referent="",
                  etat="",
@@ -1128,9 +1127,9 @@ class Evenement:
                  declencheur="",
                  consequences_evenement="",
                  synopsis="",
-                 id_url = "",
-                 derniere_edition_date = None,
-                 derniere_edition_par = ""):
+                 id_url="",
+                 derniere_edition_date=None,
+                 derniere_edition_par=""):
         self.nom_evenement = nom_evenement
         self.id_url = id_url
         self.derniere_edition_date = derniere_edition_date
@@ -1149,6 +1148,7 @@ class Evenement:
         self.interventions = []
         self.briefs_pnj = []
         self.infos_pj = []
+        self.infos_factions = []
 
 
 class BriefPNJPourEvenement:
@@ -1167,15 +1167,35 @@ class InfoPJPourEvenement:
         self.infos_a_fournir = infos_a_fournir
 
 
+class InfoFactionsPourEvenement:
+    def __init__(self, nom_faction="", infos_a_fournir=""):
+        self.nom_faction = nom_faction
+        self.faction = None
+        self.infos_a_fournir = infos_a_fournir
+
+
+class ObjetDansEvenement:
+    def __init__(self, code: str, description: str, commence: str, termine: str):
+        self.code = code
+        self.description = description
+        self.commence = commence
+        self.termine = termine
+
+
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
 class Intervention:
-    def __init__(self, jour=None, heure=None, description=""):
+    def __init__(self, jour=None, heure=None, pj_impliques: list[str] = None, pnj_impliques: list[str] = None,
+                 description="", p):
+        if pj_impliques is None:
+            pj_impliques = []
+        if pnj_impliques is None:
+            pnj_impliques = []
         self.jour = jour
         self.heure = heure
-        self.pj_impliques = []
-        self.pnj_impliques = []
+        self.pj_impliques = pj_impliques
+        self.pnj_impliques = pnj_impliques
         self.description = description
 
 

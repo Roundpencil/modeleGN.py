@@ -917,7 +917,7 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
 
 
 def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: str):
-    texte = '\n'.join(texte.splitlines()[1:])
+    texte = retirer_premiere_ligne(texte)
     tableau_fiche, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
     if nb_colonnes != 2:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_fiche}")
@@ -938,10 +938,11 @@ def evenement_lire_synopsis(texte: str, current_evenement: Evenement, texte_labe
 
 
 def evenement_lire_lies(texte: str, current_evenement: Evenement, texte_label: str):
+    logging.debug(f"balise {texte_label} non prise en charge = {texte}")
     pass
 
 def evenement_lire_briefs(texte: str, current_evenement: Evenement, texte_label: str):
-    texte = '\n'.join(texte.splitlines()[1:])
+    texte = retirer_premiere_ligne(texte)
     tableau_briefs, nb_colonnes = reconstituer_tableau(texte)
     if nb_colonnes != 4:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_briefs}")
@@ -949,28 +950,70 @@ def evenement_lire_briefs(texte: str, current_evenement: Evenement, texte_label:
 
     for ligne in tableau_briefs:
         current_brief = BriefPNJPourEvenement(nom_pnj=ligne[0],
-                                              costumes_et_accessoires=ligne [1])
+                                              costumes_et_accessoires=ligne[1],
+                                              implication=ligne[2],
+                                              situation_de_depart=ligne[3])
+        current_evenement.briefs_pnj.append(current_brief)
 
 
 def evenement_lire_infos_pj(texte: str, current_evenement: Evenement, texte_label: str):
-    pass
-
+    texte = retirer_premiere_ligne(texte)
+    tableau_pjs, nb_colonnes = reconstituer_tableau(texte)
+    if nb_colonnes != 2:
+        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_pjs}")
+        return
+    for ligne in tableau_pjs:
+        info_pj = InfoPJPourEvenement(nom_pj=ligne[0],
+                                      infos_a_fournir=ligne[1])
+        current_evenement.infos_pj.append(info_pj)
 
 def evenement_infos_factions(texte: str, current_evenement: Evenement, texte_label: str):
-    pass
+    texte = retirer_premiere_ligne(texte)
+    tableau_factions, nb_colonnes = reconstituer_tableau(texte)
+    if nb_colonnes != 2:
+        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_factions}")
+        return
+    for ligne in tableau_factions:
+        info_faction = InfoFactionsPourEvenement(nom_faction=ligne[0], infos_a_fournir=ligne[1])
+        current_evenement.infos_factions.append(info_faction)
 
 
 def evenement_lire_objets(texte: str, current_evenement: Evenement, texte_label: str):
-    pass
+    texte = retirer_premiere_ligne(texte)
+    tableau_objets, nb_colonnes = reconstituer_tableau(texte)
+    if nb_colonnes != 4:
+        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_objets}")
+        return
 
+    for ligne in tableau_objets:
+        objet = ObjetDansEvenement(code = ligne[0],
+                                   description=ligne[1],
+                                   commence=ligne[2],
+                                   termine=ligne[3])
+        current_evenement.objets.append(objet)
 
 def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label: str):
-    pass
+    texte = retirer_premiere_ligne(texte)
+    tableau_interventions, nb_colonnes = reconstituer_tableau(texte)
+    if nb_colonnes != 5:
+        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_interventions}")
+        return
 
+    for ligne in tableau_interventions:
+        intervention = Intervention(jour=ligne[0],
+                                    heure=ligne[1],
+                                    pnj_impliques=ligne[2].split(','),
+                                    pj_impliques=ligne[3].split(','),
+                                    description==ligne[4]
+                                    )
+        current_evenement.interventions.append(intervention)
 
 def evenement_lire_autres(texte: str, current_evenement: Evenement, texte_label: str):
+    logging.debug(f"balise {texte_label} non prise en charge = {texte}")
     pass
 
+def retirer_premiere_ligne(texte):
+    return '\n'.join(texte.splitlines()[1:])
 
 def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, mon_gn,
                              verbal=False, pj: TypePerso = TypePerso.EST_PJ):
