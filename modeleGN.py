@@ -339,6 +339,7 @@ class Intrigue(ConteneurDeScene):
         self.lastFileEdit = derniere_edition_fichier
         self.objets = set()
         self.commentaires = []
+        self.codes_evenements_raw = []
 
     def __str__(self):
         return self.nom

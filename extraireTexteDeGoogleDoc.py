@@ -392,8 +392,9 @@ def intrigue_scenesfx(texte: str, intrigue: Intrigue, texte_label: str):
     if nb_colonnes != 4:
         logging.debug(f" Problème avec le tableau évènement : {tableau_evenements}")
         return
-    # todo : finir cette focntion
 
+    codes_raw = [ligne[0] for ligne in tableau_evenements]
+    intrigue.codes_evenements_raw = codes_raw
 
 def intrigue_timeline(texte: str, intrigue: Intrigue, texte_label: str):
     intrigue.timeline = retirer_premiere_ligne(texte)
