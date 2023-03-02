@@ -15,11 +15,8 @@ import csv
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 
 # à faire - rapide
-# todo : ajouter un onglet dans les commentaires qui dit ou sont les commentaires pour moi
 
 # à faire - plus long
-# todo ajouter la lecture des balises dans les personnages > associer des personnages entre eux
-#  vérifier que le code actuel ne permet pas de le faire en passant par l'option None de la méthode
 
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
@@ -1036,7 +1033,8 @@ def generer_table_commentaires(gn: GN, prefixe = None):
     # Get a list of all unique authors and destinataires
     intrigues = gn.intrigues.values()
     destinataires = set()
-    dict_auteur_intrigues = {}  # [auteur][intrigue] > commentaires
+    dict_auteur_intrigues = {}  # [auteur][intrigue] > commentaires, utilisé our générer le doc complet
+    dict_intrigues_destinataires = {} #[intrigue] > liste noms destinataires
 
     # for intrigue in intrigues:
     #     for commentaire in intrigue.commentaires:
@@ -1054,9 +1052,13 @@ def generer_table_commentaires(gn: GN, prefixe = None):
             dict_auteur_intrigues[commentaire.auteur][intrigue].add(commentaire)
             destinataires.update(commentaire.destinataires)
 
+            if intrigue.nom not in dict_intrigues_destinataires:
+                dict_intrigues_destinataires[intrigue.nom] = set()
+            dict_intrigues_destinataires[intrigue.nom].update(commentaire.destinataires)
+
     dict_auteurs_tableaux = {auteur: [["Intrigue"] + list(destinataires)] for auteur in dict_auteur_intrigues}
 
-    # Create a 2D list with intrigue names as row headers and destinataires as column headers
+    # Formatter, pour chaque auteur, un tableau des intrigues où il a écrit des commentaires
     for auteur in dict_auteur_intrigues:
         for intrigue in dict_auteur_intrigues[auteur]:
             row = [intrigue.nom] + [""] * len(destinataires)
@@ -1069,6 +1071,19 @@ def generer_table_commentaires(gn: GN, prefixe = None):
                     row[column_index + 1] = "x"
             dict_auteurs_tableaux[auteur].append(row)
 
+
+    # Formatter un talbeua global intrigues > commentaires pour qui
+    tableau_global = [["Intrigue"] + list(destinataires)]
+    for nom_intrigue in dict_intrigues_destinataires:
+        row = [nom_intrigue] + [""] * len(destinataires)
+        # for commentaire in intrigue.commentaires:
+        for destinataire in dict_intrigues_destinataires[nom_intrigue]:
+            column_index = list(destinataires).index(destinataire)
+            row[column_index + 1] = "x"
+        tableau_global.append(row)
+
+
+
     if prefixe is not None :
         # Write the 2D list to a CSV file
         for auteur in dict_auteurs_tableaux:
@@ -1076,7 +1091,7 @@ def generer_table_commentaires(gn: GN, prefixe = None):
                 writer = csv.writer(f)
                 writer.writerows(dict_auteurs_tableaux[auteur])
 
-    return dict_auteurs_tableaux, dict_auteur_intrigues
+    return dict_auteurs_tableaux, dict_auteur_intrigues, tableau_global
 
 
 def generer_texte_commentaires(dict_auteur_intrigues):
@@ -1094,7 +1109,7 @@ def generer_texte_commentaires(dict_auteur_intrigues):
 
 def ecrire_table_commentaires(gn: GN, api_drive, api_doc, api_sheets):
     parent = gn.dossier_outputs_drive
-    dict_auteurs_tableaux, dict_auteur_intrigues = generer_table_commentaires(gn)
+    dict_auteurs_tableaux, dict_auteur_intrigues, tableau_global = generer_table_commentaires(gn)
     texte = generer_texte_commentaires(dict_auteur_intrigues)
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
@@ -1111,6 +1126,8 @@ def ecrire_table_commentaires(gn: GN, api_drive, api_doc, api_sheets):
     for auteur in dict_auteurs_tableaux:
         extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, dict_auteurs_tableaux[auteur], file_id,
                                                             feuille=auteur)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tableau_global, file_id,
+                                                        feuille="tableau global")
     extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, file_id)
 
 
