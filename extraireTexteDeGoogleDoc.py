@@ -39,12 +39,12 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
                                  verbal=verbal, fast=fast)
 
 
-def extraire_evenements(mon_gn: GN, apiDrive, apiDoc, singletest="-01", verbal=False, fast=True):
-    # print(f"je m'apprete à extraire les PNJs depuis {gn.dossiers_pnjs}")
+def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
+    print(f"je m'apprete à extraire les évènements depuis {mon_gn.dossiers_evenements}")
     if mon_gn.dossiers_evenements is None or len(mon_gn.dossiers_evenements) == 0:
         logging.debug("pas de dossier évènement trouvé dans le gn")
         return
-    extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, extraire_evenement_de_texte, mon_gn.dict_evenements,
+    extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_evenement_de_texte, mon_gn.evenements,
                                  mon_gn.dossiers_evenements,
                                  singletest,
                                  verbal=verbal, fast=fast)
@@ -69,7 +69,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 # Retrieve the documents contents from the Docs api_doc.
                 document = apiDoc.documents().get(documentId=item['id']).execute()
 
-                print(f"Document en cours de lecture : {document.get('title')}")
+                print(f"Document en cours de lecture (singletest = {single_test}) : {document.get('title')}")
 
                 # Alors on se demande si c'est le bon doc
                 # if document.get('title')[0:3].strip() != str(single_test):  # numéro de l'intrigue
@@ -115,9 +115,12 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
 
                 print(f"Document en cours de lecture : {document.get('title')}")
 
+                print(f"débug : ref du doc = {ref_du_doc(document.get('title'))}")
+
                 # si la ref du doc est -1 ou 0 il ne nous interesse pas
                 if ref_du_doc(document.get('title')) in [-1, 0]:
                     continue
+
 
                 # print("... est une intrigue !")
 
@@ -127,6 +130,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 #   SI l'intrigue existe dans le GN ?
                 # if item['id'] in gn.intrigues .keys():
                 if item['id'] in dict_ids:
+                    print(f"debug : {item['id']} est dans dict_id")
 
                     #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
                     # print("l'intrigue fait déjà partie du GN ! ")
@@ -136,9 +140,6 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                     # {item['modifiedTime']}")
 
                     # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
-                    # if gn.intrigues[item['id']].lastChange >=
-                    # datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
-                    # if dict_ids[item['id']].lastProcessing >= item['modifiedTime']:
                     if fast and \
                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
                         item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
@@ -163,6 +164,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                         objet_de_reference = dict_ids.pop(item['id'])
 
                 # puis, dans tous les cas, on la crée
+                print("debug : extraction objet")
                 nouvel_objet = extraire_objets_de_document(document, item, mon_gn, fonction_extraction, verbal=verbal)
                 commentaires = extraire_commentaires_de_document_drive(apiDrive, item['id'])
                 if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
@@ -871,6 +873,7 @@ def calculer_jours_il_y_a(balise_date):
 
 def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url: str, lastFileEdit,
                                 derniere_modification_par: str, gn: GN, verbal=False):
+    print("je suis entrè dans  la création d'un évènement")
     # Créer un nouvel évènement
     nom_evenement_en_cours = re.sub(r"^\d+\s*-", '', nom_evenement).strip()
 
@@ -878,12 +881,13 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
                                   id_url=id_url,
                                   derniere_edition_date=lastFileEdit,
                                   derniere_edition_par=derniere_modification_par)
+    gn.evenements[id_url] = current_evenement
 
     class Labels(Enum):
         FICHE = "fiche technique"
         SYNOPSIS = "synopsis - déroulement envisagé"
         LIES = "événements liés"
-        BRIEFS = "brief PNJS"
+        BRIEFS = "brief pnjs"
         INFOS_PJS = "pj impliqués et informations à fournir"
         INFOS_FACTIONS = "factions impliquées et informations à fournir"
         OBJETS = "objets utilisés"
@@ -925,13 +929,14 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
 
     dict_fiche = dict(tableau_fiche)
     current_evenement.code_evenement = dict_fiche.get("Code de l'évènement", "")
+    current_evenement.etat = dict_fiche.get("État", "")
     current_evenement.referent = dict_fiche.get("Référent", "")
     current_evenement.intrigue_liee = dict_fiche.get("Intrigue liée", "")
     current_evenement.lieu = dict_fiche.get("Lieu", "")
     current_evenement.date = dict_fiche.get('Jour, au format “J1”, “J2”, etc.', "")
     current_evenement.heure_de_demarrage = dict_fiche.get("Heure de démarrage", "")
     current_evenement.declencheur = dict_fiche.get("Déclencheur", "")
-    current_evenement.consequences_evenement = dict_fiche.get("Conséquences Événement", "")
+    current_evenement.consequences_evenement = dict_fiche.get("Conséquences évènement", "")
 
 def evenement_lire_synopsis(texte: str, current_evenement: Evenement, texte_label: str):
     current_evenement.synopsis = '\n'.join(texte.splitlines()[1:])
@@ -1004,7 +1009,7 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
                                     heure=ligne[1],
                                     pnj_impliques=ligne[2].split(','),
                                     pj_impliques=ligne[3].split(','),
-                                    description==ligne[4]
+                                    description=ligne[4]
                                     )
         current_evenement.interventions.append(intervention)
 

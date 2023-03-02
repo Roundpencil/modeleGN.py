@@ -581,7 +581,8 @@ class Faction:
 class GN:
     def __init__(self,
                  dossiers_intrigues, dossier_output: str,
-                 association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, id_factions=None, date_gn=None,
+                 association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None,
+                 id_factions=None, date_gn=None,
                  id_pjs_et_pnjs=None, fichier_pnjs=None):
 
         # création des objets nécessaires
@@ -589,6 +590,7 @@ class GN:
         self.dictPNJs = {}  # idgoogle, personnage
         self.factions = {}  # nom, Faction
         self.intrigues = {}  # clef : id google
+        self.evenements = {}  # clef : id google
         self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatePJ = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatedIntrigue = ""  # contient l'id de la dernière intrigue updatée dans le GN
@@ -601,6 +603,7 @@ class GN:
         self.dossiers_pjs = None
         self.dossier_outputs_drive = None
         self.dossiers_intrigues = None
+        self.dossiers_evenements = None
         self.date_gn = None
         self.id_pjs_et_pnjs = None
         self.fichier_pnjs = None
@@ -608,12 +611,13 @@ class GN:
         # self.liste_noms_pnjs = None
 
         self.injecter_config(dossiers_intrigues, dossier_output, association_auto, dossiers_pj=dossiers_pj,
+                             dossiers_evenements=dossiers_evenements,
                              dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn,
                              id_pjs_et_pnjs=id_pjs_et_pnjs, fichier_pnjs=fichier_pnjs)
 
     def injecter_config(self,
                         dossiers_intrigues, dossier_output, association_auto,
-                        dossiers_pj=None, dossiers_pnj=None, id_factions=None,
+                        dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None, id_factions=None,
                         date_gn=None, id_pjs_et_pnjs=None, fichier_pnjs=None):
         # todo : injecter les noms des PJs et le dossier PNJ
 
@@ -639,6 +643,14 @@ class GN:
             self.dossiers_pnjs = dossiers_pnj
         else:
             self.dossiers_pnjs = [dossiers_pnj]
+
+        if dossiers_evenements is None:
+            self.dossiers_evenements = None
+        elif isinstance(dossiers_evenements, list):
+            self.dossiers_evenements = dossiers_evenements
+        else:
+            self.dossiers_evenements = [dossiers_evenements]
+
         self.id_factions = id_factions
         self.dossier_outputs_drive = dossier_output
 
@@ -1187,7 +1199,7 @@ class ObjetDansEvenement:
 
 class Intervention:
     def __init__(self, jour=None, heure=None, pj_impliques: list[str] = None, pnj_impliques: list[str] = None,
-                 description="", p):
+                 description=""):
         if pj_impliques is None:
             pj_impliques = []
         if pnj_impliques is None:

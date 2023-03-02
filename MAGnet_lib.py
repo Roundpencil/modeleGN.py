@@ -64,6 +64,10 @@ def charger_fichier_init(fichier_init: str):
                                         for key in config.options("Optionnels")
                                         if key.startswith("id_dossier_pnjs")]
 
+        dict_config['dossiers_evenements'] = [config.get("Optionnels", key)
+                                        for key in config.options("Optionnels")
+                                        if key.startswith("id_dossiers_evenements")]
+
         dict_config['id_factions'] = config.get('Optionnels', 'id_factions', fallback=None)
 
         dict_config['id_pjs_et_pnjs'] = config.get('Optionnels', 'id_pjs_et_pnjs', fallback=None)
@@ -170,7 +174,11 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                            api_doc=api_doc,
                                            singletest=singletest_perso,
                                            fast=fast_persos,
-                                           verbal=verbal)
+                                           verbal=verbal) #todo : ajouter les options de lecture dans la GUI
+    extraireTexteDeGoogleDoc.extraire_evenements(mon_gn,
+                                           api_drive=api_drive,
+                                           api_doc=api_doc,
+                                           ) #todo : ajouter les options de lecture dans la GUI
 
     liste_orgas = None
     liste_noms_pnjs = None
@@ -1152,6 +1160,13 @@ def mettre_a_jour_champs(gn: GN):
         gn.id_pjs_et_pnjs = None
     if not hasattr(gn, 'fichier_pnjs'):
         gn.fichier_pnjs = None
+    if not hasattr(gn, 'evenements'):
+        gn.evenements = {}
+    if not hasattr(gn, 'dossiers_evenements'):
+        gn.dossiers_evenements = []
+    if not hasattr(gn, 'dossier_evenements'):
+        delattr(gn, 'dossier_evenements')
+
 
     for conteneur in list(gn.dictPJs.values()) \
                      + list(gn.dictPNJs.values()) \

@@ -312,7 +312,8 @@ class Application(tk.Frame):
             self.current_file_label.config(text=config_file)
             try:
                 self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'])
-                self.gn.injecter_config(dossiers_intrigues=self.dict_config['dossiers_intrigues'],
+                self.gn.injecter_config(dossiers_evenements=self.dict_config['dossiers_evenements'],
+                                        dossiers_intrigues=self.dict_config['dossiers_intrigues'],
                                         dossier_output=self.dict_config['dossier_output'],
                                         association_auto=self.dict_config['association_auto'],
                                         dossiers_pj=self.dict_config.get('dossiers_pjs'),
