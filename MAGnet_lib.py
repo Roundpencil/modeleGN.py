@@ -16,7 +16,6 @@ import csv
 
 # à faire - rapide
 # todo : ajouter un onglet dans les commentaires qui dit ou sont les commentaires pour moi
-# todo ajouter une colonne dans les PNJs dédupliqués pour dire à qui ils ont été affectés
 
 # à faire - plus long
 # todo ajouter la lecture des balises dans les personnages > associer des personnages entre eux
@@ -106,8 +105,8 @@ def charger_fichier_init(fichier_init: str):
 def lire_fichier_pnjs(nom_fichier: str):
     to_return = []
     try:
-        # with open(nom_fichier, 'r', encoding="utf-8") as f:
-        with open(nom_fichier, 'r') as f:
+        with open(nom_fichier, 'r', encoding="utf-8") as f:
+        # with open(nom_fichier, 'r') as f:
             for ligne in f:
                 nom = ligne.strip()
                 to_return.append(nom)
@@ -521,23 +520,29 @@ def ecrire_squelettes_localement(mon_gn: GN, prefixe=None, pj=True):
     return toutes_scenes
 
 
-def generer_liste_pnj_dedup(mon_gn, threshold=89, verbal=False):
-    noms_pnjs = []
-    # nomsNormalises = dict()
+def generer_liste_pnj_dedup_avec_perso(mon_gn, threshold=89, verbal=False):
+    dict_nom_pnj_nom_role = {}
     for intrigue in mon_gn.intrigues.values():
         for role in intrigue.rolesContenus.values():
             if role.est_un_pnj():
-                noms_pnjs.append(role.nom)
-    noms_pnjs = list(set(noms_pnjs))
-    extract = process.dedupe(noms_pnjs, threshold=threshold)
-    extract = sorted(extract)
+                dict_nom_pnj_nom_role[role.nom] = role.personnage.nom if role.personnage is not None else "aucun perso"
 
-    logging.debug(f"liste des pnjs dédup : {extract}")
+    noms_pnjs = list(dict_nom_pnj_nom_role)
+    noms_dedup = process.dedupe(noms_pnjs, threshold=threshold)
+    noms_dedup = sorted(noms_dedup)
+
+    persos_dedup = [dict_nom_pnj_nom_role[nom_pnj] for nom_pnj in noms_dedup]
+
+    logging.debug(f"liste des pnjs dédup : {noms_dedup}")
 
     if verbal:
-        for v in extract:
+        for v in noms_dedup:
             print(v)
-    return extract
+    return noms_dedup, persos_dedup
+
+def generer_liste_pnj_dedup(mon_gn, threshold=89, verbal=False):
+    to_return, _ = generer_liste_pnj_dedup_avec_perso(mon_gn, threshold, verbal)
+    return to_return
 
 
 def ecrire_liste_pnj_dedup_localement(mon_gn: GN, prefixe: str, threshold=89, verbal=False):
@@ -980,14 +985,17 @@ def generer_table_pnj_dedupliquee(mon_gn: GN):
     # table_pnj = [["Nom"]]
     # table_pnj.extend([nom] for nom in generer_liste_pnj_dedup(mon_gn))
 
-    table_pnj = [["Nom", "Déjà présent avec exactement ce nom?"]]
+    table_pnj = [["Nom", "Déjà présent avec exactement ce nom?", "Actuellement affecté à"]]
+
+
     noms_actuels = mon_gn.noms_pnjs()
-    noms_dedup = generer_liste_pnj_dedup(mon_gn)
-    for nom in noms_dedup:
-        if nom in noms_actuels:
-            table_pnj.append([nom, "oui"])
+    noms_dedup, persos_affectes = generer_liste_pnj_dedup_avec_perso(mon_gn)
+
+    for nom_pnj, nom_perso in zip(noms_dedup, persos_affectes):
+        if nom_pnj in noms_actuels:
+            table_pnj.append([nom_pnj, "oui", nom_perso])
         else:
-            table_pnj.append([nom, "non"])
+            table_pnj.append([nom_pnj, "non", nom_perso])
 
     return table_pnj
 
