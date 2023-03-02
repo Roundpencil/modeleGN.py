@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import logging
 import re
 
 import fuzzywuzzy.process
@@ -1635,10 +1636,10 @@ def supprimer_feuille_1(api_sheets, spreadsheet_id):
                     }
                 ]
             }).execute()
-            print("Sheet '{}' deleted.".format("Feuille 1"))
+            logging.debug(f"Sheet Feuille 1 supprimée dans {spreadsheet_id}")
             break
     else:
-        print("Sheet '{}' not found.".format("Feuille 1"))
+        logging.debug(f"Sheet Feuille 1 non trouvée dans {spreadsheet_id}")
 
 
 def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):

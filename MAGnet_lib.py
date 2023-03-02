@@ -796,7 +796,7 @@ def generer_table_chrono_complete(table_raw, date_gn):
 
     # Create a dictionary mapping dates to indices
     date_to_index = {date: i for i, date in enumerate(dates)}
-    print(f"date_to_index = {date_to_index}")
+    logging.debug(f"correspondance date_to_index = {date_to_index}")
     # Initialize the matrix with empty values
     num_stories = len(table_raw)
     num_dates = len(dates)

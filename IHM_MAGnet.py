@@ -1,4 +1,5 @@
 import tkinter as tk
+
 import traceback
 from tkinter import filedialog
 from MAGnet_lib import *
@@ -53,23 +54,6 @@ class Application(tk.Frame):
         self.regen_button.config(state=state)
         self.diagnostic_button.config(state=state)
         # self.edit_config_button.config(state=state)
-
-    # def create_widgets(self):
-    #     self.new_gn_button = tk.Button(self, text="Créer nouveau GN", command=self.create_new_gn)
-    #     self.new_gn_button.grid(row=0, column=0)
-    #
-    #     self.update_button = tk.Button(self, text="Générer fiches mises à jour", command=self.regen)
-    #     self.update_button.grid(row=0, column=1)
-    #
-    #     self.diagnostic_button = tk.Button(self, text="Mode diagnostic", command=self.diagnostic_mode)
-    #     self.diagnostic_button.grid(row=0, column=2)
-    #
-    #     self.config_file_button = tk.Button(self, text="Changer fichier de configuration",
-    #                                         command=self.change_config_file)
-    #     self.config_file_button.grid(row=1, column=0)
-    #
-    #     self.current_file_label = tk.Label(self, text="Fichier ini actuel")
-    #     self.current_file_label.grid(row=1, column=1)
 
     def create_new_gn(self):
         new_gn_window = tk.Toplevel(self.master)

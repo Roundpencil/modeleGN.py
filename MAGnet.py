@@ -1,13 +1,13 @@
 import argparse
-import base64
-import logging
+
 from IHM_MAGnet import *
-import icone_64
+
 
 # from maGNette import console_magnet
 
 def main():
-    logging.basicConfig(filename='fichier_log.log', encoding='utf-8', level=logging.DEBUG, format='%(asctime)s %(message)s')
+    logging.basicConfig(filename='fichier_log.log', encoding='utf-8', level=logging.DEBUG,
+                        format='%(asctime)s %(message)s')
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
 
     # lecture des paramètres
@@ -75,4 +75,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

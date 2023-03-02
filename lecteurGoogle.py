@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 import os.path
-
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -9,6 +8,8 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 import credentials
+
+import logging
 
 # If modifying these scopes, delete the file token.json.
 # SCOPES = ['https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/documents.readonly
@@ -24,6 +25,7 @@ os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre de
 SEPARATEUR_COLONNES = "¤¤c¤¤"
 SEPARATEUR_LIGNES = "¤¤l¤¤"
 FIN_LIGNE = SEPARATEUR_COLONNES + SEPARATEUR_LIGNES
+
 
 # crée deux lecteurs, api_doc et ApiDoc, pour pouvoir lire plus facilement les fichiers par la suite
 def creer_lecteurs_google_apis():
