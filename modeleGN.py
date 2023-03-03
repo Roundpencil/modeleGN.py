@@ -623,7 +623,6 @@ class GN:
                         dossiers_intrigues, dossier_output, association_auto,
                         dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None, id_factions=None,
                         date_gn=None, id_pjs_et_pnjs=None, fichier_pnjs=None):
-        # todo : injecter les noms des PJs et le dossier PNJ
 
         self.id_pjs_et_pnjs = id_pjs_et_pnjs
         self.fichier_pnjs = fichier_pnjs

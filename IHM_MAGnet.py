@@ -140,8 +140,6 @@ class Application(tk.Frame):
         # print(f"Noms persos: {noms_persos}")
         # print(f"Nom fichier PNJs: {nom_fichier_pnjs}")
 
-        # todo : régler le problème des radiobuttons dans les valeurs par défaut des panneaux de config
-
         # Create a dictionary with the entered values
         dict_config = {"dossier_intrigues": intrigues.split(','),
                        "dossiers_pjs": base_persos_gn.split(','),
