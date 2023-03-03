@@ -229,6 +229,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
         REFERENT = "orga référent :"
         TODO = "etat de l’intrigue :"
         PITCH = "résumé de l’intrigue"
+        CROISEES = "intrigues croisées :"
         PJS = "personnages impliqués"
         PNJS = "pnjs impliqués"
         REROLLS = "rerolls possibles"
@@ -250,6 +251,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
         Labels.REFERENT: intrigue_referent,
         Labels.TODO: intrigue_todo,
         Labels.PITCH: intrigue_pitch,
+        Labels.CROISEES: intrigue_croisee,
         Labels.PJS: intrigue_pjs,
         Labels.PNJS: intrigue_pnjs,
         Labels.REROLLS: intrigue_rerolls,
@@ -282,9 +284,13 @@ def intrigue_referent(texte: str, intrigue: Intrigue, texte_label: str):
 def intrigue_todo(texte: str, intrigue: Intrigue, texte_label: str):
     intrigue.questions_ouvertes = retirer_label(texte, texte_label)
 
+def intrigue_croisee(texte: str, intrigue: Intrigue, texte_label: str):
+    logging.debug(f"balise {texte_label} non prise en charge = {texte}")
+
 
 def intrigue_pitch(texte: str, intrigue: Intrigue, texte_label: str):
     intrigue.pitch = retirer_premiere_ligne(texte)
+
 
 
 def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
@@ -881,7 +887,7 @@ def evenement_lire_synopsis(texte: str, current_evenement: Evenement, texte_labe
 
 def evenement_lire_lies(texte: str, current_evenement: Evenement, texte_label: str):
     logging.debug(f"balise {texte_label} non prise en charge = {texte}")
-    pass
+
 
 
 def evenement_lire_briefs(texte: str, current_evenement: Evenement, texte_label: str):
