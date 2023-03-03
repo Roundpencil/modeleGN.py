@@ -363,22 +363,22 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
         mon_objet = None
         if nb_colonnes == 4:
             mon_objet = Objet(description=objet[0].strip(),
-                              specialEffect=objet[1].strip() if objet[1].strip().lower() != "non" else '',
-                              emplacementDebut=objet[2].strip(),
-                              fourniPar=objet[3].strip())
+                              special_effect=objet[1].strip() if objet[1].strip().lower() != "non" else '',
+                              emplacement_debut=objet[2].strip(),
+                              fourni_par=objet[3].strip())
             # if pnj[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
             #     mon_objet.specialEffect = pnj[1].strip()
 
         elif nb_colonnes == 3:
             mon_objet = Objet(description=objet[0].strip(),
-                              emplacementDebut=objet[1].strip(),
-                              fourniPar=objet[2].strip())
+                              emplacement_debut=objet[1].strip(),
+                              fourni_par=objet[2].strip())
         elif nb_colonnes == 6:
             mon_objet = Objet(code=objet[0].strip(),
                               description=objet[1].strip(),
-                              specialEffect=objet[2].strip() if objet[2].strip().lower() != "non" else '',
-                              emplacementDebut=objet[3].strip(),
-                              fourniPar=objet[4].strip())
+                              special_effect=objet[2].strip() if objet[2].strip().lower() != "non" else '',
+                              emplacement_debut=objet[3].strip(),
+                              fourni_par=objet[4].strip())
         else:
             print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {mon_objet}")
 

@@ -147,8 +147,8 @@ def main():
     print("*******changelog*********************")
     if not args.nochangelog:
         generer_tableau_changelog_sur_drive(monGN, apiDrive, apiSheets, dossier_output_squelettes_pjs)
-        generer_changelog(monGN, prefixeFichiers, nbJours=3)
-        generer_changelog(monGN, prefixeFichiers, nbJours=4)
+        generer_changelog(monGN, prefixeFichiers, nb_jours=3)
+        generer_changelog(monGN, prefixeFichiers, nb_jours=4)
 
     print("******* statut intrigues *********************")
     if not args.notableintrigues:

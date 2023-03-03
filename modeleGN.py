@@ -138,9 +138,10 @@ class ConteneurDeScene:
 # personnage
 class Personnage(ConteneurDeScene):
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
-                 sexe="i", pj: TypePerso = TypePerso.EST_PJ, orga_referent=None, pitchJoueur="", indications_costume="",
+                 sexe="i", pj: TypePerso = TypePerso.EST_PJ, orga_referent=None, pitch_joueur="",
+                 indications_costume="",
                  textes_annexes="", url="",
-                 dates_clefs="", lastChange=datetime.datetime(year=2000, month=1, day=1), forced=False,
+                 dates_clefs="", last_change=datetime.datetime(year=2000, month=1, day=1), forced=False,
                  derniere_edition_fichier=0):
         super(Personnage, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
         self.nom = nom
@@ -156,7 +157,7 @@ class Personnage(ConteneurDeScene):
         self.description = description
         self.orgaReferent = orga_referent if orga_referent is not None else ""
         self.joueurs = {}
-        self.pitchJoueur = pitchJoueur
+        self.pitchJoueur = pitch_joueur
         self.indicationsCostume = indications_costume
         self.factions = []
         self.datesClefs = dates_clefs
@@ -164,7 +165,7 @@ class Personnage(ConteneurDeScene):
         # : des scènes ?
         self.textesAnnexes = textes_annexes
         # self.url = url
-        self.lastProcessing = lastChange
+        self.lastProcessing = last_change
         self.forced = forced
         self.commentaires = []
 
@@ -298,9 +299,9 @@ class Role:
         return f"{self.nom} ({self.personnage.nom})" if self.personnage is not None \
             else f"{self.nom} (pas de personnage associé)"
 
-    def ajouter_a_scene(self, sceneAAjouter):
-        self.scenes.add(sceneAAjouter)
-        sceneAAjouter.roles.add(self)
+    def ajouter_a_scene(self, scene_a_ajouter):
+        self.scenes.add(scene_a_ajouter)
+        scene_a_ajouter.roles.add(self)
 
     def est_un_pnj(self):
         return est_un_pnj(self.pj)
@@ -318,8 +319,8 @@ class Role:
 class Intrigue(ConteneurDeScene):
 
     def __init__(self, url, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orgaReferent="", timeline="", questionnaire="",
-                 lastProcessing=None,
+                 questions_ouvertes="", notes="", resolution="", orga_referent="", timeline="", questionnaire="",
+                 last_processing=None,
                  derniere_edition_fichier=0):
         super(Intrigue, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
         self.nom = nom
@@ -329,13 +330,13 @@ class Intrigue(ConteneurDeScene):
         self.questionnaire = questionnaire
         self.notes = notes
         self.resolution = resolution
-        self.orgaReferent = orgaReferent
+        self.orgaReferent = orga_referent
         # self.dateModification = datetime.datetime.now() #seul usage dans le projet d'après l'inspecteur, je vire
         # self.url = url
         self.timeline = timeline
-        if lastProcessing is None:
-            lastProcessing = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
-        self.lastProcessing = lastProcessing
+        if last_processing is None:
+            last_processing = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
+        self.lastProcessing = last_processing
 
         self.lastFileEdit = derniere_edition_fichier
         self.objets = set()
@@ -373,16 +374,16 @@ class Intrigue(ConteneurDeScene):
                 # ALORs retourner -1 : il est impossible qu'un personnage soit associé à deux rôles différents au
                 # sein d'une même intrigue
 
-                texteErreur = f"lors de la tentative d'associer le role " \
-                              f"{role_a_associer.nom} au personnage {personnage.nom} (meilleur choix) : " \
-                              f"celui-ci a déjà été automatiquement associé au rôle {role.nom} dans {self.nom}"
+                texte_erreur = f"lors de la tentative d'associer le role " \
+                               f"{role_a_associer.nom} au personnage {personnage.nom} (meilleur choix) : " \
+                               f"celui-ci a déjà été automatiquement associé au rôle {role.nom} dans {self.nom}"
                 self.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
-                                      texteErreur,
+                                      texte_erreur,
                                       ErreurManager.ORIGINES.ASSOCIATION_AUTO
                                       )
 
                 if verbal:  # et si on a demandé à ce que la fonction raconte sa vie, on détaille
-                    print(texteErreur)
+                    print(texte_erreur)
                 return -1
         role_a_associer.personnage = personnage
         # au passage on update le niveau de personnage (surtout utile pour les PNJs), en prenant toujours le max
@@ -425,7 +426,7 @@ class Relation:
 class Scene:
     def __init__(self, conteneur, titre, date="TBD", pitch="Pas de description simple", date_absolue: datetime = None,
                  description="Pas de description complète",
-                 actif=True, resume="", niveau=3):
+                 actif=True):
         self.conteneur = conteneur
         self.date = date  # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
         # l'évènement
@@ -437,9 +438,6 @@ class Scene:
         self.roles = set()
         self.nom_factions = set()  # des strings qui contiennent les noms des factions à embarquer
         self.infos = set()  # des strings qui contiennent les noms où rapatrier les infos
-        self.niveau = niveau  # 1 : dans la chronologie globale,
-        # 2, dans tous les personnages de l'intrigue (pour info, donc pour les autres)
-        # 3 : personnages impactés uniquement
         # faut-il dire que role et personnages héritent l'un de l'autre? Ou bien d'un objet "protagoniste"?
         self.noms_roles_lus = None
         self.derniere_mise_a_jour = datetime.datetime.now()
@@ -466,10 +464,14 @@ class Scene:
                   "novembre", "décembre"]
 
         if not jours_semaine:
-            date_string = f"{date_absolue_calculee.day} {months[date_absolue_calculee.month - 1]} {date_absolue_calculee.year}"
+            date_string = f"{date_absolue_calculee.day} {months[date_absolue_calculee.month - 1]} " \
+                          f"{date_absolue_calculee.year}"
         else:
             days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
-            date_string = f"{days[date_absolue_calculee.weekday()]} {date_absolue_calculee.day} {months[date_absolue_calculee.month - 1]} {date_absolue_calculee.year}"
+            date_string = f"{days[date_absolue_calculee.weekday()]} " \
+                          f"{date_absolue_calculee.day} " \
+                          f"{months[date_absolue_calculee.month - 1]} " \
+                          f"{date_absolue_calculee.year}"
         time_string = f"{date_absolue_calculee.hour}h{date_absolue_calculee.minute}"
 
         return f"{date_string}, {time_string}"
@@ -661,9 +663,7 @@ class GN:
 
     def lister_toutes_les_scenes(self):
         to_return = []
-        for conteneur in list(self.dictPJs.values()) \
-                         + list(self.dictPNJs.values()) \
-                         + list(self.intrigues.values()):
+        for conteneur in list(self.dictPJs.values()) + list(self.dictPNJs.values()) + list(self.intrigues.values()):
             to_return.extend(iter(conteneur.scenes))
         return to_return
 
@@ -692,7 +692,7 @@ class GN:
     # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
     # Tant que les modifs dans google sont postérieures à la date de dernière modif > les prendre en compte
     # Après > arréter
-    def updateOldestUpdate(self):
+    def update_oldest_update(self):
         if pairesDatesIdIntrigues := {
             intrigue.lastProcessing: intrigue.url
             for intrigue in self.intrigues.values()
@@ -781,7 +781,7 @@ class GN:
                             # print(f"je paaaaaarle {score[1]}")
                             print(texte_erreur)
 
-    def associer_roles_issus_de_pj(self, dict_noms_persos, dict_reference, noms_persos, seuilAlerte, verbal):
+    def associer_roles_issus_de_pj(self, dict_noms_persos, dict_reference, noms_persos, seuil_alerte, verbal):
         for perso in dict_reference.values():
             # print(f"je suis en train de chercher des roles dans le pj {pj.nom}")
             # print(f"noms de roles trouvés : {pj.rolesContenus}")
@@ -794,7 +794,7 @@ class GN:
                 role.personnage = dict_noms_persos[score[0]]
                 role.personnage.roles.add(role)
 
-                if score[1] < seuilAlerte:
+                if score[1] < seuil_alerte:
                     texte_erreur = f"Association ({score[1]}) - nom rôle : " \
                                    f"{role.nom} > personnage : {score[0]} dans {perso.nom}"
                     perso.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
@@ -816,7 +816,7 @@ class GN:
 
     def rebuild_links(self, verbal=False):
         self.clear_all_associations()
-        self.updateOldestUpdate()
+        self.update_oldest_update()
         self.ajouter_roles_issus_de_factions()
         self.associer_pnj_a_roles()
         self.associer_pj_a_roles(verbal)
@@ -909,8 +909,6 @@ class GN:
                             # ajouter la scène au role
                             intrigue.rolesContenus[score_role[0]].ajouter_a_scene(scene)
 
-    # todo : quand on loade le fichier faction, clearer les factions pour prendre en compte les suppressions entre deux loading
-
     # utilisée pour préparer l'association roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
     # nettoie aussi toutes les erreurs qui peuvent apparaitre durant l'association,
@@ -981,18 +979,15 @@ class GN:
                                                              forced=True, orga_referent=orga_referent)
                     # on met son nom en clef pour se souvenir qu'il a été généré
 
-                    # self.dictPJs[personnage + suffixe] = Personnage(nom=personnage, pj=valeur_pj,
-                    #                                            forced=True)  # on met son nom en clef pour se souvenir qu'il a été généré
-
 
 # objets
 
 class Objet:
-    def __init__(self, code="", description="", fourniPar="Inconnu", emplacementDebut="", specialEffect=""):
+    def __init__(self, code="", description="", fourni_par="Inconnu", emplacement_debut="", special_effect=""):
         self.description = description
-        self.fourniParJoueur = fourniPar
-        self.emplacementDebut = emplacementDebut
-        self.specialEffect = specialEffect
+        self.fourniParJoueur = fourni_par
+        self.emplacementDebut = emplacement_debut
+        self.specialEffect = special_effect
         self.code = code
         self.inIntrigues = set()
 

@@ -15,7 +15,7 @@ import csv
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 
 # à faire - rapide
-#todo : ajouter les boutons pour contrôler la table des relations
+# todo : ajouter les boutons pour contrôler la table des relations
 
 # à faire - plus long
 # todo : gestion des évènement
@@ -24,11 +24,12 @@ import csv
 #  + un tableau récap des évènements
 #  + une focntion de clear ( ;( ) pour permettre de nettoyer entre deux associations
 
+# todo : quand on loade le fichier faction, clearer les factions
+#  pour prendre en compte les suppressions entre deux loading
+
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
 # todo : faire évoluer grille objets avec et le fait qu'on a trouvé un lien vers une fiche objet (via le code)
-
-
 
 
 # confort / logique
@@ -312,13 +313,10 @@ def ecrire_erreurs_dans_drive(texte_erreurs, api_doc, api_drive, parent):
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Listes des erreurs dans les tableaux des persos'
     mon_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, parent)
-    if result := extraireTexteDeGoogleDoc.write_to_doc(
+    if extraireTexteDeGoogleDoc.write_to_doc(
             api_doc, mon_id, texte_erreurs
     ):
         extraireTexteDeGoogleDoc.formatter_fichier_erreurs(api_doc, mon_id)
-    # result = extraireTexteDeGoogleDoc.write_to_doc(apiDoc, mon_id, texte_erreurs)
-    # if result:
-    #     extraireTexteDeGoogleDoc.formatter_fichier_erreurs(apiDoc, mon_id)
 
 
 def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
@@ -567,8 +565,8 @@ def ecrire_liste_pnj_dedup_localement(mon_gn: GN, prefixe: str, threshold=89, ve
             f.close()
 
 
-def generer_changelog(mon_gn, prefixe, nbJours=1, verbal=False):
-    date_reference = datetime.date.today() - datetime.timedelta(days=nbJours)
+def generer_changelog(mon_gn, prefixe, nb_jours=1, verbal=False):
+    date_reference = datetime.date.today() - datetime.timedelta(days=nb_jours)
 
     # on crée un tableau avec tous lse changements :
     # [orga referent | personnage | titre intrigue | url intrigue | date changement intrigue]
@@ -592,7 +590,7 @@ def generer_changelog(mon_gn, prefixe, nbJours=1, verbal=False):
 
                     # on vérifie que le référent et le personnage existent, sinon on initialise
                     if referent not in restitution:
-                        restitution[referent] = dict()
+                        restitution[referent] = {}
                     if nom_perso not in restitution[referent]:
                         # restitution[referent][nom_perso] = dict()
                         restitution[referent][nom_perso] = []
@@ -633,7 +631,7 @@ def generer_changelog(mon_gn, prefixe, nbJours=1, verbal=False):
         print(texte)
 
     if prefixe is not None:
-        with open(f'{prefixe} - changements - {str(nbJours)}j.txt', 'w', encoding="utf-8") as f:
+        with open(f'{prefixe} - changements - {str(nb_jours)}j.txt', 'w', encoding="utf-8") as f:
             f.write(texte)
             f.close()
 
@@ -648,10 +646,8 @@ def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
                           'id_factions': dict_config['id_factions'],
                           'dossier_output_squelettes_pjs': dict_config['dossier_output']}
 
-    nb_fichiers_persos = 1
-    for perso in dict_config['dossiers_pjs']:
-        config['dossiers']['base_persos_' + str(nb_fichiers_persos)] = perso
-        nb_fichiers_persos += 1
+    for nb_fichiers_persos, perso in enumerate(dict_config['dossiers_pjs'], start=1):
+        config['dossiers'][f'base_persos_{str(nb_fichiers_persos)}'] = perso
 
     config['globaux'] = {'association_auto': dict_config['association_auto'],
                          'type_fiche': dict_config['type_fiche']}
@@ -1033,10 +1029,10 @@ def generer_textes_infos(gn: GN):
     return to_return
 
 
-def ecrire_texte_info(mon_GN: GN, api_doc, api_drive):
-    parent = mon_GN.dossier_outputs_drive
+def ecrire_texte_info(mon_gn: GN, api_doc, api_drive):
+    parent = mon_gn.dossier_outputs_drive
 
-    texte = generer_textes_infos(mon_GN)
+    texte = generer_textes_infos(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- données pour aides de jeu'
     mon_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, parent)
@@ -1203,6 +1199,7 @@ def generer_table_relations_personnages(gn):
 
     return matrix
 
+
 def ecrire_table_relation(gn: GN, api_drive, api_sheets):
     parent = gn.dossier_outputs_drive
     tab_relations = generer_table_relations_personnages(gn)
@@ -1242,13 +1239,12 @@ def mettre_a_jour_champs(gn: GN):
     if hasattr(gn, 'dossier_evenements'):
         delattr(gn, 'dossier_evenements')
 
-    for conteneur in list(gn.dictPJs.values()) \
-                     + list(gn.dictPNJs.values()) \
-                     + list(gn.intrigues.values()):
-        for scene in conteneur.scenes:
-            if not hasattr(scene, 'date_absolue'):
-                scene.date_absolue = None
-            # print(f"la scène {scene.titre}, dateba absolue = {scene.date_absolue}")
+    for scene in gn.lister_toutes_les_scenes():
+        if not hasattr(scene, 'date_absolue'):
+            scene.date_absolue = None
+        # print(f"la scène {scene.titre}, dateba absolue = {scene.date_absolue}")
+        if hasattr(scene, 'niveau'):
+            delattr(scene, 'niveau')
 
     for intrigue in gn.intrigues.values():
         for objet in intrigue.objets:
@@ -1261,9 +1257,7 @@ def mettre_a_jour_champs(gn: GN):
         if not hasattr(intrigue, 'commentaires'):
             intrigue.commentaires = []
 
-    for conteneur in list(gn.dictPJs.values()) \
-                     + list(gn.dictPNJs.values()) \
-                     + list(gn.intrigues.values()):
+    for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
         for role in conteneur.rolesContenus.values():
             print(f"clefs (2) pour {role.nom} = {vars(role).keys()}")
             if hasattr(role, 'perimetreIntervention'):
