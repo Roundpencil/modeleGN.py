@@ -67,6 +67,7 @@ class ConteneurDeScene:
         self.lastFileEdit = derniere_edition_fichier
         self.modifie_par = ""
         self.url = url
+        self.nom = "Conteneur sans nom"
 
     def texte_error_log(self):
         return str(self.error_log)
