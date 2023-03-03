@@ -15,17 +15,20 @@ import csv
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 
 # à faire - rapide
+#todo : ajouter les boutons pour contrôler la table des relations
 
 # à faire - plus long
+# todo : gestion des évènement
+#  faire écrire la partie de rebuild links qui va chercher les évènements et les lie à des intrigues
+#  + ajoute aux persos / roles (PJ et PNJs) de l'intrigue les bonnes infos
+#  + un tableau récap des évènements
+#  + une focntion de clear ( ;( ) pour permettre de nettoyer entre deux associations
 
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
 # todo : faire évoluer grille objets avec et le fait qu'on a trouvé un lien vers une fiche objet (via le code)
 
-# todo : gestion des évènement
-#  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
-#  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
-#  ne pas oublier qu'un évènement se rattache à un tringue, et donc à des roles, PAS DES PERSOS
+
 
 
 # confort / logique
@@ -65,8 +68,8 @@ def charger_fichier_init(fichier_init: str):
                                         if key.startswith("id_dossier_pnjs")]
 
         dict_config['dossiers_evenements'] = [config.get("Optionnels", key)
-                                        for key in config.options("Optionnels")
-                                        if key.startswith("id_dossiers_evenements")]
+                                              for key in config.options("Optionnels")
+                                              if key.startswith("id_dossiers_evenements")]
 
         dict_config['id_factions'] = config.get('Optionnels', 'id_factions', fallback=None)
 
@@ -107,7 +110,7 @@ def lire_fichier_pnjs(nom_fichier: str):
     to_return = []
     try:
         with open(nom_fichier, 'r', encoding="utf-8") as f:
-        # with open(nom_fichier, 'r') as f:
+            # with open(nom_fichier, 'r') as f:
             for ligne in f:
                 nom = ligne.strip()
                 to_return.append(nom)
@@ -126,7 +129,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          generer_fichiers_pnjs: bool = True, aides_de_jeu: bool = True,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
                          table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
-                         table_commentaires: bool = True,
+                         table_commentaires: bool = True, table_relations: bool = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, verbal: bool = False):
     if api_doc is None or api_sheets is None or api_drive is None:
@@ -175,11 +178,11 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                            api_doc=api_doc,
                                            singletest=singletest_perso,
                                            fast=fast_persos,
-                                           verbal=verbal) #todo : ajouter les options de lecture dans la GUI
+                                           verbal=verbal)  # todo : ajouter les options de lecture dans la GUI
     extraireTexteDeGoogleDoc.extraire_evenements(mon_gn,
-                                           api_drive=api_drive,
-                                           api_doc=api_doc,
-                                           ) #todo : ajouter les options de lecture dans la GUI
+                                                 api_drive=api_drive,
+                                                 api_doc=api_doc,
+                                                 )  # todo : ajouter les options de lecture dans la GUI
 
     liste_orgas = None
     liste_noms_pnjs = None
@@ -266,6 +269,10 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     print("******* table commentaires *******************")
     if table_commentaires:
         ecrire_table_commentaires(mon_gn, api_drive, api_doc, api_sheets)
+
+    print("********** table relations *******************")
+    if table_relations:
+        ecrire_table_relation(mon_gn, api_drive, api_sheets)
 
     print("******* aides de jeu *************************")
     if aides_de_jeu:
@@ -545,6 +552,7 @@ def generer_liste_pnj_dedup_avec_perso(mon_gn, threshold=89, verbal=False):
         for v in noms_dedup:
             print(v)
     return noms_dedup, persos_dedup
+
 
 def generer_liste_pnj_dedup(mon_gn, threshold=89, verbal=False):
     to_return, _ = generer_liste_pnj_dedup_avec_perso(mon_gn, threshold, verbal)
@@ -845,7 +853,6 @@ def generer_table_chrono_scenes(mon_gn: GN):
     #         logging.debug(f"\t \t \t nom personnage = {role.personnage.nom}")
 
     for scene in toutes_scenes:
-
         to_return.append([
             scene.get_formatted_date(mon_gn.date_gn),
             scene.conteneur.nom,
@@ -987,12 +994,12 @@ def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets):
                                                         feuille="Suggestion liste dedupliquée")
     extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, file_id)
 
+
 def generer_table_pnj_dedupliquee(mon_gn: GN):
     # table_pnj = [["Nom"]]
     # table_pnj.extend([nom] for nom in generer_liste_pnj_dedup(mon_gn))
 
     table_pnj = [["Nom", "Déjà présent avec exactement ce nom?", "Actuellement affecté à"]]
-
 
     noms_actuels = mon_gn.noms_pnjs()
     noms_dedup, persos_affectes = generer_liste_pnj_dedup_avec_perso(mon_gn)
@@ -1038,12 +1045,12 @@ def ecrire_texte_info(mon_GN: GN, api_doc, api_drive):
     )
 
 
-def generer_table_commentaires(gn: GN, prefixe = None):
+def generer_table_commentaires(gn: GN, prefixe=None):
     # Get a list of all unique authors and destinataires
     intrigues = gn.intrigues.values()
     destinataires = set()
     dict_auteur_intrigues = {}  # [auteur][intrigue] > commentaires, utilisé our générer le doc complet
-    dict_intrigues_destinataires = {} #[intrigue] > liste noms destinataires
+    dict_intrigues_destinataires = {}  # [intrigue] > liste noms destinataires
 
     # for intrigue in intrigues:
     #     for commentaire in intrigue.commentaires:
@@ -1080,7 +1087,6 @@ def generer_table_commentaires(gn: GN, prefixe = None):
                     row[column_index + 1] = "x"
             dict_auteurs_tableaux[auteur].append(row)
 
-
     # Formatter un talbeua global intrigues > commentaires pour qui
     tableau_global = [["Intrigue"] + list(destinataires)]
     for nom_intrigue in dict_intrigues_destinataires:
@@ -1091,9 +1097,7 @@ def generer_table_commentaires(gn: GN, prefixe = None):
             row[column_index + 1] = "x"
         tableau_global.append(row)
 
-
-
-    if prefixe is not None :
+    if prefixe is not None:
         # Write the 2D list to a CSV file
         for auteur in dict_auteurs_tableaux:
             with open(f"{prefixe} comment_table_{auteur}.csv", "w", newline="") as f:
@@ -1140,6 +1144,76 @@ def ecrire_table_commentaires(gn: GN, api_drive, api_doc, api_sheets):
     extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, file_id)
 
 
+def generer_table_relations_personnages(gn):
+    tous_les_persos = gn.dictPJs.values()
+
+    dict_relations_nature = {}  # [perso.nom][nom corelationnaire] > [] de natures de relations
+    for perso in tous_les_persos:
+        for role in perso.roles:
+            for relation in role.relations:
+                if perso.nom not in dict_relations_nature:
+                    dict_relations_nature[perso.nom] = {}
+                partenaires, nature_relation, reciproque = relation.trouver_partenaires(role)
+                for corelationnaire in partenaires:
+                    if corelationnaire.personnage is not None:
+                        texte_role = corelationnaire.personnage.nom
+                    else:
+                        texte_role = f"{corelationnaire.nom} (pas de perso affecté)"
+                    if texte_role not in dict_relations_nature[perso.nom]:
+                        dict_relations_nature[perso.nom][texte_role] = []
+                    dict_relations_nature[perso.nom][texte_role].append(nature_relation)
+
+    liste_partenaires = set()
+    for value in dict_relations_nature.values():
+        for nom_partenaire in value:
+            liste_partenaires.add(nom_partenaire)
+
+    liste_partenaires = list(liste_partenaires)
+    liste_persos = list(dict_relations_nature)
+
+    print(liste_persos)
+    print(liste_partenaires)
+
+    # préparation des fonctions d'indexation
+    partenaire_to_index = {c: i for i, c in enumerate(liste_partenaires)}
+    perso_to_index = {p: i for i, p in enumerate(liste_persos)}
+
+    # Initialize the matrix with empty values
+    nb_personnages = len(liste_persos)
+    nb_partenaires = len(liste_partenaires)
+
+    # matrix = [['' for j in range(num_stories + 1)] for i in range(num_dates + 1)]
+    matrix = [['' for _ in range(nb_partenaires + 1)] for _ in range(nb_personnages + 1)]
+
+    # remplir la première ligne avec les noms des partenaires
+    for j, partenaire in enumerate(liste_partenaires):
+        matrix[0][j + 1] = partenaire
+
+    # remplir la première colonne avec le nom de tous les persos
+    for i, perso in enumerate(liste_persos):
+        matrix[i + 1][0] = perso
+
+    # remplir la table
+    for perso in dict_relations_nature:
+        for partenaire in dict_relations_nature[perso]:
+            i = perso_to_index[perso]
+            j = partenaire_to_index[partenaire]
+            print(f"relations entre {perso} et {partenaire} : {dict_relations_nature[perso][partenaire]}")
+            matrix[i + 1][j + 1] = '\n'.join(dict_relations_nature[perso][partenaire])
+
+    return matrix
+
+def ecrire_table_relation(gn: GN, api_drive, api_sheets):
+    parent = gn.dossier_outputs_drive
+    tab_relations = generer_table_relations_personnages(gn)
+
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- table des relations'
+
+    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tab_relations, file_id)
+
+
 def mettre_a_jour_champs(gn: GN):
     # #mise à jour des errors logs
     # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
@@ -1165,9 +1239,8 @@ def mettre_a_jour_champs(gn: GN):
         gn.evenements = {}
     if not hasattr(gn, 'dossiers_evenements'):
         gn.dossiers_evenements = []
-    if not hasattr(gn, 'dossier_evenements'):
+    if hasattr(gn, 'dossier_evenements'):
         delattr(gn, 'dossier_evenements')
-
 
     for conteneur in list(gn.dictPJs.values()) \
                      + list(gn.dictPNJs.values()) \

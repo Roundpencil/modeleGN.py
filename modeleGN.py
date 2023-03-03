@@ -397,7 +397,7 @@ class Relation:
         self.est_reciproque = True
 
     @staticmethod
-    def creer_relation_bilaterale(perso_a, perso_b, description_a, description_b=None):
+    def creer_relation_bilaterale(perso_a: Role, perso_b: Role, description_a, description_b=None):
         to_return = Relation()
         to_return.persos_vue_relation = {
             perso_a: description_a,
@@ -408,7 +408,7 @@ class Relation:
         return to_return
 
     @staticmethod
-    def creer_relation_multilaterale(persos, description):
+    def creer_relation_multilaterale(persos: list[Role], description):
         to_return = Relation()
         for perso in persos:
             to_return.persos_vue_relation[perso] = description
