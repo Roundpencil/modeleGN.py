@@ -882,12 +882,14 @@ def generer_tableau_recap_persos(gn: GN):
     # to_return = []
     to_return = [["Nom Perso", "Orga Référent", "Points", "Intrigues"]]
     for perso in gn.dictPJs.values():
-        table_perso = [perso.nom]
-        table_perso += [perso.orgaReferent]
-        table_perso += [perso.sommer_pip()]
-        for role in perso.roles:
-            table_perso += [role.conteneur.nom]
+        table_perso = [role.conteneur.nom for role in perso.roles]
+        # for role in perso.roles:
+        #     table_perso += [role.conteneur.nom]
+        table_perso = sorted(table_perso)
+
+        table_perso = [perso.nom] + [perso.orgaReferent] + [perso.sommer_pip()] + table_perso
         to_return.append(table_perso)
+
     return to_return
 
 
