@@ -19,10 +19,11 @@ import csv
 
 # à faire - plus long
 # todo : gestion des évènement
-#  faire écrire la partie de rebuild links qui va chercher les évènements et les lie à des intrigues
+#   écrire la partie de rebuild links qui va chercher les évènements et les lie à des intrigues
 #  + ajoute aux persos / roles (PJ et PNJs) de l'intrigue les bonnes infos
+#  les focntion de clearing qui permettent de nettoyer les ajouts intrigues / pjs / pnjs
 #  + un tableau récap des évènements
-#  + une focntion de clear ( ;( ) pour permettre de nettoyer entre deux associations
+#  l'ajout dans les fiches de persos et PNJs des infos issues des évènements
 
 # todo : quand on loade le fichier faction, clearer les factions
 #  pour prendre en compte les suppressions entre deux loading
@@ -31,6 +32,7 @@ import csv
 
 # todo : faire évoluer grille objets avec et le fait qu'on a trouvé un lien vers une fiche objet (via le code)
 
+# todo créer un objet qui stoque les paramètres du GN et les passer pour simplifier les créations
 
 # confort / logique
 # todo : refaire version console

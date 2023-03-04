@@ -39,26 +39,12 @@ def string_type_pj(type_pj: TypePerso):
                  TypePerso.EST_PNJ_TEMPORAIRE: "PNJ Temporaire"}
     return grille_pj.get(type_pj, f"Type de PJ inconnu ({type_pj})")
 
-    # if type_pj == TypePerso.EST_PJ:
-    #     return "PJ"
-    # if type_pj == TypePerso.EST_REROLL:
-    #     return "Reroll"
-    # if type_pj == TypePerso.EST_PNJ_INFILTRE:
-    #     return "PNJ Infiltré"
-    # if type_pj == TypePerso.EST_PNJ_PERMANENT:
-    #     return "PNJ Permanent"
-    # if type_pj == TypePerso.EST_PNJ_TEMPORAIRE:
-    #     return "PNJ Temporaire"
-    # if type_pj == TypePerso.EST_PNJ_HORS_JEU:
-    #     return "PNJ Hors Jeu"
-    # return f"Type de PJ inconnu ({type_pj})"
-
 
 # une superclasse qui représente un fichier qui content des scènes, avec es rtôles associés
 # donc y compris les propriétés du fichier où elle se trouve (notamment date de changement)
 # Attention, personnage hérite de cette classe, et contient donc deu types de rôles :
-# ceux qui sont liés au personnes (roles)
-# et la contenance de ceux qui sont associées à ses propres scènes (via cette classe, donc)
+# ceux qui sont liés aux personnes (roles)
+# et la contenance de ceux qui sont associés à ses propres scènes (via cette classe, donc)
 class ConteneurDeScene:
     def __init__(self, derniere_edition_fichier, url):
         self.scenes = set()
@@ -342,6 +328,7 @@ class Intrigue(ConteneurDeScene):
         self.objets = set()
         self.commentaires = []
         self.codes_evenements_raw = []
+        self.evenements = set()
 
     def __str__(self):
         return self.nom
@@ -814,12 +801,76 @@ class GN:
     # et les fonctions d'accélération de ré-importations
 
     def rebuild_links(self, verbal=False):
+        # todo ca se passe ici
         self.clear_all_associations()
         self.update_oldest_update()
         self.ajouter_roles_issus_de_factions()
         self.associer_pnj_a_roles()
-        self.associer_pj_a_roles(verbal)
+        self.associer_pj_a_roles()
+        self.lier_les_evenements_aux_intrigues()
         self.trouver_roles_sans_scenes()
+
+    def lier_les_evenements_aux_intrigues(self, seuil_nom_roles = 70):
+        dict_ref_evenement = {evt.code_evenement: evt for evt in self.evenements}
+        for intrigue in self.intrigues.values():
+            for code_evt in intrigue.codes_evenements_raw:
+                mon_evenement = dict_ref_evenement.get(code_evt)
+                if mon_evenement is None:
+                    texte_erreur = f"impossible de trouver une fiche évènement pour le code {code_evt}"
+                    intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                      texte_erreur,
+                                                      ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
+                                                      )
+                    continue
+                intrigue.evenements.add(mon_evenement)
+
+                noms_roles = list(intrigue.rolesContenus.keys())
+
+                # todo ajouter liens avec persos (roles)
+                # todo : ajouter liens avec pnjs (roles)
+                for brief in mon_evenement.briefs_pnj:
+                    score = process.extractOne(brief.nom_pnj, noms_roles)
+                    #todo : continuer et gérer les score faibles
+
+                # class BriefPNJPourEvenement:
+                #     def __init__(self, nom_pnj="", costumes_et_accessoires="", implication="", situation_de_depart=""):
+                #         self.nom_pnj = nom_pnj
+                #         self.pnj = None
+                #         self.costumes_et_accessoires = costumes_et_accessoires
+                #         self.implication = implication
+                #         self.situation_de_depart = situation_de_depart
+                # todo : créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches
+
+            # self.interventions = []
+            # self.briefs_pnj = []
+            # self.infos_pj = []
+            # self.infos_factions = []
+
+            # class InfoPJPourEvenement:
+                #     def __init__(self, nom_pj="", infos_a_fournir=""):
+                #         self.nom_pj = nom_pj
+                #         self.pj = None
+                #         self.infos_a_fournir = infos_a_fournir
+                #
+                # class InfoFactionsPourEvenement:
+                #     def __init__(self, nom_faction="", infos_a_fournir=""):
+                #         self.nom_faction = nom_faction
+                #         self.faction = None
+                #         self.infos_a_fournir = infos_a_fournir
+                #
+                # class Intervention:
+                #     def __init__(self, jour=None, heure=None, pj_impliques: list[str] = None,
+                #                  pnj_impliques: list[str] = None,
+                #                  description=""):
+                #         if pj_impliques is None:
+                #             pj_impliques = []
+                #         if pnj_impliques is None:
+                #             pnj_impliques = []
+                #         self.jour = jour
+                #         self.heure = heure
+                #         self.pj_impliques = pj_impliques
+                #         self.pnj_impliques = pnj_impliques
+                #         self.description = description
 
     def trouver_roles_sans_scenes(self, verbal=False, seuil=70):
         # nettoyer tous les fichiers erreurs:
@@ -1008,6 +1059,7 @@ class ErreurManager:
         FACTION = 2
         ASSOCIATION_AUTO = 3
         PERSOS_SANS_SCENE = 4
+        ASSOCIATION_EVENEMENTS = 5
 
     class ErreurAssociation:
         def __init__(self, niveau, texte, genere_par):
@@ -1131,12 +1183,13 @@ class Evenement:
 
 
 class BriefPNJPourEvenement:
-    def __init__(self, nom_pnj="", costumes_et_accessoires="", implication="", situation_de_depart=""):
+    def __init__(self, nom_pnj, evenement, costumes_et_accessoires="", implication="", situation_de_depart=""):
         self.nom_pnj = nom_pnj
         self.pnj = None
         self.costumes_et_accessoires = costumes_et_accessoires
         self.implication = implication
         self.situation_de_depart = situation_de_depart
+        self.evenement = evenement
 
 
 class InfoPJPourEvenement:

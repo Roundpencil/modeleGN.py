@@ -399,7 +399,7 @@ def intrigue_scenesfx(texte: str, intrigue: Intrigue, texte_label: str):
         logging.debug(f" Problème avec le tableau évènement : {tableau_evenements}")
         return
 
-    codes_raw = [ligne[0] for ligne in tableau_evenements]
+    codes_raw = [ligne[0].strip() for ligne in tableau_evenements]
     intrigue.codes_evenements_raw = codes_raw
 
 def intrigue_timeline(texte: str, intrigue: Intrigue, texte_label: str):
@@ -870,15 +870,15 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
         return
 
     dict_fiche = dict(tableau_fiche)
-    current_evenement.code_evenement = dict_fiche.get("Code de l'évènement", "")
-    current_evenement.etat = dict_fiche.get("État", "")
-    current_evenement.referent = dict_fiche.get("Référent", "")
-    current_evenement.intrigue_liee = dict_fiche.get("Intrigue liée", "")
-    current_evenement.lieu = dict_fiche.get("Lieu", "")
-    current_evenement.date = dict_fiche.get('Jour, au format “J1”, “J2”, etc.', "")
-    current_evenement.heure_de_demarrage = dict_fiche.get("Heure de démarrage", "")
-    current_evenement.declencheur = dict_fiche.get("Déclencheur", "")
-    current_evenement.consequences_evenement = dict_fiche.get("Conséquences évènement", "")
+    current_evenement.code_evenement = dict_fiche.get("Code de l'évènement", "").strip()
+    current_evenement.etat = dict_fiche.get("État", "").strip()
+    current_evenement.referent = dict_fiche.get("Référent", "").strip()
+    current_evenement.intrigue_liee = dict_fiche.get("Intrigue liée", "").strip()
+    current_evenement.lieu = dict_fiche.get("Lieu", "").strip()
+    current_evenement.date = dict_fiche.get('Jour, au format “J1”, “J2”, etc.', "").strip()
+    current_evenement.heure_de_demarrage = dict_fiche.get("Heure de démarrage", "").strip()
+    current_evenement.declencheur = dict_fiche.get("Déclencheur", "").strip()
+    current_evenement.consequences_evenement = dict_fiche.get("Conséquences évènement", "").strip()
 
 
 def evenement_lire_synopsis(texte: str, current_evenement: Evenement, texte_label: str):
@@ -899,9 +899,11 @@ def evenement_lire_briefs(texte: str, current_evenement: Evenement, texte_label:
 
     for ligne in tableau_briefs:
         current_brief = BriefPNJPourEvenement(nom_pnj=ligne[0],
+                                              evenement=current_evenement,
                                               costumes_et_accessoires=ligne[1],
                                               implication=ligne[2],
-                                              situation_de_depart=ligne[3])
+                                              situation_de_depart=ligne[3]
+                                              )
         current_evenement.briefs_pnj.append(current_brief)
 
 
