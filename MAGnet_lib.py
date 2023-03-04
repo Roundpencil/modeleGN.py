@@ -20,9 +20,11 @@ import csv
 # à faire - plus long
 # todo : gestion des évènement
 #   écrire la partie de rebuild links qui va chercher les évènements et les lie à des intrigues
-#  + ajoute aux persos / roles (PJ et PNJs) de l'intrigue les bonnes infos
+#  + ajoute aux persos / roles (PJ et PNJs) de l'intrigue les bonnes infos*
+#  gérer les objets et les factions, non pris en cahrge actuellement
 #  les focntion de clearing qui permettent de nettoyer les ajouts intrigues / pjs / pnjs
 #  + un tableau récap des évènements
+#  créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches
 #  l'ajout dans les fiches de persos et PNJs des infos issues des évènements
 
 # todo : quand on loade le fichier faction, clearer les factions
