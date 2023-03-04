@@ -1210,7 +1210,7 @@ class Evenement:
 
 
 class BriefPNJPourEvenement:
-    def __init__(self, nom_pnj, evenement, costumes_et_accessoires="", implication="", situation_de_depart=""):
+    def __init__(self, nom_pnj, evenement :Evenement, costumes_et_accessoires="", implication="", situation_de_depart=""):
         self.nom_pnj = nom_pnj
         self.pnj = None
         self.costumes_et_accessoires = costumes_et_accessoires
@@ -1220,18 +1220,19 @@ class BriefPNJPourEvenement:
 
 
 class InfoPJPourEvenement:
-    def __init__(self, nom_pj="", infos_a_fournir=""):
+    def __init__(self, nom_pj, evenement :Evenement, infos_a_fournir=""):
         self.nom_pj = nom_pj
         self.pj = None
         self.infos_a_fournir = infos_a_fournir
+        self.evenement = evenement
 
 
 class InfoFactionsPourEvenement:
-    def __init__(self, nom_faction="", infos_a_fournir=""):
+    def __init__(self, nom_faction, evenement :Evenement,  infos_a_fournir=""):
         self.nom_faction = nom_faction
         self.faction = None
         self.infos_a_fournir = infos_a_fournir
-
+        self.evenement = evenement
 
 class ObjetDansEvenement:
     def __init__(self, code: str, description: str, commence: str, termine: str):
@@ -1245,7 +1246,7 @@ class ObjetDansEvenement:
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
 class Intervention:
-    def __init__(self, jour=None, heure=None, pj_impliques: list[str] = None, pnj_impliques: list[str] = None,
+    def __init__(self, evenement :Evenement, jour=None, heure=None, pj_impliques: list[str] = None, pnj_impliques: list[str] = None,
                  description=""):
         if pj_impliques is None:
             pj_impliques = []
@@ -1256,6 +1257,7 @@ class Intervention:
         self.pj_impliques = pj_impliques
         self.pnj_impliques = pnj_impliques
         self.description = description
+        self.evenement = evenement
 
 
 class Commentaire:

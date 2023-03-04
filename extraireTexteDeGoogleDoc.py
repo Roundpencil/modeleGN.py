@@ -915,7 +915,8 @@ def evenement_lire_infos_pj(texte: str, current_evenement: Evenement, texte_labe
         return
     for ligne in tableau_pjs:
         info_pj = InfoPJPourEvenement(nom_pj=ligne[0],
-                                      infos_a_fournir=ligne[1])
+                                      infos_a_fournir=ligne[1],
+                                      evenement=current_evenement)
         current_evenement.infos_pj.append(info_pj)
 
 
@@ -926,7 +927,8 @@ def evenement_infos_factions(texte: str, current_evenement: Evenement, texte_lab
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_factions}")
         return
     for ligne in tableau_factions:
-        info_faction = InfoFactionsPourEvenement(nom_faction=ligne[0], infos_a_fournir=ligne[1])
+        info_faction = InfoFactionsPourEvenement(nom_faction=ligne[0], infos_a_fournir=ligne[1],
+                                                 evenement=current_evenement)
         current_evenement.infos_factions.append(info_faction)
 
 
@@ -957,7 +959,8 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
                                     heure=ligne[1],
                                     pnj_impliques=ligne[2].split(','),
                                     pj_impliques=ligne[3].split(','),
-                                    description=ligne[4]
+                                    description=ligne[4],
+                                    evenement=current_evenement
                                     )
         current_evenement.interventions.append(intervention)
 
