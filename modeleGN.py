@@ -842,6 +842,7 @@ class GN:
                                                   ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
                                                   )
                     intrigue.rolesContenus[score[0]].briefs_pnj_pour_evenement.add(brief)
+                    brief.pnj = intrigue.rolesContenus[score[0]]
 
                 for info_pj in mon_evenement.infos_pj:
                     score = process.extractOne(info_pj.nom_pj, noms_roles_pjs)
@@ -854,6 +855,7 @@ class GN:
                                                   ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
                                                   )
                     intrigue.rolesContenus[score[0]].infos_pj_pour_evenement.add(info_pj)
+                    info_pj.pj = intrigue.rolesContenus[score[0]]
 
                 for intervention in mon_evenement.interventions:
 
@@ -872,6 +874,7 @@ class GN:
                                                       ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
                                                       )
                         intrigue.rolesContenus[score[0]].interventions[mon_evenement] = intervention
+                        intervention.liste_pj_impliques.add(intrigue.rolesContenus[score[0]])
 
                     for nom_pnj in noms_pnj_impliques:
                         score = process.extractOne(nom_pnj, noms_roles_pnjs)
@@ -885,6 +888,7 @@ class GN:
                                                       ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
                                                       )
                         intrigue.rolesContenus[score[0]].interventions[mon_evenement] = intervention
+                        intervention.liste_pnj_impliques.add(intrigue.rolesContenus[score[0]])
 
                 for info_faction in mon_evenement.infos_factions:
                     score_faction = process.extractOne(info_faction.nom_faction, self.factions.keys())
