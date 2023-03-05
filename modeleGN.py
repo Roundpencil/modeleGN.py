@@ -263,9 +263,9 @@ class Role:
         self.perimetre_intervention = perimetre_intervention
         self.issu_dune_faction = issu_dune_faction
         self.relations = set()
-        self.briefs_pnj_pour_evenement = {} #evenement, brief
-        self.infos_pj_pour_evenement = {} #evenement, brief
-        self.interventions = {} #evenement, intervention
+        self.briefs_pnj_pour_evenement = {}  # evenement, brief
+        self.infos_pj_pour_evenement = {}  # evenement, brief
+        self.interventions = {}  # evenement, intervention
 
     def __str__(self):
         to_return = ""
@@ -814,7 +814,7 @@ class GN:
         self.associer_pj_a_roles()
         self.trouver_roles_sans_scenes()
 
-    def lier_les_evenements_aux_intrigues(self, seuil_nom_roles: int=70, seuil_noms_factions: int=70):
+    def lier_les_evenements_aux_intrigues(self, seuil_nom_roles: int = 70, seuil_noms_factions: int = 70):
         dict_ref_evenement = {evt.code_evenement: evt for evt in self.evenements.values()}
         for intrigue in self.intrigues.values():
             for code_evt in intrigue.codes_evenements_raw:
@@ -903,7 +903,6 @@ class GN:
                                                   )
                     self.factions[score_faction[0]].infos_pour_evenements.add(info_faction)
 
-
     def trouver_roles_sans_scenes(self, verbal=False, seuil=70):
         # nettoyer tous les fichiers erreurs:
         for intrigue in self.intrigues.values():
@@ -955,8 +954,8 @@ class GN:
                     logging.debug(f"score_faction = {score_faction}")
                     if score_faction[1] < seuil_nom_faction:
                         texte_erreur = f"la faction {nom_faction} " \
-                                           f"a été associée à {score_faction[0]} " \
-                                           f"à seulement {score_faction[1]}% de confiance"
+                                       f"a été associée à {score_faction[0]} " \
+                                       f"à seulement {score_faction[1]}% de confiance"
                         intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
                                                           texte_erreur,
                                                           ErreurManager.ORIGINES.FACTION)
@@ -970,8 +969,8 @@ class GN:
                         score_role = process.extractOne(personnage_dans_faction.nom, intrigue.rolesContenus.keys())
                         if score_role[1] < seuil_reconciliation_role:
                             texte_info = f"{personnage_dans_faction.nom} " \
-                                             f"a été ajouté via la faction {nom_faction} " \
-                                             f"pour la scène {scene.titre} \n"
+                                         f"a été ajouté via la faction {nom_faction} " \
+                                         f"pour la scène {scene.titre} \n"
                             intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.INFO,
                                                               texte_info,
                                                               ErreurManager.ORIGINES.FACTION
@@ -1186,8 +1185,10 @@ class Evenement:
         # todo : à écrire
         pass
 
+
 class BriefPNJPourEvenement:
-    def __init__(self, nom_pnj, evenement :Evenement, costumes_et_accessoires="", implication="", situation_de_depart=""):
+    def __init__(self, nom_pnj, evenement: Evenement, costumes_et_accessoires="", implication="",
+                 situation_de_depart=""):
         self.nom_pnj = nom_pnj
         self.pnj = None
         self.costumes_et_accessoires = costumes_et_accessoires
@@ -1197,7 +1198,7 @@ class BriefPNJPourEvenement:
 
 
 class InfoPJPourEvenement:
-    def __init__(self, nom_pj, evenement :Evenement, infos_a_fournir=""):
+    def __init__(self, nom_pj, evenement: Evenement, infos_a_fournir=""):
         self.nom_pj = nom_pj
         self.pj = None
         self.infos_a_fournir = infos_a_fournir
@@ -1205,11 +1206,12 @@ class InfoPJPourEvenement:
 
 
 class InfoFactionsPourEvenement:
-    def __init__(self, nom_faction, evenement :Evenement,  infos_a_fournir=""):
+    def __init__(self, nom_faction, evenement: Evenement, infos_a_fournir=""):
         self.nom_faction = nom_faction
         self.faction = None
         self.infos_a_fournir = infos_a_fournir
         self.evenement = evenement
+
 
 class ObjetDansEvenement:
     def __init__(self, code: str, description: str, commence: str, termine: str):
@@ -1223,7 +1225,8 @@ class ObjetDansEvenement:
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
 class Intervention:
-    def __init__(self, evenement :Evenement, jour=None, heure=None, pj_impliques: list[str] = None, pnj_impliques: list[str] = None,
+    def __init__(self, evenement: Evenement, jour=None, heure=None, pj_impliques: list[str] = None,
+                 pnj_impliques: list[str] = None,
                  description=""):
         if pj_impliques is None:
             pj_impliques = []
