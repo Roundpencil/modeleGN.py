@@ -999,7 +999,8 @@ class GN:
                                                                            info_pour_evenements.evenement,
                                                                            info_pour_evenements.infos_a_fournir
                                                                            )
-                            role_a_ajouter.infos_pj_pour_evenement.add(info_evenement_pour_role)
+                            role_a_ajouter.infos_pj_pour_evenement[info_pour_evenements.evenement] \
+                                = info_evenement_pour_role
 
     # utilisée pour préparer l'association roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
