@@ -19,15 +19,13 @@ import csv
 
 # à faire - plus long
 # todo : gestion des évènement
-#  gérer les objets et les factions, non pris en cahrge actuellement
-#  les focntion de clearing qui permettent de nettoyer les ajouts intrigues / pjs / pnjs
-#  générer un tableau récap des évènements
+#  les focntion de clearing lors du rebuild qui permettent de nettoyer les ajouts intrigues / pjs / pnjs / factions
 #  créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches
 #  l'ajout dans les fiches de persos et PNJs des infos issues des évènements
+#  gérer les objets et les factions, non pris en cahrge actuellement
 
-# todo : dans la récupération des faction,
-#  reconstruire une info sur les évèenemnts asociés à la factions pour les roles qu'on crée en intermédiaires
-#  pour propager les infos de la faction
+# todo ajouter un bouton qui permet de demadner un fichier des évènements
+
 
 # todo : quand on loade le fichier faction, clearer les factions
 #  pour prendre en compte les suppressions entre deux loading
@@ -37,6 +35,10 @@ import csv
 # todo : faire évoluer grille objets avec et le fait qu'on a trouvé un lien vers une fiche objet (via le code)
 
 # todo créer un objet qui stoque les paramètres du GN et les passer pour simplifier les créations
+
+
+# todo : ajouter un parametre avec une méthode  pour permettre d'envoyer des infos
+#  à une barre de progression (rien par défaut) et un champ label (print par dééfaut)
 
 # confort / logique
 # todo : refaire version console
@@ -136,7 +138,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          generer_fichiers_pnjs: bool = True, aides_de_jeu: bool = True,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
                          table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
-                         table_commentaires: bool = True, table_relations: bool = True,
+                         table_commentaires: bool = True, table_relations: bool = True, table_evenements: bool = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, verbal: bool = False):
     if api_doc is None or api_sheets is None or api_drive is None:
@@ -284,6 +286,11 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     print("******* aides de jeu *************************")
     if aides_de_jeu:
         ecrire_texte_info(mon_gn, api_doc, api_drive)
+
+    print("******* table des évènements ******************")
+
+    if table_evenements:
+        ecrire_table_evenements(mon_gn, api_drive, api_sheets)
 
     print("******* fin de la génération  ****************")
 
@@ -1218,6 +1225,35 @@ def ecrire_table_relation(gn: GN, api_drive, api_sheets):
     file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tab_relations, file_id)
 
+def generer_table_evenements(gn: GN):
+    # Jour / heure / lieu / description / pnj impliqués (costume  implication débute)  / pj impliqués /
+    toutes_interventions = []
+    for evenement in gn.evenements.values():
+        toutes_interventions.extend(evenement.interventions)
+
+    toutes_interventions = sorted(toutes_interventions, key=lambda x: [x.jour][x.heure])
+
+    to_return = []
+    for intervention in toutes_interventions:
+        ligne = [intervention.jour,
+                 intervention.heure,
+                 intervention.evenement.lieu,
+                 intervention.description,
+                 intervention.get_str_pnjs_impliques_avec_infos(),
+                 intervention.get_pjs_impliques()]
+        to_return.append(ligne)
+
+    return to_return
+
+def ecrire_table_evenements(gn: GN, api_drive, api_sheets):
+    parent = gn.dossier_outputs_drive
+    tab_evenements = generer_table_evenements(gn)
+
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- table des evenements'
+
+    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tab_evenements, file_id)
 
 def mettre_a_jour_champs(gn: GN):
     # #mise à jour des errors logs

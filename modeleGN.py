@@ -815,7 +815,7 @@ class GN:
         self.trouver_roles_sans_scenes()
 
     def lier_les_evenements_aux_intrigues(self, seuil_nom_roles: int=70, seuil_noms_factions: int=70):
-        dict_ref_evenement = {evt.code_evenement: evt for evt in self.evenements}
+        dict_ref_evenement = {evt.code_evenement: evt for evt in self.evenements.values()}
         for intrigue in self.intrigues.values():
             for code_evt in intrigue.codes_evenements_raw:
                 mon_evenement = dict_ref_evenement.get(code_evt)
@@ -857,15 +857,9 @@ class GN:
                     intrigue.rolesContenus[score[0]].infos_pj_pour_evenement.add(info_pj)
 
                 for intervention in mon_evenement.interventions:
-                    if len(intervention.pj_impliques) == 0:
-                        pj_impliques = [info_pj.nom_pj for info_pj in mon_evenement.infos_pj]
-                    else:
-                        pj_impliques = intervention.pj_impliques
 
-                    if len(intervention.pnj_impliques) == 0:
-                        pnj_impliques = [brief.nom_pnj for brief in mon_evenement.briefs_pnj]
-                    else:
-                        pnj_impliques = intervention.pj_impliques
+                    pj_impliques = intervention.get_pjs_impliques()
+                    pnj_impliques = intervention.get_pnj_impliques()
 
                     for nom_pj in pj_impliques:
                         score = process.extractOne(nom_pj, noms_roles_pjs)
@@ -1226,6 +1220,9 @@ class Evenement:
             derniere_edition_date = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
         self.lastProcessing = derniere_edition_date
 
+    def clear(self):
+        # todo : à écrire
+        pass
 
 class BriefPNJPourEvenement:
     def __init__(self, nom_pnj, evenement :Evenement, costumes_et_accessoires="", implication="", situation_de_depart=""):
@@ -1276,6 +1273,26 @@ class Intervention:
         self.pnj_impliques = pnj_impliques
         self.description = description
         self.evenement = evenement
+
+        def get_pnjs_impliquesavec_infos(self):
+            pass
+
+    def get_pjs_impliques(self):
+        if len(self.pj_impliques) == 0:
+            return [info_pj.nom_pj for info_pj in self.evenement.infos_pj]
+        else:
+            return self.pj_impliques
+
+
+    def get_pnj_impliques(self):
+        if len(self.pnj_impliques) == 0:
+            return [brief.nom_pnj for brief in self.evenement.briefs_pnj]
+        else:
+            return self.pnj_impliques
+
+
+    def get_str_pnjs_impliques_avec_infos(self):
+        return self.get_pnj_impliques()
 
 
 class Commentaire:
