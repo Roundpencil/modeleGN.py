@@ -1231,7 +1231,7 @@ def generer_table_evenements(gn: GN):
     for evenement in gn.evenements.values():
         toutes_interventions.extend(evenement.interventions)
 
-    toutes_interventions = sorted(toutes_interventions, key=lambda x: [x.jour][x.heure])
+    toutes_interventions = sorted(toutes_interventions, key=lambda x: [x.jour, x.heure])
 
     to_return = []
     for intervention in toutes_interventions:
@@ -1239,8 +1239,9 @@ def generer_table_evenements(gn: GN):
                  intervention.heure,
                  intervention.evenement.lieu,
                  intervention.description,
-                 intervention.get_str_pnjs_impliques_avec_infos(),
-                 intervention.get_pjs_impliques()]
+                 '\n'.join(intervention.get_str_pnjs_impliques_avec_infos()), #todo : obtenir le nom complet du role avec la methode dédiée
+                 '\n'.join(intervention.get_pjs_impliques())
+                 ]
         to_return.append(ligne)
 
     return to_return
@@ -1300,6 +1301,8 @@ def mettre_a_jour_champs(gn: GN):
                 delattr(objet, 'commentaires')
         if not hasattr(intrigue, 'commentaires'):
             intrigue.commentaires = []
+        if not hasattr(intrigue, 'codes_evenements_raw'):
+            intrigue.codes_evenements_raw = []
 
     for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
         for role in conteneur.rolesContenus.values():

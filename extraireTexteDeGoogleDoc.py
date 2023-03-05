@@ -833,7 +833,7 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
         INFOS_PJS = "pj impliqués et informations à fournir"
         INFOS_FACTIONS = "factions impliquées et informations à fournir"
         OBJETS = "objets utilisés"
-        CHRONO = "chronologie de l'évènement"
+        CHRONO = "chronologie de l’évènement"
         AUTRES = "informations supplémentaires"
 
     labels = [e.value for e in Labels]
@@ -948,8 +948,11 @@ def evenement_lire_objets(texte: str, current_evenement: Evenement, texte_label:
 
 
 def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label: str):
+    # print(f"debug : texte chrono : {texte}")
     texte = retirer_premiere_ligne(texte)
     tableau_interventions, nb_colonnes = reconstituer_tableau(texte)
+    # print(f"debug : tableau interventions : {tableau_interventions}")
+
     if nb_colonnes != 5:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_interventions}")
         return
@@ -957,8 +960,8 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
     for ligne in tableau_interventions:
         intervention = Intervention(jour=ligne[0],
                                     heure=ligne[1],
-                                    pnj_impliques=ligne[2].split(','),
-                                    pj_impliques=ligne[3].split(','),
+                                    pnj_impliques=[nom.strip() for nom in ligne[2].split(',')],
+                                    pj_impliques=[nom.strip() for nom in ligne[3].split(',')],
                                     description=ligne[4],
                                     evenement=current_evenement
                                     )
@@ -967,7 +970,6 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
 
 def evenement_lire_autres(texte: str, current_evenement: Evenement, texte_label: str):
     logging.debug(f"balise {texte_label} non prise en charge = {texte}")
-    pass
 
 
 def retirer_premiere_ligne(texte: str):

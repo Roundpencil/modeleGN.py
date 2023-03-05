@@ -1278,17 +1278,16 @@ class Intervention:
             pass
 
     def get_pjs_impliques(self):
-        if len(self.pj_impliques) == 0:
-            return [info_pj.nom_pj for info_pj in self.evenement.infos_pj]
-        else:
+        if self.pj_impliques != ['']:
             return self.pj_impliques
-
+        return [info_pj.nom_pj for info_pj in self.evenement.infos_pj]
 
     def get_pnj_impliques(self):
-        if len(self.pnj_impliques) == 0:
-            return [brief.nom_pnj for brief in self.evenement.briefs_pnj]
-        else:
+        # print(f"debug : pour l'intervention {self.description}, len = {len(self.pnj_impliques)} / {self.pnj_impliques}")
+        if self.pnj_impliques != ['']:
             return self.pnj_impliques
+        # print(f"debug : self.evenement.briefs_pnj = {len(self.evenement.briefs_pnj)} {self.evenement.briefs_pnj}")
+        return [brief.nom_pnj for brief in self.evenement.briefs_pnj]
 
 
     def get_str_pnjs_impliques_avec_infos(self):
