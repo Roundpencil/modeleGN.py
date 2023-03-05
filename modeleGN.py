@@ -1270,7 +1270,8 @@ class Intervention:
         self.jour = jour
         self.heure = heure
         self.pj_impliques = pj_impliques
-        self.pnj_impliques = pnj_impliques
+        self.noms_pnj_impliques = pnj_impliques
+        self.liste_pnj_impliques = set()
         self.description = description
         self.evenement = evenement
 
@@ -1283,9 +1284,9 @@ class Intervention:
         return [info_pj.nom_pj for info_pj in self.evenement.infos_pj]
 
     def get_pnj_impliques(self):
-        # print(f"debug : pour l'intervention {self.description}, len = {len(self.pnj_impliques)} / {self.pnj_impliques}")
-        if self.pnj_impliques != ['']:
-            return self.pnj_impliques
+        # print(f"debug : pour l'intervention {self.description}, len = {len(self.noms_pnj_impliques)} / {self.noms_pnj_impliques}")
+        if self.noms_pnj_impliques != ['']:
+            return self.noms_pnj_impliques
         # print(f"debug : self.evenement.briefs_pnj = {len(self.evenement.briefs_pnj)} {self.evenement.briefs_pnj}")
         return [brief.nom_pnj for brief in self.evenement.briefs_pnj]
 
