@@ -1330,7 +1330,7 @@ def mettre_a_jour_champs(gn: GN):
                 else:
                     role.personnage = None
             if isinstance(role.interventions, set):
-                role.interventions = {}
+                role.interventions = {intervention.evenement:intervention for intervention in role.interventions}
 
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'infos'):

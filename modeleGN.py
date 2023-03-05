@@ -263,8 +263,8 @@ class Role:
         self.perimetre_intervention = perimetre_intervention
         self.issu_dune_faction = issu_dune_faction
         self.relations = set()
-        self.briefs_pnj_pour_evenement = set()
-        self.infos_pj_pour_evenement = set()
+        self.briefs_pnj_pour_evenement = {} #evenement, brief
+        self.infos_pj_pour_evenement = {} #evenement, brief
         self.interventions = {} #evenement, intervention
 
     def __str__(self):
@@ -1252,9 +1252,16 @@ class Intervention:
         # print(f"debug : self.evenement.briefs_pnj = {len(self.evenement.briefs_pnj)} {self.evenement.briefs_pnj}")
         return [brief.nom_pnj for brief in self.evenement.briefs_pnj]
 
-
     def get_str_pnjs_impliques_avec_infos(self):
-        return self.get_noms_pnj_impliques()
+        to_return = ""
+        for pnj in self.liste_pnj_impliques:
+            brief = pnj.briefs_pnj_pour_evenement[self.evenement]
+            to_return += f"{pnj.str_avec_perso} (" \
+                         f"{brief.costumes_et_accessoires} - " \
+                         f"{brief.implication} - " \
+                         f"{brief.situation_de_depart}" \
+                         f") \n"
+        return to_return
 
 
 class Commentaire:
