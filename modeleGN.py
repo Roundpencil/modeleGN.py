@@ -566,6 +566,7 @@ class Faction:
     def __init__(self, nom: str):
         self.nom = nom
         self.personnages = set()
+        self.infos_pour_evenements = set()
 
     def __str__(self):
         list_perso = [p.nom for p in self.personnages]
@@ -813,7 +814,7 @@ class GN:
         self.lier_les_evenements_aux_intrigues()
         self.trouver_roles_sans_scenes()
 
-    def lier_les_evenements_aux_intrigues(self, seuil_nom_roles=70):
+    def lier_les_evenements_aux_intrigues(self, seuil_nom_roles: int=70, seuil_noms_factions: int=70):
         dict_ref_evenement = {evt.code_evenement: evt for evt in self.evenements}
         for intrigue in self.intrigues.values():
             for code_evt in intrigue.codes_evenements_raw:
@@ -892,13 +893,20 @@ class GN:
                                                       )
                         intrigue.rolesContenus[score[0]].interventions.add(intervention)
 
+                for info_faction in mon_evenement.infos_factions:
+                    score_faction = process.extractOne(info_faction.nom_faction, self.factions.keys())
+                    if score_faction[1] < seuil_noms_factions:
+                        texte_erreur = f"Le role ({score_faction[1]}) a été associé " \
+                                       f"à la faction {info_faction.nom_faction} " \
+                                       f"dans l'évènement {mon_evenement.nom_evenement} " \
+                                       f"avec une confiance de{score_faction[0]}% dans {intrigue.nom}"
+                        intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+                                                  texte_erreur,
+                                                  ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
+                                                  )
+                    self.factions[score_faction[0]].infos_pour_evenements.add(info_faction)
 
-            # class InfoFactionsPourEvenement:
-            #     def __init__(self, nom_faction="", infos_a_fournir=""):
-            #         self.nom_faction = nom_faction
-            #         self.faction = None
-            #         self.infos_a_fournir = infos_a_fournir
-            #
+
     def trouver_roles_sans_scenes(self, verbal=False, seuil=70):
         # nettoyer tous les fichiers erreurs:
         for intrigue in self.intrigues.values():

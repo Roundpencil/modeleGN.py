@@ -571,59 +571,59 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, table
         balises = re.findall(r'##.*', scene)
         for balise in balises:
             # print("balise : " + balise)
-            if balise[0:9].lower() == '## quand?':
+            if balise[:9].lower() == '## quand?':
                 extraire_date_scene(balise[10:], scene_a_ajouter)
-            elif balise[0:10].lower() == '## quand ?':
+            elif balise[:10].lower() == '## quand ?':
                 extraire_date_scene(balise[11:], scene_a_ajouter)
                 # scene_a_ajouter.date = balise[11:].strip()
                 # # print("date de la scène : " + scene_a_ajouter.date)
-            elif balise[0:9].lower() == '## il y a':
+            elif balise[:9].lower() == '## il y a':
                 extraire_il_y_a_scene(balise[10:], scene_a_ajouter)
-            elif balise[0:9].lower() == '## date :':
+            elif balise[:9].lower() == '## date :':
                 extraire_date_absolue(balise[10:], scene_a_ajouter)
-            elif balise[0:8].lower() == '## date:':
+            elif balise[:8].lower() == '## date:':
                 extraire_date_absolue(balise[9:], scene_a_ajouter)
-            elif balise[0:8].lower() == '## date?':
+            elif balise[:8].lower() == '## date?':
                 extraire_date_absolue(balise[9:], scene_a_ajouter)
-            elif balise[0:7].lower() == '## qui?':
+            elif balise[:7].lower() == '## qui?':
                 extraire_qui_scene(balise[8:], conteneur, noms_roles, scene_a_ajouter,
                                    avec_tableau_des_persos=tableau_roles_existant)
 
-            elif balise[0:8].lower() == '## qui ?':
+            elif balise[:8].lower() == '## qui ?':
                 extraire_qui_scene(balise[9:], conteneur, noms_roles, scene_a_ajouter,
                                    avec_tableau_des_persos=tableau_roles_existant)
 
-            elif balise[0:11].lower() == '## niveau :':
+            elif balise[:11].lower() == '## niveau :':
                 scene_a_ajouter.niveau = balise[12:].strip()
 
-            elif balise[0:11].lower() == '## résumé :':
+            elif balise[:11].lower() == '## résumé :':
                 scene_a_ajouter.resume = balise[12:].strip()
 
-            elif balise[0:10].lower() == '## résumé:':
+            elif balise[:10].lower() == '## résumé:':
                 scene_a_ajouter.resume = balise[11:].strip()
 
-            elif balise[0:13].lower() == '## factions :':
+            elif balise[:13].lower() == '## factions :':
                 scene_a_ajouter.nom_factions.add([f.strip() for f in balise[14:].split(',')])
 
-            elif balise[0:12].lower() == '## faction :':
+            elif balise[:12].lower() == '## faction :':
                 noms_factions = [f.strip() for f in balise[13:].split(',')]
                 for f in noms_factions:
                     scene_a_ajouter.nom_factions.add(f)
 
-            elif balise[0:12].lower() == '## factions:':
+            elif balise[:12].lower() == '## factions:':
                 # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
                 extraire_factions_scene(balise[13:], scene_a_ajouter)
-            elif balise[0:11].lower() == '## faction:':
+            elif balise[:11].lower() == '## faction:':
                 # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
                 extraire_factions_scene(balise[12:], scene_a_ajouter)
-            elif balise[0:9].lower() == '## info :':
+            elif balise[:9].lower() == '## info :':
                 extraire_infos_scene(balise[10:], scene_a_ajouter)
                 # scene_a_ajouter.infos.add(tuple([f.strip() for f in .split(',')]))
-            elif balise[0:8].lower() == '## info:':
+            elif balise[:8].lower() == '## info:':
                 # scene_a_ajouter.infos.add([f.strip() for f in balise[9:].split(',')])
                 extraire_infos_scene(balise[9:], scene_a_ajouter)
             else:
-                texte_erreur = "balise inconnue : " + balise + " dans le conteneur " + nom_conteneur
+                texte_erreur = f"balise inconnue : {balise} dans le conteneur {nom_conteneur}"
                 print(texte_erreur)
                 scene_a_ajouter.description += balise
                 conteneur.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
@@ -733,7 +733,7 @@ def extraire_date_scene(balise_date, scene_a_ajouter):
     # réécrite pour merger les fonctions il y a et quand :
 
     # est-ce que la date est écrite au format quand ? il y a ?
-    if balise_date.strip().lower()[0:6] == 'il y a':
+    if balise_date.strip().lower()[:6] == 'il y a':
         # print(f" 'quand il y a' trouvée : {balise_date}")
         return extraire_il_y_a_scene(balise_date.strip()[7:], scene_a_ajouter)
     else:
@@ -1297,6 +1297,32 @@ def write_to_doc(service, file_id, text, titre=False):
     except HttpError as error:
         print(F'An error occurred: {error}')
         return None
+
+
+# def ecrire_texte_et_tables(service, file_id: str, a_ecrire: list[dict], titre=False):
+#
+#     chunks = a_ecrire[::-1]
+#     requests = []
+#     for chunk in chunks:
+#         if text := chunk.get('texte'):
+#             requests.append({
+#                 'insertText': {
+#                     'location': {
+#                         'index': 1
+#                     },
+#                     'text': text
+#                 }
+#             })
+#         if table := chunk.get('table'):
+#
+#
+#     try:
+#         # Execute the request.
+#         result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
+#         return result
+#     except HttpError as error:
+#         print(F'An error occurred: {error}')
+#         return None
 
 
 def formatter_titres_scenes_dans_squelettes(service, file_id):
