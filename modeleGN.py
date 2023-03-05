@@ -265,7 +265,7 @@ class Role:
         self.relations = set()
         self.briefs_pnj_pour_evenement = set()
         self.infos_pj_pour_evenement = set()
-        self.interventions = set()
+        self.interventions = {} #evenement, intervention
 
     def __str__(self):
         to_return = ""
@@ -828,7 +828,6 @@ class GN:
                     continue
                 intrigue.evenements.add(mon_evenement)
 
-                noms_roles = list(intrigue.rolesContenus.keys())
                 noms_roles_pnjs = [r for r in intrigue.rolesContenus.keys() if r.est_un_pnj()]
                 noms_roles_pjs = [r for r in intrigue.rolesContenus.keys() if r.est_un_pj()]
 
@@ -858,10 +857,10 @@ class GN:
 
                 for intervention in mon_evenement.interventions:
 
-                    pj_impliques = intervention.get_pjs_impliques()
-                    pnj_impliques = intervention.get_pnj_impliques()
+                    noms_pj_impliques = intervention.get_noms_pjs_impliques()
+                    noms_pnj_impliques = intervention.get_noms_pnj_impliques()
 
-                    for nom_pj in pj_impliques:
+                    for nom_pj in noms_pj_impliques:
                         score = process.extractOne(nom_pj, noms_roles_pjs)
                         if score[1] < seuil_nom_roles:
                             texte_erreur = f"Le role ({score[1]}) a été associé au personnage {nom_pj} " \
@@ -872,9 +871,9 @@ class GN:
                                                       texte_erreur,
                                                       ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
                                                       )
-                        intrigue.rolesContenus[score[0]].interventions.add(intervention)
+                        intrigue.rolesContenus[score[0]].interventions[mon_evenement] = intervention
 
-                    for nom_pnj in pnj_impliques:
+                    for nom_pnj in noms_pnj_impliques:
                         score = process.extractOne(nom_pnj, noms_roles_pnjs)
                         if score[1] < seuil_nom_roles:
                             texte_erreur = f"Le role ({score[1]}) a été associé au personnage {nom_pnj} " \
@@ -885,7 +884,7 @@ class GN:
                                                       texte_erreur,
                                                       ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
                                                       )
-                        intrigue.rolesContenus[score[0]].interventions.add(intervention)
+                        intrigue.rolesContenus[score[0]].interventions[mon_evenement] = intervention
 
                 for info_faction in mon_evenement.infos_factions:
                     score_faction = process.extractOne(info_faction.nom_faction, self.factions.keys())
@@ -1125,16 +1124,6 @@ class ErreurManager:
     def __str__(self):
         return '\n'.join([str(erreur) for erreur in self.erreurs])
 
-    # def clear(self, origine: ORIGINES = None):
-    #     if origine is None:
-    #         # dans ce cas, c'est qu'on veut TOUT effacer, par exemple car on va recréer le conteneur
-    #         self.erreurs.clear()
-    #     else:
-    #         for erreur in self.erreurs:
-    #             if erreur.origine == origine:
-    #                 self.erreurs.remove(erreur)
-    #     tab_err = [[err.niveau, err.texte, err.origine] for err in self.erreurs]
-    #     print(f"erreurs après nettoyage = {tab_err}")
     def clear(self, origine: ORIGINES = None):
         if origine is None:
             # dans ce cas, c'est qu'on veut TOUT effacer, par exemple car on va recréer le conteneur
@@ -1147,38 +1136,6 @@ class ErreurManager:
             #         temp.append(erreur)
             self.erreurs = temp
 
-        # tab_err = [[err.niveau, err.texte, err.origine] for err in self.erreurs]
-        # print(f"erreurs après nettoyage = {tab_err}")
-
-
-# ######## a supprimer apres remise à niveau
-#
-#
-# class ErreurAssociation:
-#     def __init__(self, niveau, texte, genere_par):
-#         self.niveau = niveau
-#         self.texte = texte
-#         self.origine = genere_par
-#
-#     def __str__(self):
-#         if self.niveau == ErreurManager.NIVEAUX.ERREUR:
-#             prefixe = "Erreur : "
-#         elif self.niveau == ErreurManager.NIVEAUX.WARNING:
-#             prefixe = "Warning : "
-#         else:
-#             prefixe = "Info : "
-#
-#         return prefixe + self.texte
-#
-#     class NIVEAUX(IntEnum):
-#         INFO = 10
-#         WARNING = 20
-#         ERREUR = 30
-#
-#     class ORIGINES(IntEnum):
-#         SCENE = 1
-#         FACTION = 2
-#         ASSOCIATION_AUTO = 3
 
 class Evenement:
     def __init__(self,
@@ -1272,18 +1229,19 @@ class Intervention:
         self.pj_impliques = pj_impliques
         self.noms_pnj_impliques = pnj_impliques
         self.liste_pnj_impliques = set()
+        self.liste_pj_impliques = set()
         self.description = description
         self.evenement = evenement
 
         def get_pnjs_impliquesavec_infos(self):
             pass
 
-    def get_pjs_impliques(self):
+    def get_noms_pjs_impliques(self):
         if self.pj_impliques != ['']:
             return self.pj_impliques
         return [info_pj.nom_pj for info_pj in self.evenement.infos_pj]
 
-    def get_pnj_impliques(self):
+    def get_noms_pnj_impliques(self):
         # print(f"debug : pour l'intervention {self.description}, len = {len(self.noms_pnj_impliques)} / {self.noms_pnj_impliques}")
         if self.noms_pnj_impliques != ['']:
             return self.noms_pnj_impliques
@@ -1292,7 +1250,7 @@ class Intervention:
 
 
     def get_str_pnjs_impliques_avec_infos(self):
-        return self.get_pnj_impliques()
+        return self.get_noms_pnj_impliques()
 
 
 class Commentaire:

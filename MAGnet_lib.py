@@ -1235,12 +1235,16 @@ def generer_table_evenements(gn: GN):
 
     to_return = []
     for intervention in toutes_interventions:
+        pnj_pour_tableau = [pnj.str_avec_perso() for pnj in intervention.liste_pnj_impliques]
+        
+        pj_pour_tableau = [pj.str_avec_perso() for pj in intervention.pj_impliques]
+        
         ligne = [intervention.jour,
                  intervention.heure,
                  intervention.evenement.lieu,
                  intervention.description,
-                 '\n'.join(intervention.get_str_pnjs_impliques_avec_infos()), #todo : obtenir le nom complet du role avec la methode dédiée
-                 '\n'.join(intervention.get_pjs_impliques())
+                 pnj_pour_tableau, #todo : obtenir toutes les infos nécessaires
+                 pj_pour_tableau
                  ]
         to_return.append(ligne)
 
@@ -1325,6 +1329,8 @@ def mettre_a_jour_champs(gn: GN):
                     delattr(role, 'perso')
                 else:
                     role.personnage = None
+            if isinstance(role.interventions, set):
+                role.interventions = {}
 
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'infos'):
