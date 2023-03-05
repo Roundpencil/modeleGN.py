@@ -1257,9 +1257,9 @@ class Intervention:
         for pnj in self.liste_pnj_impliques:
             brief = pnj.briefs_pnj_pour_evenement[self.evenement]
             to_return += f"{pnj.str_avec_perso} (" \
-                         f"{brief.costumes_et_accessoires} - " \
-                         f"{brief.implication} - " \
-                         f"{brief.situation_de_depart}" \
+                         f"costume : {brief.costumes_et_accessoires} - " \
+                         f"implication : {brief.implication} - " \
+                         f"commence : {brief.situation_de_depart}" \
                          f") \n"
         return to_return
 
