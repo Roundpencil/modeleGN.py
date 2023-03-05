@@ -808,10 +808,10 @@ class GN:
         # todo ca se passe ici
         self.clear_all_associations()
         self.update_oldest_update()
+        self.lier_les_evenements_aux_intrigues()
         self.ajouter_roles_issus_de_factions()
         self.associer_pnj_a_roles()
         self.associer_pj_a_roles()
-        self.lier_les_evenements_aux_intrigues()
         self.trouver_roles_sans_scenes()
 
     def lier_les_evenements_aux_intrigues(self, seuil_nom_roles: int=70, seuil_noms_factions: int=70):
@@ -958,8 +958,8 @@ class GN:
                     logging.debug(f"score_faction = {score_faction}")
                     if score_faction[1] < seuil_nom_faction:
                         texte_erreur = f"la faction {nom_faction} " \
-                                       f"a été associée à {score_faction[0]} " \
-                                       f"à seulement {score_faction[1]}% de confiance"
+                                           f"a été associée à {score_faction[0]} " \
+                                           f"à seulement {score_faction[1]}% de confiance"
                         intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
                                                           texte_erreur,
                                                           ErreurManager.ORIGINES.FACTION)
@@ -973,8 +973,8 @@ class GN:
                         score_role = process.extractOne(personnage_dans_faction.nom, intrigue.rolesContenus.keys())
                         if score_role[1] < seuil_reconciliation_role:
                             texte_info = f"{personnage_dans_faction.nom} " \
-                                         f"a été ajouté via la faction {nom_faction} " \
-                                         f"pour la scène {scene.titre} \n"
+                                             f"a été ajouté via la faction {nom_faction} " \
+                                             f"pour la scène {scene.titre} \n"
                             intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.INFO,
                                                               texte_info,
                                                               ErreurManager.ORIGINES.FACTION
@@ -987,12 +987,22 @@ class GN:
                                                   personnage=personnage_dans_faction
                                                   )
                             intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
-                            # l'ajouter à la scène
-                            role_a_ajouter.ajouter_a_scene(scene)
-
                         else:
                             # ajouter la scène au role
-                            intrigue.rolesContenus[score_role[0]].ajouter_a_scene(scene)
+                            role_a_ajouter = intrigue.rolesContenus[score_role[0]]
+
+                        # à ce stade on a identifié le bon role
+
+                        # l'ajouter à la scène
+                        role_a_ajouter.ajouter_a_scene(scene)
+
+                        # propager les infos pour les évènements de faction dans le role
+                        for info_pour_evenements in ma_faction.infos_pour_evenements:
+                            info_evenement_pour_role = InfoPJPourEvenement(role_a_ajouter.nom,
+                                                                           info_pour_evenements.evenement,
+                                                                           info_pour_evenements.infos_a_fournir
+                                                                           )
+                            role_a_ajouter.infos_pj_pour_evenement.add(info_evenement_pour_role)
 
     # utilisée pour préparer l'association roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
