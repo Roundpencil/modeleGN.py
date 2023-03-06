@@ -115,7 +115,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
 
                 print(f"Document en cours de lecture : {document.get('title')}")
 
-                print(f"débug : ref du doc = {ref_du_doc(document.get('title'))}")
+                # print(f"débug : ref du doc = {ref_du_doc(document.get('title'))}")
 
                 # si la ref du doc est -1 ou 0 il ne nous interesse pas
                 if ref_du_doc(document.get('title')) in [-1, 0]:
@@ -129,7 +129,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 #   SI l'intrigue existe dans le GN ?
                 # if item['id'] in gn.intrigues .keys():
                 if item['id'] in dict_ids:
-                    print(f"debug : {item['id']} est dans dict_id")
+                    # print(f"debug : {item['id']} est dans dict_id")
 
                     #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
                     # print("l'intrigue fait déjà partie du GN ! ")
@@ -163,7 +163,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                         objet_de_reference = dict_ids.pop(item['id'])
 
                 # puis, dans tous les cas, on la crée
-                print("debug : extraction objet")
+                # print("debug : extraction objet")
                 nouvel_objet = extraire_objets_de_document(document, item, mon_gn, fonction_extraction, verbal=verbal)
                 commentaires = extraire_commentaires_de_document_drive(apiDrive, item['id'])
                 if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
@@ -311,11 +311,11 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
 def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
     tableau_pnjs, _ = reconstituer_tableau(texte)
     # faire un tableau avec une ligne par PNJ
-    print(f"tableau pnj décodé : {tableau_pnjs}")
+    # print(f"tableau pnj décodé : {tableau_pnjs}")
     for pnj in tableau_pnjs:
         # print(f"section pnj en cours de lecture : {pnj}")
         # print(f"taille = {len(pnj)}")
-        print(f"pnj en cours = {pnj}")
+        # print(f"pnj en cours = {pnj}")
 
         # 0 Nom duPNJ et / ou fonction :
         # 1 Intervention:(Permanente ou Temporaire)
@@ -394,6 +394,7 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
 
 
 def intrigue_scenesfx(texte: str, intrigue: Intrigue, texte_label: str):
+    print(f" debug : texte fx = {texte}")
     tableau_evenements, nb_colonnes = reconstituer_tableau(texte)
     if nb_colonnes != 4:
         logging.debug(f" Problème avec le tableau évènement : {tableau_evenements}")
@@ -436,7 +437,7 @@ def intrigue_relations_multi(texte: str, intrigue: Intrigue, texte_label: str):
 
 def extraire_relations_bi(conteneur: ConteneurDeScene, tab_relations_bi: list[[str, str, str, str]],
                           avec_tableau_persos: bool = True):
-    print(f"tab relations_bi = {tab_relations_bi}")
+    # print(f"tab relations_bi = {tab_relations_bi}")
     for ligne_relation_bi in tab_relations_bi:
         if len(ligne_relation_bi[0]) == 0 or len(ligne_relation_bi[1]) == 0:
             texte_erreur = f"Le personnage " \

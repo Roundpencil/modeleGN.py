@@ -862,6 +862,8 @@ class GN:
                     noms_pj_impliques = intervention.get_noms_pjs_impliques()
                     noms_pnj_impliques = intervention.get_noms_pnj_impliques()
 
+                    print(f"debug : nom pj impl = {noms_pj_impliques} \n noms pnj impl = {noms_pnj_impliques}")
+
                     for nom_pj in noms_pj_impliques:
                         score = process.extractOne(nom_pj, noms_roles_pjs)
                         if score[1] < seuil_nom_roles:
@@ -874,7 +876,7 @@ class GN:
                                                       ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
                                                       )
                         intrigue.rolesContenus[score[0]].interventions[mon_evenement] = intervention
-                        intervention.liste_pj_impliques.add(intrigue.rolesContenus[score[0]])
+                        intervention.liste_pjs_impliques.add(intrigue.rolesContenus[score[0]])
 
                     for nom_pnj in noms_pnj_impliques:
                         score = process.extractOne(nom_pnj, noms_roles_pnjs)
@@ -888,7 +890,7 @@ class GN:
                                                       ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
                                                       )
                         intrigue.rolesContenus[score[0]].interventions[mon_evenement] = intervention
-                        intervention.liste_pnj_impliques.add(intrigue.rolesContenus[score[0]])
+                        intervention.liste_pnjs_impliques.add(intrigue.rolesContenus[score[0]])
 
                 for info_faction in mon_evenement.infos_factions:
                     score_faction = process.extractOne(info_faction.nom_faction, self.factions.keys())
@@ -1234,10 +1236,10 @@ class Intervention:
             pnj_impliques = []
         self.jour = jour
         self.heure = heure
-        self.pj_impliques = pj_impliques
-        self.noms_pnj_impliques = pnj_impliques
-        self.liste_pnj_impliques = set()
-        self.liste_pj_impliques = set()
+        self.noms_pjs_impliques = pj_impliques
+        self.noms_pnjs_impliques = pnj_impliques
+        self.liste_pnjs_impliques = set()
+        self.liste_pjs_impliques = set()
         self.description = description
         self.evenement = evenement
 
@@ -1245,14 +1247,14 @@ class Intervention:
             pass
 
     def get_noms_pjs_impliques(self):
-        if self.pj_impliques != ['']:
-            return self.pj_impliques
+        if self.noms_pjs_impliques != ['']:
+            return self.noms_pjs_impliques
         return [info_pj.nom_pj for info_pj in self.evenement.infos_pj]
 
     def get_noms_pnj_impliques(self):
-        # print(f"debug : pour l'intervention {self.description}, len = {len(self.noms_pnj_impliques)} / {self.noms_pnj_impliques}")
-        if self.noms_pnj_impliques != ['']:
-            return self.noms_pnj_impliques
+        # print(f"debug : pour l'intervention {self.description}, len = {len(self.noms_pnjs_impliques)} / {self.noms_pnjs_impliques}")
+        if self.noms_pnjs_impliques != ['']:
+            return self.noms_pnjs_impliques
         # print(f"debug : self.evenement.briefs_pnj = {len(self.evenement.briefs_pnj)} {self.evenement.briefs_pnj}")
         return [brief.nom_pnj for brief in self.evenement.briefs_pnj]
 

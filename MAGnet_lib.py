@@ -1233,11 +1233,13 @@ def generer_table_evenements(gn: GN):
 
     toutes_interventions = sorted(toutes_interventions, key=lambda x: [x.jour, x.heure])
 
-    to_return = ["Jour", "Heure", "Lieu", "Description", "PNJs impliqués", "Costumes PNJs", "Implication PNJs",
-                 "Démarrage PNJ", "PJ impliqués"]
+    to_return = [["Jour", "Heure", "Lieu", "Description", "PNJs impliqués", "Costumes PNJs", "Implication PNJs",
+                 "Démarrage PNJ", "PJ impliqués"]]
     for intervention in toutes_interventions:
-        roles_pnjs = intervention.liste_pnj_impliques
+        # print(f"debug : {vars(intervention)}")
+        roles_pnjs = intervention.liste_pnjs_impliques
         evt = intervention.evenement
+
         pnj_pour_tableau = [f"{e}. {pnj.str_avec_perso()}" for e, pnj in enumerate(roles_pnjs)]
         costumes_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].costumes_et_accessoires}"
                          for e, pnj in enumerate(roles_pnjs)]
@@ -1246,7 +1248,7 @@ def generer_table_evenements(gn: GN):
         demarrage_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].situation_de_depart}"
                          for e, pnj in enumerate(roles_pnjs)]
 
-        pj_pour_tableau = [pj.str_avec_perso() for pj in intervention.pj_impliques]
+        pj_pour_tableau = [pj.str_avec_perso() for pj in intervention.liste_pjs_impliques]
         
         ligne = [intervention.jour,
                  intervention.heure,
@@ -1258,6 +1260,7 @@ def generer_table_evenements(gn: GN):
                  '\n'.join(demarrage_pnjs),
                  '\n'.join(pj_pour_tableau)
                  ]
+        # print(f"debug : ligne : {ligne}")
         to_return.append(ligne)
 
     return to_return
@@ -1355,3 +1358,15 @@ def mettre_a_jour_champs(gn: GN):
     for pj in gn.dictPJs.values():
         if not hasattr(pj, 'commentaires'):
             pj.commentaires = []
+
+    for evenement in gn.evenements:
+        for intervention in evenement.interventions:
+            if not hasattr(intervention, "liste_pnjs_impliques"):
+                intervention.liste_pnjs_impliques = set()
+
+            if not hasattr(intervention, 'liste_pjs_impliques'):
+                intervention.liste_pjs_impliques = set()
+
+            if hasattr(intervention, 'pj_impliques'):
+                intervention.noms_pjs_impliques = intervention.pj_impliques
+                delattr(intervention, pj_impliques)
