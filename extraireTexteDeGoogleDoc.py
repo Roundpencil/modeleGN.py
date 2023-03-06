@@ -246,6 +246,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     labels = [l.value for l in Labels]
 
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texteIntrigue)
+    # print(f"debug : indexes = {indexes}")
 
     dict_methodes = {
         Labels.REFERENT: intrigue_referent,
@@ -394,7 +395,7 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
 
 
 def intrigue_scenesfx(texte: str, intrigue: Intrigue, texte_label: str):
-    print(f" debug : texte fx = {texte}")
+    # print(f" debug : texte fx = {texte}")
     tableau_evenements, nb_colonnes = reconstituer_tableau(texte)
     if nb_colonnes != 4:
         logging.debug(f" Problème avec le tableau évènement : {tableau_evenements}")
@@ -871,7 +872,8 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
         return
 
     dict_fiche = dict(tableau_fiche)
-    current_evenement.code_evenement = dict_fiche.get("Code de l'évènement", "").strip()
+    print(f"debug : dict fiche = {dict_fiche}")
+    current_evenement.code_evenement = dict_fiche.get("Code de l’évènement", "").strip()
     current_evenement.etat = dict_fiche.get("État", "").strip()
     current_evenement.referent = dict_fiche.get("Référent", "").strip()
     current_evenement.intrigue_liee = dict_fiche.get("Intrigue liée", "").strip()
@@ -1815,3 +1817,4 @@ def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):
         to_return.append(Commentaire(texte_commentaire, auteur, destinataires))
 
     return to_return
+

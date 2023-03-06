@@ -828,8 +828,8 @@ class GN:
                     continue
                 intrigue.evenements.add(mon_evenement)
 
-                noms_roles_pnjs = [r for r in intrigue.rolesContenus.keys() if r.est_un_pnj()]
-                noms_roles_pjs = [r for r in intrigue.rolesContenus.keys() if r.est_un_pj()]
+                noms_roles_pnjs = [r.nom for r in intrigue.rolesContenus.values() if r.est_un_pnj()]
+                noms_roles_pjs = [r.nom for r in intrigue.rolesContenus.values() if r.est_un_pj()]
 
                 for brief in mon_evenement.briefs_pnj:
                     score = process.extractOne(brief.nom_pnj, noms_roles_pnjs)
@@ -841,8 +841,9 @@ class GN:
                                                   texte_erreur,
                                                   ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
                                                   )
-                    intrigue.rolesContenus[score[0]].briefs_pnj_pour_evenement.add(brief)
-                    brief.pnj = intrigue.rolesContenus[score[0]]
+                    mon_role = intrigue.rolesContenus[score[0]]
+                    mon_role.briefs_pnj_pour_evenement[mon_evenement] = brief
+                    brief.pnj = mon_role
 
                 for info_pj in mon_evenement.infos_pj:
                     score = process.extractOne(info_pj.nom_pj, noms_roles_pjs)
@@ -854,8 +855,9 @@ class GN:
                                                   texte_erreur,
                                                   ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
                                                   )
-                    intrigue.rolesContenus[score[0]].infos_pj_pour_evenement.add(info_pj)
-                    info_pj.pj = intrigue.rolesContenus[score[0]]
+                    mon_role = intrigue.rolesContenus[score[0]]
+                    mon_role.infos_pj_pour_evenement[mon_evenement] = info_pj
+                    info_pj.pj = mon_role
 
                 for intervention in mon_evenement.interventions:
 

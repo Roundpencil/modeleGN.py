@@ -1209,7 +1209,7 @@ def generer_table_relations_personnages(gn):
         for partenaire in dict_relations_nature[perso]:
             i = perso_to_index[perso]
             j = partenaire_to_index[partenaire]
-            print(f"relations entre {perso} et {partenaire} : {dict_relations_nature[perso][partenaire]}")
+            # print(f"relations entre {perso} et {partenaire} : {dict_relations_nature[perso][partenaire]}")
             matrix[i + 1][j + 1] = '\n'.join(dict_relations_nature[perso][partenaire])
 
     return matrix
@@ -1240,13 +1240,13 @@ def generer_table_evenements(gn: GN):
         roles_pnjs = intervention.liste_pnjs_impliques
         evt = intervention.evenement
 
-        pnj_pour_tableau = [f"{e}. {pnj.str_avec_perso()}" for e, pnj in enumerate(roles_pnjs)]
+        pnj_pour_tableau = [f"{e}. {pnj.str_avec_perso()}" for e, pnj in enumerate(roles_pnjs, start=1)]
         costumes_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].costumes_et_accessoires}"
-                         for e, pnj in enumerate(roles_pnjs)]
+                         for e, pnj in enumerate(roles_pnjs, start=1)]
         implications_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].implication}"
-                         for e, pnj in enumerate(roles_pnjs)]
+                         for e, pnj in enumerate(roles_pnjs, start=1)]
         demarrage_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].situation_de_depart}"
-                         for e, pnj in enumerate(roles_pnjs)]
+                         for e, pnj in enumerate(roles_pnjs, start=1)]
 
         pj_pour_tableau = [pj.str_avec_perso() for pj in intervention.liste_pjs_impliques]
         
