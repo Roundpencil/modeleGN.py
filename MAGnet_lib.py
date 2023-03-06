@@ -1226,25 +1226,37 @@ def ecrire_table_relation(gn: GN, api_drive, api_sheets):
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tab_relations, file_id)
 
 def generer_table_evenements(gn: GN):
-    # Jour / heure / lieu / description / pnj impliqués (costume  implication débute)  / pj impliqués /
+    # Jour / heure / lieu / description / pnj impliqués / costume / implication /  débute / pj impliqués /
     toutes_interventions = []
     for evenement in gn.evenements.values():
         toutes_interventions.extend(evenement.interventions)
 
     toutes_interventions = sorted(toutes_interventions, key=lambda x: [x.jour, x.heure])
 
-    to_return = []
+    to_return = ["Jour", "Heure", "Lieu", "Description", "PNJs impliqués", "Costumes PNJs", "Implication PNJs",
+                 "Démarrage PNJ", "PJ impliqués"]
     for intervention in toutes_interventions:
-        pnj_pour_tableau = [pnj.str_avec_perso() for pnj in intervention.liste_pnj_impliques]
-        
+        roles_pnjs = intervention.liste_pnj_impliques
+        evt = intervention.evenement
+        pnj_pour_tableau = [f"{e}. {pnj.str_avec_perso()}" for e, pnj in enumerate(roles_pnjs)]
+        costumes_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].costumes_et_accessoires}"
+                         for e, pnj in enumerate(roles_pnjs)]
+        implications_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].implication}"
+                         for e, pnj in enumerate(roles_pnjs)]
+        demarrage_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].situation_de_depart}"
+                         for e, pnj in enumerate(roles_pnjs)]
+
         pj_pour_tableau = [pj.str_avec_perso() for pj in intervention.pj_impliques]
         
         ligne = [intervention.jour,
                  intervention.heure,
                  intervention.evenement.lieu,
                  intervention.description,
-                 pnj_pour_tableau, #todo : obtenir toutes les infos nécessaires
-                 pj_pour_tableau
+                 '\n'.join(pnj_pour_tableau),
+                 '\n'.join(costumes_pnjs),
+                 '\n'.join(implications_pnjs),
+                 '\n'.join(demarrage_pnjs),
+                 '\n'.join(pj_pour_tableau)
                  ]
         to_return.append(ligne)
 
