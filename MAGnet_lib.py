@@ -15,16 +15,14 @@ import csv
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 
 # à faire - rapide
-# todo : ajouter les boutons pour contrôler la table des relations
+# todo : ajouter les boutons pour contrôler la table des relations et des évènements
 
 # à faire - plus long
 # todo : gestion des évènement
+#  l'ajout dans les fiches de persos et PNJs des infos issues des évènements
 #  les focntion de clearing lors du rebuild qui permettent de nettoyer les ajouts intrigues / pjs / pnjs / factions
 #  créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches
-#  l'ajout dans les fiches de persos et PNJs des infos issues des évènements
 #  gérer les objets et les factions, non pris en cahrge actuellement
-
-# todo ajouter un bouton qui permet de demadner un fichier des évènements
 
 
 # todo : quand on loade le fichier faction, clearer les factions
