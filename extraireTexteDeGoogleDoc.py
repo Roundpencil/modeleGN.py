@@ -17,7 +17,7 @@ import dateparser
 def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
     extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_intrigue_de_texte, mon_gn.intrigues,
                                  mon_gn.dossiers_intrigues,
-                                 singletest, verbal=verbal, fast=fast)
+                                 singletest, verbal=verbal, fast=fast, prefixes="i")
 
 
 def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
@@ -25,7 +25,7 @@ def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False,
     extraire_texte_de_google_doc(
         mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
         singletest,
-        verbal=verbal, fast=fast)
+        verbal=verbal, fast=fast, prefixes=["P"])
 
 
 def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
@@ -36,22 +36,22 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
     extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPNJs,
                                  mon_gn.dossiers_pnjs,
                                  singletest,
-                                 verbal=verbal, fast=fast)
+                                 verbal=verbal, fast=fast, prefixes=["p"])
 
 
 def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
-    print(f"je m'apprete à extraire les évènements depuis {mon_gn.dossiers_evenements}")
+    # print(f"je m'apprete à extraire les évènements depuis {mon_gn.dossiers_evenements}")
     if mon_gn.dossiers_evenements is None or len(mon_gn.dossiers_evenements) == 0:
         logging.debug("pas de dossier évènement trouvé dans le gn")
         return
     extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_evenement_de_texte, mon_gn.evenements,
                                  mon_gn.dossiers_evenements,
                                  singletest,
-                                 verbal=verbal, fast=fast)
+                                 verbal=verbal, fast=fast, prefixes=["e"])
 
 
 def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, dict_ids: dict, folder_array,
-                                 single_test="-01", verbal=False, fast=True):
+                                 single_test="-01", verbal=False, fast=True, prefixes=None):
     items = lecteurGoogle.generer_liste_items(api_drive=apiDrive, nom_fichier=folder_array)
     # print(f"folder = {folder_array}  items = {items}")
 
@@ -63,9 +63,6 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
     if int(single_test) > 0:
         for item in items:
             try:
-                # print ("poung")
-
-                # print ("ping")
                 # Retrieve the documents contents from the Docs api_doc.
                 document = apiDoc.documents().get(documentId=item['id']).execute()
 
@@ -75,7 +72,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 # if document.get('title')[0:3].strip() != str(single_test):  # numéro de l'intrigue
                 #     # si ce n'est pas la bonne, pas la peine d'aller plus loin
                 #     continue
-                if ref_du_doc(document.get('title')) != int(single_test):
+                if ref_du_doc(document.get('title'), prefixes=prefixes) != int(single_test):
                     continue
 
                 print(f"j'ai trouvé le doc #{single_test} : {document.get('title')}")
@@ -1168,7 +1165,17 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     return perso_en_cours
 
 
-def ref_du_doc(s):
+def ref_du_doc(s: str, prefixes=""):
+    s = s.lower()
+    prefixes = prefixes.lower()
+
+    if any(s.startswith(letter) for letter in prefixes):
+        s = s[1:]
+    elif s[0].isdigit():
+        pass
+    else:
+        return -1
+
     match = re.match(r'^(\d+)\s*-.*$', s)
     if match:
         return int(match.group(1))
