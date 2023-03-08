@@ -167,12 +167,14 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         logging.debug(f"nom du pnj = {perso.nom} / {perso.forced}")
     logging.debug(f"noms pnjs = {mon_gn.noms_pnjs()}")
 
-    extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn,
-                                                api_drive=api_drive,
-                                                api_doc=api_doc,
-                                                singletest=singletest_intrigue,
-                                                fast=fast_intrigues,
-                                                verbal=verbal)
+    ids_intrigues = extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn,
+                                                                api_drive=api_drive,
+                                                                api_doc=api_doc,
+                                                                singletest=singletest_intrigue,
+                                                                fast=fast_intrigues,
+                                                                verbal=verbal)
+    retirer_intrigues_supprimees(mon_gn, ids_intrigues)
+
     extraireTexteDeGoogleDoc.extraire_pjs(mon_gn,
                                           api_drive=api_drive,
                                           api_doc=api_doc,
@@ -292,6 +294,12 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     print("******* fin de la génération  ****************")
 
+
+def retirer_intrigues_supprimees(mon_gn: GN, ids_intrigues_lus: list[str]):
+    for id_intrigue in mon_gn.intrigues:
+        if id_intrigue not in ids_intrigues_lus:
+            a_supprimer = mon_gn.intrigues.pop(id_intrigue)
+            a_supprimer.clear()
 
 def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
     log_erreur = ""

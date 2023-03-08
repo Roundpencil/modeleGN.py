@@ -13,9 +13,9 @@ import dateparser
 
 
 def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
-    extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_intrigue_de_texte, mon_gn.intrigues,
-                                 mon_gn.dossiers_intrigues,
-                                 singletest, verbal=verbal, fast=fast, prefixes="i")
+    return extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_intrigue_de_texte, mon_gn.intrigues,
+                                         mon_gn.dossiers_intrigues,
+                                         singletest, verbal=verbal, fast=fast, prefixes="i")
 
 
 def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
@@ -172,7 +172,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
             except HttpError as err:
                 print(f'An error occurred: {err}')
                 # return #ajouté pour débugger
-
+    return [item['id'] for item in items]
 
 def extraire_objets_de_document(document, item, mon_gn, fonction_extraction, save_last_change=True, verbal=False):
     # print("et du coup, il est temps de créer un nouveau fichier")
