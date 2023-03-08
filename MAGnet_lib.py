@@ -318,9 +318,14 @@ def retirer_evenements_supprimees(mon_gn: GN, ids_evenements_lus: list[str]):
     retirer_elements_supprimés(ids_evenements_lus, mon_gn.evenements)
 
 def retirer_elements_supprimés(ids_lus: list[str], dict_reference: dict):
+    print(f"debug : id lus = {ids_lus}")
+    print(f"debug : ids_dict = {dict_reference.keys()}")
     ids_a_supprimer = [id for id in dict_reference if id not in ids_lus]
+    print(f"debug : id a supprimer = {ids_a_supprimer}")
+
     for id_lu in ids_a_supprimer:
         a_supprimer = dict_reference.pop(id_lu)
+        print(f"debug : intrigue en cours de suppression {a_supprimer.nom}")
         logging.debug(f"l'objet {a_supprimer} a été identifié comme à supprimer (id = {id_lu})")
         if a_supprimer is not None:
             a_supprimer.clear()

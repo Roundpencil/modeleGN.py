@@ -57,8 +57,6 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
         print('No files found.')
         return
 
-    ids_valides_lus = []
-
     # print(f"single_test : {type(single_test)} = {single_test}")
     if int(single_test) > 0:
         for item in items:
@@ -118,10 +116,6 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 if ref_du_doc(document.get('title')) in [-1, 0]:
                     continue
 
-                # le fichier est du type que nous cherchons (ou bien son prefixe est générique
-                # on l'ajoute à la liste des éléments lus
-                ids_valides_lus.append(item['id'])
-
                 # print("... est une intrigue !")
 
                 objet_de_reference = None
@@ -178,7 +172,8 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
             except HttpError as err:
                 print(f'An error occurred: {err}')
                 # return #ajouté pour débugger
-    return ids_valides_lus
+
+    return [item['id'] for item in items]
 
 def extraire_objets_de_document(document, item, mon_gn, fonction_extraction, save_last_change=True, verbal=False):
     # print("et du coup, il est temps de créer un nouveau fichier")

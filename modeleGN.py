@@ -81,9 +81,12 @@ class ConteneurDeScene:
     def clear(self):
         # retirer l'intrigue du GN > à faire au niveau de l'appel
         # casser toutes les relations role <> personnages
-        for role in self.rolesContenus.values():
+        roles_a_effacer = self.rolesContenus.values()
+        for role in roles_a_effacer:
             # print(f"Role à dissocier  : {role.nom} de {role.personnage}")
             if role.personnage is not None:
+                debug_asso = [f"{r.nom} : {repr(r)} dans {r.conteneur.nom}" for r in role.personnage.roles]
+                print(f"debug : role = {role.nom} : {repr(role)}, personnage.roles = {debug_asso}")
                 role.personnage.roles.remove(role)
                 del role
         # self.roles.clear()
