@@ -805,7 +805,6 @@ class GN:
     # et les fonctions d'accélération de ré-importations
 
     def rebuild_links(self, verbal=False):
-        # todo ca se passe ici
         self.clear_all_associations()
         self.update_oldest_update()
         self.lier_les_evenements_aux_intrigues()

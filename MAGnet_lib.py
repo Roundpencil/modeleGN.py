@@ -1,4 +1,5 @@
 import configparser
+import logging
 import os
 
 import extraireTexteDeGoogleDoc
@@ -24,6 +25,7 @@ import csv
 #  créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches
 #  gérer les objets et les factions, non pris en cahrge actuellement
 
+# todo : ajouter les options de lecture des pnjs dans la GUI
 
 # todo : quand on loade le fichier faction, clearer les factions
 #  pour prendre en compte les suppressions entre deux loading
@@ -167,31 +169,39 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         logging.debug(f"nom du pnj = {perso.nom} / {perso.forced}")
     logging.debug(f"noms pnjs = {mon_gn.noms_pnjs()}")
 
-    ids_intrigues = extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn,
+    ids_lus = extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn,
                                                                 api_drive=api_drive,
                                                                 api_doc=api_doc,
                                                                 singletest=singletest_intrigue,
                                                                 fast=fast_intrigues,
                                                                 verbal=verbal)
-    retirer_intrigues_supprimees(mon_gn, ids_intrigues)
+    retirer_intrigues_supprimees(mon_gn, ids_lus)
 
-    extraireTexteDeGoogleDoc.extraire_pjs(mon_gn,
+    ids_lus = extraireTexteDeGoogleDoc.extraire_pjs(mon_gn,
                                           api_drive=api_drive,
                                           api_doc=api_doc,
                                           singletest=singletest_perso,
                                           fast=fast_persos,
                                           verbal=verbal)
 
-    extraireTexteDeGoogleDoc.extraire_pnjs(mon_gn,
+    retirer_pjs_supprimees(mon_gn, ids_lus)
+
+    ids_lus = extraireTexteDeGoogleDoc.extraire_pnjs(mon_gn,
                                            api_drive=api_drive,
                                            api_doc=api_doc,
                                            singletest=singletest_perso,
                                            fast=fast_persos,
-                                           verbal=verbal)  # todo : ajouter les options de lecture dans la GUI
-    extraireTexteDeGoogleDoc.extraire_evenements(mon_gn,
+                                           verbal=verbal)
+
+    retirer_pnjs_supprimees(mon_gn, ids_lus)
+
+    ids_lus = extraireTexteDeGoogleDoc.extraire_evenements(mon_gn,
                                                  api_drive=api_drive,
                                                  api_doc=api_doc,
                                                  )  # todo : ajouter les options de lecture dans la GUI
+
+    retirer_evenements_supprimees(mon_gn, ids_lus)
+
 
     liste_orgas = None
     liste_noms_pnjs = None
@@ -296,10 +306,26 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
 
 def retirer_intrigues_supprimees(mon_gn: GN, ids_intrigues_lus: list[str]):
-    for id_intrigue in mon_gn.intrigues:
-        if id_intrigue not in ids_intrigues_lus:
-            a_supprimer = mon_gn.intrigues.pop(id_intrigue)
+    retirer_elements_supprimés(ids_intrigues_lus, mon_gn.intrigues)
+
+def retirer_pjs_supprimees(mon_gn: GN, ids_pjs_lus: list[str]):
+    retirer_elements_supprimés(ids_pjs_lus, mon_gn.dictPJs)
+
+def retirer_pnjs_supprimees(mon_gn: GN, ids_pnjs_lus: list[str]):
+    retirer_elements_supprimés(ids_pnjs_lus, mon_gn.dictPNJs)
+
+def retirer_evenements_supprimees(mon_gn: GN, ids_evenements_lus: list[str]):
+    retirer_elements_supprimés(ids_evenements_lus, mon_gn.evenements)
+
+def retirer_elements_supprimés(ids_lus: list[str], dict_reference: dict):
+    ids_a_supprimer = [id for id in dict_reference if id not in ids_lus]
+    for id_lu in ids_a_supprimer:
+        a_supprimer = dict_reference.pop(id_lu)
+        logging.debug(f"l'objet {a_supprimer} a été identifié comme à supprimer (id = {id_lu})")
+        if a_supprimer is not None:
             a_supprimer.clear()
+            logging.debug("et il a été supprimé)")
+
 
 def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
     log_erreur = ""

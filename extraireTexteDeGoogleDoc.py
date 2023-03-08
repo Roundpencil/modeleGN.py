@@ -20,7 +20,7 @@ def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=Fals
 
 def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
     # print(f"je m'apprête à extraire les PJs depuis {gn.dossiers_pjs}")
-    extraire_texte_de_google_doc(
+    return extraire_texte_de_google_doc(
         mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
         singletest,
         verbal=verbal, fast=fast, prefixes="p")
@@ -31,7 +31,7 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
     if mon_gn.dossiers_pnjs is None or len(mon_gn.dossiers_pnjs) == 0:
         logging.debug("pas de dossier pnj trouvé dans le gn")
         return
-    extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPNJs,
+    return extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPNJs,
                                  mon_gn.dossiers_pnjs,
                                  singletest,
                                  verbal=verbal, fast=fast, prefixes="p")
@@ -42,7 +42,7 @@ def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal
     if mon_gn.dossiers_evenements is None or len(mon_gn.dossiers_evenements) == 0:
         logging.debug("pas de dossier évènement trouvé dans le gn")
         return
-    extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_evenement_de_texte, mon_gn.evenements,
+    return extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_evenement_de_texte, mon_gn.evenements,
                                  mon_gn.dossiers_evenements,
                                  singletest,
                                  verbal=verbal, fast=fast, prefixes="e")
@@ -56,6 +56,8 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
     if not items:
         print('No files found.')
         return
+
+    ids_valides_lus = []
 
     # print(f"single_test : {type(single_test)} = {single_test}")
     if int(single_test) > 0:
@@ -116,6 +118,10 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 if ref_du_doc(document.get('title')) in [-1, 0]:
                     continue
 
+                # le fichier est du type que nous cherchons (ou bien son prefixe est générique
+                # on l'ajoute à la liste des éléments lus
+                ids_valides_lus.append(item['id'])
+
                 # print("... est une intrigue !")
 
                 objet_de_reference = None
@@ -172,7 +178,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
             except HttpError as err:
                 print(f'An error occurred: {err}')
                 # return #ajouté pour débugger
-    return [item['id'] for item in items]
+    return ids_valides_lus
 
 def extraire_objets_de_document(document, item, mon_gn, fonction_extraction, save_last_change=True, verbal=False):
     # print("et du coup, il est temps de créer un nouveau fichier")
