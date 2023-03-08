@@ -1,12 +1,10 @@
 from __future__ import print_function
 
-import logging
 import re
 from enum import Enum
 
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
-from requests import api
 
 import lecteurGoogle
 from modeleGN import *
@@ -25,7 +23,7 @@ def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False,
     extraire_texte_de_google_doc(
         mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
         singletest,
-        verbal=verbal, fast=fast, prefixes=["P"])
+        verbal=verbal, fast=fast, prefixes="p")
 
 
 def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
@@ -36,7 +34,7 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
     extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPNJs,
                                  mon_gn.dossiers_pnjs,
                                  singletest,
-                                 verbal=verbal, fast=fast, prefixes=["p"])
+                                 verbal=verbal, fast=fast, prefixes="p")
 
 
 def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
@@ -47,11 +45,11 @@ def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal
     extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_evenement_de_texte, mon_gn.evenements,
                                  mon_gn.dossiers_evenements,
                                  singletest,
-                                 verbal=verbal, fast=fast, prefixes=["e"])
+                                 verbal=verbal, fast=fast, prefixes="e")
 
 
 def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, dict_ids: dict, folder_array,
-                                 single_test="-01", verbal=False, fast=True, prefixes=None):
+                                 single_test="-01", verbal=False, fast=True, prefixes=""):
     items = lecteurGoogle.generer_liste_items(api_drive=apiDrive, nom_fichier=folder_array)
     # print(f"folder = {folder_array}  items = {items}")
 

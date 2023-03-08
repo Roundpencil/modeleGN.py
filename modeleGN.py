@@ -1260,16 +1260,16 @@ class Intervention:
         # print(f"debug : self.evenement.briefs_pnj = {len(self.evenement.briefs_pnj)} {self.evenement.briefs_pnj}")
         return [brief.nom_pnj for brief in self.evenement.briefs_pnj]
 
-    def get_str_pnjs_impliques_avec_infos(self):
-        to_return = ""
-        for pnj in self.liste_pnj_impliques:
-            brief = pnj.briefs_pnj_pour_evenement[self.evenement]
-            to_return += f"{pnj.str_avec_perso} (" \
-                         f"costume : {brief.costumes_et_accessoires} - " \
-                         f"implication : {brief.implication} - " \
-                         f"commence : {brief.situation_de_depart}" \
-                         f") \n"
-        return to_return
+    # def get_str_pnjs_impliques_avec_infos(self):
+    #     to_return = ""
+    #     for pnj in self.liste_pnjs_impliques:
+    #         brief = pnj.briefs_pnj_pour_evenement[self.evenement]
+    #         to_return += f"{pnj.str_avec_perso} (" \
+    #                      f"costume : {brief.costumes_et_accessoires} - " \
+    #                      f"implication : {brief.implication} - " \
+    #                      f"commence : {brief.situation_de_depart}" \
+    #                      f") \n"
+    #     return to_return
 
 
 class Commentaire:
