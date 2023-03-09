@@ -980,7 +980,7 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
         else:
             for nom_pnj in noms_pnjs_impliques:
                 score = process.extractOne(nom_pnj, noms_pnjs_dans_evenement)
-                if score < seuil_alerte_pnj:
+                if score[1] < seuil_alerte_pnj:
                     texte_erreur = f"Le nom du pnj {nom_pnj} trouvé dans la chronologie de l'évènement " \
                                    f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
                     current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
@@ -998,7 +998,7 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
         else:
             for nom_pj in noms_pj_impliques:
                 score = process.extractOne(nom_pj, noms_pjs_dans_evenement)
-                if score < seuil_alerte_pj:
+                if score[1] < seuil_alerte_pj:
                     texte_erreur = f"Le nom du pj {nom_pj} trouvé dans la chronologie de l'évènement " \
                                    f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
                     current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,

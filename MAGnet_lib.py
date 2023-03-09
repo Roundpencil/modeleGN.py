@@ -1280,7 +1280,6 @@ def generer_table_evenements(gn: GN):
     to_return = [["Jour", "Heure", "Lieu", "Description", "PNJs impliqués", "Costumes PNJs", "Implication PNJs",
                  "Démarrage PNJ", "PJ impliqués"]]
     for intervention in toutes_interventions:
-        #todo : débugger et réécrire
         intervenants = intervention.liste_intervenants
 
         pnj_pour_tableau = [f"{e}. {intervenant.str_avec_perso()}"
@@ -1298,20 +1297,6 @@ def generer_table_evenements(gn: GN):
         pj_pour_tableau = [pj.str_avec_perso()
                            for pj in intervention.liste_pjs_concernes]
 
-        # # print(f"debug : {vars(intervention)}")
-        # roles_pnjs = intervention.liste_pnjs_impliques
-        # evt = intervention.evenement
-        #
-        # pnj_pour_tableau = [f"{e}. {pnj.str_avec_perso()}" for e, pnj in enumerate(roles_pnjs, start=1)]
-        # costumes_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].costumes_et_accessoires}"
-        #                  for e, pnj in enumerate(roles_pnjs, start=1)]
-        # implications_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].implication}"
-        #                  for e, pnj in enumerate(roles_pnjs, start=1)]
-        # demarrage_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].situation_de_depart}"
-        #                  for e, pnj in enumerate(roles_pnjs, start=1)]
-        #
-        # pj_pour_tableau = [pj.str_avec_perso() for pj in intervention.liste_pjs_impliques]
-        #
         ligne = [intervention.jour,
                  intervention.heure,
                  intervention.evenement.lieu,
@@ -1323,7 +1308,9 @@ def generer_table_evenements(gn: GN):
                  '\n'.join(pj_pour_tableau)
                  ]
         # # print(f"debug : ligne : {ligne}")
-        # to_return.append(ligne)
+        to_return.append(ligne)
+        print(f"debug : ligne = {ligne}")
+        print(f"debug : TO8r = {to_return}")
         #
     return to_return
 

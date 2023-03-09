@@ -825,9 +825,9 @@ class GN:
         noms_factions = list(self.factions.keys())
         for evenement in self.evenements.values():
             for info_faction in evenement.infos_factions:
-                score = process.extractOne(info_faction.nom, noms_factions)
+                score = process.extractOne(info_faction.nom_faction, noms_factions)
                 if score[1] < seuil_faction:
-                    texte_erreur = f"La faction ({score[0]}) a été associée au nom lu {info_faction.nom} " \
+                    texte_erreur = f"La faction ({score[0]}) a été associée au nom lu {info_faction.nom_faction} " \
                                    f"dans l'évènement {evenement.nom_evenement} " \
                                    f"avec une confiance de{score[0]}%"
                     evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
@@ -846,9 +846,9 @@ class GN:
         liste_noms_persos = list(dict_noms_persos.keys())
         for evenement in self.evenements.values():
             for pj_informe in evenement.pjs_concernes_evenement.values():
-                score = process.extractOne(pj_informe.nom, liste_noms_persos)
+                score = process.extractOne(pj_informe.nom_pj, liste_noms_persos)
                 if score[1] < seuil_nom_roles:
-                    texte_erreur = f"Le nom ({pj_informe.nom}) a été associé au personnage {score[0]} " \
+                    texte_erreur = f"Le nom ({pj_informe.nom_pj}) a été associé au personnage {score[0]} " \
                                    f"dans l'évènement {evenement.nom_evenement} " \
                                    f"avec une confiance de{score[0]}%"
                     evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
@@ -863,10 +863,10 @@ class GN:
         dict_noms_persos = {pnj.nom: pnj for pnj in self.dictPNJs.values()}
         liste_noms_persos = list(dict_noms_persos.keys())
         for evenement in self.evenements.values():
-            for intervenant in evenement.intervenants.values():
-                score = process.extractOne(intervenant.nom, liste_noms_persos)
+            for intervenant in evenement.intervenants_evenement.values():
+                score = process.extractOne(intervenant.nom_pnj, liste_noms_persos)
                 if score[1] < seuil_nom_roles:
-                    texte_erreur = f"Le nom ({intervenant.nom}) a été associé au personnage {score[0]} " \
+                    texte_erreur = f"Le nom ({intervenant.nom_pnj}) a été associé au personnage {score[0]} " \
                                    f"dans l'évènement {evenement.nom_evenement} " \
                                    f"avec une confiance de{score[0]}%"
                     evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
