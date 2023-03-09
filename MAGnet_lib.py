@@ -10,10 +10,21 @@ import csv
 
 
 # communication :
+# todo : 050 : max miller  >> ligne vide dans le tableau des PNJs
+# todo : 032 Aura Micthells apparait >> réglé
+# todo : 054 : bug en rouge >>ok
+# todo : roles ajoutés deux fois avec les factions, qui causent des erreurs d'association
 
 # bugs
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
+# todo : gestion des évènements dans le buffy
+
+# todo : structure des évènements à réécreire
+#  virer tout le principe de l'assocaition aux intrigues : un évènement a ses propres roles
+#  lors de l'association on lui trouvera des persos
+#  lors e de l'association des évènements aux intrigues, on donnera les bonnes infos pour pouvoir faire un tableau
+#  qui repique vers l'intrigue par le lien role > évènement > intrigues
 
 # à faire - rapide
 # todo : ajouter les boutons pour contrôler la table des relations et des évènements
@@ -78,7 +89,7 @@ def charger_fichier_init(fichier_init: str):
 
         dict_config['dossiers_evenements'] = [config.get("Optionnels", key)
                                               for key in config.options("Optionnels")
-                                              if key.startswith("id_dossiers_evenements")]
+                                              if key.startswith("id_dossier_evenements")]
 
         dict_config['id_factions'] = config.get('Optionnels', 'id_factions', fallback=None)
 
@@ -193,14 +204,14 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                            fast=fast_persos,
                                            verbal=verbal)
 
-    retirer_pnjs_supprimees(mon_gn, ids_lus)
+    retirer_pnjs_supprimes(mon_gn, ids_lus)
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_evenements(mon_gn,
                                                  api_drive=api_drive,
                                                  api_doc=api_doc,
                                                  )  # todo : ajouter les options de lecture dans la GUI
 
-    retirer_evenements_supprimees(mon_gn, ids_lus)
+    retirer_evenements_supprimes(mon_gn, ids_lus)
 
 
     liste_orgas = None
@@ -306,26 +317,26 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
 
 def retirer_intrigues_supprimees(mon_gn: GN, ids_intrigues_lus: list[str]):
-    retirer_elements_supprimés(ids_intrigues_lus, mon_gn.intrigues)
+    retirer_elements_supprimes(ids_intrigues_lus, mon_gn.intrigues)
 
 def retirer_pjs_supprimees(mon_gn: GN, ids_pjs_lus: list[str]):
-    retirer_elements_supprimés(ids_pjs_lus, mon_gn.dictPJs)
+    retirer_elements_supprimes(ids_pjs_lus, mon_gn.dictPJs)
 
-def retirer_pnjs_supprimees(mon_gn: GN, ids_pnjs_lus: list[str]):
-    retirer_elements_supprimés(ids_pnjs_lus, mon_gn.dictPNJs)
+def retirer_pnjs_supprimes(mon_gn: GN, ids_pnjs_lus: list[str]):
+    retirer_elements_supprimes(ids_pnjs_lus, mon_gn.dictPNJs)
 
-def retirer_evenements_supprimees(mon_gn: GN, ids_evenements_lus: list[str]):
-    retirer_elements_supprimés(ids_evenements_lus, mon_gn.evenements)
+def retirer_evenements_supprimes(mon_gn: GN, ids_evenements_lus: list[str]):
+    retirer_elements_supprimes(ids_evenements_lus, mon_gn.evenements)
 
-def retirer_elements_supprimés(ids_lus: list[str], dict_reference: dict):
+def retirer_elements_supprimes(ids_lus: list[str], dict_reference: dict):
     print(f"debug : id lus = {ids_lus}")
     print(f"debug : ids_dict = {dict_reference.keys()}")
-    ids_a_supprimer = [id for id in dict_reference if id not in ids_lus]
+    ids_a_supprimer = [mon_id for mon_id in dict_reference if mon_id not in ids_lus]
     print(f"debug : id a supprimer = {ids_a_supprimer}")
 
     for id_lu in ids_a_supprimer:
         a_supprimer = dict_reference.pop(id_lu)
-        print(f"debug : intrigue en cours de suppression {a_supprimer.nom}")
+        # print(f"debug : intrigue en cours de suppression {a_supprimer.nom}")
         logging.debug(f"l'objet {a_supprimer} a été identifié comme à supprimer (id = {id_lu})")
         if a_supprimer is not None:
             a_supprimer.clear()
@@ -1367,7 +1378,7 @@ def mettre_a_jour_champs(gn: GN):
                 if not hasattr(role, 'perimetre_intervention'):
                     role.perimetre_intervention = role.perimetreIntervention
                 delattr(role, 'perimetreIntervention')
-                print(f"PerimetreIntervention supprimé pour {role.nom}")
+                # print(f"PerimetreIntervention supprimé pour {role.nom}")
 
             if hasattr(role, 'perimetre_Intervention'):
                 if not hasattr(role, 'perimetre_intervention'):
