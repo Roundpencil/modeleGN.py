@@ -1272,6 +1272,10 @@ class IntervenantEvenement:
         self.evenement = evenement
         self.interventions = set()
 
+    def str_avec_perso(self):
+        return f"{self.nom_pnj} ({self.pnj.nom})" if self.pnj is not None \
+            else f"{self.nom_pnj} (pas de personnage associé)"
+
 
 class PJConcerneEvenement:
     def __init__(self, nom_pj, evenement: Evenement, infos_a_fournir=""):
@@ -1279,6 +1283,10 @@ class PJConcerneEvenement:
         self.pj = None
         self.infos_a_fournir = infos_a_fournir
         self.evenement = evenement
+
+    def str_avec_perso(self):
+        return f"{self.nom_pj} ({self.pj.nom})" if self.pj is not None \
+            else f"{self.nom_pj} (pas de personnage associé)"
 
 
 class InfoFactionsPourEvenement:

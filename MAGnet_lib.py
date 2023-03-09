@@ -17,18 +17,11 @@ import csv
 # todo : gestion des évènements dans le buffy
 
 # todo : structure des évènements à réécreire
-#  lors de l'association on lui trouvera des persos
-#  lors e de l'association des évènements aux intrigues, on donnera les bonnes infos pour pouvoir faire un tableau
-#  qui repique vers l'intrigue par le lien role > évènement > intrigues
 #  l'ajout dans les fiches de persos et PNJs des infos issues des évènements
 #  les focntion de clearing lors du rebuild qui permettent de nettoyer les ajouts intrigues / pjs / pnjs / factions
 #  créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches
 #  gérer les objets et les factions, non pris en cahrge actuellement
 #  mettre à jour clear_all associations avec les évènements
-
-# todo : créer dans l'évènement toutes les infos liées à la faction via une méthode dans rebuild all
-#  s'assurer qu'on met bien à jour les factions AVANT les évènements
-#  pour avoir un fichier faction à jour pour cette étape
 
 #todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
 
@@ -1287,20 +1280,38 @@ def generer_table_evenements(gn: GN):
     to_return = [["Jour", "Heure", "Lieu", "Description", "PNJs impliqués", "Costumes PNJs", "Implication PNJs",
                  "Démarrage PNJ", "PJ impliqués"]]
     for intervention in toutes_interventions:
-        # print(f"debug : {vars(intervention)}")
-        roles_pnjs = intervention.liste_pnjs_impliques
-        evt = intervention.evenement
+        #todo : débugger et réécrire
+        intervenants = intervention.liste_intervenants
 
-        pnj_pour_tableau = [f"{e}. {pnj.str_avec_perso()}" for e, pnj in enumerate(roles_pnjs, start=1)]
-        costumes_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].costumes_et_accessoires}"
-                         for e, pnj in enumerate(roles_pnjs, start=1)]
-        implications_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].implication}"
-                         for e, pnj in enumerate(roles_pnjs, start=1)]
-        demarrage_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].situation_de_depart}"
-                         for e, pnj in enumerate(roles_pnjs, start=1)]
+        pnj_pour_tableau = [f"{e}. {intervenant.str_avec_perso()}"
+                            for e, intervenant in enumerate(intervenants, start=1)]
 
-        pj_pour_tableau = [pj.str_avec_perso() for pj in intervention.liste_pjs_impliques]
-        
+        costumes_pnjs = [f"{e}. {intervenant.costumes_et_accessoires}"
+                         for e, intervenant in enumerate(intervenants, start=1)]
+
+        implications_pnjs = [f"{e}. {intervenant.implication}"
+                             for e, intervenant in enumerate(intervenants, start=1)]
+
+        demarrage_pnjs = [f"{e}. {intervenant.situation_de_depart}"
+                          for e, intervenant in enumerate(intervenants, start=1)]
+
+        pj_pour_tableau = [pj.str_avec_perso()
+                           for pj in intervention.liste_pjs_concernes]
+
+        # # print(f"debug : {vars(intervention)}")
+        # roles_pnjs = intervention.liste_pnjs_impliques
+        # evt = intervention.evenement
+        #
+        # pnj_pour_tableau = [f"{e}. {pnj.str_avec_perso()}" for e, pnj in enumerate(roles_pnjs, start=1)]
+        # costumes_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].costumes_et_accessoires}"
+        #                  for e, pnj in enumerate(roles_pnjs, start=1)]
+        # implications_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].implication}"
+        #                  for e, pnj in enumerate(roles_pnjs, start=1)]
+        # demarrage_pnjs = [f"{e}. {pnj.briefs_pnj_pour_evenement[evt].situation_de_depart}"
+        #                  for e, pnj in enumerate(roles_pnjs, start=1)]
+        #
+        # pj_pour_tableau = [pj.str_avec_perso() for pj in intervention.liste_pjs_impliques]
+        #
         ligne = [intervention.jour,
                  intervention.heure,
                  intervention.evenement.lieu,
@@ -1311,9 +1322,9 @@ def generer_table_evenements(gn: GN):
                  '\n'.join(demarrage_pnjs),
                  '\n'.join(pj_pour_tableau)
                  ]
-        # print(f"debug : ligne : {ligne}")
-        to_return.append(ligne)
-
+        # # print(f"debug : ligne : {ligne}")
+        # to_return.append(ligne)
+        #
     return to_return
 
 def ecrire_table_evenements(gn: GN, api_drive, api_sheets):
