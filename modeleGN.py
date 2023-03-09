@@ -1001,7 +1001,7 @@ class GN:
 
                         # # propager les infos pour les évènements de faction dans le role
                         # for info_pour_evenements in ma_faction.infos_pour_evenements:
-                        #     info_evenement_pour_role = InfoPJPourEvenement(role_a_ajouter.nom,
+                        #     info_evenement_pour_role = PJConcerneEvenement(role_a_ajouter.nom,
                         #                                                    info_pour_evenements.evenement,
                         #                                                    info_pour_evenements.infos_a_fournir
                         #                                                    )
@@ -1109,6 +1109,7 @@ class ErreurManager:
         ASSOCIATION_AUTO = 3
         PERSOS_SANS_SCENE = 4
         ASSOCIATION_EVENEMENTS = 5
+        CHRONO_EVENEMENT = 6
 
     class ErreurAssociation:
         def __init__(self, niveau, texte, genere_par):
@@ -1148,131 +1149,124 @@ class ErreurManager:
             self.erreurs = temp
 
 
-# class Evenement:
-#     def __init__(self,
-#                  nom_evenement="",
-#                  code_evenement="",
-#                  referent="",
-#                  etat="",
-#                  intrigue_liee="",
-#                  lieu="",
-#                  date="",
-#                  heure_de_demarrage="",
-#                  declencheur="",
-#                  consequences_evenement="",
-#                  synopsis="",
-#                  id_url="",
-#                  derniere_edition_date=None,
-#                  derniere_edition_par=""
-#                  ):
-#         self.nom_evenement = nom_evenement
-#         self.id_url = id_url
-#         # self.derniere_edition_date = derniere_edition_date
-#         self.derniere_edition_par = derniere_edition_par
-#         self.code_evenement = code_evenement
-#         self.referent = referent
-#         self.etat = etat
-#         self.intrigue_liee = intrigue_liee
-#         self.lieu = lieu
-#         self.date = date
-#         self.heure_de_demarrage = heure_de_demarrage
-#         self.declencheur = declencheur
-#         self.consequences_evenement = consequences_evenement
-#         self.synopsis = synopsis
-#         self.objets = []
-#         self.interventions = []
-#         self.briefs_pnj = []
-#         self.infos_pj = []
-#         self.infos_factions = []
-#         if derniere_edition_date is None:
-#             derniere_edition_date = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
-#         self.lastProcessing = derniere_edition_date
-#
-#     def clear(self):
-#         # todo : à écrire
-#         pass
+class Evenement:
+    def __init__(
+            self,
+            id_url,
+            nom_evenement="",
+            code_evenement="",
+            referent="",
+            etat="",
+            intrigue_liee="",
+            lieu="",
+            date="",
+            heure_de_demarrage="",
+            declencheur="",
+            consequences_evenement="",
+            synopsis="",
+            derniere_edition_date=None,
+            derniere_edition_par=""
+    ):
+        self.nom_evenement = nom_evenement
+        self.id_url = id_url
+        self.derniere_edition_date = derniere_edition_date
+        self.derniere_edition_par = derniere_edition_par
+        self.code_evenement = code_evenement
+        self.referent = referent
+        self.etat = etat
+        self.intrigue_liee = intrigue_liee
+        self.lieu = lieu
+        self.date = date
+        self.heure_de_demarrage = heure_de_demarrage
+        self.declencheur = declencheur
+        self.consequences_evenement = consequences_evenement
+        self.synopsis = synopsis
+        #         self.objets = []
+        self.interventions = []
+        self.intervenants_evenement = {} #nom, intervenant
+        self.pj_concerne_evenement = {} #nom, pj_concerné
+        self.infos_factions = []
+        if derniere_edition_date is None:
+            derniere_edition_date = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
+        self.lastProcessing = derniere_edition_date
+        self.erreur_manager = ErreurManager()
+
+    def get_noms_pnjs(self):
+        return list(self.intervenants_evenement.keys())
+
+    def get_noms_pjs(self):
+        return list(self.pj_concerne_evenement.keys())
+
+class IntervenantEvenement:
+    def __init__(self, nom_pnj, evenement: Evenement, costumes_et_accessoires="", implication="",
+                 situation_de_depart=""):
+        self.nom_pnj = nom_pnj
+        self.pnj = None
+        self.costumes_et_accessoires = costumes_et_accessoires
+        self.implication = implication
+        self.situation_de_depart = situation_de_depart
+        self.evenement = evenement
+        self.interventions = set()
 
 
-# class BriefPNJPourEvenement:
-#     def __init__(self, nom_pnj, evenement: Evenement, costumes_et_accessoires="", implication="",
-#                  situation_de_depart=""):
-#         self.nom_pnj = nom_pnj
-#         self.pnj = None
-#         self.costumes_et_accessoires = costumes_et_accessoires
-#         self.implication = implication
-#         self.situation_de_depart = situation_de_depart
-#         self.evenement = evenement
+class PJConcerneEvenement:
+    def __init__(self, nom_pj, evenement: Evenement, infos_a_fournir=""):
+        self.nom_pj = nom_pj
+        self.pj = None
+        self.infos_a_fournir = infos_a_fournir
+        self.evenement = evenement
+#todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
+
+class InfoFactionsPourEvenement:
+    def __init__(self, nom_faction, evenement: Evenement, infos_a_fournir=""):
+        self.nom_faction = nom_faction
+        self.faction = None
+        self.infos_a_fournir = infos_a_fournir
+        self.evenement = evenement
 
 
-# class InfoPJPourEvenement:
-#     def __init__(self, nom_pj, evenement: Evenement, infos_a_fournir=""):
-#         self.nom_pj = nom_pj
-#         self.pj = None
-#         self.infos_a_fournir = infos_a_fournir
-#         self.evenement = evenement
-
-
-# class InfoFactionsPourEvenement:
-#     def __init__(self, nom_faction, evenement: Evenement, infos_a_fournir=""):
-#         self.nom_faction = nom_faction
-#         self.faction = None
-#         self.infos_a_fournir = infos_a_fournir
-#         self.evenement = evenement
-
-
-class ObjetDansEvenement:
-    def __init__(self, code: str, description: str, commence: str, termine: str):
-        self.code = code
-        self.description = description
-        self.commence = commence
-        self.termine = termine
+# class ObjetDansEvenement:
+#     def __init__(self, code: str, description: str, commence: str, termine: str):
+#         self.code = code
+#         self.description = description
+#         self.commence = commence
+#         self.termine = termine
 
 
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
-# class Intervention:
-#     def __init__(self, evenement: Evenement, jour=None, heure=None, pj_impliques: list[str] = None,
-#                  pnj_impliques: list[str] = None,
-#                  description=""):
-#         if pj_impliques is None:
-#             pj_impliques = []
-#         if pnj_impliques is None:
-#             pnj_impliques = []
-#         self.jour = jour
-#         self.heure = heure
-#         self.noms_pjs_impliques = pj_impliques
-#         self.noms_pnjs_impliques = pnj_impliques
-#         self.liste_pnjs_impliques = set()
-#         self.liste_pjs_impliques = set()
-#         self.description = description
-#         self.evenement = evenement
+class Intervention:
+    def __init__(self, evenement: Evenement, jour=None, heure=None, description=""):
+        self.jour = jour
+        self.heure = heure
+        self.liste_intervenants = []
+        self.liste_pjs_concernes = []
+        self.description = description
+        self.evenement = evenement
 
-    #     def get_pnjs_impliquesavec_infos(self):
-    #         pass
-    #
-    # def get_noms_pjs_impliques(self):
-    #     if self.noms_pjs_impliques != ['']:
-    #         return self.noms_pjs_impliques
-    #     return [info_pj.nom_pj for info_pj in self.evenement.infos_pj]
-    #
-    # def get_noms_pnj_impliques(self):
-    #     # print(f"debug : pour l'intervention {self.description}, len = {len(self.noms_pnjs_impliques)} / {self.noms_pnjs_impliques}")
-    #     if self.noms_pnjs_impliques != ['']:
-    #         return self.noms_pnjs_impliques
-    #     # print(f"debug : self.evenement.briefs_pnj = {len(self.evenement.briefs_pnj)} {self.evenement.briefs_pnj}")
-    #     return [brief.nom_pnj for brief in self.evenement.briefs_pnj]
-    #
-    # # def get_str_pnjs_impliques_avec_infos(self):
-    # #     to_return = ""
-    # #     for pnj in self.liste_pnjs_impliques:
-    # #         brief = pnj.briefs_pnj_pour_evenement[self.evenement]
-    # #         to_return += f"{pnj.str_avec_perso} (" \
-    # #                      f"costume : {brief.costumes_et_accessoires} - " \
-    # #                      f"implication : {brief.implication} - " \
-    # #                      f"commence : {brief.situation_de_depart}" \
-    # #                      f") \n"
-    # #     return to_return
+# def get_noms_pjs_impliques(self):
+#     if self.noms_pjs_impliques != ['']:
+#         return self.noms_pjs_impliques
+#     return [info_pj.nom_pj for info_pj in self.evenement.infos_pj]
+#
+# def get_noms_pnj_impliques(self):
+#     # print(f"debug : pour l'intervention {self.description}, len = {len(self.noms_pnjs_impliques)} / {self.noms_pnjs_impliques}")
+#     if self.noms_pnjs_impliques != ['']:
+#         return self.noms_pnjs_impliques
+#     # print(f"debug : self.evenement.briefs_pnj = {len(self.evenement.briefs_pnj)} {self.evenement.briefs_pnj}")
+#     return [brief.nom_pnj for brief in self.evenement.briefs_pnj]
+#
+# # def get_str_pnjs_impliques_avec_infos(self):
+# #     to_return = ""
+# #     for pnj in self.liste_pnjs_impliques:
+# #         brief = pnj.briefs_pnj_pour_evenement[self.evenement]
+# #         to_return += f"{pnj.str_avec_perso} (" \
+# #                      f"costume : {brief.costumes_et_accessoires} - " \
+# #                      f"implication : {brief.implication} - " \
+# #                      f"commence : {brief.situation_de_depart}" \
+# #                      f") \n"
+# #     return to_return
 
 
 class Commentaire:

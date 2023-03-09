@@ -681,7 +681,7 @@ def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, noms_roles_dans_c
     # print("rôles trouvés en lecture brute : " + str(roles))
 
     if not avec_tableau_des_persos:
-        # todo : remplacer l'ajout systématique de perso par une recherche et un ajout si KO
+        # todo : remplacer l'ajout systématique de perso par une recherche avec processone et un ajout si KO
 
         # SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles
         # > on les crée sans se poser de questions
@@ -811,132 +811,137 @@ def calculer_jours_il_y_a(balise_date):
         return balise_date.strip()
 
 
-# def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url: str, lastFileEdit,
-#                                 derniere_modification_par: str, gn: GN, verbal=False):
-#     print("je suis entrè dans  la création d'un évènement")
-#     # Créer un nouvel évènement
-#     nom_evenement_en_cours = re.sub(r"^\d+\s*-", '', nom_evenement).strip()
-#
-#     current_evenement = Evenement(nom_evenement=nom_evenement_en_cours,
-#                                   id_url=id_url,
-#                                   derniere_edition_date=lastFileEdit,
-#                                   derniere_edition_par=derniere_modification_par)
-#     gn.evenements[id_url] = current_evenement
-#     print(f"evenements apres création de l'évènement {nom_evenement_en_cours} : {gn.evenements} ")
-#
-#     class Labels(Enum):
-#         FICHE = "fiche technique"
-#         SYNOPSIS = "synopsis - déroulement envisagé"
-#         LIES = "événements liés"
-#         BRIEFS = "brief pnjs"
-#         INFOS_PJS = "pj impliqués et informations à fournir"
-#         INFOS_FACTIONS = "factions impliquées et informations à fournir"
-#         OBJETS = "objets utilisés"
-#         CHRONO = "chronologie de l’évènement"
-#         AUTRES = "informations supplémentaires"
-#
-#     labels = [e.value for e in Labels]
-#     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_evenement.lower())
-#
-#     # utliser un dictionnaire pour savoir quelle section lire
-#     dict_methodes = {
-#         Labels.FICHE: evenement_lire_fiche,
-#         Labels.SYNOPSIS: evenement_lire_synopsis,
-#         Labels.LIES: evenement_lire_lies,
-#         Labels.BRIEFS: evenement_lire_briefs,
-#         Labels.INFOS_PJS: evenement_lire_infos_pj,
-#         Labels.INFOS_FACTIONS: evenement_infos_factions,
-#         Labels.OBJETS: evenement_lire_objets,
-#
-#         Labels.CHRONO: evenement_lire_chrono,
-#         Labels.AUTRES: evenement_lire_autres
-#     }
-#
-#     # lire les sections dans le fichier et appliquer la bonne méthode
-#     for label in Labels:
-#         if indexes[label.value]["debut"] == -1:
-#             print(f"pas de {label.value} avec l'évènement {nom_evenement_en_cours}")
-#         else:
-#             texte_section = texte_evenement[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
-#             methode_a_appliquer = dict_methodes[label]
-#             methode_a_appliquer(texte_section, current_evenement, label.value)
-#
-#
-# def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: str):
-#     texte = retirer_premiere_ligne(texte)
-#     tableau_fiche, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
-#     # print(f"debug : tableau fiche évènement {current_evenement.nom_evenement}, {tableau_fiche} ")
-#     if nb_colonnes != 2:
-#         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_fiche}")
-#         return
-#
-#     dict_fiche = dict(tableau_fiche)
-#     # print(f"debug : dict fiche = {dict_fiche}")
-#     current_evenement.code_evenement = ''.join([dict_fiche.get(key, "").strip()
-#                                                 for key in dict_fiche
-#                                                 if key.startswith("Code")])
-#     current_evenement.etat = dict_fiche.get("État", "").strip()
-#     current_evenement.referent = dict_fiche.get("Référent", "").strip()
-#     current_evenement.intrigue_liee = dict_fiche.get("Intrigue liée", "").strip()
-#     current_evenement.lieu = dict_fiche.get("Lieu", "").strip()
-#     current_evenement.date = dict_fiche.get('Jour, au format “J1”, “J2”, etc.', "").strip()
-#     current_evenement.heure_de_demarrage = dict_fiche.get("Heure de démarrage", "").strip()
-#     current_evenement.declencheur = dict_fiche.get("Déclencheur", "").strip()
-#     current_evenement.consequences_evenement = ''.join([dict_fiche.get(key, "").strip()
-#                                                 for key in dict_fiche
-#                                                 if key.startswith("Conséquences ")])
-#
-# def evenement_lire_synopsis(texte: str, current_evenement: Evenement, texte_label: str):
-#     current_evenement.synopsis = '\n'.join(texte.splitlines()[1:])
-#
-#
-# def evenement_lire_lies(texte: str, current_evenement: Evenement, texte_label: str):
-#     logging.debug(f"balise {texte_label} non prise en charge = {texte}")
-#
-#
-# def evenement_lire_briefs(texte: str, current_evenement: Evenement, texte_label: str):
-#     texte = retirer_premiere_ligne(texte)
-#     tableau_briefs, nb_colonnes = reconstituer_tableau(texte)
-#     if nb_colonnes != 4:
-#         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_briefs}")
-#         return
-#
-#     for ligne in tableau_briefs:
-#         current_brief = BriefPNJPourEvenement(nom_pnj=ligne[0],
-#                                               evenement=current_evenement,
-#                                               costumes_et_accessoires=ligne[1],
-#                                               implication=ligne[2],
-#                                               situation_de_depart=ligne[3]
-#                                               )
-#         current_evenement.briefs_pnj.append(current_brief)
-#
-#
-# def evenement_lire_infos_pj(texte: str, current_evenement: Evenement, texte_label: str):
-#     texte = retirer_premiere_ligne(texte)
-#     tableau_pjs, nb_colonnes = reconstituer_tableau(texte)
-#     if nb_colonnes != 2:
-#         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_pjs}")
-#         return
-#     for ligne in tableau_pjs:
-#         info_pj = InfoPJPourEvenement(nom_pj=ligne[0],
-#                                       infos_a_fournir=ligne[1],
-#                                       evenement=current_evenement)
-#         current_evenement.infos_pj.append(info_pj)
-#
-#
-# def evenement_infos_factions(texte: str, current_evenement: Evenement, texte_label: str):
-#     texte = retirer_premiere_ligne(texte)
-#     tableau_factions, nb_colonnes = reconstituer_tableau(texte)
-#     if nb_colonnes != 2:
-#         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_factions}")
-#         return
-#     for ligne in tableau_factions:
-#         info_faction = InfoFactionsPourEvenement(nom_faction=ligne[0], infos_a_fournir=ligne[1],
-#                                                  evenement=current_evenement)
-#         current_evenement.infos_factions.append(info_faction)
-#
-#
-# def evenement_lire_objets(texte: str, current_evenement: Evenement, texte_label: str):
+def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url: str, lastFileEdit,
+                                derniere_modification_par: str, gn: GN, verbal=False):
+    print("je suis entrè dans  la création d'un évènement")
+    # Créer un nouvel évènement
+    nom_evenement_en_cours = re.sub(r"^\d+\s*-", '', nom_evenement).strip()
+
+    current_evenement = Evenement(nom_evenement=nom_evenement_en_cours,
+                                  id_url=id_url,
+                                  derniere_edition_date=lastFileEdit,
+                                  derniere_edition_par=derniere_modification_par)
+    gn.evenements[id_url] = current_evenement
+
+    #     print(f"evenements apres création de l'évènement {nom_evenement_en_cours} : {gn.evenements} ")
+
+    class Labels(Enum):
+        FICHE = "fiche technique"
+        SYNOPSIS = "synopsis - déroulement envisagé"
+        LIES = "événements liés"
+        BRIEFS = "brief pnjs"
+        INFOS_PJS = "pj impliqués et informations à fournir"
+        INFOS_FACTIONS = "factions impliquées et informations à fournir"
+        OBJETS = "objets utilisés"
+        CHRONO = "chronologie de l’évènement"
+        AUTRES = "informations supplémentaires"
+
+    labels = [e.value for e in Labels]
+    indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_evenement.lower())
+
+    # utliser un dictionnaire pour savoir quelle section lire
+    dict_methodes = {
+        Labels.FICHE: evenement_lire_fiche,
+        Labels.SYNOPSIS: evenement_lire_synopsis,
+        Labels.LIES: evenement_lire_lies,
+        Labels.BRIEFS: evenement_lire_briefs,
+        Labels.INFOS_PJS: evenement_lire_infos_pj,
+        Labels.INFOS_FACTIONS: evenement_infos_factions,
+        Labels.OBJETS: evenement_lire_objets,
+        Labels.CHRONO: evenement_lire_chrono,
+        Labels.AUTRES: evenement_lire_autres
+    }
+
+    # lire les sections dans le fichier et appliquer la bonne méthode
+    for label in Labels:
+        if indexes[label.value]["debut"] == -1:
+            print(f"pas de {label.value} avec l'évènement {nom_evenement_en_cours}")
+        else:
+            texte_section = texte_evenement[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+            methode_a_appliquer = dict_methodes[label]
+            methode_a_appliquer(texte_section, current_evenement, label.value)
+
+
+def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: str):
+    texte = retirer_premiere_ligne(texte)
+    tableau_fiche, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
+    # print(f"debug : tableau fiche évènement {current_evenement.nom_evenement}, {tableau_fiche} ")
+    if nb_colonnes != 2:
+        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_fiche}")
+        return
+
+    dict_fiche = dict(tableau_fiche)
+    # print(f"debug : dict fiche = {dict_fiche}")
+    current_evenement.code_evenement = ''.join([dict_fiche.get(key, "").strip()
+                                                for key in dict_fiche
+                                                if key.startswith("Code")])
+    current_evenement.etat = dict_fiche.get("État", "").strip()
+    current_evenement.referent = dict_fiche.get("Référent", "").strip()
+    current_evenement.intrigue_liee = dict_fiche.get("Intrigue liée", "").strip()
+    current_evenement.lieu = dict_fiche.get("Lieu", "").strip()
+    current_evenement.date = dict_fiche.get('Jour, au format “J1”, “J2”, etc.', "").strip()
+    current_evenement.heure_de_demarrage = dict_fiche.get("Heure de démarrage", "").strip()
+    current_evenement.declencheur = dict_fiche.get("Déclencheur", "").strip()
+    current_evenement.consequences_evenement = ''.join([dict_fiche.get(key, "").strip()
+                                                        for key in dict_fiche
+                                                        if key.startswith("Conséquences ")])
+
+
+def evenement_lire_synopsis(texte: str, current_evenement: Evenement, texte_label: str):
+    current_evenement.synopsis = '\n'.join(texte.splitlines()[1:])
+
+
+def evenement_lire_lies(texte: str, current_evenement: Evenement, texte_label: str):
+    logging.debug(f"balise {texte_label} non prise en charge = {texte}")
+
+
+def evenement_lire_briefs(texte: str, current_evenement: Evenement, texte_label: str):
+    texte = retirer_premiere_ligne(texte)
+    tableau_briefs, nb_colonnes = reconstituer_tableau(texte)
+    if nb_colonnes != 4:
+        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_briefs}")
+        return
+
+    for ligne in tableau_briefs:
+        nom_intervenant = ligne[0]
+        intervenant = IntervenantEvenement(nom_pnj=nom_intervenant,
+                                           evenement=current_evenement,
+                                           costumes_et_accessoires=ligne[1],
+                                           implication=ligne[2],
+                                           situation_de_depart=ligne[3]
+                                           )
+
+        current_evenement.intervenants_evenement[nom_intervenant] = intervenant
+
+
+def evenement_lire_infos_pj(texte: str, current_evenement: Evenement, texte_label: str):
+    texte = retirer_premiere_ligne(texte)
+    tableau_pjs, nb_colonnes = reconstituer_tableau(texte)
+    if nb_colonnes != 2:
+        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_pjs}")
+        return
+    for ligne in tableau_pjs:
+        nom_pj = ligne[0]
+        info_pj = PJConcerneEvenement(nom_pj=nom_pj,
+                                      infos_a_fournir=ligne[1],
+                                      evenement=current_evenement)
+        current_evenement.pj_concerne_evenement[nom_pj] = info_pj
+
+
+def evenement_infos_factions(texte: str, current_evenement: Evenement, texte_label: str):
+    texte = retirer_premiere_ligne(texte)
+    tableau_factions, nb_colonnes = reconstituer_tableau(texte)
+    if nb_colonnes != 2:
+        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_factions}")
+        return
+    for ligne in tableau_factions:
+        info_faction = InfoFactionsPourEvenement(nom_faction=ligne[0], infos_a_fournir=ligne[1],
+                                                 evenement=current_evenement)
+        current_evenement.infos_factions.append(info_faction)
+
+
+def evenement_lire_objets(texte: str, current_evenement: Evenement, texte_label: str):
+    logging.debug(f"balise {texte_label} non prise en charge = {texte}")
 #     texte = retirer_premiere_ligne(texte)
 #     tableau_objets, nb_colonnes = reconstituer_tableau(texte)
 #     if nb_colonnes != 4:
@@ -949,31 +954,64 @@ def calculer_jours_il_y_a(balise_date):
 #                                    commence=ligne[2],
 #                                    termine=ligne[3])
 #         current_evenement.objets.append(objet)
-#
-#
-# def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label: str):
-#     # print(f"debug : texte chrono : {texte}")
-#     texte = retirer_premiere_ligne(texte)
-#     tableau_interventions, nb_colonnes = reconstituer_tableau(texte)
-#     # print(f"debug : tableau interventions : {tableau_interventions}")
-#
-#     if nb_colonnes != 5:
-#         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_interventions}")
-#         return
-#
-#     for ligne in tableau_interventions:
-#         intervention = Intervention(jour=ligne[0],
-#                                     heure=ligne[1],
-#                                     pnj_impliques=[nom.strip() for nom in ligne[2].split(',')],
-#                                     pj_impliques=[nom.strip() for nom in ligne[3].split(',')],
-#                                     description=ligne[4],
-#                                     evenement=current_evenement
-#                                     )
-#         current_evenement.interventions.append(intervention)
-#
-#
-# def evenement_lire_autres(texte: str, current_evenement: Evenement, texte_label: str):
-#     logging.debug(f"balise {texte_label} non prise en charge = {texte}")
+
+
+def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label: str,
+                          seuil_alerte_pnj = 70, seuil_alerte_pj = 70):
+    # print(f"debug : texte chrono : {texte}")
+    texte = retirer_premiere_ligne(texte)
+    tableau_interventions, nb_colonnes = reconstituer_tableau(texte)
+    # print(f"debug : tableau interventions : {tableau_interventions}")
+
+    if nb_colonnes != 5:
+        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_interventions}")
+        return
+
+    for ligne in tableau_interventions:
+        intervention = Intervention(jour=ligne[0],
+                                    heure=ligne[1],
+                                    description=ligne[4],
+                                    evenement=current_evenement
+                                    )
+        noms_pnjs_impliques = [nom.strip() for nom in ligne[2].split(',')]
+        noms_pnjs_dans_evenement = current_evenement.get_noms_pnjs()
+        if noms_pnjs_impliques == ['']:
+            intervention.liste_intervenants.extend(current_evenement.intervenants_evenement.values())
+        else:
+            for nom_pnj in noms_pnjs_impliques:
+                score = process.extractOne(nom_pnj, noms_pnjs_dans_evenement)
+                if score < seuil_alerte_pnj:
+                    texte_erreur = f"Le nom du pnj {nom_pnj} trouvé dans la chronologie de l'évènement " \
+                                   f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
+                    current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                                    texte_erreur,
+                                                                    ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+                intervenant = current_evenement.intervenants_evenement[score[0]]
+                intervention.liste_intervenants.append(intervenant)
+        for intervenant in intervention.liste_intervenants:
+            intervenant.interventions.add(intervention)
+
+        noms_pj_impliques = [nom.strip() for nom in ligne[3].split(',')]
+        noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
+        if noms_pj_impliques == ['']:
+            intervention.liste_pjs_concernes.extend(current_evenement.pj_concerne_evenement.values())
+        else:
+            for nom_pj in noms_pj_impliques:
+                score = process.extractOne(nom_pj, noms_pjs_dans_evenement)
+                if score < seuil_alerte_pj:
+                    texte_erreur = f"Le nom du pj {nom_pj} trouvé dans la chronologie de l'évènement " \
+                                   f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
+                    current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                                    texte_erreur,
+                                                                    ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+                pj_concerne = current_evenement.pj_concerne_evenement[score[0]]
+                intervention.liste_pjs_concernes.append(pj_concerne)
+
+        current_evenement.interventions.append(intervention)
+
+
+def evenement_lire_autres(texte: str, current_evenement: Evenement, texte_label: str):
+    logging.debug(f"balise {texte_label} non prise en charge = {texte}")
 
 
 def retirer_premiere_ligne(texte: str):

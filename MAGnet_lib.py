@@ -1415,6 +1415,6 @@ def mettre_a_jour_champs(gn: GN):
             if not hasattr(intervention, 'liste_pjs_impliques'):
                 intervention.liste_pjs_impliques = set()
 
-            if hasattr(intervention, 'pj_impliques'):
+            if hasattr(intervention, 'noms_pj_impliques'):
                 intervention.noms_pjs_impliques = intervention.pj_impliques
                 delattr(intervention, pj_impliques)
