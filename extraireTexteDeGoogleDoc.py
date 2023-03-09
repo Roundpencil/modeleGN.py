@@ -925,7 +925,7 @@ def evenement_lire_infos_pj(texte: str, current_evenement: Evenement, texte_labe
         info_pj = PJConcerneEvenement(nom_pj=nom_pj,
                                       infos_a_fournir=ligne[1],
                                       evenement=current_evenement)
-        current_evenement.pj_concerne_evenement[nom_pj] = info_pj
+        current_evenement.pjs_concernes_evenement[nom_pj] = info_pj
 
 
 def evenement_infos_factions(texte: str, current_evenement: Evenement, texte_label: str):
@@ -994,7 +994,7 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
         noms_pj_impliques = [nom.strip() for nom in ligne[3].split(',')]
         noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
         if noms_pj_impliques == ['']:
-            intervention.liste_pjs_concernes.extend(current_evenement.pj_concerne_evenement.values())
+            intervention.liste_pjs_concernes.extend(current_evenement.pjs_concernes_evenement.values())
         else:
             for nom_pj in noms_pj_impliques:
                 score = process.extractOne(nom_pj, noms_pjs_dans_evenement)
@@ -1004,7 +1004,7 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
                     current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
                                                                     texte_erreur,
                                                                     ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-                pj_concerne = current_evenement.pj_concerne_evenement[score[0]]
+                pj_concerne = current_evenement.pjs_concernes_evenement[score[0]]
                 intervention.liste_pjs_concernes.append(pj_concerne)
 
         current_evenement.interventions.append(intervention)

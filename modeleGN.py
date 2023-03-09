@@ -150,13 +150,12 @@ class Personnage(ConteneurDeScene):
         self.indicationsCostume = indications_costume
         self.factions = []
         self.datesClefs = dates_clefs
-        # trouver comment interpréter les textes en dessous des tableaux
-        # : des scènes ?
         self.textesAnnexes = textes_annexes
-        # self.url = url
         self.lastProcessing = last_change
         self.forced = forced
         self.commentaires = []
+        self.informations_evenements = set()
+        self.intervient_comme = set()
 
     def clear(self):
         for role in self.roles:
@@ -569,11 +568,14 @@ class Faction:
     def __init__(self, nom: str):
         self.nom = nom
         self.personnages = set()
-        self.infos_pour_evenements = set()
+        # self.infos_pour_evenements = set()
 
     def __str__(self):
-        list_perso = [p.nom for p in self.personnages]
+        list_perso = self.get_noms_persos()
         return f"Faction {self.nom} avec les personnages {list_perso}"
+
+    def get_noms_persos(self):
+        return [p.nom for p in self.personnages]
 
 
 class GN:
@@ -663,11 +665,11 @@ class GN:
     def ajouter_faction(self, faction: Faction):
         self.factions[faction.nom] = faction
 
-    def rechercher_faction(self, nom: str) -> Faction:
-        if nom in self.factions:
-            return self.factions[nom]
-        else:
-            raise ValueError(f"La faction {nom} n'a pas été trouvée")
+    # def rechercher_faction(self, nom: str) -> Faction:
+    #     if nom in self.factions:
+    #         return self.factions[nom]
+    #     else:
+    #         raise ValueError(f"La faction {nom} n'a pas été trouvée")
 
     def effacer_personnages_forces(self):
         for key_personnage in list(self.dictPJs.keys()):
@@ -701,12 +703,8 @@ class GN:
             self.oldestUpdatedPJ = pairesDatesIdPJ[self.oldestUpdatePJ]
 
     def save(self, filename):
-        # for prop, value in vars(self).items():
-        #     print(prop, ":", type(value))
-
-        filehandler = open(filename, "wb")
-        pickle.dump(self, filehandler)
-        filehandler.close()
+        with open(filename, "wb") as filehandler:
+            pickle.dump(self, filehandler)
 
     def noms_pjs(self):
         # return self.dictPJs.keys()
@@ -810,13 +808,76 @@ class GN:
     def rebuild_links(self, verbal=False):
         self.clear_all_associations()
         self.update_oldest_update()
-        # self.lier_les_evenements_aux_intrigues()
         self.ajouter_roles_issus_de_factions()
         self.associer_pnj_a_roles()
         self.associer_pj_a_roles()
+        self.degonfler_factions_dans_evenement()
+        self.associer_pjs_a_evenements()
+        self.associer_pnjs_a_evenements()
+        self.lier_les_evenements_aux_intrigues()
         self.trouver_roles_sans_scenes()
 
-    def lier_les_evenements_aux_intrigues(self, seuil_nom_roles: int = 70, seuil_noms_factions: int = 70):
+    def degonfler_factions_dans_evenement(self, seuil_faction=80):
+        # pour chaque faction dans chaque évènement :
+        # prendre tous les noms dans la faction
+        # ajouter une info_pj pour chaque membre de la faction
+
+        noms_factions = list(self.factions.keys())
+        for evenement in self.evenements.values():
+            for info_faction in evenement.infos_factions:
+                score = process.extractOne(info_faction.nom, noms_factions)
+                if score[1] < seuil_faction:
+                    texte_erreur = f"La faction ({score[0]}) a été associée au nom lu {info_faction.nom} " \
+                                   f"dans l'évènement {evenement.nom_evenement} " \
+                                   f"avec une confiance de{score[0]}%"
+                    evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                            texte_erreur,
+                                                            ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
+                                                            )
+                faction_cible = self.factions[score[0]]
+                for personnage in faction_cible.personnages:
+                    info_a_ajouter = PJConcerneEvenement(personnage.nom,
+                                                         infos_a_fournir=info_faction.infos_a_fournir,
+                                                         evenement=evenement)
+                    evenement.pjs_concernes_evenement[personnage.nom] = info_a_ajouter
+
+    def associer_pjs_a_evenements(self, seuil_nom_roles: int = 80):
+        dict_noms_persos = {pj.nom: pj for pj in self.dictPJs.values()}
+        liste_noms_persos = list(dict_noms_persos.keys())
+        for evenement in self.evenements.values():
+            for pj_informe in evenement.pjs_concernes_evenement.values():
+                score = process.extractOne(pj_informe.nom, liste_noms_persos)
+                if score[1] < seuil_nom_roles:
+                    texte_erreur = f"Le nom ({pj_informe.nom}) a été associé au personnage {score[0]} " \
+                                   f"dans l'évènement {evenement.nom_evenement} " \
+                                   f"avec une confiance de{score[0]}%"
+                    evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                            texte_erreur,
+                                                            ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
+                                                            )
+                pj_cible = dict_noms_persos[score[0]]
+                pj_cible.informations_evenements.add(pj_informe)
+                pj_informe.pj = pj_cible
+
+    def associer_pnjs_a_evenements(self, seuil_nom_roles=80):
+        dict_noms_persos = {pnj.nom: pnj for pnj in self.dictPNJs.values()}
+        liste_noms_persos = list(dict_noms_persos.keys())
+        for evenement in self.evenements.values():
+            for intervenant in evenement.intervenants.values():
+                score = process.extractOne(intervenant.nom, liste_noms_persos)
+                if score[1] < seuil_nom_roles:
+                    texte_erreur = f"Le nom ({intervenant.nom}) a été associé au personnage {score[0]} " \
+                                   f"dans l'évènement {evenement.nom_evenement} " \
+                                   f"avec une confiance de{score[0]}%"
+                    evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                            texte_erreur,
+                                                            ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
+                                                            )
+                pnj_cible = dict_noms_persos[score[0]]
+                pnj_cible.intervient_comme.add(intervenant)
+                intervenant.pnj = pnj_cible
+
+    def lier_les_evenements_aux_intrigues(self):
         dict_ref_evenement = {evt.code_evenement: evt for evt in self.evenements.values()}
         for intrigue in self.intrigues.values():
             for code_evt in intrigue.codes_evenements_raw:
@@ -829,86 +890,87 @@ class GN:
                                                       )
                     continue
                 intrigue.evenements.add(mon_evenement)
+                mon_evenement.intrigue = intrigue
                 # print(f"debug : intrigue : {intrigue.nom}, code evenement : {code_evt}")
 
-                noms_roles_pnjs = [r.nom for r in intrigue.rolesContenus.values() if r.est_un_pnj()]
-                noms_roles_pjs = [r.nom for r in intrigue.rolesContenus.values() if r.est_un_pj()]
-
-                for brief in mon_evenement.briefs_pnj:
-                    score = process.extractOne(brief.nom_pnj, noms_roles_pnjs)
-                    if score[1] < seuil_nom_roles:
-                        texte_erreur = f"Le role ({score[1]}) a été associé au personnage {brief.nom_pnj} " \
-                                       f"dans le brief de l'évènement {mon_evenement.nom_evenement} " \
-                                       f"avec une confiance de{score[0]}% dans {intrigue.nom}"
-                        intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-                                                  texte_erreur,
-                                                  ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
-                                                  )
-                    mon_role = intrigue.rolesContenus[score[0]]
-                    mon_role.briefs_pnj_pour_evenement[mon_evenement] = brief
-                    brief.pnj = mon_role
-
-                for info_pj in mon_evenement.infos_pj:
-                    score = process.extractOne(info_pj.nom_pj, noms_roles_pjs)
-                    if score[1] < seuil_nom_roles:
-                        texte_erreur = f"Le role ({score[1]}) a été associé au personnage {info_pj.nom_pj} " \
-                                       f"dans les infos liées à l'évènement {mon_evenement.nom_evenement} " \
-                                       f"avec une confiance de{score[0]}% dans {intrigue.nom}"
-                        intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-                                                  texte_erreur,
-                                                  ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
-                                                  )
-                    mon_role = intrigue.rolesContenus[score[0]]
-                    mon_role.infos_pj_pour_evenement[mon_evenement] = info_pj
-                    info_pj.pj = mon_role
-
-                for intervention in mon_evenement.interventions:
-
-                    noms_pj_impliques = intervention.get_noms_pjs_impliques()
-                    noms_pnj_impliques = intervention.get_noms_pnj_impliques()
-
-                    # print(f"debug : nom pj impl = {noms_pj_impliques} \n noms pnj impl = {noms_pnj_impliques}")
-
-                    for nom_pj in noms_pj_impliques:
-                        score = process.extractOne(nom_pj, noms_roles_pjs)
-                        if score[1] < seuil_nom_roles:
-                            texte_erreur = f"Le role ({score[1]}) a été associé au personnage {nom_pj} " \
-                                           f"dans l'intervention {intervention.description} " \
-                                           f"de l'évènement {mon_evenement.nom_evenement} " \
-                                           f"avec une confiance de{score[0]}% dans {intrigue.nom}"
-                            intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-                                                      texte_erreur,
-                                                      ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
-                                                      )
-                        intrigue.rolesContenus[score[0]].interventions[mon_evenement] = intervention
-                        intervention.liste_pjs_impliques.add(intrigue.rolesContenus[score[0]])
-
-                    for nom_pnj in noms_pnj_impliques:
-                        score = process.extractOne(nom_pnj, noms_roles_pnjs)
-                        if score[1] < seuil_nom_roles:
-                            texte_erreur = f"Le role ({score[1]}) a été associé au personnage {nom_pnj} " \
-                                           f"dans l'intervention {intervention.description} " \
-                                           f"de l'évènement {mon_evenement.nom_evenement} " \
-                                           f"avec une confiance de{score[0]}% dans {intrigue.nom}"
-                            intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-                                                      texte_erreur,
-                                                      ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
-                                                      )
-                        intrigue.rolesContenus[score[0]].interventions[mon_evenement] = intervention
-                        intervention.liste_pnjs_impliques.add(intrigue.rolesContenus[score[0]])
-
-                for info_faction in mon_evenement.infos_factions:
-                    score_faction = process.extractOne(info_faction.nom_faction, self.factions.keys())
-                    if score_faction[1] < seuil_noms_factions:
-                        texte_erreur = f"Le role ({score_faction[1]}) a été associé " \
-                                       f"à la faction {info_faction.nom_faction} " \
-                                       f"dans l'évènement {mon_evenement.nom_evenement} " \
-                                       f"avec une confiance de{score_faction[0]}% dans {intrigue.nom}"
-                        intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-                                                  texte_erreur,
-                                                  ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
-                                                  )
-                    self.factions[score_faction[0]].infos_pour_evenements.add(info_faction)
+    #             noms_roles_pnjs = [r.nom for r in intrigue.rolesContenus.values() if r.est_un_pnj()]
+    #             noms_roles_pjs = [r.nom for r in intrigue.rolesContenus.values() if r.est_un_pj()]
+    #
+    #             for brief in mon_evenement.briefs_pnj:
+    #                 score = process.extractOne(brief.nom_pnj, noms_roles_pnjs)
+    #                 if score[1] < seuil_nom_roles:
+    #                     texte_erreur = f"Le role ({score[1]}) a été associé au personnage {brief.nom_pnj} " \
+    #                                    f"dans le brief de l'évènement {mon_evenement.nom_evenement} " \
+    #                                    f"avec une confiance de{score[0]}% dans {intrigue.nom}"
+    #                     intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+    #                                               texte_erreur,
+    #                                               ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
+    #                                               )
+    #                 mon_role = intrigue.rolesContenus[score[0]]
+    #                 mon_role.briefs_pnj_pour_evenement[mon_evenement] = brief
+    #                 brief.pnj = mon_role
+    #
+    #             for info_pj in mon_evenement.infos_pj:
+    #                 score = process.extractOne(info_pj.nom_pj, noms_roles_pjs)
+    #                 if score[1] < seuil_nom_roles:
+    #                     texte_erreur = f"Le role ({score[1]}) a été associé au personnage {info_pj.nom_pj} " \
+    #                                    f"dans les infos liées à l'évènement {mon_evenement.nom_evenement} " \
+    #                                    f"avec une confiance de{score[0]}% dans {intrigue.nom}"
+    #                     intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+    #                                               texte_erreur,
+    #                                               ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
+    #                                               )
+    #                 mon_role = intrigue.rolesContenus[score[0]]
+    #                 mon_role.infos_pj_pour_evenement[mon_evenement] = info_pj
+    #                 info_pj.pj = mon_role
+    #
+    #             for intervention in mon_evenement.interventions:
+    #
+    #                 noms_pj_impliques = intervention.get_noms_pjs_impliques()
+    #                 noms_pnj_impliques = intervention.get_noms_pnj_impliques()
+    #
+    #                 # print(f"debug : nom pj impl = {noms_pj_impliques} \n noms pnj impl = {noms_pnj_impliques}")
+    #
+    #                 for nom_pj in noms_pj_impliques:
+    #                     score = process.extractOne(nom_pj, noms_roles_pjs)
+    #                     if score[1] < seuil_nom_roles:
+    #                         texte_erreur = f"Le role ({score[1]}) a été associé au personnage {nom_pj} " \
+    #                                        f"dans l'intervention {intervention.description} " \
+    #                                        f"de l'évènement {mon_evenement.nom_evenement} " \
+    #                                        f"avec une confiance de{score[0]}% dans {intrigue.nom}"
+    #                         intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+    #                                                   texte_erreur,
+    #                                                   ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
+    #                                                   )
+    #                     intrigue.rolesContenus[score[0]].interventions[mon_evenement] = intervention
+    #                     intervention.liste_pjs_impliques.add(intrigue.rolesContenus[score[0]])
+    #
+    #                 for nom_pnj in noms_pnj_impliques:
+    #                     score = process.extractOne(nom_pnj, noms_roles_pnjs)
+    #                     if score[1] < seuil_nom_roles:
+    #                         texte_erreur = f"Le role ({score[1]}) a été associé au personnage {nom_pnj} " \
+    #                                        f"dans l'intervention {intervention.description} " \
+    #                                        f"de l'évènement {mon_evenement.nom_evenement} " \
+    #                                        f"avec une confiance de{score[0]}% dans {intrigue.nom}"
+    #                         intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+    #                                                   texte_erreur,
+    #                                                   ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
+    #                                                   )
+    #                     intrigue.rolesContenus[score[0]].interventions[mon_evenement] = intervention
+    #                     intervention.liste_pnjs_impliques.add(intrigue.rolesContenus[score[0]])
+    #
+    #             for info_faction in mon_evenement.infos_factions:
+    #                 score_faction = process.extractOne(info_faction.nom_faction, self.factions.keys())
+    #                 if score_faction[1] < seuil_noms_factions:
+    #                     texte_erreur = f"Le role ({score_faction[1]}) a été associé " \
+    #                                    f"à la faction {info_faction.nom_faction} " \
+    #                                    f"dans l'évènement {mon_evenement.nom_evenement} " \
+    #                                    f"avec une confiance de{score_faction[0]}% dans {intrigue.nom}"
+    #                     intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+    #                                               texte_erreur,
+    #                                               ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
+    #                                               )
+    #                 self.factions[score_faction[0]].infos_pour_evenements.add(info_faction)
 
     def trouver_roles_sans_scenes(self, verbal=False, seuil=70):
         # nettoyer tous les fichiers erreurs:
@@ -1183,19 +1245,21 @@ class Evenement:
         self.synopsis = synopsis
         #         self.objets = []
         self.interventions = []
-        self.intervenants_evenement = {} #nom, intervenant
-        self.pj_concerne_evenement = {} #nom, pj_concerné
+        self.intervenants_evenement = {}  # nom, intervenant
+        self.pjs_concernes_evenement = {}  # nom, pj_concerné
         self.infos_factions = []
         if derniere_edition_date is None:
             derniere_edition_date = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
         self.lastProcessing = derniere_edition_date
         self.erreur_manager = ErreurManager()
+        self.intrigue = None
 
     def get_noms_pnjs(self):
         return list(self.intervenants_evenement.keys())
 
     def get_noms_pjs(self):
-        return list(self.pj_concerne_evenement.keys())
+        return list(self.pjs_concernes_evenement.keys())
+
 
 class IntervenantEvenement:
     def __init__(self, nom_pnj, evenement: Evenement, costumes_et_accessoires="", implication="",
@@ -1215,12 +1279,12 @@ class PJConcerneEvenement:
         self.pj = None
         self.infos_a_fournir = infos_a_fournir
         self.evenement = evenement
-#todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
+
 
 class InfoFactionsPourEvenement:
     def __init__(self, nom_faction, evenement: Evenement, infos_a_fournir=""):
         self.nom_faction = nom_faction
-        self.faction = None
+        # self.faction = None
         self.infos_a_fournir = infos_a_fournir
         self.evenement = evenement
 
@@ -1244,6 +1308,7 @@ class Intervention:
         self.liste_pjs_concernes = []
         self.description = description
         self.evenement = evenement
+
 
 # def get_noms_pjs_impliques(self):
 #     if self.noms_pjs_impliques != ['']:

@@ -10,10 +10,6 @@ import csv
 
 
 # communication :
-# todo : 050 : max miller  >> ligne vide dans le tableau des PNJs
-# todo : 032 Aura Micthells apparait >> réglé
-# todo : 054 : bug en rouge >>ok
-# todo : roles ajoutés deux fois avec les factions, qui causent des erreurs d'association
 
 # bugs
 # todo comprendre pourquoi pas de load de snyder
@@ -21,20 +17,27 @@ import csv
 # todo : gestion des évènements dans le buffy
 
 # todo : structure des évènements à réécreire
-#  virer tout le principe de l'assocaition aux intrigues : un évènement a ses propres roles
 #  lors de l'association on lui trouvera des persos
 #  lors e de l'association des évènements aux intrigues, on donnera les bonnes infos pour pouvoir faire un tableau
 #  qui repique vers l'intrigue par le lien role > évènement > intrigues
+#  l'ajout dans les fiches de persos et PNJs des infos issues des évènements
+#  les focntion de clearing lors du rebuild qui permettent de nettoyer les ajouts intrigues / pjs / pnjs / factions
+#  créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches
+#  gérer les objets et les factions, non pris en cahrge actuellement
+#  mettre à jour clear_all associations avec les évènements
+
+# todo : créer dans l'évènement toutes les infos liées à la faction via une méthode dans rebuild all
+#  s'assurer qu'on met bien à jour les factions AVANT les évènements
+#  pour avoir un fichier faction à jour pour cette étape
+
+#todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
+
+# todo  : dans la génération des fichiers des erreurs, sortir ceux de l'évènement
 
 # à faire - rapide
 # todo : ajouter les boutons pour contrôler la table des relations et des évènements
 
 # à faire - plus long
-# todo : gestion des évènement
-#  l'ajout dans les fiches de persos et PNJs des infos issues des évènements
-#  les focntion de clearing lors du rebuild qui permettent de nettoyer les ajouts intrigues / pjs / pnjs / factions
-#  créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches
-#  gérer les objets et les factions, non pris en cahrge actuellement
 
 # todo : ajouter les options de lecture des pnjs dans la GUI
 
