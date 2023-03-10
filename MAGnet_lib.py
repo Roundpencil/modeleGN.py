@@ -14,7 +14,7 @@ import csv
 # bugs
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
-# todo : gestion des évènements dans le buffy
+# todo : gestion des évènements dans le buffy > trouver pourquoi problème avec le sunny cola E002-5 notamment
 
 # todo : structure des évènements à réécreire
 #  l'ajout dans les fiches de persos et PNJs des infos issues des évènements
@@ -1278,7 +1278,7 @@ def generer_table_evenements(gn: GN):
     toutes_interventions = sorted(toutes_interventions, key=lambda x: [x.jour, x.heure])
 
     to_return = [["Jour", "Heure", "Lieu", "Description", "PNJs impliqués", "Costumes PNJs", "Implication PNJs",
-                 "Démarrage PNJ", "PJ impliqués"]]
+                 "Démarrage PNJ", "PJ impliqués", "Intrigue", 'Evènement']]
     for intervention in toutes_interventions:
         intervenants = intervention.liste_intervenants
 
@@ -1297,6 +1297,11 @@ def generer_table_evenements(gn: GN):
         pj_pour_tableau = [pj.str_avec_perso()
                            for pj in intervention.liste_pjs_concernes]
 
+        nom_intrigue = intervention.evenement.intrigue.nom if intervention.evenement.intrigue is not None \
+            else f"Pas d'intrigue pour l'évènement {evenement.code_evenement}"
+
+        nom_evenement = intervention.evenement.code_evenement
+
         ligne = [intervention.jour,
                  intervention.heure,
                  intervention.evenement.lieu,
@@ -1305,7 +1310,9 @@ def generer_table_evenements(gn: GN):
                  '\n'.join(costumes_pnjs),
                  '\n'.join(implications_pnjs),
                  '\n'.join(demarrage_pnjs),
-                 '\n'.join(pj_pour_tableau)
+                 '\n'.join(pj_pour_tableau),
+                 nom_intrigue,
+                 nom_evenement
                  ]
         # # print(f"debug : ligne : {ligne}")
         to_return.append(ligne)
