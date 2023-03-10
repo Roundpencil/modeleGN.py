@@ -14,24 +14,23 @@ import csv
 # bugs
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
-# todo : gestion des évènements dans le buffy > faire marcher le remplissage auto des ['']
-#  notamment avec https://docs.google.com/document/d/1xX9P2PJ53YcYoKFweXeCEMl1JUbQVNsHz9-gAm3wYPU/edit#
+# todo : gérer les persos ajoutés deux fois via les factions dans le buffy
 
+
+# à faire - rapide
 # todo : structure des évènements à réécreire
 #  les focntion de clearing lors du rebuild qui permettent de nettoyer les ajouts intrigues / pjs / pnjs / factions
 #  créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches
-#  gérer les objets et les factions, non pris en cahrge actuellement
 #  mettre à jour clear_all associations avec les évènements
 
 #todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
 
 # todo  : dans la génération des fichiers des erreurs, sortir ceux de l'évènement
 
-# à faire - rapide
-
 # à faire - plus long
+# todo gérer les objets et les factions, non pris en cahrge actuellement
 
-# todo : ajouter les options de lecture des pnjs dans la GUI
+# todo : ajouter les options de lecture des pnjs dans la GUI > tout refaire en mode binaire su rapide ou pas
 
 # todo : quand on loade le fichier faction, clearer les factions
 #  pour prendre en compte les suppressions entre deux loading
@@ -40,8 +39,7 @@ import csv
 
 # todo : faire évoluer grille objets avec et le fait qu'on a trouvé un lien vers une fiche objet (via le code)
 
-# todo créer un objet qui stoque les paramètres du GN et les passer pour simplifier les créations
-
+# todo créer un objet Paramètre qui stoque les paramètres du GN et les passer pour simplifier les créations
 
 # todo : ajouter un parametre avec une méthode  pour permettre d'envoyer des infos
 #  à une barre de progression (rien par défaut) et un champ label (print par dééfaut)
