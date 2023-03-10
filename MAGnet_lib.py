@@ -18,14 +18,18 @@ import csv
 
 
 # à faire - rapide
-# todo : structure des évènements à réécreire
-#  les focntion de clearing lors du rebuild qui permettent de nettoyer les ajouts intrigues / pjs / pnjs / factions
-#  créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches
-#  mettre à jour clear_all associations avec les évènements
+# todo : les focntion de clearing des évènements lors du rebuild
+#  qui permettent de nettoyer les ajouts intrigues / pjs / pnjs / factions et les erreurs associées
+#  (mettre à jour clear_all associations avec les évènements)
 
-#todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
+# todo : génrer dans les fiches PJs / PNJs leurs interventions dans les évènements
+#  (créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches?)
 
-# todo  : dans la génération des fichiers des erreurs, sortir ceux de l'évènement
+# todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
+
+# todo : écrire la génération du fichier des erreurs de l'évènement
+
+# todo : ajouter une checkox pour les erreurs dans les évènements
 
 # à faire - plus long
 # todo gérer les objets et les factions, non pris en cahrge actuellement
@@ -39,13 +43,12 @@ import csv
 
 # todo : faire évoluer grille objets avec et le fait qu'on a trouvé un lien vers une fiche objet (via le code)
 
-# todo créer un objet Paramètre qui stoque les paramètres du GN et les passer pour simplifier les créations
-
 # todo : ajouter un parametre avec une méthode  pour permettre d'envoyer des infos
 #  à une barre de progression (rien par défaut) et un champ label (print par dééfaut)
 
 # confort / logique
 # todo : refaire version console
+# todo créer un objet Paramètre qui stoque les paramètres du GN et les passer pour simplifier les créations
 
 # todo : faire un menu qui crée le GN avec les options et crée tous les fichiers qui vont bien
 #  dans un dossier magnet du drive fourni en entrée, et des questions sous la forme de "allez-vous utiliser...?"
