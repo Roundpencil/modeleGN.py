@@ -270,6 +270,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
         else:
             ma_methode = dict_methodes[label]
             texte = texteIntrigue[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+            # print(f"debug : texte label {label.value} = {texte}")
             ma_methode(texte, current_intrigue, label.value)
 
     return current_intrigue
@@ -813,7 +814,7 @@ def calculer_jours_il_y_a(balise_date):
 
 def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url: str, lastFileEdit,
                                 derniere_modification_par: str, gn: GN, verbal=False):
-    print("je suis entrè dans  la création d'un évènement")
+    # print("je suis entré dans  la création d'un évènement")
     # Créer un nouvel évènement
     nom_evenement_en_cours = re.sub(r"^\d+\s*-", '', nom_evenement).strip()
 
@@ -827,7 +828,7 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
 
     class Labels(Enum):
         FICHE = "fiche technique"
-        SYNOPSIS = "synopsis - déroulement envisagé"
+        SYNOPSIS = "synopsis"
         LIES = "événements liés"
         BRIEFS = "brief pnjs"
         INFOS_PJS = "pj impliqués et informations à fournir"
@@ -999,7 +1000,7 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_a
         for nom_pnj in noms_pnjs_impliques:
             score = process.extractOne(nom_pnj, noms_pnjs_dans_evenement)
             if score is None:
-                texte_erreur = f"Correspondance est None pour le nom {nom_pnj} " \
+                texte_erreur = f"Correspondance est None pour le nom {nom_pnj} avec la table des PNJs" \
                                f"dans l'évènement {current_evenement.code_evenement} " \
                                f"/ {current_evenement.nom_evenement}" \
                                f"pour l'intervention {intervention.description}"
@@ -1028,7 +1029,7 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_a
             score = process.extractOne(nom_pj, noms_pjs_dans_evenement)
             if score is None:
                 texte_erreur = f"Correspondance est None pour le nom {nom_pj} " \
-                               f"dans l'évènement {current_evenement.code_evenement} " \
+                               f"dans l'évènement {current_evenement.code_evenement} avec la table des PJs" \
                                f"/ {current_evenement.nom_evenement}" \
                                f"pour l'intervention {intervention.description}"
                 current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,

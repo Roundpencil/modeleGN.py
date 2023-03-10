@@ -14,10 +14,9 @@ import csv
 # bugs
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
-# todo : gestion des évènements dans le buffy > trouver pourquoi problème avec le sunny cola E002-5 notamment
+# todo : gestion des évènements dans le buffy > trouver pourquoi problème avec E010-1 - Effets secondaires Larry
 
 # todo : structure des évènements à réécreire
-#  l'ajout dans les fiches de persos et PNJs des infos issues des évènements
 #  les focntion de clearing lors du rebuild qui permettent de nettoyer les ajouts intrigues / pjs / pnjs / factions
 #  créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches
 #  gérer les objets et les factions, non pris en cahrge actuellement
@@ -28,7 +27,6 @@ import csv
 # todo  : dans la génération des fichiers des erreurs, sortir ceux de l'évènement
 
 # à faire - rapide
-# todo : ajouter les boutons pour contrôler la table des relations et des évènements
 
 # à faire - plus long
 
@@ -1316,9 +1314,9 @@ def generer_table_evenements(gn: GN):
                  ]
         # # print(f"debug : ligne : {ligne}")
         to_return.append(ligne)
-        print(f"debug : ligne = {ligne}")
-        print(f"debug : TO8r = {to_return}")
-        #
+        # print(f"debug : ligne = {ligne}")
+        # print(f"debug : To8r = {to_return}")
+
     return to_return
 
 def ecrire_table_evenements(gn: GN, api_drive, api_sheets):

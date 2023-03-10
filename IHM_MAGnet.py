@@ -448,7 +448,7 @@ class Application(tk.Frame):
 
     def regen(self):
         regen_window = tk.Toplevel(self.master)
-        regen_window.geometry("600x250")  # adjust the size of the window
+        regen_window.geometry("600x275")  # chaque nouvelle ligne fait +25 de hauteur
 
         # Intrigues
         intrigues_label = tk.Label(regen_window, text="Intrigues")
@@ -467,10 +467,6 @@ class Application(tk.Frame):
                                               value="Spécifique",
                                               command=lambda: self.regen_intrigue_select("Spécifique"))
         intrigues_specifique.grid(row=1, column=2)
-
-        # self.intrigue_specifique_entry = tk.Entry(regen_window)
-        # self.intrigue_specifique_entry.grid(row=1, column=3)
-        # self.intrigue_specifique_entry.config(state='disabled')
 
         self.intrigue_specifique_entry = tk.Entry(regen_window)
         self.intrigue_specifique_entry.grid(row=1, column=3)
@@ -593,31 +589,39 @@ class Application(tk.Frame):
 
         aide_de_jeu_var = tk.BooleanVar()
         aide_de_jeu_var.set(True)
-        aide_de_jeu_check = tk.Checkbutton(regen_window, text="inputs aides de jeu",
+        aide_de_jeu_check = tk.Checkbutton(regen_window, text="Inputs aides de jeu",
                                            variable=aide_de_jeu_var)
         aide_de_jeu_check.grid(sticky="W", row=8, column=1)
 
-        # table_pnjs_dedupliques_var = tk.BooleanVar()
-        # table_pnjs_dedupliques_var.set(True)
-        # table_pnjs_dedupliques_check = tk.Checkbutton(regen_window, text="table PNJs dédupliqués",
-        #                                               variable=table_pnjs_dedupliques_var)
-        # table_pnjs_dedupliques_check.grid(row=8, column=2)
-
         table_commentaires_var = tk.BooleanVar()
         table_commentaires_var.set(True)
-        table_commentaires_check = tk.Checkbutton(regen_window, text="extraire les commentaires",
+        table_commentaires_check = tk.Checkbutton(regen_window, text="Extraire les commentaires",
                                                   variable=table_commentaires_var)
         table_commentaires_check.grid(sticky="W", row=8, column=2)
 
+        table_relations_var = tk.BooleanVar()
+        table_relations_var.set(True)
+        table_relations_check = tk.Checkbutton(regen_window, text="Table des relations",
+                                               variable=table_relations_var)
+        table_relations_check.grid(sticky="W", row=8, column=3)
+
+        table_evenements_var = tk.BooleanVar()
+        table_evenements_var.set(True)
+        table_evenements_check = tk.Checkbutton(regen_window, text="Table des evènements",
+                                                variable=table_evenements_var)
+        table_evenements_check.grid(sticky="W", row=9, column=0)
+
+
+
         # Buttons
         cancel_button = tk.Button(regen_window, text="Annuler", command=regen_window.destroy)
-        cancel_button.grid(row=9, column=0)
+        cancel_button.grid(row=20, column=0)
 
         verbal_var = tk.BooleanVar()
         verbal_var.set(False)
         verbal_check = tk.Checkbutton(regen_window, text='Mode "bavard"',
                                       variable=verbal_var)
-        verbal_check.grid(row=9, column=2)
+        verbal_check.grid(row=20, column=2)
 
         ok_button = tk.Button(regen_window, text="OK",
                               command=lambda: self.process_regen(
@@ -640,7 +644,7 @@ class Application(tk.Frame):
                               )
                               )
 
-        ok_button.grid(row=9, column=1)
+        ok_button.grid(row=20, column=1)
 
     def regen_intrigue_select(self, value):
         if value in ["Rapide", "Complet"]:
