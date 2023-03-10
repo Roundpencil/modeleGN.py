@@ -527,7 +527,9 @@ class Application(tk.Frame):
                     table_persos_var,
                     table_pnjs_var,
                     aide_de_jeu_var,
-                    table_commentaires_var
+                    table_commentaires_var,
+                    table_evenements_var,
+                    table_relations_var
                     ]
 
             for checkbox in args:

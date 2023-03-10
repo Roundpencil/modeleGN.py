@@ -981,9 +981,9 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
 
 
 def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj):
-    intervention = Intervention(jour=ligne[0] if ligne[0] != [''] else current_evenement.date,
-                                heure=ligne[1] if ligne[1] != [''] else current_evenement.heure_de_demarrage,
-                                description=ligne[4] if ligne[4] != [''] else current_evenement.synopsis,
+    intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
+                                heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
+                                description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
                                 evenement=current_evenement
                                 )
     noms_pnjs_impliques = [nom.strip() for nom in ligne[2].split(',')]

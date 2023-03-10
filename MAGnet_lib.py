@@ -14,7 +14,8 @@ import csv
 # bugs
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
-# todo : gestion des évènements dans le buffy > trouver pourquoi problème avec E010-1 - Effets secondaires Larry
+# todo : gestion des évènements dans le buffy > faire marcher le remplissage auto des ['']
+#  notamment avec https://docs.google.com/document/d/1xX9P2PJ53YcYoKFweXeCEMl1JUbQVNsHz9-gAm3wYPU/edit#
 
 # todo : structure des évènements à réécreire
 #  les focntion de clearing lors du rebuild qui permettent de nettoyer les ajouts intrigues / pjs / pnjs / factions
@@ -1276,7 +1277,7 @@ def generer_table_evenements(gn: GN):
     toutes_interventions = sorted(toutes_interventions, key=lambda x: [x.jour, x.heure])
 
     to_return = [["Jour", "Heure", "Lieu", "Description", "PNJs impliqués", "Costumes PNJs", "Implication PNJs",
-                 "Démarrage PNJ", "PJ impliqués", "Intrigue", 'Evènement']]
+                 "Démarrage PNJ", "PJ impliqués", "Intrigue", 'Evènement', 'Référent']]
     for intervention in toutes_interventions:
         intervenants = intervention.liste_intervenants
 
@@ -1310,7 +1311,8 @@ def generer_table_evenements(gn: GN):
                  '\n'.join(demarrage_pnjs),
                  '\n'.join(pj_pour_tableau),
                  nom_intrigue,
-                 nom_evenement
+                 nom_evenement,
+                 evenement.referent
                  ]
         # # print(f"debug : ligne : {ligne}")
         to_return.append(ligne)
