@@ -257,7 +257,7 @@ def listerDatesIntrigues(monGN):
 #             break
 
 
-# def ecrire_squelettes_localement(gn, prefixe=None):
+# def ecrire_squelettes_localement(gn, prefixe_message=None):
 #     toutesScenes = ""
 #     for personnage in gn.dictPJs.values():
 #         toutesScenes += f"Début du squelette pour {personnage.nom} (Orga Référent : {personnage.orga_referent}) : \n"
@@ -293,8 +293,8 @@ def listerDatesIntrigues(monGN):
 #
 #         # print('****************************************************** \n')
 #     # print(toutesScenes)
-#     if prefixe is not None:
-#         with open(prefixe + ' - squelettes.txt', 'w', encoding="utf-8") as f:
+#     if prefixe_message is not None:
+#         with open(prefixe_message + ' - squelettes.txt', 'w', encoding="utf-8") as f:
 #             f.write(toutesScenes)
 #             f.close()
 #

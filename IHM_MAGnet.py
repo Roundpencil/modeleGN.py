@@ -642,7 +642,9 @@ class Application(tk.Frame):
                                   table_objets_var=table_objets_var.get(),
                                   verbal_var=verbal_var.get(),
                                   aide_de_jeu_var=aide_de_jeu_var.get(),
-                                  table_commentaires_var=table_commentaires_var.get()
+                                  table_commentaires_var=table_commentaires_var.get(),
+                                  table_evenements_var = table_evenements_var.get(),
+                                  table_relations_var = table_relations_var.get()
                               )
                               )
 
@@ -665,7 +667,9 @@ class Application(tk.Frame):
                       table_chrono_var, table_persos_var, table_pnj_var,
                       table_commentaires_var,
                       table_intrigues_var, table_objets_var,
-                      generer_fichiers_pnjs_var, verbal_var, aide_de_jeu_var):
+                      generer_fichiers_pnjs_var, verbal_var, aide_de_jeu_var, table_evenements_var,
+                      table_relations_var
+                      ):
 
         if intrigues_value == "Spécifique":
             intrigue_specifique = self.intrigue_specifique_entry.get()
@@ -708,7 +712,9 @@ class Application(tk.Frame):
                              singletest_intrigue=intrigue_specifique,
                              sans_chargement_fichier=sans_chargement_fichier_value,
                              sauver_apres_operation=sauver_apres_operation_value,
-                             verbal=verbal_var)
+                             verbal=verbal_var,
+                             table_relations=table_relations_var,
+                             table_evenements=table_evenements_var)
 
 
 def main():

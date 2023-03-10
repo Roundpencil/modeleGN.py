@@ -514,14 +514,18 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True):
     pj_pnj = "PJ" if pj else "PNJ"
     nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes {pj_pnj}'
     nouveau_dossier = extraireTexteDeGoogleDoc.creer_dossier(api_drive, parent, nom_dossier)
-
+#todo : vérifier
     d = squelettes_par_perso(mon_gn, pj=pj)
-    for nom_perso in d:
+    nb_persos_source = len(d)
+    for index, nom_perso in enumerate(d):
+        prefixe = (f"écriture des fichiers des {pj_pnj} dans drive ({index}/{nb_persos_source})")
+
         # créer le fichier et récupérer l'ID
         nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
         texte = d[nom_perso]
 
-        extraireTexteDeGoogleDoc.inserer_squelettes_dans_drive(nouveau_dossier, api_doc, api_drive, texte, nom_fichier)
+        extraireTexteDeGoogleDoc.inserer_squelettes_dans_drive(nouveau_dossier, api_doc, api_drive, texte, nom_fichier,
+                                                               prefixe)
 
 
 def squelettes_par_perso(mon_gn: GN, pj=True):
