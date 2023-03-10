@@ -833,7 +833,7 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
         INFOS_PJS = "pj impliqués et informations à fournir"
         INFOS_FACTIONS = "factions impliquées et informations à fournir"
         OBJETS = "objets utilisés"
-        CHRONO = "chronologie de l’évènement"
+        CHRONO = "chronologie de "
         AUTRES = "informations supplémentaires"
 
     labels = [e.value for e in Labels]
@@ -998,6 +998,16 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
         else:
             for nom_pj in noms_pj_impliques:
                 score = process.extractOne(nom_pj, noms_pjs_dans_evenement)
+                if score is None:
+                    texte_erreur = f"Correspondance est None pour le nom {nom_pj} " \
+                                   f"dans l'évènement {current_evenement.code_evenement}" \
+                                   f"pour l'intervention {intervention.description}"
+                    current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                                    texte_erreur,
+                                                                    ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+                    print(f"debug : {texte_erreur}")
+                    continue
+
                 if score[1] < seuil_alerte_pj:
                     texte_erreur = f"Le nom du pj {nom_pj} trouvé dans la chronologie de l'évènement " \
                                    f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
