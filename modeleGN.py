@@ -829,7 +829,7 @@ class GN:
                 if score[1] < seuil_faction:
                     texte_erreur = f"La faction ({score[0]}) a été associée au nom lu {info_faction.nom_faction} " \
                                    f"dans l'évènement {evenement.nom_evenement} " \
-                                   f"avec une confiance de{score[0]}%"
+                                   f"avec une confiance de{score[1]}%"
                     evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
                                                             texte_erreur,
                                                             ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
@@ -850,7 +850,7 @@ class GN:
                 if score[1] < seuil_nom_roles:
                     texte_erreur = f"Le nom ({pj_informe.nom_pj}) a été associé au personnage {score[0]} " \
                                    f"dans l'évènement {evenement.nom_evenement} " \
-                                   f"avec une confiance de{score[0]}%"
+                                   f"avec une confiance de{score[1]}%"
                     evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
                                                             texte_erreur,
                                                             ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
@@ -868,7 +868,7 @@ class GN:
                 if score[1] < seuil_nom_roles:
                     texte_erreur = f"Le nom ({intervenant.nom_pnj}) a été associé au personnage {score[0]} " \
                                    f"dans l'évènement {evenement.nom_evenement} " \
-                                   f"avec une confiance de{score[0]}%"
+                                   f"avec une confiance de{score[1]}%"
                     evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
                                                             texte_erreur,
                                                             ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
@@ -1093,7 +1093,7 @@ class GN:
             intrigue.error_log.clear(ErreurManager.ORIGINES.PERSOS_SANS_SCENE)
             intrigue.error_log.clear(ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS)
 
-        for evenement in list(self.evenements):
+        for evenement in list(self.evenements.values()):
             evenement.erreur_manager.clear(ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS)
 
     def forcer_import_pjs(self, noms_persos, suffixe="_imported", table_orgas_referent=False, verbal=False):

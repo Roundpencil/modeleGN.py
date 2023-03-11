@@ -15,11 +15,12 @@ from modeleGN import *
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 # todo : gérer les persos ajoutés deux fois via les factions dans le buffy
-# todo : régler le probleme des référents non lus
+# todo : comprendre pouruqoi pas de décompte dans la génération des fichiers de persos (décomposer fonction?)
+# todo : comprendre le problème avec l'évènement E010-2 - Effets secondaires Larry - 2ème étape
 
 # à tester
-# todo : écrire la génération du fichier des erreurs de l'évènement
-# todo : ajouter une checkox pour les erreurs dans les évènements
+#todo : supprimer le tableau d'intrigue à 6 colonnes et le remplacer par la détection d'un '/' dans le colonne pip
+
 
 # à faire - rapide
 
@@ -383,10 +384,11 @@ def generer_texte_erreurs_intrigues(mon_gn, verbal=False):
             current_orga = intrigue.orgaReferent
             log_erreur += f"{current_orga} voici les intrigues avec des soucis dans leurs tableaux de persos \n"
 
-        log_erreur += f"Pour {intrigue.nom} : \n" \
-                      f"{intrigue.error_log} \n"
-        log_erreur += suggerer_tableau_persos(mon_gn, intrigue)
-        log_erreur += "\n \n"
+        if intrigue.error_log.nb_erreurs() > 0:
+            log_erreur += f"Pour {intrigue.nom} : \n" \
+                          f"{intrigue.error_log} \n"
+            log_erreur += suggerer_tableau_persos(mon_gn, intrigue)
+            log_erreur += "\n \n"
     if verbal:
         print(log_erreur)
 
@@ -404,9 +406,10 @@ def generer_texte_erreurs_evenements(mon_gn, verbal=False):
             current_orga = evenement.referent
             log_erreur += f"{current_orga} voici les évènements avec des soucis fiche : \n"
 
-        log_erreur += f"Pour {evenement.nom} : \n" \
-                      f"{evenement.erreur_manager} \n"
-        log_erreur += "\n \n"
+        if evenement.erreur_manager.nb_erreurs() > 0:
+            log_erreur += f"Pour {evenement.nom_evenement} : \n" \
+                          f"{evenement.erreur_manager} \n"
+            log_erreur += "\n \n"
     if verbal:
         print(log_erreur)
 

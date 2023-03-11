@@ -298,8 +298,8 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         lire_tableau_pj_chalacta(current_intrigue, tableau_pjs)
     elif nb_colonnes == 5:
         lire_tableau_pj_5_colonnes(current_intrigue, tableau_pjs)
-    elif nb_colonnes == 6:
-        lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs)
+    # elif nb_colonnes == 6:
+    #     lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs)
     else:
         current_intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                                   "Tableau des personnages dans l'intrigue non standard",
@@ -524,32 +524,44 @@ def lire_tableau_pj_5_colonnes(current_intrigue, tableau_pjs):
         if len(pj) < 5:  # testé pour éviter de se taper les lignes vides après le tableau
             continue
 
+        liste_pips = pj[1].split('/')
+        if len(liste_pips) == 2:
+            pip_globaux = 0
+            pipi = liste_pips[0]
+            pipr = liste_pips[1]
+        else:
+            pip_globaux = liste_pips[0]
+            pipi = 0
+            pipr = 0
+
         role_a_ajouter = Role(current_intrigue,
                               nom=pj[0].split("http")[0],
                               description=pj[4],
                               type_intrigue=pj[3],
                               niveau_implication=pj[2],
-                              pip_globaux=pj[1]
+                              pip_globaux=pip_globaux,
+                              pipi=pipi,
+                              pipr=pipr
                               )
         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
-def lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs):
-    for pj in tableau_pjs:
-        # print("taille du prochain PJ : " + str(len(pj)))
-
-        if len(pj) < 6:  # testé pour éviter de se taper les lignes vides après le tableau
-            continue
-
-        role_a_ajouter = Role(current_intrigue,
-                              nom=pj[0].split("http")[0],
-                              description=pj[5],
-                              type_intrigue=pj[4],
-                              niveau_implication=pj[3],
-                              pipi=pj[1],
-                              pipr=pj[2]
-                              )
-        current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
+# def lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs):
+#     for pj in tableau_pjs:
+#         # print("taille du prochain PJ : " + str(len(pj)))
+#
+#         if len(pj) < 6:  # testé pour éviter de se taper les lignes vides après le tableau
+#             continue
+#
+#         role_a_ajouter = Role(current_intrigue,
+#                               nom=pj[0].split("http")[0],
+#                               description=pj[5],
+#                               type_intrigue=pj[4],
+#                               niveau_implication=pj[3],
+#                               pipi=pj[1],
+#                               pipr=pj[2]
+#                               )
+#         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
 def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):

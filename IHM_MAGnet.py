@@ -520,6 +520,7 @@ class Application(tk.Frame):
                     generer_fichiers_drive_var,
                     generer_fichiers_pnjs_var,
                     fichier_erreurs_intrigues_var,
+                    fichier_erreurs_evenements_var,
                     changelog_var,
                     table_intrigues_var,
                     table_objets_var,
