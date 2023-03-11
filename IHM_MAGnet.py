@@ -596,8 +596,8 @@ class Application(tk.Frame):
         master_checkbox.grid(sticky="W", row=105, column=2)
 
         def update_checkboxes(etat_a_forcer):
-            args = [generer_fichiers_drive_var,
-                    generer_fichiers_drive_var,
+            args = [generer_fichiers_pj_var,
+                    generer_fichiers_pj_var,
                     generer_fichiers_pnjs_var,
                     fichier_erreurs_intrigues_var,
                     fichier_erreurs_evenements_var,
@@ -616,10 +616,10 @@ class Application(tk.Frame):
             for checkbox in args:
                 checkbox.set(etat_a_forcer.get())
 
-        generer_fichiers_drive_var = tk.BooleanVar()
-        generer_fichiers_drive_var.set(True)
+        generer_fichiers_pj_var = tk.BooleanVar()
+        generer_fichiers_pj_var.set(True)
         generer_fichiers_drive_check = tk.Checkbutton(regen_window, text="Squelettes PJs",
-                                                      variable=generer_fichiers_drive_var)
+                                                      variable=generer_fichiers_pj_var)
         generer_fichiers_drive_check.grid(sticky="W", row=106, column=0)
 
         generer_fichiers_pnjs_var = tk.BooleanVar()
@@ -745,9 +745,9 @@ class Application(tk.Frame):
                                                    # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
                                                    nom_fichier_sauvegarde=self.dict_config[
                                                        'nom_fichier_sauvegarde'],
-                                                   fichier_erreurs_intrigues=fichier_erreur_intrigues_var.get(),
-                                                   fichier_erreurs_evenements=fichier_erreur_evenements_var.get(),
-                                                   generer_fichiers_pjs=generer_fichiers_pjs_var.get(),
+                                                   fichier_erreurs_intrigues=fichier_erreurs_intrigues_var.get(),
+                                                   fichier_erreurs_evenements=fichier_erreurs_evenements_var.get(),
+                                                   generer_fichiers_pjs=generer_fichiers_pj_var.get(),
                                                    generer_fichiers_pnjs=generer_fichiers_pnjs_var.get(),
                                                    changelog=changelog_var.get(),
                                                    table_intrigues=table_intrigues_var.get(),
@@ -783,61 +783,61 @@ class Application(tk.Frame):
     #     elif value == "Spécifique":
     #         self.personnages_specifique_entry.config(state='normal')
 
-    def process_regen(self, intrigues_value, personnages_value, sans_chargement_fichier_value,
-                      sauver_apres_operation_value, fichier_erreur_intrigues_var, fichier_erreur_evenements_var,
-                      generer_fichiers_pjs_var, changelog_var,
-                      table_chrono_var, table_persos_var, table_pnj_var,
-                      table_commentaires_var,
-                      table_intrigues_var, table_objets_var,
-                      generer_fichiers_pnjs_var, verbal_var, aide_de_jeu_var, table_evenements_var,
-                      table_relations_var
-                      ):
-
-        # if intrigues_value == "Spécifique":
-        #     intrigue_specifique = self.intrigue_specifique_entry.get()
-        # else:
-        #     intrigue_specifique = ""
-        # if personnages_value == "Spécifique":
-        #     personnages_specifique = self.personnages_specifique_entry.get()
-        # else:
-        #     personnages_specifique = ""
-        # # Call the existing method that process the result with the input values:
-        # # print(f"{intrigues_value}, {intrigue_specifique}, {personnages_value}, {personnages_specifique}, "
-        # #       f"{charger_fichier_value}, {sauver_apres_operation_value}, {generer_fichiers_drive_value}")
-        #
-        # if intrigues_value != "Spécifique":
-        #     intrigue_specifique = "-01"
-        # if personnages_value != "Spécifique":
-        #     personnages_specifique = "-01"
-
-        lire_et_recharger_gn(mon_gn=self.gn,
-                             api_drive=self.apiDrive,
-                             api_doc=self.apiDoc,
-                             api_sheets=self.apiSheets,
-                             aides_de_jeu=aide_de_jeu_var,
-                             liste_noms_pjs=self.dict_config.get('liste_noms_pjs'),
-                             # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
-                             nom_fichier_sauvegarde=self.dict_config['nom_fichier_sauvegarde'],
-                             fichier_erreurs_intrigues=fichier_erreur_intrigues_var,
-                             fichier_erreurs_evenements=fichier_erreur_evenements_var,
-                             generer_fichiers_pjs=generer_fichiers_pjs_var,
-                             generer_fichiers_pnjs=generer_fichiers_pnjs_var,
-                             changelog=changelog_var,
-                             table_intrigues=table_intrigues_var,
-                             table_objets=table_objets_var,
-                             table_chrono=table_chrono_var,
-                             table_persos=table_persos_var,
-                             table_pnjs=table_pnj_var,
-                             table_commentaires=table_commentaires_var,
-                             fast_intrigues=(intrigues_value == "Rapide"),
-                             fast_persos=(personnages_value == "Rapide"),
-                             singletest_perso=personnages_specifique,
-                             singletest_intrigue=intrigue_specifique,
-                             sans_chargement_fichier=sans_chargement_fichier_value,
-                             sauver_apres_operation=sauver_apres_operation_value,
-                             verbal=verbal_var,
-                             table_relations=table_relations_var,
-                             table_evenements=table_evenements_var)
+    # def process_regen(self, intrigues_value, personnages_value, sans_chargement_fichier_value,
+    #                   sauver_apres_operation_value, fichier_erreur_intrigues_var, fichier_erreur_evenements_var,
+    #                   generer_fichiers_pjs_var, changelog_var,
+    #                   table_chrono_var, table_persos_var, table_pnj_var,
+    #                   table_commentaires_var,
+    #                   table_intrigues_var, table_objets_var,
+    #                   generer_fichiers_pnjs_var, verbal_var, aide_de_jeu_var, table_evenements_var,
+    #                   table_relations_var
+    #                   ):
+    #
+    #     # if intrigues_value == "Spécifique":
+    #     #     intrigue_specifique = self.intrigue_specifique_entry.get()
+    #     # else:
+    #     #     intrigue_specifique = ""
+    #     # if personnages_value == "Spécifique":
+    #     #     personnages_specifique = self.personnages_specifique_entry.get()
+    #     # else:
+    #     #     personnages_specifique = ""
+    #     # # Call the existing method that process the result with the input values:
+    #     # # print(f"{intrigues_value}, {intrigue_specifique}, {personnages_value}, {personnages_specifique}, "
+    #     # #       f"{charger_fichier_value}, {sauver_apres_operation_value}, {generer_fichiers_drive_value}")
+    #     #
+    #     # if intrigues_value != "Spécifique":
+    #     #     intrigue_specifique = "-01"
+    #     # if personnages_value != "Spécifique":
+    #     #     personnages_specifique = "-01"
+    #
+    #     lire_et_recharger_gn(mon_gn=self.gn,
+    #                          api_drive=self.apiDrive,
+    #                          api_doc=self.apiDoc,
+    #                          api_sheets=self.apiSheets,
+    #                          aides_de_jeu=aide_de_jeu_var,
+    #                          liste_noms_pjs=self.dict_config.get('liste_noms_pjs'),
+    #                          # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
+    #                          nom_fichier_sauvegarde=self.dict_config['nom_fichier_sauvegarde'],
+    #                          fichier_erreurs_intrigues=fichier_erreur_intrigues_var,
+    #                          fichier_erreurs_evenements=fichier_erreur_evenements_var,
+    #                          generer_fichiers_pjs=generer_fichiers_pjs_var,
+    #                          generer_fichiers_pnjs=generer_fichiers_pnjs_var,
+    #                          changelog=changelog_var,
+    #                          table_intrigues=table_intrigues_var,
+    #                          table_objets=table_objets_var,
+    #                          table_chrono=table_chrono_var,
+    #                          table_persos=table_persos_var,
+    #                          table_pnjs=table_pnj_var,
+    #                          table_commentaires=table_commentaires_var,
+    #                          fast_intrigues=(intrigues_value == "Rapide"),
+    #                          fast_persos=(personnages_value == "Rapide"),
+    #                          singletest_perso=personnages_specifique,
+    #                          singletest_intrigue=intrigue_specifique,
+    #                          sans_chargement_fichier=sans_chargement_fichier_value,
+    #                          sauver_apres_operation=sauver_apres_operation_value,
+    #                          verbal=verbal_var,
+    #                          table_relations=table_relations_var,
+    #                          table_evenements=table_evenements_var)
 
 
 def main():
