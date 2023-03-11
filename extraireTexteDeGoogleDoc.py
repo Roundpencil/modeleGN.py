@@ -1065,7 +1065,8 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     print(f"Lecture de {nom_doc}")
     if len(texte_persos) < 800:
         print(f"fiche {nom_doc} avec {len(texte_persos)} caractères est vide")
-        return  # dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
+        # return  # dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
+        # todo : si bug dans la lecture c'est lié à ici, pour accélérer la lecture
 
     nom_perso_en_cours = re.sub(r"^\d+\s*-", '', nom_doc).strip()
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")

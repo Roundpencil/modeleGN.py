@@ -1262,14 +1262,14 @@ class Evenement:
 
     def clear(self):
         # casser toutes les relations intervenants <> persos
-        intervenants_a_nettoyer = self.intervenants_evenement
+        intervenants_a_nettoyer = self.intervenants_evenement.values()
         for intervenant in intervenants_a_nettoyer:
             if intervenant.pnj is not None:
                 intervenant.pnj.intervient_comme.remove(intervenant)
             del intervenant
 
         # casser toutes les relations pj_concernés <> persos
-        for pj_concerne in self.pjs_concernes_evenement:
+        for pj_concerne in self.pjs_concernes_evenement.values():
             if pj_concerne.pj is not None:
                 pj_concerne.pj.informations_evenements.remove(pj_concerne)
             del pj_concerne
