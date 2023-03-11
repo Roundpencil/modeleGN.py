@@ -227,7 +227,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
         TODO = "etat de l’intrigue :"
         PITCH = "résumé de l’intrigue"
         CROISEES = "intrigues croisées :"
-        PJS = "personnages impliqués"
+        PJS = "pj impliqués"
         PNJS = "pnjs impliqués"
         REROLLS = "rerolls possibles"
         OBJETS = "objets liés"

@@ -23,14 +23,12 @@ from modeleGN import *
 
 
 # à faire - rapide
-
+# todo : donner un effet aux boutons rapide sur autre chose que les pjs et les intrigues
 # todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
 
 
 # à faire - plus long
-# todo gérer les objets et les factions, non pris en cahrge actuellement
-
-# todo : ajouter les options de lecture des pnjs dans la GUI > tout refaire en mode binaire su rapide ou pas
+# todo gérer les objets dans les évènements
 
 # todo : quand on loade le fichier faction, clearer les factions
 #  pour prendre en compte les suppressions entre deux loading
@@ -142,7 +140,9 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
                          table_commentaires: bool = True, table_relations: bool = True, table_evenements: bool = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
-                         fast_intrigues: bool = True, fast_persos: bool = True, verbal: bool = False):
+                         fast_intrigues: bool = True, fast_persos: bool = True, fast_pnjs=True, fast_evenements=True,
+                         fast_objets=True,
+                         verbal: bool = False):
     if api_doc is None or api_sheets is None or api_drive is None:
         api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
 
@@ -253,7 +253,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
         ecrire_erreurs_intrigues_dans_drive(mon_gn, api_doc, api_drive, mon_gn.dossier_outputs_drive)
 
-    print("* génération du fichier des erreurs intrigues * ")
+    print("* génération du fichier des erreurs évènements * ")
     if fichier_erreurs_evenements:
         # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
         ecrire_erreurs_evenements_dans_drive(mon_gn, api_doc, api_drive, mon_gn.dossier_outputs_drive)
@@ -404,7 +404,7 @@ def generer_texte_erreurs_evenements(mon_gn, verbal=False):
     for evenement in evenements_tries:
         if current_orga != evenement.referent:
             current_orga = evenement.referent
-            log_erreur += f"{current_orga} voici les évènements avec des soucis fiche : \n"
+            log_erreur += f"{current_orga} voici les évènements avec des soucis dans leur fiche : \n"
 
         if evenement.erreur_manager.nb_erreurs() > 0:
             log_erreur += f"Pour {evenement.nom_evenement} : \n" \
@@ -1364,8 +1364,8 @@ def generer_table_evenements(gn: GN):
 
     toutes_interventions = sorted(toutes_interventions, key=lambda x: [x.jour, x.heure])
 
-    to_return = [["Jour", "Heure", "Lieu", "Description", "PNJs impliqués", "Costumes PNJs", "Implication PNJs",
-                  "Démarrage PNJ", "PJ impliqués", "Intrigue", 'Evènement', 'Référent']]
+    to_return = [["Code", "Jour", "Heure", "Lieu", "Description", "PNJs impliqués", "Costumes PNJs", "Implication PNJs",
+                  "Démarrage PNJ", "PJ impliqués", "Intrigue", 'Évènement', 'Référent']]
     for intervention in toutes_interventions:
         intervenants = intervention.liste_intervenants
 
@@ -1387,9 +1387,10 @@ def generer_table_evenements(gn: GN):
         nom_intrigue = intervention.evenement.intrigue.nom if intervention.evenement.intrigue is not None \
             else f"Pas d'intrigue pour l'évènement {intervention.evenement.code_evenement}"
 
-        nom_evenement = intervention.evenement.code_evenement
 
-        ligne = [intervention.jour,
+
+        ligne = [intervention.evenement.code_evenement,
+                 intervention.jour,
                  intervention.heure,
                  intervention.evenement.lieu,
                  intervention.description,
@@ -1399,7 +1400,7 @@ def generer_table_evenements(gn: GN):
                  '\n'.join(demarrage_pnjs),
                  '\n'.join(pj_pour_tableau),
                  nom_intrigue,
-                 nom_evenement,
+                 intervention.evenement.nom_evenement,
                  intervention.evenement.referent
                  ]
         # # print(f"debug : ligne : {ligne}")

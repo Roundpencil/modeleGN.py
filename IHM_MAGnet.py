@@ -49,7 +49,6 @@ class Application(tk.Frame):
         else:
             self.updateur_de_boutons_disponibles("normal")
 
-
     def updateur_de_boutons_disponibles(self, state):
         self.regen_button.config(state=state)
         self.diagnostic_button.config(state=state)
@@ -448,72 +447,153 @@ class Application(tk.Frame):
 
     def regen(self):
         regen_window = tk.Toplevel(self.master)
-        regen_window.geometry("600x275")  # chaque nouvelle ligne fait +25 de hauteur
+        regen_window.geometry("620x350")  # chaque nouvelle ligne fait +25 de hauteur
+
+        # # Intrigues
+        # intrigues_label = tk.Label(regen_window, text="Intrigues")
+        # intrigues_label.grid(row=0, column=0, columnspan=2)
+        #
+        # intrigues_var = tk.StringVar(regen_window)
+        # intrigues_var.set("Rapide")
+        #
+        # intrigues_rapide = tk.Radiobutton(regen_window, text="Rapide", variable=intrigues_var, value="Rapide",
+        #                                   command=lambda: self.regen_intrigue_select("Rapide"))
+        # intrigues_rapide.grid(row=1, column=0)
+        # intrigues_complet = tk.Radiobutton(regen_window, text="Complet", variable=intrigues_var, value="Complet",
+        #                                    command=lambda: self.regen_intrigue_select("Complet"))
+        # intrigues_complet.grid(row=1, column=1)
+        # intrigues_specifique = tk.Radiobutton(regen_window, text="Spécifique", variable=intrigues_var,
+        #                                       value="Spécifique",
+        #                                       command=lambda: self.regen_intrigue_select("Spécifique"))
+        # intrigues_specifique.grid(row=1, column=2)
+        #
+        # self.intrigue_specifique_entry = tk.Entry(regen_window)
+        # self.intrigue_specifique_entry.grid(row=1, column=3)
+        # self.intrigue_specifique_entry.config(state='disabled')
+        #
+        # # Personnages
+        # personnages_label = tk.Label(regen_window, text="Personnages")
+        # personnages_label.grid(row=2, column=0, columnspan=2)
+        #
+        # personnages_var = tk.StringVar(regen_window)
+        # personnages_var.set("Rapide")
+        #
+        # personnages_rapide = tk.Radiobutton(regen_window, text="Rapide", variable=personnages_var, value="Rapide",
+        #                                     command=lambda: self.regen_personnages_select("Rapide"))
+        # personnages_rapide.grid(row=3, column=0)
+        # personnages_complet = tk.Radiobutton(regen_window, text="Complet", variable=personnages_var, value="Complet",
+        #                                      command=lambda: self.regen_personnages_select("Complet"))
+        # personnages_complet.grid(row=3, column=1)
+        # personnages_specifique = tk.Radiobutton(regen_window, text="Spécifique", variable=personnages_var,
+        #                                         value="Spécifique",
+        #                                         command=lambda: self.regen_personnages_select("Spécifique"))
+        # personnages_specifique.grid(row=3, column=2)
+        #
+        # self.personnages_specifique_entry = tk.Entry(regen_window)
+        # self.personnages_specifique_entry.grid(row=3, column=3)
+        # self.personnages_specifique_entry.config(state='disabled')
+
+        # # début de la réécriture des widgets
+        #         lecture_label = tk.Label(regen_window, text="Options de lecture")
+        #         lecture_label.grid(row=0, column=0, columnspan=2)
+        #
+        #         # Intrigues
+        #         var_fast_intrigue = tk.BooleanVar(value=True)
+        #         var_fast_fiches_pjs = tk.BooleanVar(value=True)
+        #         var_fast_fiches_pnjs = tk.BooleanVar(value=True)
+        #         var_fast_evenements = tk.BooleanVar(value=True)
+        #         var_fast_objets = tk.BooleanVar(value=True)
+        #
+        #         # Intrigue Line
+        #         tk.Label(regen_window, text="Intrigue").grid(row=1, column=0)
+        #         tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_intrigue, value=True).grid(row=1, column=1)
+        #         tk.Radiobutton(regen_window, text="Complet", variable=var_fast_intrigue, value=False).grid(row=1, column=2)
+        #
+        #
+        #         # Fiches PJs Line
+        #         tk.Label(regen_window, text="Fiches PJs").grid(row=2, column=0)
+        #         tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_fiches_pjs, value=True).grid(row=2, column=1)
+        #         tk.Radiobutton(regen_window, text="Complet", variable=var_fast_fiches_pjs, value=False).grid(row=2, column=2)
+        #
+        #         # Fiches PNJs Line
+        #         tk.Label(regen_window, text="Fiches PNJs").grid(row=3, column=0)
+        #         tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_fiches_pnjs, value=True).grid(row=3, column=1)
+        #         tk.Radiobutton(regen_window, text="Complet", variable=var_fast_fiches_pnjs, value=False).grid(row=3, column=2)
+        #
+        #         # Evenements Line
+        #         tk.Label(regen_window, text="Evenements").grid(row=4, column=0)
+        #         tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_evenements, value=True).grid(row=4, column=1)
+        #         tk.Radiobutton(regen_window, text="Complet", variable=var_fast_evenements, value=False).grid(row=4, column=2)
+        #
+        #         # Objets Line
+        #         tk.Label(regen_window, text="Objets").grid(row=5, column=0)
+        #         tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_objets, value=True).grid(row=5, column=1)
+        #         tk.Radiobutton(regen_window, text="Complet", variable=var_fast_objets, value=False).grid(row=5, column=2)
+
+        ###seconde réécriture
+
+        lecture_label = tk.Label(regen_window, text="Options de lecture")
+        lecture_label.grid(row=0, column=0, columnspan=2)
 
         # Intrigues
-        intrigues_label = tk.Label(regen_window, text="Intrigues")
-        intrigues_label.grid(row=0, column=0, columnspan=2)
+        var_fast_intrigue = tk.BooleanVar(value=True)
+        var_fast_fiches_pjs = tk.BooleanVar(value=True)
+        var_fast_fiches_pnjs = tk.BooleanVar(value=True)
+        var_fast_evenements = tk.BooleanVar(value=True)
+        var_fast_objets = tk.BooleanVar(value=True)
 
-        intrigues_var = tk.StringVar(regen_window)
-        intrigues_var.set("Rapide")
+        # Intrigue Line
+        tk.Label(regen_window, text="Intrigue").grid(row=1, column=0)
+        tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_intrigue, value=True).grid(row=1, column=1)
+        tk.Radiobutton(regen_window, text="Complet", variable=var_fast_intrigue, value=False).grid(row=1, column=2)
 
-        intrigues_rapide = tk.Radiobutton(regen_window, text="Rapide", variable=intrigues_var, value="Rapide",
-                                          command=lambda: self.regen_intrigue_select("Rapide"))
-        intrigues_rapide.grid(row=1, column=0)
-        intrigues_complet = tk.Radiobutton(regen_window, text="Complet", variable=intrigues_var, value="Complet",
-                                           command=lambda: self.regen_intrigue_select("Complet"))
-        intrigues_complet.grid(row=1, column=1)
-        intrigues_specifique = tk.Radiobutton(regen_window, text="Spécifique", variable=intrigues_var,
-                                              value="Spécifique",
-                                              command=lambda: self.regen_intrigue_select("Spécifique"))
-        intrigues_specifique.grid(row=1, column=2)
+        # rapide = tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_intrigue, value=True)
+        # rapide.grid(row=1, column=1)
+        # rapide.select()
+        # tk.Radiobutton(regen_window, text="Complet", variable=var_fast_intrigue, value=False).grid(row=1, column=2)
 
-        self.intrigue_specifique_entry = tk.Entry(regen_window)
-        self.intrigue_specifique_entry.grid(row=1, column=3)
-        self.intrigue_specifique_entry.config(state='disabled')
+        # Fiches PJs Line
+        tk.Label(regen_window, text="Fiches PJs").grid(row=2, column=0)
+        tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_fiches_pjs, value=True).grid(row=2, column=1)
+        tk.Radiobutton(regen_window, text="Complet", variable=var_fast_fiches_pjs, value=False).grid(row=2, column=2)
 
-        # Personnages
-        personnages_label = tk.Label(regen_window, text="Personnages")
-        personnages_label.grid(row=2, column=0, columnspan=2)
+        # Fiches PNJs Line
+        tk.Label(regen_window, text="Fiches PNJs").grid(row=3, column=0)
+        tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_fiches_pnjs, value=True).grid(row=3, column=1)
+        tk.Radiobutton(regen_window, text="Complet", variable=var_fast_fiches_pnjs, value=False).grid(row=3, column=2)
 
-        personnages_var = tk.StringVar(regen_window)
-        personnages_var.set("Rapide")
+        # Evenements Line
+        tk.Label(regen_window, text="Evenements").grid(row=4, column=0)
+        tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_evenements, value=True).grid(row=4, column=1)
+        tk.Radiobutton(regen_window, text="Complet", variable=var_fast_evenements, value=False).grid(row=4, column=2)
 
-        personnages_rapide = tk.Radiobutton(regen_window, text="Rapide", variable=personnages_var, value="Rapide",
-                                            command=lambda: self.regen_personnages_select("Rapide"))
-        personnages_rapide.grid(row=3, column=0)
-        personnages_complet = tk.Radiobutton(regen_window, text="Complet", variable=personnages_var, value="Complet",
-                                             command=lambda: self.regen_personnages_select("Complet"))
-        personnages_complet.grid(row=3, column=1)
-        personnages_specifique = tk.Radiobutton(regen_window, text="Spécifique", variable=personnages_var,
-                                                value="Spécifique",
-                                                command=lambda: self.regen_personnages_select("Spécifique"))
-        personnages_specifique.grid(row=3, column=2)
+        # Objets Line
+        tk.Label(regen_window, text="Objets").grid(row=5, column=0)
+        tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_objets, value=True).grid(row=5, column=1)
+        tk.Radiobutton(regen_window, text="Complet", variable=var_fast_objets, value=False).grid(row=5, column=2)
 
-        self.personnages_specifique_entry = tk.Entry(regen_window)
-        self.personnages_specifique_entry.grid(row=3, column=3)
-        self.personnages_specifique_entry.config(state='disabled')
+        ###### fin de la réécriture
 
         charger_fichier_var = tk.BooleanVar()
         charger_fichier_var.set(False)
         charger_fichier_check = tk.Checkbutton(regen_window, text="Repartir de 0",
                                                variable=charger_fichier_var)
-        charger_fichier_check.grid(row=4, column=0)
+        charger_fichier_check.grid(row=104, column=0)
 
         sauver_apres_operation_var = tk.BooleanVar()
         sauver_apres_operation_var.set(True)
         sauver_apres_operation_check = tk.Checkbutton(regen_window, text="Sauver après opération",
                                                       variable=sauver_apres_operation_var)
-        sauver_apres_operation_check.grid(row=4, column=1)
+        sauver_apres_operation_check.grid(row=104, column=1)
 
         generer_label = tk.Label(regen_window, text="Générer...")
-        generer_label.grid(row=5, column=0, columnspan=2)
+        generer_label.grid(row=105, column=0, columnspan=2)
 
         master_state = tk.BooleanVar()
         master_state.set(True)
         master_checkbox = tk.Checkbutton(regen_window, text="cocher / décocher tout", variable=master_state,
                                          command=lambda: update_checkboxes(master_state))
-        master_checkbox.grid(sticky="W", row=5, column=2)
+        master_checkbox.grid(sticky="W", row=105, column=2)
 
         def update_checkboxes(etat_a_forcer):
             args = [generer_fichiers_drive_var,
@@ -540,135 +620,168 @@ class Application(tk.Frame):
         generer_fichiers_drive_var.set(True)
         generer_fichiers_drive_check = tk.Checkbutton(regen_window, text="Squelettes PJs",
                                                       variable=generer_fichiers_drive_var)
-        generer_fichiers_drive_check.grid(sticky="W", row=6, column=0)
+        generer_fichiers_drive_check.grid(sticky="W", row=106, column=0)
 
         generer_fichiers_pnjs_var = tk.BooleanVar()
         generer_fichiers_pnjs_var.set(True)
         generer_fichiers_pnjs_check = tk.Checkbutton(regen_window, text="Squelettes PNJs",
                                                      variable=generer_fichiers_pnjs_var)
-        generer_fichiers_pnjs_check.grid(sticky="W", row=6, column=1)
+        generer_fichiers_pnjs_check.grid(sticky="W", row=106, column=1)
 
         fichier_erreurs_intrigues_var = tk.BooleanVar()
         fichier_erreurs_intrigues_var.set(True)
         fichier_erreurs_check = tk.Checkbutton(regen_window, text="Fichier erreurs intrigues",
                                                variable=fichier_erreurs_intrigues_var)
-        fichier_erreurs_check.grid(sticky="W", row=6, column=2)
+        fichier_erreurs_check.grid(sticky="W", row=106, column=2)
 
         changelog_var = tk.BooleanVar()
         changelog_var.set(True)
         changelog_check = tk.Checkbutton(regen_window, text="Changelog",
                                          variable=changelog_var)
-        changelog_check.grid(sticky="W", row=6, column=3)
+        changelog_check.grid(sticky="W", row=106, column=3)
 
         table_intrigues_var = tk.BooleanVar()
         table_intrigues_var.set(True)
         table_intrigues_check = tk.Checkbutton(regen_window, text="Table des intrigues",
                                                variable=table_intrigues_var)
-        table_intrigues_check.grid(sticky="W", row=7, column=0)
+        table_intrigues_check.grid(sticky="W", row=107, column=0)
 
         table_objets_var = tk.BooleanVar()
         table_objets_var.set(True)
         table_objets_check = tk.Checkbutton(regen_window, text="Table des objets",
                                             variable=table_objets_var)
-        table_objets_check.grid(sticky="W", row=7, column=1)
+        table_objets_check.grid(sticky="W", row=107, column=1)
 
         table_chrono_var = tk.BooleanVar()
         table_chrono_var.set(True)
         table_chrono_check = tk.Checkbutton(regen_window, text="Chronologie des persos",
                                             variable=table_chrono_var)
-        table_chrono_check.grid(sticky="W", row=7, column=2)
+        table_chrono_check.grid(sticky="W", row=107, column=2)
 
         table_persos_var = tk.BooleanVar()
         table_persos_var.set(True)
         table_persos_check = tk.Checkbutton(regen_window, text="Table des persos",
                                             variable=table_persos_var)
-        table_persos_check.grid(sticky="W", row=7, column=3)
+        table_persos_check.grid(sticky="W", row=107, column=3)
 
         table_pnjs_var = tk.BooleanVar()
         table_pnjs_var.set(True)
         table_pnjs_check = tk.Checkbutton(regen_window, text="Table des pnjs",
                                           variable=table_pnjs_var)
-        table_pnjs_check.grid(sticky="W", row=8, column=0)
+        table_pnjs_check.grid(sticky="W", row=108, column=0)
 
         aide_de_jeu_var = tk.BooleanVar()
         aide_de_jeu_var.set(True)
         aide_de_jeu_check = tk.Checkbutton(regen_window, text="Inputs aides de jeu",
                                            variable=aide_de_jeu_var)
-        aide_de_jeu_check.grid(sticky="W", row=8, column=1)
+        aide_de_jeu_check.grid(sticky="W", row=108, column=1)
 
         table_commentaires_var = tk.BooleanVar()
         table_commentaires_var.set(True)
         table_commentaires_check = tk.Checkbutton(regen_window, text="Extraire les commentaires",
                                                   variable=table_commentaires_var)
-        table_commentaires_check.grid(sticky="W", row=8, column=2)
+        table_commentaires_check.grid(sticky="W", row=108, column=2)
 
         table_relations_var = tk.BooleanVar()
         table_relations_var.set(True)
         table_relations_check = tk.Checkbutton(regen_window, text="Table des relations",
                                                variable=table_relations_var)
-        table_relations_check.grid(sticky="W", row=8, column=3)
+        table_relations_check.grid(sticky="W", row=108, column=3)
 
         table_evenements_var = tk.BooleanVar()
         table_evenements_var.set(True)
         table_evenements_check = tk.Checkbutton(regen_window, text="Table des évènements",
                                                 variable=table_evenements_var)
-        table_evenements_check.grid(sticky="W", row=9, column=0)
+        table_evenements_check.grid(sticky="W", row=109, column=0)
 
         fichier_erreurs_evenements_var = tk.BooleanVar()
         fichier_erreurs_evenements_var.set(True)
         fichier_erreurs_evenements_check = tk.Checkbutton(regen_window, text="Fichier erreurs évènements",
-                                               variable=fichier_erreurs_evenements_var)
-        fichier_erreurs_evenements_check.grid(sticky="W", row=9, column=1)
-
-
+                                                          variable=fichier_erreurs_evenements_var)
+        fichier_erreurs_evenements_check.grid(sticky="W", row=109, column=1)
 
         # Buttons
         cancel_button = tk.Button(regen_window, text="Annuler", command=regen_window.destroy)
-        cancel_button.grid(row=20, column=0)
+        cancel_button.grid(row=200, column=0)
 
         verbal_var = tk.BooleanVar()
         verbal_var.set(False)
         verbal_check = tk.Checkbutton(regen_window, text='Mode "bavard"',
                                       variable=verbal_var)
-        verbal_check.grid(row=20, column=2)
+        verbal_check.grid(row=200, column=2)
 
+        # ok_button = tk.Button(regen_window, text="OK",
+        #                       command=lambda: self.process_regen(
+        #                           intrigues_value=intrigues_var.get(),
+        #                           personnages_value=personnages_var.get(),
+        #                           sans_chargement_fichier_value=charger_fichier_var.get(),
+        #                           sauver_apres_operation_value=sauver_apres_operation_var.get(),
+        #                           fichier_erreur_intrigues_var=fichier_erreurs_intrigues_var.get(),
+        #                           fichier_erreur_evenements_var=fichier_erreurs_evenements_var.get(),
+        #                           generer_fichiers_pjs_var=generer_fichiers_drive_var.get(),
+        #                           generer_fichiers_pnjs_var=generer_fichiers_pnjs_var.get(),
+        #                           changelog_var=changelog_var.get(),
+        #                           table_chrono_var=table_chrono_var.get(),
+        #                           table_persos_var=table_persos_var.get(),
+        #                           table_pnj_var=table_pnjs_var.get(),
+        #                           table_intrigues_var=table_intrigues_var.get(),
+        #                           table_objets_var=table_objets_var.get(),
+        #                           verbal_var=verbal_var.get(),
+        #                           aide_de_jeu_var=aide_de_jeu_var.get(),
+        #                           table_commentaires_var=table_commentaires_var.get(),
+        #                           table_evenements_var = table_evenements_var.get(),
+        #                           table_relations_var = table_relations_var.get()
+        #                       )
+        #                       )
         ok_button = tk.Button(regen_window, text="OK",
-                              command=lambda: self.process_regen(
-                                  intrigues_value=intrigues_var.get(),
-                                  personnages_value=personnages_var.get(),
-                                  sans_chargement_fichier_value=charger_fichier_var.get(),
-                                  sauver_apres_operation_value=sauver_apres_operation_var.get(),
-                                  fichier_erreur_intrigues_var=fichier_erreurs_intrigues_var.get(),
-                                  fichier_erreur_evenements_var=fichier_erreurs_evenements_var.get(),
-                                  generer_fichiers_pjs_var=generer_fichiers_drive_var.get(),
-                                  generer_fichiers_pnjs_var=generer_fichiers_pnjs_var.get(),
-                                  changelog_var=changelog_var.get(),
-                                  table_chrono_var=table_chrono_var.get(),
-                                  table_persos_var=table_persos_var.get(),
-                                  table_pnj_var=table_pnjs_var.get(),
-                                  table_intrigues_var=table_intrigues_var.get(),
-                                  table_objets_var=table_objets_var.get(),
-                                  verbal_var=verbal_var.get(),
-                                  aide_de_jeu_var=aide_de_jeu_var.get(),
-                                  table_commentaires_var=table_commentaires_var.get(),
-                                  table_evenements_var = table_evenements_var.get(),
-                                  table_relations_var = table_relations_var.get()
+                              command=lambda:
+                              lire_et_recharger_gn(mon_gn=self.gn,
+                                                   api_drive=self.apiDrive,
+                                                   api_doc=self.apiDoc,
+                                                   api_sheets=self.apiSheets,
+                                                   aides_de_jeu=aide_de_jeu_var.get(),
+                                                   liste_noms_pjs=self.dict_config.get(
+                                                       'liste_noms_pjs'),
+                                                   # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
+                                                   nom_fichier_sauvegarde=self.dict_config[
+                                                       'nom_fichier_sauvegarde'],
+                                                   fichier_erreurs_intrigues=fichier_erreur_intrigues_var.get(),
+                                                   fichier_erreurs_evenements=fichier_erreur_evenements_var.get(),
+                                                   generer_fichiers_pjs=generer_fichiers_pjs_var.get(),
+                                                   generer_fichiers_pnjs=generer_fichiers_pnjs_var.get(),
+                                                   changelog=changelog_var.get(),
+                                                   table_intrigues=table_intrigues_var.get(),
+                                                   table_objets=table_objets_var.get(),
+                                                   table_chrono=table_chrono_var.get(),
+                                                   table_persos=table_persos_var.get(),
+                                                   table_pnjs=table_pnjs_var.get(),
+                                                   table_commentaires=table_commentaires_var.get(),
+                                                   fast_intrigues=var_fast_intrigue.get(),
+                                                   fast_persos=var_fast_fiches_pjs.get(),
+                                                   fast_pnjs=var_fast_fiches_pnjs.get(),
+                                                   fast_evenements=var_fast_evenements.get(),
+                                                   fast_objets=var_fast_objets.get,
+                                                   sans_chargement_fichier=not charger_fichier_var.get(),
+                                                   sauver_apres_operation=sauver_apres_operation_var.get(),
+                                                   verbal=verbal_var.get(),
+                                                   table_relations=table_relations_var.get(),
+                                                   table_evenements=table_evenements_var.get()
+                                                   )
                               )
-                              )
 
-        ok_button.grid(row=20, column=1)
+        ok_button.grid(row=200, column=1)
 
-    def regen_intrigue_select(self, value):
-        if value in ["Rapide", "Complet"]:
-            self.intrigue_specifique_entry.config(state='disabled')
-        elif value == "Spécifique":
-            self.intrigue_specifique_entry.config(state='normal')
-
-    def regen_personnages_select(self, value):
-        if value in ["Rapide", "Complet"]:
-            self.personnages_specifique_entry.config(state='disabled')
-        elif value == "Spécifique":
-            self.personnages_specifique_entry.config(state='normal')
+    # def regen_intrigue_select(self, value):
+    #     if value in ["Rapide", "Complet"]:
+    #         self.intrigue_specifique_entry.config(state='disabled')
+    #     elif value == "Spécifique":
+    #         self.intrigue_specifique_entry.config(state='normal')
+    #
+    # def regen_personnages_select(self, value):
+    #     if value in ["Rapide", "Complet"]:
+    #         self.personnages_specifique_entry.config(state='disabled')
+    #     elif value == "Spécifique":
+    #         self.personnages_specifique_entry.config(state='normal')
 
     def process_regen(self, intrigues_value, personnages_value, sans_chargement_fichier_value,
                       sauver_apres_operation_value, fichier_erreur_intrigues_var, fichier_erreur_evenements_var,
@@ -680,22 +793,22 @@ class Application(tk.Frame):
                       table_relations_var
                       ):
 
-        if intrigues_value == "Spécifique":
-            intrigue_specifique = self.intrigue_specifique_entry.get()
-        else:
-            intrigue_specifique = ""
-        if personnages_value == "Spécifique":
-            personnages_specifique = self.personnages_specifique_entry.get()
-        else:
-            personnages_specifique = ""
-        # Call the existing method that process the result with the input values:
-        # print(f"{intrigues_value}, {intrigue_specifique}, {personnages_value}, {personnages_specifique}, "
-        #       f"{charger_fichier_value}, {sauver_apres_operation_value}, {generer_fichiers_drive_value}")
-
-        if intrigues_value != "Spécifique":
-            intrigue_specifique = "-01"
-        if personnages_value != "Spécifique":
-            personnages_specifique = "-01"
+        # if intrigues_value == "Spécifique":
+        #     intrigue_specifique = self.intrigue_specifique_entry.get()
+        # else:
+        #     intrigue_specifique = ""
+        # if personnages_value == "Spécifique":
+        #     personnages_specifique = self.personnages_specifique_entry.get()
+        # else:
+        #     personnages_specifique = ""
+        # # Call the existing method that process the result with the input values:
+        # # print(f"{intrigues_value}, {intrigue_specifique}, {personnages_value}, {personnages_specifique}, "
+        # #       f"{charger_fichier_value}, {sauver_apres_operation_value}, {generer_fichiers_drive_value}")
+        #
+        # if intrigues_value != "Spécifique":
+        #     intrigue_specifique = "-01"
+        # if personnages_value != "Spécifique":
+        #     personnages_specifique = "-01"
 
         lire_et_recharger_gn(mon_gn=self.gn,
                              api_drive=self.apiDrive,
