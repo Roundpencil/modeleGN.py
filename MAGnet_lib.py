@@ -1,12 +1,12 @@
 import configparser
-import logging
+import csv
 import os
+
+import dateparser
 
 import extraireTexteDeGoogleDoc
 import lecteurGoogle
 from modeleGN import *
-import dateparser
-import csv
 
 
 # communication :
@@ -17,12 +17,14 @@ import csv
 # todo : gérer les persos ajoutés deux fois via les factions dans le buffy
 # todo : régler le probleme des référents non lus
 
+# à tester
+# todo : écrire la génération du fichier des erreurs de l'évènement
+# todo : ajouter une checkox pour les erreurs dans les évènements
+
 # à faire - rapide
+
 # todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
 
-# todo : écrire la génération du fichier des erreurs de l'évènement
-
-# todo : ajouter une checkox pour les erreurs dans les évènements
 
 # à faire - plus long
 # todo gérer les objets et les factions, non pris en cahrge actuellement
@@ -114,7 +116,6 @@ def charger_fichier_init(fichier_init: str):
         return None
     return dict_config
 
-
 def lire_fichier_pnjs(nom_fichier: str):
     to_return = []
     try:
@@ -133,7 +134,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          sans_chargement_fichier=False,
                          sauver_apres_operation=True,
                          liste_noms_pjs=None,  # noms_pnjs=None,
-                         fichier_erreurs: bool = True,
+                         fichier_erreurs_intrigues: bool = True, fichier_erreurs_evenements: bool = True,
                          generer_fichiers_pjs: bool = True,
                          generer_fichiers_pnjs: bool = True, aides_de_jeu: bool = True,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
@@ -170,38 +171,37 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     logging.debug(f"noms pnjs = {mon_gn.noms_pnjs()}")
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn,
-                                                                api_drive=api_drive,
-                                                                api_doc=api_doc,
-                                                                singletest=singletest_intrigue,
-                                                                fast=fast_intrigues,
-                                                                verbal=verbal)
+                                                          api_drive=api_drive,
+                                                          api_doc=api_doc,
+                                                          singletest=singletest_intrigue,
+                                                          fast=fast_intrigues,
+                                                          verbal=verbal)
     retirer_intrigues_supprimees(mon_gn, ids_lus)
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_pjs(mon_gn,
-                                          api_drive=api_drive,
-                                          api_doc=api_doc,
-                                          singletest=singletest_perso,
-                                          fast=fast_persos,
-                                          verbal=verbal)
+                                                    api_drive=api_drive,
+                                                    api_doc=api_doc,
+                                                    singletest=singletest_perso,
+                                                    fast=fast_persos,
+                                                    verbal=verbal)
 
     retirer_pjs_supprimees(mon_gn, ids_lus)
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_pnjs(mon_gn,
-                                           api_drive=api_drive,
-                                           api_doc=api_doc,
-                                           singletest=singletest_perso,
-                                           fast=fast_persos,
-                                           verbal=verbal)
+                                                     api_drive=api_drive,
+                                                     api_doc=api_doc,
+                                                     singletest=singletest_perso,
+                                                     fast=fast_persos,
+                                                     verbal=verbal)
 
     retirer_pnjs_supprimes(mon_gn, ids_lus)
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_evenements(mon_gn,
-                                                 api_drive=api_drive,
-                                                 api_doc=api_doc,
-                                                 )  # todo : ajouter les options de lecture dans la GUI
+                                                           api_drive=api_drive,
+                                                           api_doc=api_doc,
+                                                           )  # todo : ajouter les options de lecture dans la GUI
 
     retirer_evenements_supprimes(mon_gn, ids_lus)
-
 
     liste_orgas = None
     liste_noms_pnjs = None
@@ -246,11 +246,16 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     print("****** fin de la lecture du drive *********")
     print("*******************************************")
     print("*******************************************")
-    prefixe_fichiers = str(datetime.date.today())
-    print("***génération du fichier des erreurs ******")
-    if fichier_erreurs:
-        texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
-        ecrire_erreurs_dans_drive(texte_erreurs, api_doc, api_drive, mon_gn.dossier_outputs_drive)
+    # prefixe_fichiers = str(datetime.date.today())
+    print("* génération du fichier des erreurs intrigues * ")
+    if fichier_erreurs_intrigues:
+        # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
+        ecrire_erreurs_intrigues_dans_drive(mon_gn, api_doc, api_drive, mon_gn.dossier_outputs_drive)
+
+    print("* génération du fichier des erreurs intrigues * ")
+    if fichier_erreurs_evenements:
+        # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
+        ecrire_erreurs_evenements_dans_drive(mon_gn, api_doc, api_drive, mon_gn.dossier_outputs_drive)
 
     print("******* statut intrigues *******************")
     if table_intrigues:
@@ -308,14 +313,18 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 def retirer_intrigues_supprimees(mon_gn: GN, ids_intrigues_lus: list[str]):
     retirer_elements_supprimes(ids_intrigues_lus, mon_gn.intrigues)
 
+
 def retirer_pjs_supprimees(mon_gn: GN, ids_pjs_lus: list[str]):
     retirer_elements_supprimes(ids_pjs_lus, mon_gn.dictPJs)
+
 
 def retirer_pnjs_supprimes(mon_gn: GN, ids_pnjs_lus: list[str]):
     retirer_elements_supprimes(ids_pnjs_lus, mon_gn.dictPNJs)
 
+
 def retirer_evenements_supprimes(mon_gn: GN, ids_evenements_lus: list[str]):
     retirer_elements_supprimes(ids_evenements_lus, mon_gn.evenements)
+
 
 def retirer_elements_supprimes(ids_lus: list[str], dict_reference: dict):
     print(f"debug : id lus = {ids_lus}")
@@ -332,10 +341,39 @@ def retirer_elements_supprimes(ids_lus: list[str], dict_reference: dict):
             logging.debug("et il a été supprimé)")
 
 
-def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
+# def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
+#     log_erreur = ""
+#
+#     intrigues_triees = sorted(mon_gn.intrigues.values(), key=lambda x: x.orgaReferent)
+#     # for intrigue in gn.intrigues.values():
+#
+#     current_orga = "ceci est un placeholder"
+#     for intrigue in intrigues_triees:
+#         if current_orga != intrigue.orgaReferent:
+#             current_orga = intrigue.orgaReferent
+#             log_erreur += f"{current_orga} voici les intrigues avec des soucis dans leurs tableaux de persos \n"
+#         if intrigue.error_log.nb_erreurs() > taille_min_log:
+#             # print(f"poy! {intrigue.error_log}")
+#             log_erreur += f"Pour {intrigue.nom} : \n" \
+#                           f"{intrigue.error_log} \n"
+#             log_erreur += suggerer_tableau_persos(mon_gn, intrigue)
+#             log_erreur += "\n \n"
+#     if verbal:
+#         print(log_erreur)
+#     if prefixe is not None:
+
+#             f.close()
+#     return log_erreur
+
+def ecrire_fichier_erreur_localement(mon_gn: GN, prefixe: str, verbal: False):
+    log_erreur = generer_texte_erreurs_intrigues(mon_gn, verbal=verbal)
+
+    with open(f'{prefixe} - problèmes tableaux persos.txt', 'w', encoding="utf-8") as f:
+                f.write(log_erreur)
+
+def generer_texte_erreurs_intrigues(mon_gn, verbal=False):
     log_erreur = ""
-    # intrigues_triees = list(mon_gn.intrigues.values())
-    # intrigues_triees = sorted(intrigues_triees,  key= lambda x:x.orga_referent)
+
     intrigues_triees = sorted(mon_gn.intrigues.values(), key=lambda x: x.orgaReferent)
     # for intrigue in gn.intrigues.values():
 
@@ -344,24 +382,54 @@ def lister_erreurs(mon_gn, prefixe, taille_min_log=0, verbal=False):
         if current_orga != intrigue.orgaReferent:
             current_orga = intrigue.orgaReferent
             log_erreur += f"{current_orga} voici les intrigues avec des soucis dans leurs tableaux de persos \n"
-        if intrigue.error_log.nb_erreurs() > taille_min_log:
-            # print(f"poy! {intrigue.error_log}")
-            log_erreur += f"Pour {intrigue.nom} : \n" \
-                          f"{intrigue.error_log} \n"
-            log_erreur += suggerer_tableau_persos(mon_gn, intrigue)
-            log_erreur += "\n \n"
+
+        log_erreur += f"Pour {intrigue.nom} : \n" \
+                      f"{intrigue.error_log} \n"
+        log_erreur += suggerer_tableau_persos(mon_gn, intrigue)
+        log_erreur += "\n \n"
     if verbal:
         print(log_erreur)
-    if prefixe is not None:
-        with open(f'{prefixe} - problèmes tableaux persos.txt', 'w', encoding="utf-8") as f:
-            f.write(log_erreur)
-            f.close()
+
     return log_erreur
 
 
-def ecrire_erreurs_dans_drive(texte_erreurs, api_doc, api_drive, parent):
+def generer_texte_erreurs_evenements(mon_gn, verbal=False):
+    log_erreur = ""
+
+    evenements_tries = sorted(mon_gn.evenements.values(), key=lambda x: x.referent)
+
+    current_orga = "ceci est un placeholder"
+    for evenement in evenements_tries:
+        if current_orga != evenement.referent:
+            current_orga = evenement.referent
+            log_erreur += f"{current_orga} voici les évènements avec des soucis fiche : \n"
+
+        log_erreur += f"Pour {evenement.nom} : \n" \
+                      f"{evenement.erreur_manager} \n"
+        log_erreur += "\n \n"
+    if verbal:
+        print(log_erreur)
+
+    return log_erreur
+
+
+def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, parent, verbal=False):
+    texte_erreurs = generer_texte_erreurs_intrigues(mon_gn, verbal=verbal)
+
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Listes des erreurs dans les tableaux des persos'
+    mon_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, parent)
+    if extraireTexteDeGoogleDoc.write_to_doc(
+            api_doc, mon_id, texte_erreurs
+    ):
+        extraireTexteDeGoogleDoc.formatter_fichier_erreurs(api_doc, mon_id)
+
+
+def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent, verbal=False):
+    texte_erreurs = generer_texte_erreurs_evenements(mon_gn, verbal=verbal)
+
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- Listes des erreurs dans les évènements'
     mon_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, parent)
     if extraireTexteDeGoogleDoc.write_to_doc(
             api_doc, mon_id, texte_erreurs
@@ -508,7 +576,7 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True):
     pj_pnj = "PJ" if pj else "PNJ"
     nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes {pj_pnj}'
     nouveau_dossier = extraireTexteDeGoogleDoc.creer_dossier(api_drive, parent, nom_dossier)
-#todo : vérifier
+    # todo : vérifier
     d = squelettes_par_perso(mon_gn, pj=pj)
     nb_persos_source = len(d)
     for index, nom_perso in enumerate(d):
@@ -561,7 +629,6 @@ def squelettes_par_perso(mon_gn: GN, pj=True):
             texte_perso += "\n *** briefs pour les interventions dans les évènements : *** \n"
             texte_perso += '\n'.join([i.str_pour_squelette() for i in perso.intervient_comme])
 
-
         # ajout des informations issues des infos pour evènement:
         if len(perso.informations_evenements) > 0:
             texte_perso += "\n *** informations à fournir pour organiser les évènements : *** \n"
@@ -572,10 +639,7 @@ def squelettes_par_perso(mon_gn: GN, pj=True):
         texte_perso += "\n *** Scenes associées : *** \n"
         mes_scenes = []
         for role in perso.roles:
-            for scene in role.scenes:
-                # print(f"{scene.titre} trouvée")
-                mes_scenes.append(scene)
-
+            mes_scenes.extend(iter(role.scenes))
         mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=mon_gn.date_gn)
         for scene in mes_scenes:
             # print(scene)
@@ -1288,6 +1352,7 @@ def ecrire_table_relation(gn: GN, api_drive, api_sheets):
     file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tab_relations, file_id)
 
+
 def generer_table_evenements(gn: GN):
     # Jour / heure / lieu / description / pnj impliqués / costume / implication /  débute / pj impliqués /
     toutes_interventions = []
@@ -1297,7 +1362,7 @@ def generer_table_evenements(gn: GN):
     toutes_interventions = sorted(toutes_interventions, key=lambda x: [x.jour, x.heure])
 
     to_return = [["Jour", "Heure", "Lieu", "Description", "PNJs impliqués", "Costumes PNJs", "Implication PNJs",
-                 "Démarrage PNJ", "PJ impliqués", "Intrigue", 'Evènement', 'Référent']]
+                  "Démarrage PNJ", "PJ impliqués", "Intrigue", 'Evènement', 'Référent']]
     for intervention in toutes_interventions:
         intervenants = intervention.liste_intervenants
 
@@ -1317,7 +1382,7 @@ def generer_table_evenements(gn: GN):
                            for pj in intervention.liste_pjs_concernes]
 
         nom_intrigue = intervention.evenement.intrigue.nom if intervention.evenement.intrigue is not None \
-            else f"Pas d'intrigue pour l'évènement {evenement.code_evenement}"
+            else f"Pas d'intrigue pour l'évènement {intervention.evenement.code_evenement}"
 
         nom_evenement = intervention.evenement.code_evenement
 
@@ -1332,7 +1397,7 @@ def generer_table_evenements(gn: GN):
                  '\n'.join(pj_pour_tableau),
                  nom_intrigue,
                  nom_evenement,
-                 evenement.referent
+                 intervention.evenement.referent
                  ]
         # # print(f"debug : ligne : {ligne}")
         to_return.append(ligne)
@@ -1340,6 +1405,7 @@ def generer_table_evenements(gn: GN):
         # print(f"debug : To8r = {to_return}")
 
     return to_return
+
 
 def ecrire_table_evenements(gn: GN, api_drive, api_sheets):
     parent = gn.dossier_outputs_drive
@@ -1350,6 +1416,7 @@ def ecrire_table_evenements(gn: GN, api_drive, api_sheets):
 
     file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tab_evenements, file_id)
+
 
 def mettre_a_jour_champs(gn: GN):
     # #mise à jour des errors logs
@@ -1421,7 +1488,7 @@ def mettre_a_jour_champs(gn: GN):
                 else:
                     role.personnage = None
             if isinstance(role.interventions, set):
-                role.interventions = {intervention.evenement:intervention for intervention in role.interventions}
+                role.interventions = {intervention.evenement: intervention for intervention in role.interventions}
 
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'infos'):
@@ -1445,4 +1512,4 @@ def mettre_a_jour_champs(gn: GN):
 
             if hasattr(intervention, 'noms_pj_impliques'):
                 intervention.noms_pjs_impliques = intervention.pj_impliques
-                delattr(intervention, pj_impliques)
+                delattr(intervention, 'pj_impliques')

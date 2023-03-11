@@ -132,7 +132,7 @@ def main():
     print("*********toutesleserreurs*******************")
     if not args.nofichiererreurs:
         texte_erreurs = lister_erreurs(monGN, prefixeFichiers)
-        ecrire_erreurs_dans_drive(texte_erreurs, apiDoc, apiDrive, dossier_output_squelettes_pjs)
+        ecrire_erreurs_intrigues_dans_drive(texte_erreurs, apiDoc, apiDrive, dossier_output_squelettes_pjs)
 
     print("*********touslesquelettes*******************")
     if not args.noexportdrive:

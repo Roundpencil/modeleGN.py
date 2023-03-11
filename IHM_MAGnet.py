@@ -236,9 +236,9 @@ class Application(tk.Frame):
                                                    )
         generer_changelog_local_button.grid(row=13, column=0, sticky="nsew")
 
-        generer_erreurs_local_button = tk.Button(diagnostic_window, text="Générer fichier des erreurs localement",
-                                                 command=lambda: lister_erreurs(self.gn, str(datetime.date.today())))
-        generer_erreurs_local_button.grid(row=14, column=0, sticky="nsew")
+        # generer_erreurs_local_button = tk.Button(diagnostic_window, text="Générer fichier des erreurs localement",
+        #                                          command=lambda: lister_erreurs(self.gn, str(datetime.date.today())))
+        # generer_erreurs_local_button.grid(row=14, column=0, sticky="nsew")
 
         # generer_erreurs_drive_button = tk.Button(diagnostic_window, text="Générer fichier des erreurs sur Drive",
         #                                          command=lambda:
@@ -519,7 +519,7 @@ class Application(tk.Frame):
             args = [generer_fichiers_drive_var,
                     generer_fichiers_drive_var,
                     generer_fichiers_pnjs_var,
-                    fichier_erreurs_var,
+                    fichier_erreurs_intrigues_var,
                     changelog_var,
                     table_intrigues_var,
                     table_objets_var,
@@ -547,10 +547,10 @@ class Application(tk.Frame):
                                                      variable=generer_fichiers_pnjs_var)
         generer_fichiers_pnjs_check.grid(sticky="W", row=6, column=1)
 
-        fichier_erreurs_var = tk.BooleanVar()
-        fichier_erreurs_var.set(True)
-        fichier_erreurs_check = tk.Checkbutton(regen_window, text="Fichier erreurs",
-                                               variable=fichier_erreurs_var)
+        fichier_erreurs_intrigues_var = tk.BooleanVar()
+        fichier_erreurs_intrigues_var.set(True)
+        fichier_erreurs_check = tk.Checkbutton(regen_window, text="Fichier erreurs intrigues",
+                                               variable=fichier_erreurs_intrigues_var)
         fichier_erreurs_check.grid(sticky="W", row=6, column=2)
 
         changelog_var = tk.BooleanVar()
@@ -609,9 +609,15 @@ class Application(tk.Frame):
 
         table_evenements_var = tk.BooleanVar()
         table_evenements_var.set(True)
-        table_evenements_check = tk.Checkbutton(regen_window, text="Table des evènements",
+        table_evenements_check = tk.Checkbutton(regen_window, text="Table des évènements",
                                                 variable=table_evenements_var)
         table_evenements_check.grid(sticky="W", row=9, column=0)
+
+        fichier_erreurs_evenements_var = tk.BooleanVar()
+        fichier_erreurs_evenements_var.set(True)
+        fichier_erreurs_evenements_check = tk.Checkbutton(regen_window, text="Fichier erreurs évènements",
+                                               variable=fichier_erreurs_evenements_var)
+        fichier_erreurs_evenements_check.grid(sticky="W", row=9, column=1)
 
 
 
@@ -631,7 +637,8 @@ class Application(tk.Frame):
                                   personnages_value=personnages_var.get(),
                                   sans_chargement_fichier_value=charger_fichier_var.get(),
                                   sauver_apres_operation_value=sauver_apres_operation_var.get(),
-                                  fichier_erreur_var=fichier_erreurs_var.get(),
+                                  fichier_erreur_intrigues_var=fichier_erreurs_intrigues_var.get(),
+                                  fichier_erreur_evenements_var=fichier_erreurs_evenements_var.get(),
                                   generer_fichiers_pjs_var=generer_fichiers_drive_var.get(),
                                   generer_fichiers_pnjs_var=generer_fichiers_pnjs_var.get(),
                                   changelog_var=changelog_var.get(),
@@ -663,7 +670,8 @@ class Application(tk.Frame):
             self.personnages_specifique_entry.config(state='normal')
 
     def process_regen(self, intrigues_value, personnages_value, sans_chargement_fichier_value,
-                      sauver_apres_operation_value, fichier_erreur_var, generer_fichiers_pjs_var, changelog_var,
+                      sauver_apres_operation_value, fichier_erreur_intrigues_var, fichier_erreur_evenements_var,
+                      generer_fichiers_pjs_var, changelog_var,
                       table_chrono_var, table_persos_var, table_pnj_var,
                       table_commentaires_var,
                       table_intrigues_var, table_objets_var,
@@ -696,7 +704,8 @@ class Application(tk.Frame):
                              liste_noms_pjs=self.dict_config.get('liste_noms_pjs'),
                              # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
                              nom_fichier_sauvegarde=self.dict_config['nom_fichier_sauvegarde'],
-                             fichier_erreurs=fichier_erreur_var,
+                             fichier_erreurs_intrigues=fichier_erreur_intrigues_var,
+                             fichier_erreurs_evenements=fichier_erreur_evenements_var,
                              generer_fichiers_pjs=generer_fichiers_pjs_var,
                              generer_fichiers_pnjs=generer_fichiers_pnjs_var,
                              changelog=changelog_var,
