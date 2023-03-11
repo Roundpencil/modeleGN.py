@@ -15,16 +15,9 @@ import csv
 # todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 # todo : gérer les persos ajoutés deux fois via les factions dans le buffy
-
+# todo : régler le probleme des référents non lus
 
 # à faire - rapide
-# todo : les focntion de clearing des évènements lors du rebuild
-#  qui permettent de nettoyer les ajouts intrigues / pjs / pnjs / factions et les erreurs associées
-#  (mettre à jour clear_all associations avec les évènements)
-
-# todo : génrer dans les fiches PJs / PNJs leurs interventions dans les évènements
-#  (créer une méthode qui donne le string d'un brief pour faciliter la générationd es futures fiches?)
-
 # todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
 
 # todo : écrire la génération du fichier des erreurs de l'évènement
@@ -544,7 +537,7 @@ def squelettes_par_perso(mon_gn: GN, pj=True):
         print(f"génération des fichiers des {pj_pnj} ({index}/{nb_persos_source})"
               f": personnage en cours d'écriture : {perso.nom}")
 
-        # for personnage in gn.dictPJs.values():
+        # ajout des informations issues des fiches :
         texte_perso = ""
         texte_perso += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
         texte_perso += f"résumé de la bio : \n"
@@ -562,6 +555,19 @@ def squelettes_par_perso(mon_gn: GN, pj=True):
             texte_perso += f"{item} \n"
         texte_perso += "\n *** Relations : *** \n"
         texte_perso += perso.str_relations()
+
+        # ajout des informations issues des interventions (si pnj):
+        if len(perso.intervient_comme) > 0:
+            texte_perso += "\n *** briefs pour les interventions dans les évènements : *** \n"
+            texte_perso += '\n'.join([i.str_pour_squelette() for i in perso.intervient_comme])
+
+
+        # ajout des informations issues des infos pour evènement:
+        if len(perso.informations_evenements) > 0:
+            texte_perso += "\n *** informations à fournir pour organiser les évènements : *** \n"
+            texte_perso += '\n'.join([i.str_pour_squelette() for i in perso.informations_evenements])
+
+        # ajout des informations issues des intrigues :
 
         texte_perso += "\n *** Scenes associées : *** \n"
         mes_scenes = []

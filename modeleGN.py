@@ -1091,6 +1091,10 @@ class GN:
             intrigue.error_log.clear(ErreurManager.ORIGINES.ASSOCIATION_AUTO)
             intrigue.error_log.clear(ErreurManager.ORIGINES.FACTION)
             intrigue.error_log.clear(ErreurManager.ORIGINES.PERSOS_SANS_SCENE)
+            intrigue.error_log.clear(ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS)
+
+        for evenement in list(self.evenements):
+            evenement.erreur_manager.clear(ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS)
 
     def forcer_import_pjs(self, noms_persos, suffixe="_imported", table_orgas_referent=False, verbal=False):
         return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=True, suffixe=suffixe, verbal=verbal,
@@ -1294,6 +1298,12 @@ class IntervenantEvenement:
         return f"{self.nom_pnj} ({self.pnj.nom})" if self.pnj is not None \
             else f"{self.nom_pnj} (pas de personnage associé)"
 
+    def str_pour_squelette(self):
+        return f"Pour l'évènement {self.evenement.code_evenement}  : \n" \
+               f"\t costume : {self.costumes_et_accessoires} \n " \
+               f"\t implication : {self.implication} \n " \
+               f"\t commence : {self.situation_de_depart}"
+
 
 class PJConcerneEvenement:
     def __init__(self, nom_pj, evenement: Evenement, infos_a_fournir=""):
@@ -1305,6 +1315,9 @@ class PJConcerneEvenement:
     def str_avec_perso(self):
         return f"{self.nom_pj} ({self.pj.nom})" if self.pj is not None \
             else f"{self.nom_pj} (pas de personnage associé)"
+
+    def str_pour_squelette(self):
+        return f"Pour l'évènement {self.evenement.code_evenement} : {self.infos_a_fournir}"
 
 
 class InfoFactionsPourEvenement:
@@ -1348,16 +1361,6 @@ class Intervention:
 #     # print(f"debug : self.evenement.briefs_pnj = {len(self.evenement.briefs_pnj)} {self.evenement.briefs_pnj}")
 #     return [brief.nom_pnj for brief in self.evenement.briefs_pnj]
 #
-# # def get_str_pnjs_impliques_avec_infos(self):
-# #     to_return = ""
-# #     for pnj in self.liste_pnjs_impliques:
-# #         brief = pnj.briefs_pnj_pour_evenement[self.evenement]
-# #         to_return += f"{pnj.str_avec_perso} (" \
-# #                      f"costume : {brief.costumes_et_accessoires} - " \
-# #                      f"implication : {brief.implication} - " \
-# #                      f"commence : {brief.situation_de_depart}" \
-# #                      f") \n"
-# #     return to_return
 
 
 class Commentaire:
