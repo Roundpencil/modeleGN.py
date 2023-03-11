@@ -593,17 +593,25 @@ def ecrire_squelettes_localement(mon_gn: GN, prefixe=None, pj=True):
 
 
 def generer_liste_pnj_dedup_avec_perso(mon_gn, threshold=89, verbal=False):
-    dict_nom_pnj_nom_role = {}
+    dict_nom_role_nom_pnj = {}
     for intrigue in mon_gn.intrigues.values():
         for role in intrigue.rolesContenus.values():
             if role.est_un_pnj():
-                dict_nom_pnj_nom_role[role.nom] = role.personnage.nom if role.personnage is not None else "aucun perso"
+                dict_nom_role_nom_pnj[role.nom] = role.personnage.nom if role.personnage is not None else "aucun perso"
 
-    noms_pnjs = list(dict_nom_pnj_nom_role)
+    dict_nom_brief_nom_pnj = {}
+    for evenement in mon_gn.evenements.values():
+        for intervenant_evenement in evenement.intervenants_evenement:
+            dict_nom_brief_nom_pnj[intervenant_evenement.nom_pnj] = \
+                intervenant_evenement.pnj.nom if intervenant_evenement.pnj else "aucun perso"
+
+    dict_noms_noms_pnjs = dict_nom_role_nom_pnj.copy().update(dict_nom_brief_nom_pnj)
+
+    noms_pnjs = list(dict_noms_noms_pnjs)
     noms_dedup = process.dedupe(noms_pnjs, threshold=threshold)
     noms_dedup = sorted(noms_dedup)
 
-    persos_dedup = [dict_nom_pnj_nom_role[nom_pnj] for nom_pnj in noms_dedup]
+    persos_dedup = [dict_noms_noms_pnjs[nom_pnj] for nom_pnj in noms_dedup]
 
     logging.debug(f"liste des pnjs dédup : {noms_dedup}")
 

@@ -1260,6 +1260,24 @@ class Evenement:
     def get_noms_pjs(self):
         return list(self.pjs_concernes_evenement.keys())
 
+    def clear(self):
+        # casser toutes les relations intervenants <> persos
+        intervenants_a_nettoyer = self.intervenants_evenement
+        for intervenant in intervenants_a_nettoyer:
+            if intervenant.pnj is not None:
+                intervenant.pnj.intervient_comme.remove(intervenant)
+            del intervenant
+
+        # casser toutes les relations pj_concernés <> persos
+        for pj_concerne in self.pjs_concernes_evenement:
+            if pj_concerne.pj is not None:
+                pj_concerne.pj.informations_evenements.remove(pj_concerne)
+            del pj_concerne
+
+        # effacer toutes les interventions de l'évènement
+        for intervention in self.interventions:
+            del intervention
+
 
 class IntervenantEvenement:
     def __init__(self, nom_pnj, evenement: Evenement, costumes_et_accessoires="", implication="",
