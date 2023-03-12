@@ -13,7 +13,7 @@ import dateparser
 
 
 def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
-    return extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_intrigue_de_texte, mon_gn.intrigues,
+    return extraire_texte_de_google_doc(api_drive, api_doc, extraire_intrigue_de_texte, mon_gn.intrigues,
                                         mon_gn.dossiers_intrigues,
                                         singletest, verbal=verbal, fast=fast, prefixes="i")
 
@@ -21,7 +21,7 @@ def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=Fals
 def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
     # print(f"je m'apprête à extraire les PJs depuis {gn.dossiers_pjs}")
     return extraire_texte_de_google_doc(
-        mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
+        api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
         singletest,
         verbal=verbal, fast=fast, prefixes="p")
 
@@ -37,12 +37,10 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
     #                                     singletest,
     #                                     verbal=verbal, fast=fast, prefixes="p")
 
-    return extraire_texte_de_google_doc(
-        mon_gn, api_drive, api_doc, extraire_pnj_de_texte, mon_gn.dictPNJs,
+    return extraire_texte_de_google_doc(api_drive, api_doc, extraire_pnj_de_texte, mon_gn.dictPNJs,
                                         mon_gn.dossiers_pnjs,
                                         singletest,
                                         verbal=verbal, fast=fast, prefixes="p")
-
 
 
 def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
@@ -50,15 +48,15 @@ def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal
     if mon_gn.dossiers_evenements is None or len(mon_gn.dossiers_evenements) == 0:
         logging.debug("pas de dossier évènement trouvé dans le gn")
         return
-    return extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_evenement_de_texte, mon_gn.evenements,
+    return extraire_texte_de_google_doc(api_drive, api_doc, extraire_evenement_de_texte, mon_gn.evenements,
                                         mon_gn.dossiers_evenements,
                                         singletest,
                                         verbal=verbal, fast=fast, prefixes="e")
 
 
-def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, dict_ids: dict, folder_array,
+def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_ids: dict, folder_array,
                                  single_test="-01", verbal=False, fast=True, prefixes=""):
-    items = lecteurGoogle.generer_liste_items(api_drive=apiDrive, nom_fichier=folder_array)
+    items = lecteurGoogle.generer_liste_items(api_drive=api_drive, nom_fichier=folder_array)
     # print(f"folder = {folder_array}  items = {items}")
 
     if not items:
@@ -70,7 +68,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
         for item in items:
             try:
                 # Retrieve the documents contents from the Docs api_doc.
-                document = apiDoc.documents().get(documentId=item['id']).execute()
+                document = api_doc.documents().get(documentId=item['id']).execute()
 
                 print(f"Document en cours de lecture (singletest = {single_test}) : {document.get('title')}")
 
@@ -94,7 +92,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction,
                                                              save_last_change=False, verbal=verbal)
                 # et on ajoute les commentaires :
-                commentaires = extraire_commentaires_de_document_drive(apiDrive, item['id'])
+                commentaires = extraire_commentaires_de_document_drive(api_drive, item['id'])
                 if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
                     nouvel_objet.ajouter_commentaires(commentaires)
 
@@ -114,7 +112,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
         for item in items:
             try:
                 # Retrieve the documents contents from the Docs api_doc.
-                document = apiDoc.documents().get(documentId=item['id']).execute()
+                document = api_doc.documents().get(documentId=item['id']).execute()
 
                 print(f"Document en cours de lecture : {document.get('title')}")
 
@@ -169,8 +167,9 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
 
                 # puis, dans tous les cas, on la crée
                 # print("debug : extraction objet")
-                nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction, verbal=verbal)
-                commentaires = extraire_commentaires_de_document_drive(apiDrive, item['id'])
+                nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction,
+                                                             verbal=verbal)
+                commentaires = extraire_commentaires_de_document_drive(api_drive, item['id'])
                 if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
                     nouvel_objet.ajouter_commentaires(commentaires)
 
@@ -186,7 +185,8 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
     return [item['id'] for item in items]
 
 
-def extraire_elements_de_document(document, item, dict_reference: dict, fonction_extraction, save_last_change=True, verbal=False):
+def extraire_elements_de_document(document, item, dict_reference: dict, fonction_extraction, save_last_change=True,
+                                  verbal=False):
     # print("et du coup, il est temps de créer un nouveau fichier")
     # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
     contenu_document = document.get('body').get('content')
@@ -219,7 +219,8 @@ def extraire_elements_de_document(document, item, dict_reference: dict, fonction
     return mon_objet
 
 
-def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, derniere_modification_par, dict_intrigues,
+def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, derniere_modification_par,
+                               dict_intrigues,
                                verbal=False):
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue.replace('\v', '\n'))
@@ -885,9 +886,8 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
             methode_a_appliquer(texte_section, current_evenement, label.value)
     # on vérifie ensuite qu'on a bien une chrono, sinon on la force et elle sera remplie par défaut
     if indexes[Labels.CHRONO.value]["debut"] == -1:
-        ligne = ['']*5
-        evenement_extraire_ligne_chrono(current_evenement, ligne)
-
+        ligne = [''] * 5
+        evenement_extraire_ligne_chrono(current_evenement, ligne, seuil_alerte_pnj=70, seuil_alerte_pj=70)
 
 
 def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: str):
@@ -970,6 +970,8 @@ def evenement_infos_factions(texte: str, current_evenement: Evenement, texte_lab
 
 def evenement_lire_objets(texte: str, current_evenement: Evenement, texte_label: str):
     logging.debug(f"balise {texte_label} non prise en charge = {texte}")
+
+
 #     texte = retirer_premiere_ligne(texte)
 #     tableau_objets, nb_colonnes = reconstituer_tableau(texte)
 #     if nb_colonnes != 4:
@@ -985,7 +987,7 @@ def evenement_lire_objets(texte: str, current_evenement: Evenement, texte_label:
 
 
 def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label: str,
-                          seuil_alerte_pnj = 70, seuil_alerte_pj = 70):
+                          seuil_alerte_pnj=70, seuil_alerte_pj=70):
     # print(f"debug : texte chrono : {texte}")
     texte = retirer_premiere_ligne(texte)
     tableau_interventions, nb_colonnes = reconstituer_tableau(texte)
@@ -996,7 +998,7 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
         return
 
     if len(tableau_interventions) == 0:
-        tableau_interventions = [['']*5]
+        tableau_interventions = [[''] * 5]
 
     for ligne in tableau_interventions:
         evenement_extraire_ligne_chrono(current_evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj)
@@ -1083,9 +1085,9 @@ def retirer_label(texte: str, label: str):
 
 
 def extraire_pnj_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, dict_pnj,
-                             verbal):
+                          verbal):
     return extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, dict_pnj,
-                                 verbal=verbal, pj=TypePerso.EST_PNJ_HORS_JEU)
+                                    verbal=verbal, pj=TypePerso.EST_PNJ_HORS_JEU)
 
 
 def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, dict_pj_pnj,
@@ -1383,7 +1385,7 @@ def is_document_being_edited(service, file_id):
         return None
 
 
-def add_doc(service, nom_fichier, parent, prefixe_message =""):
+def add_doc(service, nom_fichier, parent, prefixe_message=""):
     try:
         # create the metadata for the new document
         file_metadata = {
