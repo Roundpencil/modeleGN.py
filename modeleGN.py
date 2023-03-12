@@ -809,7 +809,7 @@ class GN:
     def rebuild_links(self, verbal=False):
         self.clear_all_associations()
         self.update_oldest_update()
-        self.ajouter_roles_issus_de_factions()
+        self.ajouter_roles_issus_de_factions(verbal=True)
         self.associer_pnj_a_roles()
         self.associer_pj_a_roles()
         self.degonfler_factions_dans_evenement()
@@ -1045,6 +1045,8 @@ class GN:
                                                               texte_info,
                                                               ErreurManager.ORIGINES.FACTION
                                                               )
+                            if verbal:
+                                print(f"intrigue : {intrigue.nom} :  {texte_info}, score = {score_role}")
                             # ajouter un nouveau role dans l'intrigue avec personnage_dans_faction = true
                             role_a_ajouter = Role(intrigue,
                                                   nom=personnage_dans_faction.nom,
@@ -1056,20 +1058,16 @@ class GN:
                         else:
                             # ajouter la scène au role
                             role_a_ajouter = intrigue.rolesContenus[score_role[0]]
+                            if verbal:
+                                print(f"intrigue : {intrigue.nom} : le personnage {personnage_dans_faction.nom} a été identifié et ajouté, "
+                                      f"score = {score_role}")
 
                         # à ce stade on a identifié le bon role
 
                         # l'ajouter à la scène
                         role_a_ajouter.ajouter_a_scene(scene)
 
-                        # # propager les infos pour les évènements de faction dans le role
-                        # for info_pour_evenements in ma_faction.infos_pour_evenements:
-                        #     info_evenement_pour_role = PJConcerneEvenement(role_a_ajouter.nom,
-                        #                                                    info_pour_evenements.evenement,
-                        #                                                    info_pour_evenements.infos_a_fournir
-                        #                                                    )
-                        #     role_a_ajouter.infos_pj_pour_evenement[info_pour_evenements.evenement] \
-                        #         = info_evenement_pour_role
+
 
     # utilisée pour préparer l'association roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer

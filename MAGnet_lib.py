@@ -683,8 +683,7 @@ def generer_liste_pnj_dedup_avec_perso(mon_gn, threshold=89, verbal=False):
             dict_nom_brief_nom_pnj[intervenant_evenement.nom_pnj] = \
                 intervenant_evenement.pnj.nom if intervenant_evenement.pnj else "aucun perso"
 
-    dict_noms_noms_pnjs = dict_nom_role_nom_pnj.copy()
-    dict_noms_noms_pnjs.update(dict_nom_brief_nom_pnj)
+    dict_noms_noms_pnjs = dict_nom_role_nom_pnj | dict_nom_brief_nom_pnj
 
     noms_pnjs = list(dict_noms_noms_pnjs)
     noms_dedup = process.dedupe(noms_pnjs, threshold=threshold)
