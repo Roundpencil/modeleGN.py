@@ -12,7 +12,6 @@ from modeleGN import *
 # communication :
 
 # bugs
-# todo comprendre pourquoi pas de load de snyder
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
 # todo : gérer les persos ajoutés deux fois via les factions dans le buffy
 # todo : comprendre pouruqoi pas de décompte dans la génération des fichiers de persos (décomposer fonction?)
@@ -1512,7 +1511,7 @@ def mettre_a_jour_champs(gn: GN):
         if not hasattr(pj, 'commentaires'):
             pj.commentaires = []
 
-    for evenement in gn.evenements:
+    for evenement in gn.evenements.values():
         for intervention in evenement.interventions:
             if not hasattr(intervention, "liste_pnjs_impliques"):
                 intervention.liste_pnjs_impliques = set()
@@ -1523,3 +1522,8 @@ def mettre_a_jour_champs(gn: GN):
             if hasattr(intervention, 'noms_pj_impliques'):
                 intervention.noms_pjs_impliques = intervention.pj_impliques
                 delattr(intervention, 'pj_impliques')
+
+    for pj in gn.dictPJs:
+        if pj in gn.dictPNJs:
+            gn.dictPJs.pop(pj)
+            print(f"le personnage {gn.dictPJs[pj].name} a été retiré car c'était un pnj")

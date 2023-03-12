@@ -31,11 +31,18 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
     if mon_gn.dossiers_pnjs is None or len(mon_gn.dossiers_pnjs) == 0:
         logging.debug("pas de dossier pnj trouvé dans le gn")
         return
+    # return extraire_texte_de_google_doc(
+    #     mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPNJs,
+    #                                     mon_gn.dossiers_pnjs,
+    #                                     singletest,
+    #                                     verbal=verbal, fast=fast, prefixes="p")
+
     return extraire_texte_de_google_doc(
-        mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPNJs,
+        mon_gn, api_drive, api_doc, extraire_pnj_de_texte, mon_gn.dictPNJs,
                                         mon_gn.dossiers_pnjs,
                                         singletest,
                                         verbal=verbal, fast=fast, prefixes="p")
+
 
 
 def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
@@ -84,7 +91,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                     # dict_ids[item['id']].clear()
                     objet_de_reference = dict_ids.pop(item['id'])
 
-                nouvel_objet = extraire_elements_de_document(document, item, mon_gn, fonction_extraction,
+                nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction,
                                                              save_last_change=False, verbal=verbal)
                 # et on ajoute les commentaires :
                 commentaires = extraire_commentaires_de_document_drive(apiDrive, item['id'])
@@ -162,7 +169,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
 
                 # puis, dans tous les cas, on la crée
                 # print("debug : extraction objet")
-                nouvel_objet = extraire_elements_de_document(document, item, mon_gn, fonction_extraction, verbal=verbal)
+                nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction, verbal=verbal)
                 commentaires = extraire_commentaires_de_document_drive(apiDrive, item['id'])
                 if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
                     nouvel_objet.ajouter_commentaires(commentaires)
@@ -179,7 +186,7 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
     return [item['id'] for item in items]
 
 
-def extraire_elements_de_document(document, item, mon_gn, fonction_extraction, save_last_change=True, verbal=False):
+def extraire_elements_de_document(document, item, dict_reference: dict, fonction_extraction, save_last_change=True, verbal=False):
     # print("et du coup, il est temps de créer un nouveau fichier")
     # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
     contenu_document = document.get('body').get('content')
@@ -200,7 +207,7 @@ def extraire_elements_de_document(document, item, mon_gn, fonction_extraction, s
         derniere_modification_par = "Utilisateur inconnu"
 
     mon_objet = fonction_extraction(text, document.get('title'), item["id"], last_file_edit, derniere_modification_par,
-                                    mon_gn, verbal)
+                                    dict_reference, verbal)
     # mon_objet.url = item["id"]
     # on enregistre la date de dernière mise à jour
 
@@ -212,7 +219,7 @@ def extraire_elements_de_document(document, item, mon_gn, fonction_extraction, s
     return mon_objet
 
 
-def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, derniere_modification_par, monGN,
+def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, derniere_modification_par, dict_intrigues,
                                verbal=False):
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue.replace('\v', '\n'))
@@ -220,7 +227,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
     # print("*****************************")
     current_intrigue = Intrigue(nom=nomIntrigue, url=idUrl, derniere_edition_fichier=lastFileEdit)
     current_intrigue.modifie_par = derniere_modification_par
-    monGN.intrigues[idUrl] = current_intrigue
+    dict_intrigues[idUrl] = current_intrigue
 
     # noms_persos = gn.liste_noms_pjs()
 
@@ -1075,7 +1082,13 @@ def retirer_label(texte: str, label: str):
     return texte[len(label):].strip()
 
 
-def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, mon_gn,
+def extraire_pnj_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, dict_pnj,
+                             verbal):
+    return extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, dict_pnj,
+                                 verbal=verbal, pj=TypePerso.EST_PNJ_HORS_JEU)
+
+
+def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, dict_pj_pnj,
                              verbal=False, pj: TypePerso = TypePerso.EST_PJ):
     print(f"Lecture de {nom_doc}")
     if len(texte_persos) < 800:
@@ -1088,7 +1101,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
     perso_en_cours = Personnage(nom=nom_perso_en_cours, url=id_url, derniere_edition_fichier=last_file_edit, pj=pj)
     perso_en_cours.modifie_par = derniere_modification_par
-    mon_gn.dictPJs[id_url] = perso_en_cours
+    dict_pj_pnj[id_url] = perso_en_cours
 
     texte_persos_low = texte_persos.lower()  # on passe en minuscule pour mieux trouver les chaines
 

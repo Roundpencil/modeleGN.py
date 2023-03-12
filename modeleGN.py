@@ -87,7 +87,8 @@ class ConteneurDeScene:
             if role.personnage is not None:
                 debug_asso = [f"{r.nom} : {repr(r)} dans {r.conteneur.nom}" for r in role.personnage.roles]
                 print(f"debug : role à retirer = {role.nom} : {repr(role)}, personnage.roles = {debug_asso}")
-                role.personnage.roles.remove(role)
+                with contextlib.suppress(Exception):
+                    role.personnage.roles.remove(role)
                 del role
         # self.roles.clear()
 
