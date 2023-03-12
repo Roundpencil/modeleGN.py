@@ -19,15 +19,17 @@ from modeleGN import *
 # todo : comprendre le problème avec l'évènement E010-2 - Effets secondaires Larry - 2ème étape
 
 # à tester
-#todo : supprimer le tableau d'intrigue à 6 colonnes et le remplacer par la détection d'un '/' dans le colonne pip
+
 
 
 # à faire - rapide
-# todo : donner un effet aux boutons rapide sur autre chose que les pjs et les intrigues
 # todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
 
 
 # à faire - plus long
+
+#todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
+
 # todo gérer les objets dans les évènements
 
 # todo : quand on loade le fichier faction, clearer les factions
@@ -39,6 +41,9 @@ from modeleGN import *
 
 # todo : ajouter un parametre avec une méthode  pour permettre d'envoyer des infos
 #  à une barre de progression (rien par défaut) et un champ label (print par dééfaut)
+
+
+# todo : tenter de supprimer le dict PNJ et le dict PJ : peut-être qu'on n'a besoin que d'un seul, en fait...
 
 # confort / logique
 # todo : refaire version console
@@ -192,7 +197,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                                      api_drive=api_drive,
                                                      api_doc=api_doc,
                                                      singletest=singletest_perso,
-                                                     fast=fast_persos,
+                                                     fast=fast_pnjs,
                                                      verbal=verbal)
 
     retirer_pnjs_supprimes(mon_gn, ids_lus)
@@ -200,7 +205,8 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     ids_lus = extraireTexteDeGoogleDoc.extraire_evenements(mon_gn,
                                                            api_drive=api_drive,
                                                            api_doc=api_doc,
-                                                           )  # todo : ajouter les options de lecture dans la GUI
+                                                           fast=fast_evenements
+                                                           )
 
     retirer_evenements_supprimes(mon_gn, ids_lus)
 

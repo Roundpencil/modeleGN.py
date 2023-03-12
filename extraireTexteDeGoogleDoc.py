@@ -31,7 +31,8 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
     if mon_gn.dossiers_pnjs is None or len(mon_gn.dossiers_pnjs) == 0:
         logging.debug("pas de dossier pnj trouvé dans le gn")
         return
-    return extraire_texte_de_google_doc(mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPNJs,
+    return extraire_texte_de_google_doc(
+        mon_gn, api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPNJs,
                                         mon_gn.dossiers_pnjs,
                                         singletest,
                                         verbal=verbal, fast=fast, prefixes="p")
@@ -113,7 +114,9 @@ def extraire_texte_de_google_doc(mon_gn, apiDrive, apiDoc, fonction_extraction, 
                 # print(f"débug : ref du doc = {ref_du_doc(document.get('title'))}")
 
                 # si la ref du doc est -1 ou 0 il ne nous interesse pas
-                if ref_du_doc(document.get('title'), prefixes=prefixes) in [-1, 0]:
+                titre_doc = document.get('title')
+                if ref_du_doc(titre_doc, prefixes=prefixes) in [-1, 0]:
+                    logging.debug(f"Le nom du document {titre_doc} n'est pas un fichier à prendre en compte")
                     continue
 
                 # print("... est une intrigue !")
@@ -227,7 +230,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
         TODO = "etat de l’intrigue :"
         PITCH = "résumé de l’intrigue"
         CROISEES = "intrigues croisées :"
-        PJS = "pj impliqués"
+        PJS = "personnages impliqués"
         PNJS = "pnjs impliqués"
         REROLLS = "rerolls possibles"
         OBJETS = "objets liés"
@@ -298,8 +301,8 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         lire_tableau_pj_chalacta(current_intrigue, tableau_pjs)
     elif nb_colonnes == 5:
         lire_tableau_pj_5_colonnes(current_intrigue, tableau_pjs)
-    # elif nb_colonnes == 6:
-    #     lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs)
+    elif nb_colonnes == 6:
+        lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs)
     else:
         current_intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                                   "Tableau des personnages dans l'intrigue non standard",
@@ -546,22 +549,22 @@ def lire_tableau_pj_5_colonnes(current_intrigue, tableau_pjs):
         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
-# def lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs):
-#     for pj in tableau_pjs:
-#         # print("taille du prochain PJ : " + str(len(pj)))
-#
-#         if len(pj) < 6:  # testé pour éviter de se taper les lignes vides après le tableau
-#             continue
-#
-#         role_a_ajouter = Role(current_intrigue,
-#                               nom=pj[0].split("http")[0],
-#                               description=pj[5],
-#                               type_intrigue=pj[4],
-#                               niveau_implication=pj[3],
-#                               pipi=pj[1],
-#                               pipr=pj[2]
-#                               )
-#         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
+def lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs):
+    for pj in tableau_pjs:
+        # print("taille du prochain PJ : " + str(len(pj)))
+
+        if len(pj) < 6:  # testé pour éviter de se taper les lignes vides après le tableau
+            continue
+
+        role_a_ajouter = Role(current_intrigue,
+                              nom=pj[0].split("http")[0],
+                              description=pj[5],
+                              type_intrigue=pj[4],
+                              niveau_implication=pj[3],
+                              pipi=pj[1],
+                              pipr=pj[2]
+                              )
+        current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
 def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):

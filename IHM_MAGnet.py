@@ -574,10 +574,10 @@ class Application(tk.Frame):
 
         ###### fin de la réécriture
 
-        charger_fichier_var = tk.BooleanVar()
-        charger_fichier_var.set(False)
+        repartir_de_0_var = tk.BooleanVar()
+        repartir_de_0_var.set(False)
         charger_fichier_check = tk.Checkbutton(regen_window, text="Repartir de 0",
-                                               variable=charger_fichier_var)
+                                               variable=repartir_de_0_var)
         charger_fichier_check.grid(row=104, column=0)
 
         sauver_apres_operation_var = tk.BooleanVar()
@@ -761,7 +761,7 @@ class Application(tk.Frame):
                                                    fast_pnjs=var_fast_fiches_pnjs.get(),
                                                    fast_evenements=var_fast_evenements.get(),
                                                    fast_objets=var_fast_objets.get,
-                                                   sans_chargement_fichier=not charger_fichier_var.get(),
+                                                   sans_chargement_fichier=repartir_de_0_var.get(),
                                                    sauver_apres_operation=sauver_apres_operation_var.get(),
                                                    verbal=verbal_var.get(),
                                                    table_relations=table_relations_var.get(),
