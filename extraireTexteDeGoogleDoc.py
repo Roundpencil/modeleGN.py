@@ -836,7 +836,7 @@ def calculer_jours_il_y_a(balise_date):
 
 
 def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url: str, lastFileEdit,
-                                derniere_modification_par: str, gn: GN, verbal=False):
+                                derniere_modification_par: str, dict_evenements, verbal=False):
     # print("je suis entré dans  la création d'un évènement")
     # Créer un nouvel évènement
     nom_evenement_en_cours = re.sub(r"^\d+\s*-", '', nom_evenement).strip()
@@ -845,7 +845,7 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
                                   id_url=id_url,
                                   derniere_edition_date=lastFileEdit,
                                   derniere_edition_par=derniere_modification_par)
-    gn.evenements[id_url] = current_evenement
+    dict_evenements[id_url] = current_evenement
 
     #     print(f"evenements apres création de l'évènement {nom_evenement_en_cours} : {gn.evenements} ")
 

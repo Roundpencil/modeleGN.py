@@ -1473,6 +1473,9 @@ def mettre_a_jour_champs(gn: GN):
             intrigue.commentaires = []
         if not hasattr(intrigue, 'codes_evenements_raw'):
             intrigue.codes_evenements_raw = []
+        if not hasattr(intrigue, 'evenements'):
+            intrigue.evenements = set()
+
 
     for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
         for role in conteneur.rolesContenus.values():
@@ -1495,8 +1498,8 @@ def mettre_a_jour_champs(gn: GN):
                     delattr(role, 'perso')
                 else:
                     role.personnage = None
-            if isinstance(role.interventions, set):
-                role.interventions = {intervention.evenement: intervention for intervention in role.interventions}
+            # if isinstance(role.interventions, set):
+            #     role.interventions = {intervention.evenement: intervention for intervention in role.interventions}
 
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'infos'):
@@ -1526,3 +1529,9 @@ def mettre_a_jour_champs(gn: GN):
         if pj in gn.dictPNJs:
             gn.dictPJs.pop(pj)
             print(f"le personnage {gn.dictPJs[pj].name} a été retiré car c'était un pnj")
+
+    for personnage in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()):
+        if not hasattr(personnage, 'informations_evenements'):
+            personnage.informations_evenements = set()
+        if not hasattr(personnage, 'intervient_comme'):
+            personnage.intervient_comme = set()
