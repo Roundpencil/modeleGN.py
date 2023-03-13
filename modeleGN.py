@@ -87,8 +87,11 @@ class ConteneurDeScene:
             if role.personnage is not None:
                 debug_asso = [f"{r.nom} : {repr(r)} dans {r.conteneur.nom}" for r in role.personnage.roles]
                 print(f"debug : role à retirer = {role.nom} : {repr(role)}, personnage.roles = {debug_asso}")
-                with contextlib.suppress(Exception):
-                    role.personnage.roles.remove(role)
+
+                # with contextlib.suppress(Exception):
+                #     role.personnage.roles.remove(role)
+                role.personnage.roles.remove(role)
+
                 del role
         # self.roles.clear()
 
@@ -1033,6 +1036,7 @@ class GN:
                                                           texte_erreur,
                                                           ErreurManager.ORIGINES.FACTION)
                     ma_faction = self.factions[score_faction[0]]
+
                     # pour chaque personnage de la faction, on vérifie s'il a une correspondance
                     # dans les persos de la scène, en définissant un seuil d'acceptabilité
                     for personnage_dans_faction in ma_faction.personnages:
@@ -1058,6 +1062,7 @@ class GN:
                                                   personnage=personnage_dans_faction
                                                   )
                             intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
+                            personnage_dans_faction.roles.add(role_a_ajouter) # mieux?
                         else:
                             # ajouter la scène au role
                             role_a_ajouter = intrigue.rolesContenus[score_role[0]]

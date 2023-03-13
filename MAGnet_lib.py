@@ -12,9 +12,8 @@ from modeleGN import *
 # communication :
 
 # bugs
-# todo : comprendre pouruqoi dans 49 un role pparait deux fois
-# todo : comprendre pouruqoi pas de décompte dans la génération des fichiers de persos (décomposer fonction?)
 # todo : comprendre le problème avec l'évènement E010-2 - Effets secondaires Larry - 2ème étape
+# todo : comprendre pouruqoi pas de décompte dans la génération des fichiers de persos (décomposer fonction?)
 
 # à tester
 
@@ -27,10 +26,12 @@ from modeleGN import *
 
 # todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
 
-# todo gérer les objets dans les évènements
-
 # todo : quand on loade le fichier faction, clearer les factions
 #  pour prendre en compte les suppressions entre deux loading
+
+
+### Objets
+# todo gérer les objets dans les évènements
 
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
 
