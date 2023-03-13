@@ -20,14 +20,13 @@ from modeleGN import *
 # à tester
 
 
-
 # à faire - rapide
 # todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
 
 
 # à faire - plus long
 
-#todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
+# todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
 
 # todo gérer les objets dans les évènements
 
@@ -118,6 +117,7 @@ def charger_fichier_init(fichier_init: str):
         print(f"Erreur lors de la lecture du fichier de configuration : {e}")
         return None
     return dict_config
+
 
 def lire_fichier_pnjs(nom_fichier: str):
     to_return = []
@@ -375,7 +375,8 @@ def ecrire_fichier_erreur_localement(mon_gn: GN, prefixe: str, verbal: False):
     log_erreur = generer_texte_erreurs_intrigues(mon_gn, verbal=verbal)
 
     with open(f'{prefixe} - problèmes tableaux persos.txt', 'w', encoding="utf-8") as f:
-                f.write(log_erreur)
+        f.write(log_erreur)
+
 
 def generer_texte_erreurs_intrigues(mon_gn, verbal=False):
     log_erreur = ""
@@ -1391,8 +1392,6 @@ def generer_table_evenements(gn: GN):
         nom_intrigue = intervention.evenement.intrigue.nom if intervention.evenement.intrigue is not None \
             else f"Pas d'intrigue pour l'évènement {intervention.evenement.code_evenement}"
 
-
-
         ligne = [intervention.evenement.code_evenement,
                  intervention.jour,
                  intervention.heure,
@@ -1475,7 +1474,6 @@ def mettre_a_jour_champs(gn: GN):
             intrigue.codes_evenements_raw = []
         if not hasattr(intrigue, 'evenements'):
             intrigue.evenements = set()
-
 
     for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
         for role in conteneur.rolesContenus.values():
