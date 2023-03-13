@@ -12,7 +12,6 @@ from modeleGN import *
 # communication :
 
 # bugs
-# todo : comprendre le problème avec l'évènement E010-2 - Effets secondaires Larry - 2ème étape
 # todo : comprendre pouruqoi pas de décompte dans la génération des fichiers de persos (décomposer fonction?)
 
 # à tester
@@ -21,6 +20,9 @@ from modeleGN import *
 # à faire - rapide
 # todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
 
+#todo : ajouter ds alertes / erreurs dans les évènements :
+# pour les sections inexistantes
+# pour les tableaux pas au bon format
 
 # à faire - plus long
 
