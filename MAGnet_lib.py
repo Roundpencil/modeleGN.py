@@ -18,6 +18,9 @@ from modeleGN import *
 
 
 # à faire - rapide
+# todo : quand on loade le fichier faction, clearer les factions au début de extraitre texte / extraire_factions
+#  pour prendre en compte les suppressions entre deux loading
+
 # todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
 
 #todo : ajouter ds alertes / erreurs dans les évènements :
@@ -28,10 +31,6 @@ from modeleGN import *
 
 # todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
 
-# todo : quand on loade le fichier faction, clearer les factions
-#  pour prendre en compte les suppressions entre deux loading
-
-
 ### Objets
 # todo gérer les objets dans les évènements
 
@@ -39,14 +38,15 @@ from modeleGN import *
 
 # todo : faire évoluer grille objets avec et le fait qu'on a trouvé un lien vers une fiche objet (via le code)
 
+## évolution GUI et suivi du chargement
 # todo : ajouter un parametre avec une méthode  pour permettre d'envoyer des infos
 #  à une barre de progression (rien par défaut) et un champ label (print par dééfaut)
 
-
+# confort / logique
 # todo : tenter de supprimer le dict PNJ et le dict PJ : peut-être qu'on n'a besoin que d'un seul, en fait...
 
-# confort / logique
 # todo : refaire version console
+
 # todo créer un objet Paramètre qui stoque les paramètres du GN et les passer pour simplifier les créations
 
 # todo : faire un menu qui crée le GN avec les options et crée tous les fichiers qui vont bien
