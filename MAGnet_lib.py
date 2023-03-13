@@ -13,7 +13,6 @@ from modeleGN import *
 
 # bugs
 # todo : comprendre pouruqoi dans 49 un role pparait deux fois
-# todo : gérer les persos ajoutés deux fois via les factions dans le buffy
 # todo : comprendre pouruqoi pas de décompte dans la génération des fichiers de persos (décomposer fonction?)
 # todo : comprendre le problème avec l'évènement E010-2 - Effets secondaires Larry - 2ème étape
 
@@ -50,6 +49,14 @@ from modeleGN import *
 # todo : faire un menu qui crée le GN avec les options et crée tous les fichiers qui vont bien
 #  dans un dossier magnet du drive fourni en entrée, et des questions sous la forme de "allez-vous utiliser...?"
 #  pour déterminer les champs à créer
+
+methode_custom_printing = print
+
+def changer_custom_printing(methode_printing):
+    methode_custom_printing = methode_printing
+
+def print_MAGnet(s: str):
+    methode_custom_printing(s)
 
 def charger_fichier_init(fichier_init: str):
     # init configuration

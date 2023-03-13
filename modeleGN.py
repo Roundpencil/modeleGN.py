@@ -754,7 +754,9 @@ class GN:
         # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant
         for intrigue in self.intrigues.values():
             for role in intrigue.rolesContenus.values():
-                if critere(role.pj):
+                # on cherche les persos qui correspondent au critère,
+                # mais aussi qui ne viennent pas d'une faction : ceux-ci arrivent déjà associés
+                if critere(role.pj) and not role.issu_dune_faction:
                     # print(f"nom du role testé = {role.nom}")
                     score = process.extractOne(role.nom, noms_persos)
                     if verbal:
@@ -1017,6 +1019,7 @@ class GN:
         # lire toutes les scènes pours trouver les factions
         for intrigue in self.intrigues.values():
             for scene in intrigue.scenes:
+                # identification de la faction à convoquer, en rapprochant son nom de ceux enregistrés
                 for nom_faction in scene.nom_factions:
                     # quand on trouve une faction on cherche dans le GN le bon nom
                     logging.debug(f"nom_faction, self.factions = {nom_faction}, {self.factions.keys()}")
