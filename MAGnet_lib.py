@@ -23,10 +23,6 @@ from modeleGN import *
 
 # todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
 
-#todo : ajouter ds alertes / erreurs dans les évènements :
-# pour les sections inexistantes
-# pour les tableaux pas au bon format
-
 # à faire - plus long
 
 # todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
