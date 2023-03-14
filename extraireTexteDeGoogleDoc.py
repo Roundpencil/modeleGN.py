@@ -1024,7 +1024,7 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
 
     if nb_colonnes != 5:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_interventions}")
-        texte_erreur = f"format incorrect de tableau pour {texte_label}"
+        texte_erreur = "format incorrect de tableau pour Chronologie de l'évènement"
         current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                                         texte_erreur,
                                                         ErreurManager.ORIGINES.LECTURE_EVENEMENT)
