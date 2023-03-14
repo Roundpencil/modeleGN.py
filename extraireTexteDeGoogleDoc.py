@@ -879,7 +879,13 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
     # lire les sections dans le fichier et appliquer la bonne méthode
     for label in Labels:
         if indexes[label.value]["debut"] == -1:
-            print(f"pas de {label.value} avec l'évènement {nom_evenement_en_cours}")
+            if label != Labels.CHRONO:
+                print(f"pas de {label.value} avec l'évènement {nom_evenement_en_cours}")
+                texte_erreur = f"Le label {label.value} n'a pas été trouvé"
+                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                                texte_erreur,
+                                                                ErreurManager.ORIGINES.LECTURE_EVENEMENT)
+
         else:
             texte_section = texte_evenement[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
             methode_a_appliquer = dict_methodes[label]
@@ -888,6 +894,13 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
     if indexes[Labels.CHRONO.value]["debut"] == -1:
         ligne = [''] * 5
         evenement_extraire_ligne_chrono(current_evenement, ligne, seuil_alerte_pnj=70, seuil_alerte_pj=70)
+        texte_erreur = "Le tableau des interventions n'a pas été trouvé " \
+                       "> les informations de l'évènement (jour, date, tous les pjs, tous les pnjs, synopsys) " \
+                       "ont été reprises"
+        current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.INFO,
+                                                        texte_erreur,
+                                                        ErreurManager.ORIGINES.LECTURE_EVENEMENT)
+
 
 
 def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: str):
@@ -896,6 +909,10 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
     # print(f"debug : tableau fiche évènement {current_evenement.nom_evenement}, {tableau_fiche} ")
     if nb_colonnes != 2:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_fiche}")
+        texte_erreur = f"format incorrect de tableau pour {texte_label}"
+        current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                        texte_erreur,
+                                                        ErreurManager.ORIGINES.LECTURE_EVENEMENT)
         return
 
     dict_fiche = dict(tableau_fiche)
@@ -928,6 +945,10 @@ def evenement_lire_briefs(texte: str, current_evenement: Evenement, texte_label:
     tableau_briefs, nb_colonnes = reconstituer_tableau(texte)
     if nb_colonnes != 4:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_briefs}")
+        texte_erreur = f"format incorrect de tableau pour {texte_label}"
+        current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                        texte_erreur,
+                                                        ErreurManager.ORIGINES.LECTURE_EVENEMENT)
         return
 
     for ligne in tableau_briefs:
@@ -947,6 +968,10 @@ def evenement_lire_infos_pj(texte: str, current_evenement: Evenement, texte_labe
     tableau_pjs, nb_colonnes = reconstituer_tableau(texte)
     if nb_colonnes != 2:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_pjs}")
+        texte_erreur = f"format incorrect de tableau pour {texte_label}"
+        current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                        texte_erreur,
+                                                        ErreurManager.ORIGINES.LECTURE_EVENEMENT)
         return
     for ligne in tableau_pjs:
         nom_pj = ligne[0]
@@ -961,6 +986,10 @@ def evenement_infos_factions(texte: str, current_evenement: Evenement, texte_lab
     tableau_factions, nb_colonnes = reconstituer_tableau(texte)
     if nb_colonnes != 2:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_factions}")
+        texte_erreur = f"format incorrect de tableau pour {texte_label}"
+        current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                        texte_erreur,
+                                                        ErreurManager.ORIGINES.LECTURE_EVENEMENT)
         return
     for ligne in tableau_factions:
         info_faction = InfoFactionsPourEvenement(nom_faction=ligne[0], infos_a_fournir=ligne[1],
@@ -995,6 +1024,10 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
 
     if nb_colonnes != 5:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_interventions}")
+        texte_erreur = f"format incorrect de tableau pour {texte_label}"
+        current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                        texte_erreur,
+                                                        ErreurManager.ORIGINES.LECTURE_EVENEMENT)
         return
 
     if len(tableau_interventions) == 0:
@@ -1026,7 +1059,7 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_a
             if score is None:
                 texte_erreur = f"Correspondance est None pour le nom {nom_pnj} avec la table des PNJs" \
                                f"dans l'évènement {current_evenement.code_evenement} " \
-                               f"/ {current_evenement.nom_evenement}" \
+                               f"/ {current_evenement.nom_evenement} " \
                                f"pour l'intervention {intervention.description}"
                 current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                                                 texte_erreur,

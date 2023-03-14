@@ -88,9 +88,9 @@ class ConteneurDeScene:
                 debug_asso = [f"{r.nom} : {repr(r)} dans {r.conteneur.nom}" for r in role.personnage.roles]
                 print(f"debug : role à retirer = {role.nom} : {repr(role)}, personnage.roles = {debug_asso}")
 
-                # with contextlib.suppress(Exception):
-                #     role.personnage.roles.remove(role)
-                role.personnage.roles.remove(role)
+                with contextlib.suppress(Exception):
+                    role.personnage.roles.remove(role)
+                # role.personnage.roles.remove(role)
 
                 del role
         # self.roles.clear()
@@ -1183,6 +1183,7 @@ class ErreurManager:
         PERSOS_SANS_SCENE = 4
         ASSOCIATION_EVENEMENTS = 5
         CHRONO_EVENEMENT = 6
+        LECTURE_EVENEMENT = 7
 
     class ErreurAssociation:
         def __init__(self, niveau, texte, genere_par):
