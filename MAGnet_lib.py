@@ -21,8 +21,6 @@ from modeleGN import *
 # todo : quand on loade le fichier faction, clearer les factions au début de extraitre texte / extraire_factions
 #  pour prendre en compte les suppressions entre deux loading
 
-# todo : générer des warning si on s'apperçoit que des persos sont dans un évènement et pas dans l'intrigue
-
 # à faire - plus long
 
 # todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
