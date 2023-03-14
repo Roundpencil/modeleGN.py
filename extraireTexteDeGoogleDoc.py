@@ -902,7 +902,6 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
                                                         ErreurManager.ORIGINES.LECTURE_EVENEMENT)
 
 
-
 def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: str):
     texte = retirer_premiere_ligne(texte)
     tableau_fiche, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
@@ -1019,7 +1018,10 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
                           seuil_alerte_pnj=70, seuil_alerte_pj=70):
     # print(f"debug : texte chrono : {texte}")
     texte = retirer_premiere_ligne(texte)
-    tableau_interventions, nb_colonnes = reconstituer_tableau(texte)
+    # on regarde l'entete pour connaitre la taille du tableau,
+    # mais on prend le tableau sans entete pour téreminer ce qu'il faut lire
+    _, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
+    tableau_interventions, _ = reconstituer_tableau(texte)
     # print(f"debug : tableau interventions : {tableau_interventions}")
 
     if nb_colonnes != 5:
@@ -1029,15 +1031,24 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
                                                         texte_erreur,
                                                         ErreurManager.ORIGINES.LECTURE_EVENEMENT)
         return
-
+    # du coup si le nombre de colonnes est bon mais que la longueur est nulle, le tableau est vide
+    # il faut donc le remplir
     if len(tableau_interventions) == 0:
         tableau_interventions = [[''] * 5]
+        texte_erreur = "Le tableau des interventions a été trouvé, mais ne contenait aucune ligne " \
+                       "> les informations de l'évènement (jour, date, tous les pjs, tous les pnjs, synopsys) " \
+                       "ont été reprises"
+        current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.INFO,
+                                                        texte_erreur,
+                                                        ErreurManager.ORIGINES.LECTURE_EVENEMENT)
+        # print(f"debug : {tableau_interventions} pour l'evènement {current_evenement.nom_evenement}")
 
     for ligne in tableau_interventions:
         evenement_extraire_ligne_chrono(current_evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj)
 
 
 def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj):
+    # print(f"debug : 0 = {ligne[0]} {ligne[0] == ''}, 1 = {ligne[1]} {ligne[1] == ''}, 2 = {ligne[2]} {ligne[2] == ''}")
     intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
                                 heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
                                 description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
@@ -1064,7 +1075,7 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_a
                 current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                                                 texte_erreur,
                                                                 ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-                print(f"debug : {texte_erreur}")
+                # print(f"debug : {texte_erreur}")
                 continue
 
             if score[1] < seuil_alerte_pnj:
@@ -1092,7 +1103,7 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_a
                 current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                                                 texte_erreur,
                                                                 ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-                print(f"debug : {texte_erreur}")
+                # print(f"debug : {texte_erreur}")
                 continue
 
             if score[1] < seuil_alerte_pj:
