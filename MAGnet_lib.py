@@ -12,7 +12,7 @@ from modeleGN import *
 # communication :
 
 # bugs
-# todo : comprendre pouruqoi pas de décompte dans la génération des fichiers de persos (décomposer fonction?)
+
 
 # à tester
 
@@ -592,15 +592,20 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True):
     # todo : vérifier
     d = squelettes_par_perso(mon_gn, pj=pj)
     nb_persos_source = len(d)
-    for index, nom_perso in enumerate(d):
+    for index, nom_perso in enumerate(d, start=1):
         prefixe = (f"écriture des fichiers des {pj_pnj} dans drive ({index}/{nb_persos_source})")
 
         # créer le fichier et récupérer l'ID
         nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
         texte = d[nom_perso]
 
-        extraireTexteDeGoogleDoc.inserer_squelettes_dans_drive(nouveau_dossier, api_doc, api_drive, texte, nom_fichier,
-                                                               prefixe)
+        # extraireTexteDeGoogleDoc.inserer_squelettes_dans_drive(nouveau_dossier, api_doc, api_drive, texte, nom_fichier,
+        #                                                        prefixe)
+
+        print(f'{prefixe}', end=" - ")
+        file_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, nouveau_dossier)
+        extraireTexteDeGoogleDoc.write_to_doc(api_doc, file_id, texte, titre=nom_fichier)
+        extraireTexteDeGoogleDoc.formatter_titres_scenes_dans_squelettes(api_doc, file_id)
 
 
 def squelettes_par_perso(mon_gn: GN, pj=True):

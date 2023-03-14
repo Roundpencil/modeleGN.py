@@ -1394,10 +1394,10 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
     return 0
 
 
-def inserer_squelettes_dans_drive(parent_id: str, api_doc, api_drive, text: str, nom_fichier, titre=False, prefixe=""):
-    file_id = add_doc(api_drive, nom_fichier, parent_id, prefixe_message=prefixe)
-    write_to_doc(api_doc, file_id, text, titre=titre)
-    formatter_titres_scenes_dans_squelettes(api_doc, file_id)
+# def inserer_squelettes_dans_drive(parent_id: str, api_doc, api_drive, text: str, nom_fichier, titre=False, prefixe=""):
+#     file_id = add_doc(api_drive, nom_fichier, parent_id, prefixe_message=prefixe)
+#     write_to_doc(api_doc, file_id, text, titre=titre)
+#     formatter_titres_scenes_dans_squelettes(api_doc, file_id)
 
 
 def check_if_doc_exists(service, file_id):
@@ -1429,7 +1429,7 @@ def is_document_being_edited(service, file_id):
         return None
 
 
-def add_doc(service, nom_fichier, parent, prefixe_message=""):
+def add_doc(service, nom_fichier, parent):
     try:
         # create the metadata for the new document
         file_metadata = {
@@ -1438,12 +1438,9 @@ def add_doc(service, nom_fichier, parent, prefixe_message=""):
             'mimeType': 'application/vnd.google-apps.document'
         }
 
-        if prefixe_message != "":
-            prefixe_message = prefixe_message + " "
-
         # create the document
         file = service.files().create(body=file_metadata, fields='id').execute()
-        print(f'{prefixe_message}File ID pour {nom_fichier}: {file.get("id")}')
+        print(f'File ID pour {nom_fichier}: {file.get("id")}')
         return file.get("id")
 
     except HttpError as error:
