@@ -55,6 +55,9 @@ def changer_custom_printing(methode_printing):
 def print_MAGnet(s: str):
     methode_custom_printing(s)
 
+def print_progress(v: float):
+    print(f"La génération a progressé de {v}%")
+
 def charger_fichier_init(fichier_init: str):
     # init configuration
     config = configparser.ConfigParser()
@@ -150,7 +153,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, fast_pnjs=True, fast_evenements=True,
                          fast_objets=True,
-                         verbal: bool = False):
+                         verbal: bool = False, visualisation=print_progress):
     if api_doc is None or api_sheets is None or api_drive is None:
         api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
 
@@ -248,12 +251,18 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     # print(f"gn.factions = {gn.factions}")
     logging.debug("factions lues")
 
+    visualisation(25)
+
     mon_gn.rebuild_links(verbal)
 
     if sauver_apres_operation:
         mon_gn.save(nom_fichier_sauvegarde)
 
+    visualisation(25)
+
+
     print("****** fin de la lecture du drive *********")
+    pas_visualisation = 25.0 / 11.0
     print("*******************************************")
     print("*******************************************")
     # prefixe_fichiers = str(datetime.date.today())
@@ -262,14 +271,20 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
         ecrire_erreurs_intrigues_dans_drive(mon_gn, api_doc, api_drive, mon_gn.dossier_outputs_drive)
 
+    visualisation(pas_visualisation)
+
     print("* génération du fichier des erreurs évènements * ")
     if fichier_erreurs_evenements:
         # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
         ecrire_erreurs_evenements_dans_drive(mon_gn, api_doc, api_drive, mon_gn.dossier_outputs_drive)
 
+    visualisation(pas_visualisation)
+
     print("******* statut intrigues *******************")
     if table_intrigues:
         creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive)
+
+    visualisation(pas_visualisation)
 
     print("*******changelog*****************************")
     if changelog:
@@ -277,11 +292,18 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         # genererChangeLog(gn, prefixe_fichiers, nbJours=3)
         # genererChangeLog(gn, prefixe_fichiers, nbJours=4)
 
+    visualisation(pas_visualisation)
+
     print("*********touslesquelettes*********************")
     if generer_fichiers_pjs:
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=True)
+
+    visualisation(12.5)
+
     if generer_fichiers_pnjs:
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=False)
+
+    visualisation(12.5)
 
     # ecrire_squelettes_localement(mon_gn, prefixe_fichiers)
     # ecrire_squelettes_localement(mon_gn, prefixe_fichiers, pj=False)
@@ -290,9 +312,13 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     if table_objets:
         ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets)
 
+    visualisation(pas_visualisation)
+
     print("******* table planning ***********************")
     if table_chrono:
         ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets)
+
+    visualisation(pas_visualisation)
 
     print("************ table persos ********************")
     if table_persos:
@@ -300,22 +326,32 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     if table_pnjs:
         ecrire_table_pnj(mon_gn, api_drive, api_sheets)
 
+    visualisation(pas_visualisation)
+
     print("******* table commentaires *******************")
     if table_commentaires:
         ecrire_table_commentaires(mon_gn, api_drive, api_doc, api_sheets)
+
+    visualisation(pas_visualisation)
 
     print("********** table relations *******************")
     if table_relations:
         ecrire_table_relation(mon_gn, api_drive, api_sheets)
 
+    visualisation(pas_visualisation)
+
     print("******* aides de jeu *************************")
     if aides_de_jeu:
         ecrire_texte_info(mon_gn, api_doc, api_drive)
+
+    visualisation(pas_visualisation)
 
     print("******* table des évènements ******************")
 
     if table_evenements:
         ecrire_table_evenements(mon_gn, api_drive, api_sheets)
+
+    visualisation(pas_visualisation)
 
     print("******* fin de la génération  ****************")
 

@@ -2,6 +2,8 @@ import tkinter as tk
 
 import traceback
 from tkinter import filedialog
+from tkinter.ttk import Progressbar
+
 from MAGnet_lib import *
 from modeleGN import GN
 
@@ -547,10 +549,6 @@ class Application(tk.Frame):
         tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_intrigue, value=True).grid(row=1, column=1)
         tk.Radiobutton(regen_window, text="Complet", variable=var_fast_intrigue, value=False).grid(row=1, column=2)
 
-        # rapide = tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_intrigue, value=True)
-        # rapide.grid(row=1, column=1)
-        # rapide.select()
-        # tk.Radiobutton(regen_window, text="Complet", variable=var_fast_intrigue, value=False).grid(row=1, column=2)
 
         # Fiches PJs Line
         tk.Label(regen_window, text="Fiches PJs").grid(row=2, column=0)
@@ -765,11 +763,26 @@ class Application(tk.Frame):
                                                    sauver_apres_operation=sauver_apres_operation_var.get(),
                                                    verbal=verbal_var.get(),
                                                    table_relations=table_relations_var.get(),
-                                                   table_evenements=table_evenements_var.get()
+                                                   table_evenements=table_evenements_var.get(),
+                                                   visualisation=faire_evoluer_barre
                                                    )
                               )
 
         ok_button.grid(row=200, column=1)
+
+        lecture_label = tk.Label(regen_window, text="\n Progression de la régénération... \n")
+        lecture_label.grid(row=300, column=1, columnspan=2)
+
+        progress = Progressbar(regen_window, orient='horizontal', length=580, mode='determinate')
+        progress.grid(row=301, column=0, columnspan=4)
+
+        def faire_evoluer_barre(evolution: float):
+            print(f"debug : la valeur de la barre est de {progress['value']}, "
+                  f"j'ai reçu une demande de l'augmenter de {evolution} ")
+            if progress['value'] < 100:
+                progress['value'] += evolution
+            else:
+                print(f"Erreur : la barre atteindrait {progress['value'] + evolution}")
 
     # def regen_intrigue_select(self, value):
     #     if value in ["Rapide", "Complet"]:
