@@ -1,3 +1,4 @@
+import threading
 import tkinter as tk
 
 import traceback
@@ -449,7 +450,7 @@ class Application(tk.Frame):
 
     def regen(self):
         regen_window = tk.Toplevel(self.master)
-        regen_window.geometry("620x350")  # chaque nouvelle ligne fait +25 de hauteur
+        regen_window.geometry("620x475")  # chaque nouvelle ligne fait +25 de hauteur
 
         # # Intrigues
         # intrigues_label = tk.Label(regen_window, text="Intrigues")
@@ -708,32 +709,18 @@ class Application(tk.Frame):
                                       variable=verbal_var)
         verbal_check.grid(row=200, column=2)
 
-        # ok_button = tk.Button(regen_window, text="OK",
-        #                       command=lambda: self.process_regen(
-        #                           intrigues_value=intrigues_var.get(),
-        #                           personnages_value=personnages_var.get(),
-        #                           sans_chargement_fichier_value=charger_fichier_var.get(),
-        #                           sauver_apres_operation_value=sauver_apres_operation_var.get(),
-        #                           fichier_erreur_intrigues_var=fichier_erreurs_intrigues_var.get(),
-        #                           fichier_erreur_evenements_var=fichier_erreurs_evenements_var.get(),
-        #                           generer_fichiers_pjs_var=generer_fichiers_drive_var.get(),
-        #                           generer_fichiers_pnjs_var=generer_fichiers_pnjs_var.get(),
-        #                           changelog_var=changelog_var.get(),
-        #                           table_chrono_var=table_chrono_var.get(),
-        #                           table_persos_var=table_persos_var.get(),
-        #                           table_pnj_var=table_pnjs_var.get(),
-        #                           table_intrigues_var=table_intrigues_var.get(),
-        #                           table_objets_var=table_objets_var.get(),
-        #                           verbal_var=verbal_var.get(),
-        #                           aide_de_jeu_var=aide_de_jeu_var.get(),
-        #                           table_commentaires_var=table_commentaires_var.get(),
-        #                           table_evenements_var = table_evenements_var.get(),
-        #                           table_relations_var = table_relations_var.get()
-        #                       )
-        #                       )
-        ok_button = tk.Button(regen_window, text="OK",
-                              command=lambda:
-                              lire_et_recharger_gn(mon_gn=self.gn,
+        #ajout des méthodes nécessaires pour gérer le thread
+        progress = Progressbar(regen_window, orient='horizontal', length=580, mode='determinate')
+        progress.grid(row=301, column=0, columnspan=4)
+        def faire_evoluer_barre(evolution: float):
+            print(f"debug : la valeur de la barre est de {progress['value']}, "
+                  f"j'ai reçu une demande de l'augmenter de {evolution} ")
+            if progress['value'] < 100:
+                progress['value'] += evolution
+            else:
+                print(f"Erreur : la barre atteindrait {progress['value'] + evolution}")
+
+        t_lambda_regen = lambda:lire_et_recharger_gn(mon_gn=self.gn,
                                                    api_drive=self.apiDrive,
                                                    api_doc=self.apiDoc,
                                                    api_sheets=self.apiSheets,
@@ -766,6 +753,9 @@ class Application(tk.Frame):
                                                    table_evenements=table_evenements_var.get(),
                                                    visualisation=faire_evoluer_barre
                                                    )
+
+        ok_button = tk.Button(regen_window, text="OK",
+                              command=lambda: threading.Thread(target=t_lambda_regen).start()
                               )
 
         ok_button.grid(row=200, column=1)
@@ -773,16 +763,9 @@ class Application(tk.Frame):
         lecture_label = tk.Label(regen_window, text="\n Progression de la régénération... \n")
         lecture_label.grid(row=300, column=1, columnspan=2)
 
-        progress = Progressbar(regen_window, orient='horizontal', length=580, mode='determinate')
-        progress.grid(row=301, column=0, columnspan=4)
 
-        def faire_evoluer_barre(evolution: float):
-            print(f"debug : la valeur de la barre est de {progress['value']}, "
-                  f"j'ai reçu une demande de l'augmenter de {evolution} ")
-            if progress['value'] < 100:
-                progress['value'] += evolution
-            else:
-                print(f"Erreur : la barre atteindrait {progress['value'] + evolution}")
+
+
 
     # def regen_intrigue_select(self, value):
     #     if value in ["Rapide", "Complet"]:
