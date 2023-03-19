@@ -715,7 +715,9 @@ class Application(tk.Frame):
         def faire_evoluer_barre(evolution: float):
             print(f"debug : la valeur de la barre est de {progress['value']}, "
                   f"j'ai reçu une demande de l'augmenter de {evolution} ")
-            if progress['value'] < 100:
+            if evolution == -100:
+                progress['value'] = 0
+            elif progress['value'] < 100:
                 progress['value'] += evolution
             else:
                 print(f"Erreur : la barre atteindrait {progress['value'] + evolution}")
