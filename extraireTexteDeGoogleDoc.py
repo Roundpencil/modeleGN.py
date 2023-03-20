@@ -1151,173 +1151,146 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
     texte_persos_low = texte_persos.lower()  # on passe en minuscule pour mieux trouver les chaines
 
-    REFERENT = "orga référent"
-    JOUEURV1 = "joueur v1"
-    JOUEURV2 = "joueur v2"
-    JOUEUSE1 = "joueuse v1"
-    JOUEUSE2 = "joueuse v2"
-    PITCH = "pitch personnage"
-    COSTUME = "indications costumes"
-    FACTION1 = "faction principale"
-    FACTION2 = "faction secondaire"
-    BIO = "bio résumée"
-    PSYCHO = "psychologie"
-    MOTIVATIONS = "motivations et objectifs"
-    CHRONOLOGIE = "chronologie"
-    INTRIGUES = "intrigues"
-    RELATIONS = "relations avec les autres persos"
-    SCENES = "scènes"
-    RELATIONS_BI = "relations bilatérales"
-    RELATIONS_MULTI = "relations multilatérales"
+    class Labels(Enum):
+        REFERENT = "orga référent : "
+        JOUEURV1 = "joueur v1 : "
+        JOUEURV2 = "joueur v2 : "
+        JOUEUSE1 = "joueuse v1 : "
+        JOUEUSE2 = "joueuse v2 : "
+        PITCH = "pitch personnage"
+        COSTUME = "indications costumes : "
+        FACTION1 = "faction principale : "
+        FACTION2 = "faction secondaire : "
+        GROUPES = "groupes : "
+        BIO = "bio résumée"
+        PSYCHO = "psychologie : "
+        MOTIVATIONS = "motivations et objectifs"
+        CHRONOLOGIE = "chronologie"
+        INTRIGUES = "intrigues"
+        RELATIONS = "relations avec les autres persos"
+        SCENES = "scènes"
+        RELATIONS_BI = "relations bilatérales"
+        RELATIONS_MULTI = "relations multilatérales"
 
-    labels = [REFERENT, JOUEURV1, JOUEURV2, PITCH, COSTUME, FACTION1, FACTION2,
-              BIO, PSYCHO, MOTIVATIONS, CHRONOLOGIE, RELATIONS, INTRIGUES, JOUEUSE1, JOUEUSE2, SCENES,
-              RELATIONS_BI, RELATIONS_MULTI]
+    labels = [label.value for label in Labels]
 
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_persos_low)
 
-    # print(f"indexes : {indexes}")
+    dict_methodes = {
+        Labels.REFERENT: personnage_referent,
+        Labels.JOUEURV1: personnage_joueurv1,
+        Labels.JOUEURV2: personnage_joueurv2,
+        Labels.JOUEUSE1: personnage_joueusev1,
+        Labels.JOUEUSE2: personnage_joueusev2,
+        Labels.PITCH: personnage_pitch,
+        Labels.COSTUME: personnage_costume,
+        Labels.FACTION1: personnage_faction1,
+        Labels.FACTION2: personnage_factions2,
+        Labels.GROUPES: personnage_groupes,
+        Labels.BIO: personnage_bio,
+        Labels.PSYCHO: personnage_psycho,
+        Labels.MOTIVATIONS: personnage_motivation,
+        Labels.CHRONOLOGIE: personnage_chronologie,
+        Labels.SCENES: personnage_scenes,
+        Labels.RELATIONS: personnage_relations,
+        Labels.RELATIONS_BI: personnage_relations_bi,
+        Labels.RELATIONS_MULTI: personnage_relations_multi
+    }
 
-    if indexes[REFERENT]["debut"] == -1:
-        print("pas de référent avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.orgaReferent = texte_persos[indexes[REFERENT]["debut"]:indexes[REFERENT]["fin"]].splitlines()[
-                                          0][
-                                      len(REFERENT) + len(" : "):]
-
-    if indexes[JOUEURV1]["debut"] == -1:
-        if verbal:
-            print("Pas de joueur 1 avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.joueurs['V1'] = texte_persos[indexes[JOUEURV1]["debut"]:indexes[JOUEURV1]["fin"]].splitlines()[
-                                           0][
-                                       len(JOUEURV1) + len(" : "):]
-
-    if indexes[JOUEURV2]["debut"] == -1:
-        if verbal:
-            print("Pas de joueur 2 avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.joueurs['V2'] = texte_persos[indexes[JOUEURV2]["debut"]:indexes[JOUEURV2]["fin"]].splitlines()[
-                                           0][
-                                       len(JOUEURV1) + len(" : "):]
-
-    if indexes[JOUEUSE1]["debut"] == -1:
-        if verbal:
-            print("Pas de joueuse 1 avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.joueurs['V1'] = texte_persos[indexes[JOUEUSE1]["debut"]:indexes[JOUEUSE1]["fin"]].splitlines()[
-                                           0][
-                                       len(JOUEURV1) + len(" : "):]
-
-    if indexes[JOUEUSE2]["debut"] == -1:
-        if verbal:
-            print("Pas de joueuse 2 avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.joueurs['V2'] = texte_persos[indexes[JOUEUSE2]["debut"]:indexes[JOUEUSE2]["fin"]].splitlines()[
-                                           0][
-                                       len(JOUEURV1) + len(" : "):]
-
-    if indexes[PITCH]["debut"] == -1:
-        if verbal:
-            print("Pas de pitch  avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.pitch = texte_persos[indexes[PITCH]["debut"]:indexes[PITCH]["fin"]].splitlines()[1:]
-
-    if indexes[COSTUME]["debut"] == -1:
-        if verbal:
-            print("Pas d'indication costume avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.indicationsCostume = texte_persos[indexes[COSTUME]["debut"] + len(COSTUME) + len(" : "):
-                                                         indexes[COSTUME]["fin"]]
-
-    if indexes[FACTION1]["debut"] == -1:
-        if verbal:
-            print("Pas de faction 1 avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.factions.append(texte_persos[indexes[FACTION1]["debut"]:indexes[FACTION1]["fin"]].splitlines()[
-                                           0][
-                                       len(FACTION1) + len(" : "):])
-
-    if indexes[FACTION2]["debut"] == -1:
-        if verbal:
-            print("Pas de faction 2 avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.factions.append(texte_persos[indexes[FACTION2]["debut"]:indexes[FACTION2]["fin"]].splitlines()[
-                                           0][
-                                       len(FACTION2) + len(" : "):])
-
-    if indexes[BIO]["debut"] == -1:
-        if verbal:
-            print("Pas de BIO avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.description = texte_persos[indexes[BIO]["debut"]:
-                                                  indexes[BIO]["fin"]].splitlines()[1:]
-
-    if indexes[PSYCHO]["debut"] == -1:
-        if verbal:
-            print("Pas de psycho avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.concept = texte_persos[indexes[PSYCHO]["debut"]:
-                                              indexes[PSYCHO]["fin"]].splitlines()[1:]
-
-    if indexes[MOTIVATIONS]["debut"] == -1:
-        if verbal:
-            print("Pas de motivations avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.driver = texte_persos[indexes[MOTIVATIONS]["debut"]:indexes[MOTIVATIONS]["fin"]].splitlines()[1:]
-
-    if indexes[CHRONOLOGIE]["debut"] == -1:
-        if verbal:
-            print("Pas de chronologie avec le personnage " + nom_perso_en_cours)
-    else:
-        perso_en_cours.datesClefs = texte_persos[
-                                    indexes[CHRONOLOGIE]["debut"]:indexes[CHRONOLOGIE]["fin"]].splitlines()[1:]
-
-    if indexes[RELATIONS_BI]["debut"] == -1:
-        if verbal:
-            print("Pas de relations bilatérales avec le personnage " + nom_perso_en_cours)
-    else:
-        texte_relation_bi = texte_persos[indexes[RELATIONS_BI]["debut"]:indexes[RELATIONS_BI]["fin"]]
-        tableau_relation_bi_brut, _ = reconstituer_tableau(texte_relation_bi)
-        print(f"tab brut : {tableau_relation_bi_brut}")
-        tableau_relation_bi_complet = [[nom_perso_en_cours] + ligne for ligne in tableau_relation_bi_brut]
-        extraire_relations_bi(perso_en_cours, tableau_relation_bi_complet, avec_tableau_persos=False)
-
-    if indexes[RELATIONS_MULTI]["debut"] == -1:
-        if verbal:
-            print("Pas de relations multilatérales avec le personnage " + nom_perso_en_cours)
-    else:
-        texte_relation_bi = texte_persos[indexes[RELATIONS_MULTI]["debut"]:indexes[RELATIONS_MULTI]["fin"]]
-        tableau_relation_multi_brut, _ = reconstituer_tableau(texte_relation_bi)
-        tableau_relation_multi_complet = []
-        for ligne in tableau_relation_multi_brut:
-            nouvelle_ligne = [f"{nom_perso_en_cours}, {ligne[0]}", ligne[1]]
-            tableau_relation_multi_complet.append(nouvelle_ligne)
-        extraire_relation_multi(perso_en_cours, tableau_relation_multi_complet,
-                                verbal=verbal, avec_tableau_des_persos=False)
-
-    if indexes[SCENES]["debut"] == -1:
-        if verbal:
-            print("Pas de scènes dans le personnage " + nom_perso_en_cours)
-    else:
-        # print(f"début balise scène : {indexes[SCENES]['debut']}, fin balise scènes : {indexes[SCENES]['fin']} ")
-        texte_scenes = texte_persos[indexes[SCENES]["debut"] + len(SCENES):indexes[SCENES]["fin"]]
-
-        # print(f"ping j'ai trouvé la balise scènes, elle contient : {texteScenes}")
-        texte2scenes(perso_en_cours, nom_perso_en_cours, texte_scenes, tableau_roles_existant=False)
-        # for scene in perso_en_cours.scenes:
-        #     print(f"Scene présente : {scene}")
-        # print(f"rôles contenus dans {nomPJ} : {perso_en_cours.rolesContenus}")
-
-    # rajouter les scènes en jeu après le tableau
-    bottom_text = texte_persos.split("#####")[-1]
-    perso_en_cours.textesAnnexes = bottom_text
+    for label in Labels:
+        if indexes[label.value]["debut"] == -1:
+            print(f"pas de {label.value} avec le personnage {nom_perso_en_cours}")
+        else:
+            ma_methode = dict_methodes[label]
+            texte = texte_persos[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+            # print(f"debug : texte label {label.value} = {texte}")
+            ma_methode(texte, perso_en_cours, label.value)
 
     # et on enregistre la date de dernière mise à jour de l'intrigue
     perso_en_cours.lastProcessing = datetime.datetime.now()
-
-    # print(f"personnage à la fin de l'importation {perso_en_cours}")
     return perso_en_cours
+
+
+def personnage_referent(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.orgaReferent = retirer_label(texte, text_label)
+
+
+def personnage_joueurv1(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.joueurs['V1'] = retirer_label(texte, text_label)
+
+def personnage_relations(texte: str, perso_en_cours: Personnage, text_label: str):
+    print(f"Balise {text_label} trouvée : cette balise n'est plus prise en compte")
+
+def personnage_joueurv2(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.joueurs['V2'] = retirer_label(texte, text_label)
+
+
+def personnage_joueusev1(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.joueurs['V1'] = retirer_label(texte, text_label)
+
+
+def personnage_joueusev2(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.joueurs['V2'] = retirer_label(texte, text_label)
+
+
+def personnage_pitch(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.pitch = retirer_premiere_ligne(texte)
+
+
+def personnage_costume(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.indicationsCostume = retirer_label(texte, text_label)
+
+
+def personnage_faction1(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.factions.append(retirer_label(texte, text_label).splitlines()[0])
+
+
+def personnage_factions2(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.factions.append(retirer_label(texte, text_label).splitlines()[0])
+
+
+def personnage_groupes(texte: str, perso_en_cours: Personnage, text_label: str):
+    texte = retirer_label(texte, text_label)
+    perso_en_cours.factions.extend([nom_groupe.strip() for nom_groupe in texte.split(',')])
+
+
+def personnage_bio(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.description = retirer_premiere_ligne(texte)
+
+
+def personnage_psycho(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.concept = retirer_premiere_ligne(texte)
+
+
+def personnage_motivation(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.driver = retirer_premiere_ligne(texte)
+
+
+def personnage_chronologie(texte: str, perso_en_cours: Personnage, text_label: str):
+    perso_en_cours.datesClefs = retirer_premiere_ligne(texte)
+
+
+def personnage_relations_bi(texte: str, perso_en_cours: Personnage, text_label: str):
+    tableau_relation_bi_brut, _ = reconstituer_tableau(texte)
+    print(f"tab brut : {tableau_relation_bi_brut}")
+    # comme on est dans une fiche perso, il est implicite que le perso fait partie de la relation : on l'ajoute donc
+    tableau_relation_bi_complet = [[perso_en_cours.nom] + ligne for ligne in tableau_relation_bi_brut]
+    extraire_relations_bi(perso_en_cours, tableau_relation_bi_complet, avec_tableau_persos=False)
+
+
+def personnage_relations_multi(texte: str, perso_en_cours: Personnage, text_label: str):
+    tableau_relation_multi_brut, _ = reconstituer_tableau(texte)
+
+    # comme on est dans une fiche perso, il est implicite que le perso fait partie de la relation : on l'ajoute donc
+    tableau_relation_multi_complet = []
+    for ligne in tableau_relation_multi_brut:
+        nouvelle_ligne = [f"{perso_en_cours.nom}, {ligne[0]}", ligne[1]]
+        tableau_relation_multi_complet.append(nouvelle_ligne)
+    extraire_relation_multi(perso_en_cours, tableau_relation_multi_complet, avec_tableau_des_persos=False)
+
+
+def personnage_scenes(texte: str, perso_en_cours: Personnage, text_label: str):
+    texte2scenes(perso_en_cours, perso_en_cours.nom, texte, tableau_roles_existant=False)
 
 
 def ref_du_doc(s: str, prefixes=""):
@@ -1326,16 +1299,10 @@ def ref_du_doc(s: str, prefixes=""):
 
     if any(s.startswith(letter) for letter in prefixes):
         s = s[1:]
-    elif s[0].isdigit():
-        pass
-    else:
+    elif not s[0].isdigit():
         return -1
 
-    match = re.match(r'^(\d+)\s*-.*$', s)
-    if match:
-        return int(match.group(1))
-    else:
-        return -1
+    return int(match.group(1)) if (match := re.match(r'^(\d+)\s*-.*$', s)) else -1
 
 
 def extraire_factions(mon_GN: GN, apiDoc, verbal=True):

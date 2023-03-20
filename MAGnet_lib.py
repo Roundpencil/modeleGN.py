@@ -12,6 +12,8 @@ from modeleGN import *
 # communication :
 
 # bugs
+#todo : vérifier quel faction on lit / met a jour avec la donnée faction :
+# le texte de la fiche PJ ou bien un objet faction?
 
 
 # à tester
@@ -37,6 +39,13 @@ from modeleGN import *
 #  à une barre de progression (rien par défaut) et un champ label (print par dééfaut)
 
 # confort / logique
+# todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos
+#  faire la meme chose avec les PNJs
+#  ajouter un paramètre dans le GN pour le nombre de sessions envisagées pour savoir combien de colonnes on lit
+
+#todo : introduire un paramètre "groupes" dans les fiches de persos qui remplace les factions actuelles par un seul
+# champ, séparé par des virgules
+
 # todo : tenter de supprimer le dict PNJ et le dict PJ : peut-être qu'on n'a besoin que d'un seul, en fait...
 
 # todo : refaire version console
