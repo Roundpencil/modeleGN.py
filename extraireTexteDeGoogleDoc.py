@@ -1293,6 +1293,44 @@ def personnage_scenes(texte: str, perso_en_cours: Personnage, text_label: str):
     texte2scenes(perso_en_cours, perso_en_cours.nom, texte, tableau_roles_existant=False)
 
 
+def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, derniere_modification_par, dict_objets_de_reference,
+                             verbal=False):
+    print(f"Lecture de {nom_doc}")
+
+    nom_objet_en_cours = re.sub(r"^\d+\s*-", '', nom_doc).strip()
+    # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
+    # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
+    objet_en_cours = ObjetDeReference(nom=nom_objet_en_cours, url=id_url, derniere_edition_fichier=last_file_edit)
+    objet_en_cours.modifie_par = derniere_modification_par
+    dict_objets_de_reference[id_url] = objet_en_cours
+
+    texte_objets_low = texte_objets.lower()  # on passe en minuscule pour mieux trouver les chaines
+
+    class Labels(Enum):
+        PLACEHOLDER = "placeolder"
+
+    labels = [label.value for label in Labels]
+
+    indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_objets_low)
+
+    dict_methodes = {
+        Labels.PLACEHOLDER: print
+    }
+
+    for label in Labels:
+        if indexes[label.value]["debut"] == -1:
+            print(f"pas de {label.value} avec l'objet {nom_objet_en_cours}")
+        else:
+            ma_methode = dict_methodes[label]
+            texte = texte_objets[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+            # print(f"debug : texte label {label.value} = {texte}")
+            ma_methode(texte, objet_en_cours, label.value)
+
+    # et on enregistre la date de dernière mise à jour de l'intrigue
+    objet_en_cours.lastProcessing = datetime.datetime.now()
+    return objet_en_cours
+
+
 def ref_du_doc(s: str, prefixes=""):
     s = s.lower()
     prefixes = prefixes.lower()
