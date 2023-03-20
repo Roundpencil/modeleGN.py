@@ -663,7 +663,7 @@ class Application(tk.Frame):
                                                    fast_persos=var_fast_fiches_pjs.get(),
                                                    fast_pnjs=var_fast_fiches_pnjs.get(),
                                                    fast_evenements=var_fast_evenements.get(),
-                                                   fast_objets=var_fast_objets.get,
+                                                   fast_objets=var_fast_objets.get(),
                                                    sans_chargement_fichier=repartir_de_0_var.get(),
                                                    sauver_apres_operation=sauver_apres_operation_var.get(),
                                                    verbal=verbal_var.get(),

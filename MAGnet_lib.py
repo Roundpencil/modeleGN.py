@@ -31,12 +31,9 @@ from modeleGN import *
 # todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
 
 ### Objets
-# todo : une focntion de réconcialition des objets dans rebuildalllinks
-#  qui associe les objets de référence à ceux dans les intrigues
+# todo : renommer l'onglet du tableau actuel "lus dans les intrigues" et ajouter un onglet "d'apres les fiches objets"
 
 # todo gérer les objets dans les évènements
-
-# todo : updater la génération du fichier des objets à partir du dictionnaire de référence
 
 ## évolution GUI et suivi du chargement
 # todo : ajouter un parametre avec une méthode  pour permettre d'envoyer des infos
@@ -885,22 +882,16 @@ def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
 def generer_table_objets_from_intrigues(mon_gn):
     to_return = [['code', 'description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'utilisé où?',
                   'fiche objet trouvée?']]
-
-    for intrigue in mon_gn.intrigues.values():
-        for objet in intrigue.objets:
+    for objet_ref in mon_gn.objets.values():
+        for objet in objet_ref.objets_dans_intrigues:
             code = objet.code.replace('\n', '\v')
             description = objet.description.replace('\n', '\v')
             avecfx = objet.avec_fx()
             fx = objet.specialEffect.replace('\n', '\v')
             debuteou = objet.emplacementDebut.replace('\n', '\v')
             fournipar = objet.fourniParJoueur.replace('\n', '\v')
-            # code = objet.code.replace('\n', "***")
-            # description = objet.description.replace('\n', "***")
-            # avecfx = objet.avec_fx()
-            # fx = objet.specialEffect.replace('\n', "***")
-            # debuteou = objet.emplacementDebut.replace('\n', "***")
-            # fournipar = objet.fourniParJoueur.replace('\n', "***")
             utiliseou = [x.nom for x in objet.inIntrigues]
+            fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.id_url
             to_return.append([f"{code}",
                               f"{description}",
                               f"{avecfx}",
@@ -908,7 +899,7 @@ def generer_table_objets_from_intrigues(mon_gn):
                               f"{debuteou}",
                               f"{fournipar}",
                               f"{utiliseou}",
-                              "fonction non développée"]
+                              f"{fiche_objet}"]
                              )
     return to_return
 
@@ -1609,3 +1600,7 @@ def mettre_a_jour_champs(gn: GN):
             personnage.informations_evenements = set()
         if not hasattr(personnage, 'intervient_comme'):
             personnage.intervient_comme = set()
+
+    for objet in gn.objets.values():
+        if not hasattr(objet, 'ajoute_via_forcage'):
+            objet.ajoute_via_forcage = True

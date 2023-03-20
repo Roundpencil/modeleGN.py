@@ -1317,7 +1317,16 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
     print(f"Lecture de {nom_doc}")
 
     nom_objet_en_cours = re.sub(r"^\d+\s*-", '', nom_doc).strip()
-    code_objet = nom_doc.split('-')[0].strip()
+
+    #extraction du code objet qui peut être au format X123-4 - Nom ou X456 - Nom
+    pattern = r'^[A-Za-z]?\d+\s*-(\s*\d+\s*-)?'
+    match = re.search(pattern, nom_doc)
+    if match:
+        #on prend tout le prefixe, sauf le "-" qui est à la fin, et on strip
+        code_objet = match[0][:-1].strip()
+    else:
+        print(f"debug : pas de match de code objet pour l'objet {nom_doc}")
+
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
     objet_en_cours = ObjetDeReference(nom_objet=nom_objet_en_cours,

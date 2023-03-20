@@ -843,7 +843,7 @@ class GN:
         self.trouver_roles_sans_scenes()
 
     def lier_et_completer_les_objets(self):
-        dict_code_objet_reference = {o.code:o for o in self.objets.values()}
+        dict_code_objet_reference = {o.code_objet: o for o in self.objets.values()}
         for intrigue in self.intrigues.values():
             for i, objet in enumerate(intrigue.objets):
                 code = objet.code.strip()
