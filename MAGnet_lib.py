@@ -401,8 +401,8 @@ def retirer_objets_supprimes(mon_gn: GN, ids_objets_lus: list[str]):
 
 
 def retirer_elements_supprimes(ids_lus: list[str], dict_reference: dict):
-    print(f"debug : id lus = {ids_lus}")
-    print(f"debug : ids_dict = {dict_reference.keys()}")
+    # print(f"debug : id lus = {ids_lus}")
+    # print(f"debug : ids_dict = {dict_reference.keys()}")
     ids_a_supprimer = [mon_id for mon_id in dict_reference if mon_id not in ids_lus]
     print(f"debug : id a supprimer = {ids_a_supprimer}")
 

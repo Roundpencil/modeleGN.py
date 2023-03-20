@@ -4,7 +4,6 @@ import pickle
 import datetime
 from enum import IntEnum
 
-import Tools.scripts.reindent
 from fuzzywuzzy import process
 import sys
 
@@ -625,7 +624,7 @@ class GN:
         # self.liste_noms_pnjs = None
 
         self.injecter_config(dossiers_intrigues, dossier_output, association_auto, dossiers_pj=dossiers_pj,
-                             dossiers_evenements=dossiers_evenements, dossiers_objets=dossier_objet,
+                             dossiers_evenements=dossiers_evenements, dossiers_objets=dossiers_objets,
                              dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn,
                              id_pjs_et_pnjs=id_pjs_et_pnjs, fichier_pnjs=fichier_pnjs)
 
@@ -832,7 +831,7 @@ class GN:
     def rebuild_links(self, verbal=False):
         self.clear_all_associations()
         self.update_oldest_update()
-        self.ajouter_roles_issus_de_factions(verbal=True)
+        self.ajouter_roles_issus_de_factions()
         self.associer_pnj_a_roles()
         self.associer_pj_a_roles()
         self.degonfler_factions_dans_evenement()

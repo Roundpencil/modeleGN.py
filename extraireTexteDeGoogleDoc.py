@@ -1333,7 +1333,7 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
         INTRIGUES = "intrigues : "
         UTILITE = "utilité en jeu : "
         BUDGET = "budget : "
-        RECOMMANDATION = "recommandation : "
+        RECOMMANDATION = "recommandations : "
         MATERIAUX = "suggestion de matériaux, et techniques :"
         MOODBOARD = "moodboard : "
         DESCRIPTION = "description : "
