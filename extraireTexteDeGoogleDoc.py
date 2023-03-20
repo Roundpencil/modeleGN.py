@@ -54,6 +54,17 @@ def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal
                                         verbal=verbal, fast=fast, prefixes="e")
 
 
+def extraire_objets(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
+    # print(f"je m'apprete à extraire les objets depuis {mon_gn.dossiers_evenements}")
+    if mon_gn.dossiers_objets is None or len(mon_gn.dossiers_objets) == 0:
+        logging.debug("pas de dossier évènement trouvé dans le gn")
+        return
+    return extraire_texte_de_google_doc(api_drive, api_doc, extraire_objets_de_texte, mon_gn.objets,
+                                        mon_gn.dossiers_objets,
+                                        singletest,
+                                        verbal=verbal, fast=fast, prefixes="ao")
+
+
 def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_ids: dict, folder_array,
                                  single_test="-01", verbal=False, fast=True, prefixes=""):
     items = lecteurGoogle.generer_liste_items(api_drive=api_drive, nom_fichier=folder_array)
@@ -1218,8 +1229,10 @@ def personnage_referent(texte: str, perso_en_cours: Personnage, text_label: str)
 def personnage_joueurv1(texte: str, perso_en_cours: Personnage, text_label: str):
     perso_en_cours.joueurs['V1'] = retirer_label(texte, text_label)
 
+
 def personnage_relations(texte: str, perso_en_cours: Personnage, text_label: str):
     print(f"Balise {text_label} trouvée : cette balise n'est plus prise en compte")
+
 
 def personnage_joueurv2(texte: str, perso_en_cours: Personnage, text_label: str):
     perso_en_cours.joueurs['V2'] = retirer_label(texte, text_label)
@@ -1293,28 +1306,49 @@ def personnage_scenes(texte: str, perso_en_cours: Personnage, text_label: str):
     texte2scenes(perso_en_cours, perso_en_cours.nom, texte, tableau_roles_existant=False)
 
 
-def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, derniere_modification_par, dict_objets_de_reference,
+def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, derniere_modification_par,
+                             dict_objets_de_reference,
                              verbal=False):
     print(f"Lecture de {nom_doc}")
 
     nom_objet_en_cours = re.sub(r"^\d+\s*-", '', nom_doc).strip()
+    code_objet = nom_doc.split('-')[0].strip()
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
-    objet_en_cours = ObjetDeReference(nom=nom_objet_en_cours, url=id_url, derniere_edition_fichier=last_file_edit)
-    objet_en_cours.modifie_par = derniere_modification_par
+    objet_en_cours = ObjetDeReference(nom_objet=nom_objet_en_cours,
+                                      code_objet=code_objet,
+                                      id_url=id_url,
+                                      derniere_edition_date=last_file_edit,
+                                      derniere_edition_par=derniere_modification_par)
     dict_objets_de_reference[id_url] = objet_en_cours
 
     texte_objets_low = texte_objets.lower()  # on passe en minuscule pour mieux trouver les chaines
 
     class Labels(Enum):
-        PLACEHOLDER = "placeolder"
+        REFERENT = "orga référent : "
+        INTRIGUE = "intrigue : "
+        INTRIGUES = "intrigues : "
+        UTILITE = "utilité en jeu : "
+        BUDGET = "budget : "
+        RECOMMANDATION = "recommandation : "
+        MATERIAUX = "suggestion de matériaux, et techniques :"
+        MOODBOARD = "moodboard : "
+        DESCRIPTION = "description : "
 
     labels = [label.value for label in Labels]
 
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_objets_low)
 
     dict_methodes = {
-        Labels.PLACEHOLDER: print
+        Labels.REFERENT: objets_referent,
+        Labels.INTRIGUE: objets_noms_intrigues,
+        Labels.INTRIGUES: objets_noms_intrigues,
+        Labels.UTILITE: objets_utilite,
+        Labels.BUDGET: objets_budget,
+        Labels.RECOMMANDATION: objets_recommandation,
+        Labels.MATERIAUX: objets_materiaux,
+        Labels.MOODBOARD: objets_moodboard,
+        Labels.DESCRIPTION: objets_description
     }
 
     for label in Labels:
@@ -1329,6 +1363,38 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
     # et on enregistre la date de dernière mise à jour de l'intrigue
     objet_en_cours.lastProcessing = datetime.datetime.now()
     return objet_en_cours
+
+
+def objets_referent(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
+    objet_en_cours.referent = retirer_label(texte, texte_label)
+
+
+def objets_noms_intrigues(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
+    print(f"la balise {texte_label} n'a pas d'utilité pour MAGnet")
+
+
+def objets_utilite(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
+    objet_en_cours.utilite = retirer_label(texte, texte_label)
+
+
+def objets_budget(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
+    objet_en_cours.budget = retirer_label(texte, texte_label)
+
+
+def objets_recommandation(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
+    objet_en_cours.recommandations = retirer_label(texte, texte_label)
+
+
+def objets_materiaux(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
+    objet_en_cours.materiaux = retirer_label(texte, texte_label)
+
+
+def objets_moodboard(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
+    print(f"la balise {texte_label} n'a pas d'utilité pour MAGnet")
+
+
+def objets_description(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
+    objet_en_cours.description = retirer_premiere_ligne(texte)
 
 
 def ref_du_doc(s: str, prefixes=""):

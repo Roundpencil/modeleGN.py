@@ -317,7 +317,6 @@ class Role:
         return self.pip_total
 
 
-
 # intrigue
 class Intrigue(ConteneurDeScene):
 
@@ -594,6 +593,7 @@ class GN:
     def __init__(self,
                  dossiers_intrigues, dossier_output: str,
                  association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None,
+                 dossiers_objets=None,
                  id_factions=None, date_gn=None,
                  id_pjs_et_pnjs=None, fichier_pnjs=None):
 
@@ -603,6 +603,7 @@ class GN:
         self.factions = {}  # nom, Faction
         self.intrigues = {}  # clef : id google
         self.evenements = {}  # clef : id google
+        self.objets = {} # clef : id google
         self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatePJ = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatedIntrigue = ""  # contient l'id de la dernière intrigue updatée dans le GN
@@ -615,6 +616,7 @@ class GN:
         self.dossiers_pjs = None
         self.dossier_outputs_drive = None
         self.dossiers_intrigues = None
+        self.dossiers_objets = None
         self.dossiers_evenements = None
         self.date_gn = None
         self.id_pjs_et_pnjs = None
@@ -623,13 +625,14 @@ class GN:
         # self.liste_noms_pnjs = None
 
         self.injecter_config(dossiers_intrigues, dossier_output, association_auto, dossiers_pj=dossiers_pj,
-                             dossiers_evenements=dossiers_evenements,
+                             dossiers_evenements=dossiers_evenements, dossiers_objets=dossier_objet,
                              dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn,
                              id_pjs_et_pnjs=id_pjs_et_pnjs, fichier_pnjs=fichier_pnjs)
 
     def injecter_config(self,
                         dossiers_intrigues, dossier_output, association_auto,
-                        dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None, id_factions=None,
+                        dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None, dossiers_objets=None,
+                        id_factions=None,
                         date_gn=None, id_pjs_et_pnjs=None, fichier_pnjs=None):
 
         self.id_pjs_et_pnjs = id_pjs_et_pnjs
@@ -661,6 +664,13 @@ class GN:
             self.dossiers_evenements = dossiers_evenements
         else:
             self.dossiers_evenements = [dossiers_evenements]
+
+        if dossiers_objets is None:
+            self.dossiers_objets = None
+        elif isinstance(dossiers_objets, list):
+            self.dossiers_objets = dossiers_objets
+        else:
+            self.dossiers_objets = [dossiers_objets]
 
         self.id_factions = id_factions
         self.dossier_outputs_drive = dossier_output
@@ -849,8 +859,6 @@ class GN:
                                                             texte_warning,
                                                             ErreurManager.ORIGINES.ANALYSE_EVENEMENT)
 
-
-
     def degonfler_factions_dans_evenement(self, seuil_faction=80):
         # pour chaque faction dans chaque évènement :
         # prendre tous les noms dans la faction
@@ -926,8 +934,6 @@ class GN:
                 intrigue.evenements.add(mon_evenement)
                 mon_evenement.intrigue = intrigue
                 # print(f"debug : intrigue : {intrigue.nom}, code evenement : {code_evt}")
-
-
 
     def trouver_roles_sans_scenes(self, verbal=False, seuil=70):
         # nettoyer tous les fichiers erreurs:
@@ -1013,20 +1019,19 @@ class GN:
                                                   personnage=personnage_dans_faction
                                                   )
                             intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
-                            personnage_dans_faction.roles.add(role_a_ajouter) # mieux?
+                            personnage_dans_faction.roles.add(role_a_ajouter)  # mieux?
                         else:
                             # ajouter la scène au role
                             role_a_ajouter = intrigue.rolesContenus[score_role[0]]
                             if verbal:
-                                print(f"intrigue : {intrigue.nom} : le personnage {personnage_dans_faction.nom} a été identifié et ajouté, "
-                                      f"score = {score_role}")
+                                print(
+                                    f"intrigue : {intrigue.nom} : le personnage {personnage_dans_faction.nom} a été identifié et ajouté, "
+                                    f"score = {score_role}")
 
                         # à ce stade on a identifié le bon role
 
                         # l'ajouter à la scène
                         role_a_ajouter.ajouter_a_scene(scene)
-
-
 
     # utilisée pour préparer l'association roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
@@ -1334,3 +1339,32 @@ class Commentaire:
         self.texte = texte
         self.auteur = auteur
         self.destinataires = set(destinataires)
+
+
+class ObjetDeReference:
+    def __init__(
+            self,
+            id_url,
+            nom_objet="",
+            code_objet="",
+            referent="",
+            utilite="",
+            budget="",
+            recommandations="",
+            materiaux="",
+            description="",
+            derniere_edition_date=None,
+            derniere_edition_par=""
+    ):
+        self.id_url = id_url
+        self.nom_objet = nom_objet
+        self.code_objet = code_objet
+        self.referent = referent
+        self.utilite = utilite
+        self.budget = budget
+        self.recommandations = recommandations
+        self.materiaux = materiaux
+        self.description = description
+        self.derniere_edition_date = derniere_edition_date
+        self.derniere_edition_par = derniere_edition_par
+        self.objets_dans_intrigues = set()

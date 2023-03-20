@@ -20,6 +20,14 @@ from modeleGN import *
 
 
 # à faire - rapide
+# todo : ajouter une ligne pour les objets dans la GUI
+
+# todo : ajouter la lecture des objets dans magnet_lig_lire et updater
+
+# todo : une fonction clear pour les ojbets
+
+# todo : une lecture des dossiers dans les paramètres ini
+
 # todo : quand on loade le fichier faction, clearer les factions au début de extraitre texte / extraire_factions
 #  pour prendre en compte les suppressions entre deux loading
 
@@ -226,6 +234,13 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     retirer_evenements_supprimes(mon_gn, ids_lus)
 
+    ids_lus = extraireTexteDeGoogleDoc.extraire_objets(mon_gn,
+                                                           api_drive=api_drive,
+                                                           api_doc=api_doc,
+                                                           fast=fast_objets
+                                                           )
+    retirer_objets_supprimes(mon_gn, ids_lus)
+
     liste_orgas = None
     liste_noms_pnjs = None
     logging.debug(f"mon_gn.id_pjs_et_pnjs = {mon_gn.id_pjs_et_pnjs}")
@@ -380,6 +395,9 @@ def retirer_pnjs_supprimes(mon_gn: GN, ids_pnjs_lus: list[str]):
 
 def retirer_evenements_supprimes(mon_gn: GN, ids_evenements_lus: list[str]):
     retirer_elements_supprimes(ids_evenements_lus, mon_gn.evenements)
+
+def retirer_objets_supprimes(mon_gn: GN, ids_objets_lus: list[str]):
+    retirer_elements_supprimes(ids_objets_lus, mon_gn.objets)
 
 
 def retirer_elements_supprimes(ids_lus: list[str], dict_reference: dict):
