@@ -55,9 +55,9 @@ def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal
 
 
 def extraire_objets(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
-    # print(f"je m'apprete à extraire les objets depuis {mon_gn.dossiers_evenements}")
+    print(f"je m'apprete à extraire les objets depuis {mon_gn.dossiers_objets}")
     if mon_gn.dossiers_objets is None or len(mon_gn.dossiers_objets) == 0:
-        logging.debug("pas de dossier évènement trouvé dans le gn")
+        logging.debug("pas de dossier objets trouvé dans le gn")
         return
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_objets_de_texte, mon_gn.objets,
                                         mon_gn.dossiers_objets,
@@ -1198,6 +1198,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
         Labels.FACTION1: personnage_faction1,
         Labels.FACTION2: personnage_factions2,
         Labels.GROUPES: personnage_groupes,
+        Labels.INTRIGUES: personnage_intrigues,
         Labels.BIO: personnage_bio,
         Labels.PSYCHO: personnage_psycho,
         Labels.MOTIVATIONS: personnage_motivation,
@@ -1233,6 +1234,8 @@ def personnage_joueurv1(texte: str, perso_en_cours: Personnage, text_label: str)
 def personnage_relations(texte: str, perso_en_cours: Personnage, text_label: str):
     print(f"Balise {text_label} trouvée : cette balise n'est plus prise en compte")
 
+def personnage_intrigues(texte: str, perso_en_cours: Personnage, text_label: str):
+    print(f"Balise {text_label} trouvée : cette balise n'a pas d'effet dans MAGnet")
 
 def personnage_joueurv2(texte: str, perso_en_cours: Personnage, text_label: str):
     perso_en_cours.joueurs['V2'] = retirer_label(texte, text_label)

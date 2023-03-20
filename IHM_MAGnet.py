@@ -319,8 +319,7 @@ class Application(tk.Frame):
                                         dossiers_pj=self.dict_config.get('dossiers_pjs'),
                                         dossiers_pnj=self.dict_config.get('dossiers_pnjs'),
                                         id_factions=self.dict_config.get('id_factions'),
-                                        # liste_noms_pjs=self.dict_config.get('liste_noms_pjs'),
-                                        # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
+                                        dossiers_objets=self.dict_config.get('dossiers_objets'),
                                         date_gn=self.dict_config.get('date_gn'),
                                         id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
                                         fichier_pnjs=self.dict_config.get('fichier_noms_pnjs')
@@ -451,89 +450,6 @@ class Application(tk.Frame):
     def regen(self):
         regen_window = tk.Toplevel(self.master)
         regen_window.geometry("620x475")  # chaque nouvelle ligne fait +25 de hauteur
-
-        # # Intrigues
-        # intrigues_label = tk.Label(regen_window, text="Intrigues")
-        # intrigues_label.grid(row=0, column=0, columnspan=2)
-        #
-        # intrigues_var = tk.StringVar(regen_window)
-        # intrigues_var.set("Rapide")
-        #
-        # intrigues_rapide = tk.Radiobutton(regen_window, text="Rapide", variable=intrigues_var, value="Rapide",
-        #                                   command=lambda: self.regen_intrigue_select("Rapide"))
-        # intrigues_rapide.grid(row=1, column=0)
-        # intrigues_complet = tk.Radiobutton(regen_window, text="Complet", variable=intrigues_var, value="Complet",
-        #                                    command=lambda: self.regen_intrigue_select("Complet"))
-        # intrigues_complet.grid(row=1, column=1)
-        # intrigues_specifique = tk.Radiobutton(regen_window, text="Spécifique", variable=intrigues_var,
-        #                                       value="Spécifique",
-        #                                       command=lambda: self.regen_intrigue_select("Spécifique"))
-        # intrigues_specifique.grid(row=1, column=2)
-        #
-        # self.intrigue_specifique_entry = tk.Entry(regen_window)
-        # self.intrigue_specifique_entry.grid(row=1, column=3)
-        # self.intrigue_specifique_entry.config(state='disabled')
-        #
-        # # Personnages
-        # personnages_label = tk.Label(regen_window, text="Personnages")
-        # personnages_label.grid(row=2, column=0, columnspan=2)
-        #
-        # personnages_var = tk.StringVar(regen_window)
-        # personnages_var.set("Rapide")
-        #
-        # personnages_rapide = tk.Radiobutton(regen_window, text="Rapide", variable=personnages_var, value="Rapide",
-        #                                     command=lambda: self.regen_personnages_select("Rapide"))
-        # personnages_rapide.grid(row=3, column=0)
-        # personnages_complet = tk.Radiobutton(regen_window, text="Complet", variable=personnages_var, value="Complet",
-        #                                      command=lambda: self.regen_personnages_select("Complet"))
-        # personnages_complet.grid(row=3, column=1)
-        # personnages_specifique = tk.Radiobutton(regen_window, text="Spécifique", variable=personnages_var,
-        #                                         value="Spécifique",
-        #                                         command=lambda: self.regen_personnages_select("Spécifique"))
-        # personnages_specifique.grid(row=3, column=2)
-        #
-        # self.personnages_specifique_entry = tk.Entry(regen_window)
-        # self.personnages_specifique_entry.grid(row=3, column=3)
-        # self.personnages_specifique_entry.config(state='disabled')
-
-        # # début de la réécriture des widgets
-        #         lecture_label = tk.Label(regen_window, text="Options de lecture")
-        #         lecture_label.grid(row=0, column=0, columnspan=2)
-        #
-        #         # Intrigues
-        #         var_fast_intrigue = tk.BooleanVar(value=True)
-        #         var_fast_fiches_pjs = tk.BooleanVar(value=True)
-        #         var_fast_fiches_pnjs = tk.BooleanVar(value=True)
-        #         var_fast_evenements = tk.BooleanVar(value=True)
-        #         var_fast_objets = tk.BooleanVar(value=True)
-        #
-        #         # Intrigue Line
-        #         tk.Label(regen_window, text="Intrigue").grid(row=1, column=0)
-        #         tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_intrigue, value=True).grid(row=1, column=1)
-        #         tk.Radiobutton(regen_window, text="Complet", variable=var_fast_intrigue, value=False).grid(row=1, column=2)
-        #
-        #
-        #         # Fiches PJs Line
-        #         tk.Label(regen_window, text="Fiches PJs").grid(row=2, column=0)
-        #         tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_fiches_pjs, value=True).grid(row=2, column=1)
-        #         tk.Radiobutton(regen_window, text="Complet", variable=var_fast_fiches_pjs, value=False).grid(row=2, column=2)
-        #
-        #         # Fiches PNJs Line
-        #         tk.Label(regen_window, text="Fiches PNJs").grid(row=3, column=0)
-        #         tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_fiches_pnjs, value=True).grid(row=3, column=1)
-        #         tk.Radiobutton(regen_window, text="Complet", variable=var_fast_fiches_pnjs, value=False).grid(row=3, column=2)
-        #
-        #         # Evenements Line
-        #         tk.Label(regen_window, text="Evenements").grid(row=4, column=0)
-        #         tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_evenements, value=True).grid(row=4, column=1)
-        #         tk.Radiobutton(regen_window, text="Complet", variable=var_fast_evenements, value=False).grid(row=4, column=2)
-        #
-        #         # Objets Line
-        #         tk.Label(regen_window, text="Objets").grid(row=5, column=0)
-        #         tk.Radiobutton(regen_window, text="Rapide", variable=var_fast_objets, value=True).grid(row=5, column=1)
-        #         tk.Radiobutton(regen_window, text="Complet", variable=var_fast_objets, value=False).grid(row=5, column=2)
-
-        ###seconde réécriture
 
         lecture_label = tk.Label(regen_window, text="Options de lecture")
         lecture_label.grid(row=0, column=0, columnspan=2)

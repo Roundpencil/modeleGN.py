@@ -20,13 +20,6 @@ from modeleGN import *
 
 
 # à faire - rapide
-# todo : ajouter une ligne pour les objets dans la GUI
-
-# todo : ajouter la lecture des objets dans magnet_lig_lire et updater
-
-# todo : une fonction clear pour les ojbets
-
-# todo : une lecture des dossiers dans les paramètres ini
 
 # todo : quand on loade le fichier faction, clearer les factions au début de extraitre texte / extraire_factions
 #  pour prendre en compte les suppressions entre deux loading
@@ -36,6 +29,9 @@ from modeleGN import *
 # todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
 
 ### Objets
+# todo : une focntion de réconcialition des objets dans rebuildalllinks
+#  qui associe les objets de référence à ceux dans les intrigues
+
 # todo gérer les objets dans les évènements
 
 # todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
@@ -107,6 +103,10 @@ def charger_fichier_init(fichier_init: str):
         dict_config['dossiers_evenements'] = [config.get("Optionnels", key)
                                               for key in config.options("Optionnels")
                                               if key.startswith("id_dossier_evenements")]
+
+        dict_config['dossiers_objets'] = [config.get("Optionnels", key)
+                                              for key in config.options("Optionnels")
+                                              if key.startswith("id_dossier_objets")]
 
         dict_config['id_factions'] = config.get('Optionnels', 'id_factions', fallback=None)
 
@@ -653,7 +653,6 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True):
     pj_pnj = "PJ" if pj else "PNJ"
     nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes {pj_pnj}'
     nouveau_dossier = extraireTexteDeGoogleDoc.creer_dossier(api_drive, parent, nom_dossier)
-    # todo : vérifier
     d = squelettes_par_perso(mon_gn, pj=pj)
     nb_persos_source = len(d)
     for index, nom_perso in enumerate(d, start=1):
@@ -1525,6 +1524,8 @@ def mettre_a_jour_champs(gn: GN):
         gn.dossiers_evenements = []
     if hasattr(gn, 'dossier_evenements'):
         delattr(gn, 'dossier_evenements')
+    if not hasattr(gn, 'objets'):
+        gn.objets = {}
 
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'date_absolue'):
@@ -1541,6 +1542,8 @@ def mettre_a_jour_champs(gn: GN):
                 delattr(objet, 'rfid')
             if hasattr(objet, 'commentaires'):
                 delattr(objet, 'commentaires')
+            if not hasattr(objet, 'objet_de_reference'):
+                objet.objet_de_reference = None
         if not hasattr(intrigue, 'commentaires'):
             intrigue.commentaires = []
         if not hasattr(intrigue, 'codes_evenements_raw'):

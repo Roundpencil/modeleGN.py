@@ -1124,6 +1124,7 @@ class Objet:
         self.specialEffect = special_effect
         self.code = code
         self.inIntrigues = set()
+        self.objet_de_reference=None
 
     def avec_fx(self):
         return len(self.specialEffect) > 0
@@ -1368,3 +1369,8 @@ class ObjetDeReference:
         self.derniere_edition_date = derniere_edition_date
         self.derniere_edition_par = derniere_edition_par
         self.objets_dans_intrigues = set()
+
+    def clear(self):
+        for objet in self.objets_dans_intrigues:
+            objet.objet_de_reference = None
+        self.objets_dans_intrigues.clear()
