@@ -24,6 +24,8 @@ from modeleGN import *
 # todo : quand on loade le fichier faction, clearer les factions au début de extraitre texte / extraire_factions
 #  pour prendre en compte les suppressions entre deux loading
 
+# todo dans le clear all il faudra virer les objets ajoutés via forcage et effacer toutes les associations objets - objets de référence
+
 # à faire - plus long
 
 # todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
@@ -34,9 +36,7 @@ from modeleGN import *
 
 # todo gérer les objets dans les évènements
 
-# todo : une table des objets qui identifie les objets uniques, à la manières des PNJs
-
-# todo : faire évoluer grille objets avec et le fait qu'on a trouvé un lien vers une fiche objet (via le code)
+# todo : updater la génération du fichier des objets à partir du dictionnaire de référence
 
 ## évolution GUI et suivi du chargement
 # todo : ajouter un parametre avec une méthode  pour permettre d'envoyer des infos
@@ -882,7 +882,7 @@ def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
         config.write(configfile)
 
 
-def generer_table_objets(mon_gn):
+def generer_table_objets_from_intrigues(mon_gn):
     to_return = [['code', 'description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'utilisé où?',
                   'fiche objet trouvée?']]
 
@@ -915,7 +915,7 @@ def generer_table_objets(mon_gn):
 
 def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.dossier_outputs_drive
-    table = generer_table_objets(mon_gn)
+    table = generer_table_objets_from_intrigues(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Table des objets'
     mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
@@ -1542,8 +1542,8 @@ def mettre_a_jour_champs(gn: GN):
                 delattr(objet, 'rfid')
             if hasattr(objet, 'commentaires'):
                 delattr(objet, 'commentaires')
-            if not hasattr(objet, 'objet_de_reference'):
-                objet.objet_de_reference = None
+            if hasattr(objet, 'objet_de_reference'):
+                delattr(objet, 'objet_de_reference')
         if not hasattr(intrigue, 'commentaires'):
             intrigue.commentaires = []
         if not hasattr(intrigue, 'codes_evenements_raw'):

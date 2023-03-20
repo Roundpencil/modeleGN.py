@@ -1234,8 +1234,10 @@ def personnage_joueurv1(texte: str, perso_en_cours: Personnage, text_label: str)
 def personnage_relations(texte: str, perso_en_cours: Personnage, text_label: str):
     print(f"Balise {text_label} trouvée : cette balise n'est plus prise en compte")
 
+
 def personnage_intrigues(texte: str, perso_en_cours: Personnage, text_label: str):
     print(f"Balise {text_label} trouvée : cette balise n'a pas d'effet dans MAGnet")
+
 
 def personnage_joueurv2(texte: str, perso_en_cours: Personnage, text_label: str):
     perso_en_cours.joueurs['V2'] = retirer_label(texte, text_label)
@@ -1337,6 +1339,7 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
         MATERIAUX = "suggestion de matériaux, et techniques :"
         MOODBOARD = "moodboard : "
         DESCRIPTION = "description : "
+        FX = "effets spéciaux : "
 
     labels = [label.value for label in Labels]
 
@@ -1351,7 +1354,8 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
         Labels.RECOMMANDATION: objets_recommandation,
         Labels.MATERIAUX: objets_materiaux,
         Labels.MOODBOARD: objets_moodboard,
-        Labels.DESCRIPTION: objets_description
+        Labels.DESCRIPTION: objets_description,
+        Labels.FX: objets_effets_speciaux
     }
 
     for label in Labels:
@@ -1366,6 +1370,10 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
     # et on enregistre la date de dernière mise à jour de l'intrigue
     objet_en_cours.lastProcessing = datetime.datetime.now()
     return objet_en_cours
+
+
+def objets_effets_speciaux(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
+    objet_en_cours.effets_speciaux = retirer_label(texte, texte_label)
 
 
 def objets_referent(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):

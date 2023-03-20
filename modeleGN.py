@@ -834,12 +834,34 @@ class GN:
         self.ajouter_roles_issus_de_factions()
         self.associer_pnj_a_roles()
         self.associer_pj_a_roles()
-        self.degonfler_factions_dans_evenement()
+        self.ajouter_roles_issues_des_factions_dans_evenement()
         self.associer_pjs_a_evenements()
         self.associer_pnjs_a_evenements()
         self.lier_les_evenements_aux_intrigues()
         self.identifier_incoherences_scenes_evenements()
+        self.lier_et_completer_les_objets()
         self.trouver_roles_sans_scenes()
+
+    def lier_et_completer_les_objets(self):
+        dict_code_objet_reference = {o.code:o for o in self.objets.values()}
+        for intrigue in self.intrigues.values():
+            for i, objet in enumerate(intrigue.objets):
+                code = objet.code.strip()
+                # si il y a un code, on vérifie si on a une fiche
+                #   si oui, on les associe
+                #   sinon, on crée un emplacement
+                # si il n'y a pas de code, on crée une fiche dédiée avec un faux code
+                if code == "":
+                    code = f"objet sans code - {intrigue.nom.split('-')[0].strip()}-{i}"
+
+                mon_objet = dict_code_objet_reference.get(code)
+                if mon_objet is None:
+                    url = f"{code}_imported"
+                    mon_objet = ObjetDeReference(id_url=url, ajoute_via_forcage=True)
+                    dict_code_objet_reference[code] = mon_objet
+                    self.objets[url] = mon_objet
+
+                mon_objet.objets_dans_intrigues.add(objet)
 
     def identifier_incoherences_scenes_evenements(self):
         for intrigue in self.intrigues.values():
@@ -858,7 +880,7 @@ class GN:
                                                             texte_warning,
                                                             ErreurManager.ORIGINES.ANALYSE_EVENEMENT)
 
-    def degonfler_factions_dans_evenement(self, seuil_faction=80):
+    def ajouter_roles_issues_des_factions_dans_evenement(self, seuil_faction=80):
         # pour chaque faction dans chaque évènement :
         # prendre tous les noms dans la faction
         # ajouter une info_pj pour chaque membre de la faction
@@ -1123,7 +1145,7 @@ class Objet:
         self.specialEffect = special_effect
         self.code = code
         self.inIntrigues = set()
-        self.objet_de_reference=None
+        # self.objet_de_reference=None
 
     def avec_fx(self):
         return len(self.specialEffect) > 0
@@ -1350,11 +1372,13 @@ class ObjetDeReference:
             referent="",
             utilite="",
             budget="",
+            effets_speciaux="",
             recommandations="",
             materiaux="",
             description="",
             derniere_edition_date=None,
-            derniere_edition_par=""
+            derniere_edition_par="",
+            ajoute_via_forcage = False
     ):
         self.id_url = id_url
         self.nom_objet = nom_objet
@@ -1368,6 +1392,8 @@ class ObjetDeReference:
         self.derniere_edition_date = derniere_edition_date
         self.derniere_edition_par = derniere_edition_par
         self.objets_dans_intrigues = set()
+        self.ajoute_via_forcage = ajoute_via_forcage
+        self.effets_speciaux = effets_speciaux
 
     def clear(self):
         for objet in self.objets_dans_intrigues:
