@@ -862,6 +862,24 @@ class GN:
                     self.objets[url] = mon_objet
 
                 mon_objet.objets_dans_intrigues.add(objet)
+        for evenement in self.evenements:
+            for i, objet in enumerate(evenement.objets):
+                code = objet.code.strip()
+                # si il y a un code, on vérifie si on a une fiche
+                #   si oui, on les associe
+                #   sinon, on crée un emplacement
+                # si il n'y a pas de code, on crée une fiche dédiée avec un faux code
+                if code == "":
+                    code = f"objet sans code - {evenement.nom.split('-')[0].strip()}-{i}"
+
+                mon_objet = dict_code_objet_reference.get(code)
+                if mon_objet is None:
+                    url = f"{code}_imported"
+                    mon_objet = ObjetDeReference(id_url=url, ajoute_via_forcage=True)
+                    dict_code_objet_reference[code] = mon_objet
+                    self.objets[url] = mon_objet
+
+                mon_objet.objets_dans_evenements.add(objet)
 
     def identifier_incoherences_scenes_evenements(self):
         for intrigue in self.intrigues.values():
@@ -1255,6 +1273,7 @@ class Evenement:
         self.lastProcessing = derniere_edition_date
         self.erreur_manager = ErreurManager()
         self.intrigue = None
+        self.objets = set()
 
     def get_noms_pnjs(self):
         return list(self.intervenants_evenement.keys())
@@ -1326,12 +1345,13 @@ class InfoFactionsPourEvenement:
         self.evenement = evenement
 
 
-# class ObjetDansEvenement:
-#     def __init__(self, code: str, description: str, commence: str, termine: str):
-#         self.code = code
-#         self.description = description
-#         self.commence = commence
-#         self.termine = termine
+class ObjetDansEvenement:
+    def __init__(self, code: str, description: str, commence: str, termine: str, evenement: Evenement):
+        self.code = code
+        self.description = description
+        self.commence = commence
+        self.termine = termine
+        self.evenement = evenement
 
 
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
@@ -1397,6 +1417,7 @@ class ObjetDeReference:
         self.derniere_edition_date = derniere_edition_date
         self.derniere_edition_par = derniere_edition_par
         self.objets_dans_intrigues = set()
+        self.objets_dans_evenements = set()
         self.ajoute_via_forcage = ajoute_via_forcage
         self.effets_speciaux = effets_speciaux
 

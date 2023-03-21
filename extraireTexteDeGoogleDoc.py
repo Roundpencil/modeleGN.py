@@ -1008,21 +1008,19 @@ def evenement_infos_factions(texte: str, current_evenement: Evenement, texte_lab
 
 
 def evenement_lire_objets(texte: str, current_evenement: Evenement, texte_label: str):
-    logging.debug(f"balise {texte_label} non prise en charge = {texte}")
+    texte = retirer_premiere_ligne(texte)
+    tableau_objets, nb_colonnes = reconstituer_tableau(texte)
+    if nb_colonnes != 4:
+        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_objets}")
+        return
 
-
-#     texte = retirer_premiere_ligne(texte)
-#     tableau_objets, nb_colonnes = reconstituer_tableau(texte)
-#     if nb_colonnes != 4:
-#         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_objets}")
-#         return
-#
-#     for ligne in tableau_objets:
-#         objet = ObjetDansEvenement(code=ligne[0],
-#                                    description=ligne[1],
-#                                    commence=ligne[2],
-#                                    termine=ligne[3])
-#         current_evenement.objets.append(objet)
+    for ligne in tableau_objets:
+        objet = ObjetDansEvenement(code=ligne[0],
+                                   description=ligne[1],
+                                   commence=ligne[2],
+                                   termine=ligne[3],
+                                   evenement=current_evenement)
+        current_evenement.objets.add(objet)
 
 
 def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label: str,

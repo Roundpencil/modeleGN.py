@@ -19,13 +19,13 @@ from modeleGN import *
 #  pour prendre en compte les suppressions entre deux loading
 
 # à tester
+# todo gérer les objets dans les évènements
 
 
 # à faire - rapide
 ### Objets
 # todo : renommer l'onglet du tableau actuel "lus dans les intrigues" et ajouter un onglet "d'apres les fiches objets"
 
-# todo gérer les objets dans les évènements
 
 # à faire - plus long
 
