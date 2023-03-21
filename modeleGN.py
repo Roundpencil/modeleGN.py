@@ -3,6 +3,7 @@ import logging
 import pickle
 import datetime
 from enum import IntEnum
+import re
 
 from fuzzywuzzy import process
 import sys
@@ -870,7 +871,11 @@ class GN:
                 #   sinon, on crée un emplacement
                 # si il n'y a pas de code, on crée une fiche dédiée avec un faux code
                 if code == "":
-                    code = f"objet sans code - {evenement.nom.split('-')[0].strip()}-{i}"
+                    # code = f"objet sans code - {evenement.nom.split('-')[0].strip()}-{i}"
+                    pattern = r'^[A-Za-z]?\d+\s*-(\s*\d+\s*-)?'
+                    code = f"objet sans code - " \
+                           f"{re.search(pattern, evenement.nom)[0][:-1].strip()}" \
+                           f"-{i}"
 
                 mon_objet = dict_code_objet_reference.get(code)
                 if mon_objet is None:

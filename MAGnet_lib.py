@@ -24,8 +24,8 @@ from modeleGN import *
 
 # à faire - rapide
 ### Objets
+# todo : dans le tableau des objets existants, rajouter une colonne pour les évènements ou apparaissent les objets
 # todo : renommer l'onglet du tableau actuel "lus dans les intrigues" et ajouter un onglet "d'apres les fiches objets"
-
 
 # à faire - plus long
 
