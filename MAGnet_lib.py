@@ -15,29 +15,26 @@ from modeleGN import *
 #todo : vérifier quel faction on lit / met a jour avec la donnée faction :
 # le texte de la fiche PJ ou bien un objet faction?
 
+# todo : quand on loade le fichier faction, clearer les factions au début de extraitre texte / extraire_factions
+#  pour prendre en compte les suppressions entre deux loading
 
 # à tester
 
 
 # à faire - rapide
-
-# todo : quand on loade le fichier faction, clearer les factions au début de extraitre texte / extraire_factions
-#  pour prendre en compte les suppressions entre deux loading
-
-# todo dans le clear all il faudra virer les objets ajoutés via forcage et effacer toutes les associations objets - objets de référence
-
-# à faire - plus long
-
-# todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
-
 ### Objets
 # todo : renommer l'onglet du tableau actuel "lus dans les intrigues" et ajouter un onglet "d'apres les fiches objets"
 
 # todo gérer les objets dans les évènements
 
+# à faire - plus long
+
+# todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
+# todo : préparer les données pour permettre de prendre en compte les associations au sein de l'intrigue
+
 ## évolution GUI et suivi du chargement
-# todo : ajouter un parametre avec une méthode  pour permettre d'envoyer des infos
-#  à une barre de progression (rien par défaut) et un champ label (print par dééfaut)
+# todo : ajouter un parametre avec une méthode pour permettre d'envoyer des infos
+#  à un champ label (print par dééfaut)
 
 # confort / logique
 # todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos

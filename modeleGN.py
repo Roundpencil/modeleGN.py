@@ -1086,6 +1086,11 @@ class GN:
                 evenement.intrigue = None
             intrigue.evenements.clear()
 
+        for objet_de_reference in self.objets.values():
+            if objet_de_reference.ajoute_via_forcage:
+                objet_de_reference.clear()
+                self.objets.pop(objet_de_reference)
+
     def forcer_import_pjs(self, noms_persos, suffixe="_imported", table_orgas_referent=False, verbal=False):
         return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=True, suffixe=suffixe, verbal=verbal,
                                          table_orgas_referent=table_orgas_referent)
