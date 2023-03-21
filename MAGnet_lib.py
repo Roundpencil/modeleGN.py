@@ -34,7 +34,7 @@ from modeleGN import *
 
 ## évolution GUI et suivi du chargement
 # todo : ajouter un parametre avec une méthode pour permettre d'envoyer des infos
-#  à un champ label (print par dééfaut)
+#  à un champ label (print par défaut)
 
 # confort / logique
 # todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos
