@@ -1192,7 +1192,7 @@ class ErreurManager:
             return prefixe + self.texte
 
     def nb_erreurs(self):
-        return len(self.erreurs)
+        return len([e for e in self.erreurs if e.niveau >= ErreurManager.NIVEAUX.WARNING])
 
     def ajouter_erreur(self, niveau: NIVEAUX, message, origine: ORIGINES):
         self.erreurs.append(self.ErreurAssociation(niveau, message, origine))
