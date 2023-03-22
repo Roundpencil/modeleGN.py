@@ -887,7 +887,8 @@ def generer_table_objets_from_intrigues(mon_gn):
     to_return = [['code', 'description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'Intrigues', 'Evènements',
                   'fiche objet trouvée?']]
     for objet_ref in mon_gn.objets.values():
-        for objet in objet_ref.objets_dans_intrigues:
+        ma_liste = [objet for objet in objet_ref.objets_dans_intrigues if objet.intrigue is not None]
+        for objet in ma_liste :
             code = objet.code.replace('\n', '\v')
             description = objet.description.replace('\n', '\v')
             avecfx = objet.avec_fx()
@@ -907,6 +908,7 @@ def generer_table_objets_from_intrigues(mon_gn):
                               f"{evenement}",
                               f"{fiche_objet}"]
                              )
+        ma_liste = [objet for objet in objet_ref.objets_dans_evenements if objet.evenement is not None]
         for objet in objet_ref.objets_dans_evenements:
             code = objet.code.replace('\n', '\v')
             description = objet.description.replace('\n', '\v')
@@ -915,7 +917,7 @@ def generer_table_objets_from_intrigues(mon_gn):
             debuteou = objet.commence.replace('\n', '\v')
             fournipar = ""
             intrigue = ""
-            evenement = objet.evenement
+            evenement = objet.evenement.nom_evenement
             fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
             to_return.append([f"{code}",
                               f"{description}",

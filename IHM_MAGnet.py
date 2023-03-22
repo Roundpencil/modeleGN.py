@@ -205,7 +205,7 @@ class Application(tk.Frame):
         fichier_erreurs_evenements_check.grid(sticky="W", row=109, column=1)
 
         # Buttons
-        cancel_button = tk.Button(regen_window, text="Annuler", command=regen_window.destroy)
+        cancel_button = tk.Button(regen_window, text="Quitter", command=regen_window.destroy)
         cancel_button.grid(row=200, column=0)
 
         verbal_var = tk.BooleanVar()
