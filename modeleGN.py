@@ -355,7 +355,8 @@ class Intrigue(ConteneurDeScene):
 
         # se séparer de tous les objets
         for objet in self.objets:
-            objet.inIntrigues.remove(self)
+            # objet.inIntrigues.remove(self)
+            objet.intrigue = None
         # self.objets.clear()
 
     def ajouter_commentaires(self, commentaires: list):
@@ -603,7 +604,7 @@ class GN:
         self.factions = {}  # nom, Faction
         self.intrigues = {}  # clef : id google
         self.evenements = {}  # clef : id google
-        self.objets = {} # clef : id google
+        self.objets = {}  # clef : id google
         self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatePJ = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatedIntrigue = ""  # contient l'id de la dernière intrigue updatée dans le GN
@@ -863,7 +864,7 @@ class GN:
                     self.objets[url] = mon_objet
 
                 mon_objet.objets_dans_intrigues.add(objet)
-        for evenement in self.evenements:
+        for evenement in self.evenements.values():
             for i, objet in enumerate(evenement.objets):
                 code = objet.code.strip()
                 # si il y a un code, on vérifie si on a une fiche
@@ -874,7 +875,7 @@ class GN:
                     # code = f"objet sans code - {evenement.nom.split('-')[0].strip()}-{i}"
                     pattern = r'^[A-Za-z]?\d+\s*-(\s*\d+\s*-)?'
                     code = f"objet sans code - " \
-                           f"{re.search(pattern, evenement.nom)[0][:-1].strip()}" \
+                           f"{re.search(pattern, evenement.nom_evenement)[0][:-1].strip()}" \
                            f"-{i}"
 
                 mon_objet = dict_code_objet_reference.get(code)
@@ -1172,7 +1173,12 @@ class Objet:
         self.emplacementDebut = emplacement_debut
         self.specialEffect = special_effect
         self.code = code
-        self.inIntrigues = set()
+        self.inIntrigues = set()  # ne pas utiliser, ici pour des besoins de rétro-compatibilité
+        # todo : remplacer par un one to one : l'association n'est pas faite ici (cf. ci-dessous)
+        #  créer une fonction dans objet de référence qui lit tout
+        #  mettre à jour la fonction de nettoyage
+
+        self.intrigue = None
         # self.objet_de_reference=None
 
     def avec_fx(self):
@@ -1408,7 +1414,7 @@ class ObjetDeReference:
             description="",
             derniere_edition_date=None,
             derniere_edition_par="",
-            ajoute_via_forcage = False
+            ajoute_via_forcage=False
     ):
         self.id_url = id_url
         self.nom_objet = nom_objet
@@ -1430,3 +1436,7 @@ class ObjetDeReference:
         for objet in self.objets_dans_intrigues:
             objet.objet_de_reference = None
         self.objets_dans_intrigues.clear()
+
+    def get_full_url(self):
+        return f"https://docs.google.com/document/d/{self.id_url}"
+

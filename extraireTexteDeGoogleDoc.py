@@ -411,7 +411,7 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
 
         if mon_objet is not None:
             current_intrigue.objets.add(mon_objet)
-            mon_objet.inIntrigues.add(current_intrigue)
+            mon_objet.intrigue = current_intrigue
 
 
 def intrigue_scenesfx(texte: str, intrigue: Intrigue, texte_label: str):

@@ -166,6 +166,8 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          fast_objets=True,
                          verbal: bool = False, visualisation=print_progress):
     visualisation(-100)
+    pas_visualisation = 50 / 6.0
+
     if api_doc is None or api_sheets is None or api_drive is None:
         api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
 
@@ -201,6 +203,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                                           fast=fast_intrigues,
                                                           verbal=verbal)
     retirer_intrigues_supprimees(mon_gn, ids_lus)
+    visualisation(pas_visualisation)
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_pjs(mon_gn,
                                                     api_drive=api_drive,
@@ -210,6 +213,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                                     verbal=verbal)
 
     retirer_pjs_supprimees(mon_gn, ids_lus)
+    visualisation(pas_visualisation)
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_pnjs(mon_gn,
                                                      api_drive=api_drive,
@@ -219,6 +223,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                                      verbal=verbal)
 
     retirer_pnjs_supprimes(mon_gn, ids_lus)
+    visualisation(pas_visualisation)
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_evenements(mon_gn,
                                                            api_drive=api_drive,
@@ -227,6 +232,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                                            )
 
     retirer_evenements_supprimes(mon_gn, ids_lus)
+    visualisation(pas_visualisation)
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_objets(mon_gn,
                                                            api_drive=api_drive,
@@ -234,6 +240,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                                            fast=fast_objets
                                                            )
     retirer_objets_supprimes(mon_gn, ids_lus)
+    visualisation(pas_visualisation)
 
     liste_orgas = None
     liste_noms_pnjs = None
@@ -270,14 +277,14 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     # print(f"gn.factions = {gn.factions}")
     logging.debug("factions lues")
 
-    visualisation(25)
+    visualisation(pas_visualisation)
 
     mon_gn.rebuild_links(verbal)
 
     if sauver_apres_operation:
         mon_gn.save(nom_fichier_sauvegarde)
 
-    visualisation(25)
+    # visualisation(25)
 
 
     print("****** fin de la lecture du drive *********")
@@ -877,7 +884,7 @@ def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
 
 
 def generer_table_objets_from_intrigues(mon_gn):
-    to_return = [['code', 'description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'utilisé où?',
+    to_return = [['code', 'description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'Intrigues', 'Evènements',
                   'fiche objet trouvée?']]
     for objet_ref in mon_gn.objets.values():
         for objet in objet_ref.objets_dans_intrigues:
@@ -887,17 +894,40 @@ def generer_table_objets_from_intrigues(mon_gn):
             fx = objet.specialEffect.replace('\n', '\v')
             debuteou = objet.emplacementDebut.replace('\n', '\v')
             fournipar = objet.fourniParJoueur.replace('\n', '\v')
-            utiliseou = [x.nom for x in objet.inIntrigues]
-            fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.id_url
+            intrigue = objet.intrigue
+            evenement = ""
+            fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
             to_return.append([f"{code}",
                               f"{description}",
                               f"{avecfx}",
                               f"{fx}",
                               f"{debuteou}",
                               f"{fournipar}",
-                              f"{utiliseou}",
+                              f"{intrigue}",
+                              f"{evenement}",
                               f"{fiche_objet}"]
                              )
+        for objet in objet_ref.objets_dans_evenements:
+            code = objet.code.replace('\n', '\v')
+            description = objet.description.replace('\n', '\v')
+            avecfx = ""
+            fx = ""
+            debuteou = objet.commence.replace('\n', '\v')
+            fournipar = ""
+            intrigue = ""
+            evenement = objet.evenement
+            fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
+            to_return.append([f"{code}",
+                              f"{description}",
+                              f"{avecfx}",
+                              f"{fx}",
+                              f"{debuteou}",
+                              f"{fournipar}",
+                              f"{intrigue}",
+                              f"{evenement}",
+                              f"{fiche_objet}"]
+                             )
+
     return to_return
 
 
@@ -1523,15 +1553,21 @@ def mettre_a_jour_champs(gn: GN):
             delattr(scene, 'niveau')
 
     for intrigue in gn.intrigues.values():
-        for objet in intrigue.objets:
-            if not hasattr(objet, 'code'):
-                objet.code = ""
-            if hasattr(objet, 'rfid'):
-                delattr(objet, 'rfid')
-            if hasattr(objet, 'commentaires'):
-                delattr(objet, 'commentaires')
-            if hasattr(objet, 'objet_de_reference'):
-                delattr(objet, 'objet_de_reference')
+        for objet_de_reference in intrigue.objets:
+            if not hasattr(objet_de_reference, 'code'):
+                objet_de_reference.code = ""
+            if hasattr(objet_de_reference, 'rfid'):
+                delattr(objet_de_reference, 'rfid')
+            if hasattr(objet_de_reference, 'commentaires'):
+                delattr(objet_de_reference, 'commentaires')
+            if hasattr(objet_de_reference, 'objet_de_reference'):
+                delattr(objet_de_reference, 'objet_de_reference')
+            if hasattr(objet_de_reference, 'inIntrigues'):
+                if len(objet_de_reference.inIntrigues) > 0:
+                    objet_de_reference.intrigue = list(objet_de_reference.inIntrigues)[0]
+                delattr(objet_de_reference, 'inIntrigues')
+
+
         if not hasattr(intrigue, 'commentaires'):
             intrigue.commentaires = []
         if not hasattr(intrigue, 'codes_evenements_raw'):
@@ -1587,6 +1623,9 @@ def mettre_a_jour_champs(gn: GN):
                 intervention.noms_pjs_impliques = intervention.pj_impliques
                 delattr(intervention, 'pj_impliques')
 
+        if not hasattr(intervention, 'objets'):
+            evenement.objets = set()
+
     for pj in gn.dictPJs:
         if pj in gn.dictPNJs:
             gn.dictPJs.pop(pj)
@@ -1598,6 +1637,10 @@ def mettre_a_jour_champs(gn: GN):
         if not hasattr(personnage, 'intervient_comme'):
             personnage.intervient_comme = set()
 
-    for objet in gn.objets.values():
-        if not hasattr(objet, 'ajoute_via_forcage'):
-            objet.ajoute_via_forcage = True
+    for objet_de_reference in gn.objets.values():
+        if not hasattr(objet_de_reference, 'ajoute_via_forcage'):
+            objet_de_reference.ajoute_via_forcage = True
+
+        if not hasattr(objet_de_reference, 'objets_dans_evenements'):
+            objet_de_reference.objets_dans_evenements = set()
+

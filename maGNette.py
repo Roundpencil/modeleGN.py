@@ -455,22 +455,22 @@ def listerPNJs(monGN):
 #         print(output)
 
 
-def genererCsvObjets(monGN):
-    print("description;Avec FX?;FX;Débute Où?;fourni par Qui?;utilisé où?")
-    for intrigue in monGN.intrigues.values():
-        for objet in intrigue.objets:
-            description = objet.description.replace('\n', "***")
-            avecfx = objet.rfid
-            fx = objet.specialEffect.replace('\n', "***")
-            debuteou = objet.emplacementDebut.replace('\n', "***")
-            fournipar = objet.fourniParJoueur.replace('\n', "***")
-            utiliseou = [x.nom for x in objet.inIntrigues]
-            print(f"{description};"
-                  f"{avecfx};"
-                  f"{fx};"
-                  f"{debuteou};"
-                  f"{fournipar};"
-                  f"{utiliseou}")
+# def genererCsvObjets(monGN):
+#     print("description;Avec FX?;FX;Débute Où?;fourni par Qui?;utilisé où?")
+#     for intrigue in monGN.intrigues.values():
+#         for objet in intrigue.objets:
+#             description = objet.description.replace('\n', "***")
+#             avecfx = objet.rfid
+#             fx = objet.specialEffect.replace('\n', "***")
+#             debuteou = objet.emplacementDebut.replace('\n', "***")
+#             fournipar = objet.fourniParJoueur.replace('\n', "***")
+#             utiliseou = [x.nom for x in objet.inIntrigues]
+#             print(f"{description};"
+#                   f"{avecfx};"
+#                   f"{fx};"
+#                   f"{debuteou};"
+#                   f"{fournipar};"
+#                   f"{utiliseou}")
 
 
 def tousLesRoles(monGN):
