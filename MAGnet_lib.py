@@ -1554,19 +1554,21 @@ def mettre_a_jour_champs(gn: GN):
             delattr(scene, 'niveau')
 
     for intrigue in gn.intrigues.values():
-        for objet_de_reference in intrigue.objets:
-            if not hasattr(objet_de_reference, 'code'):
-                objet_de_reference.code = ""
-            if hasattr(objet_de_reference, 'rfid'):
-                delattr(objet_de_reference, 'rfid')
-            if hasattr(objet_de_reference, 'commentaires'):
-                delattr(objet_de_reference, 'commentaires')
-            if hasattr(objet_de_reference, 'objet_de_reference'):
-                delattr(objet_de_reference, 'objet_de_reference')
-            if hasattr(objet_de_reference, 'inIntrigues'):
-                if len(objet_de_reference.inIntrigues) > 0:
-                    objet_de_reference.intrigue = list(objet_de_reference.inIntrigues)[0]
-                delattr(objet_de_reference, 'inIntrigues')
+        for objet in intrigue.objets:
+            if not hasattr(objet, 'code'):
+                objet.code = ""
+            if hasattr(objet, 'rfid'):
+                delattr(objet, 'rfid')
+            if hasattr(objet, 'commentaires'):
+                delattr(objet, 'commentaires')
+            if hasattr(objet, 'objet_de_reference'):
+                delattr(objet, 'objet_de_reference')
+            if not hasattr(objet, 'intrigue'):
+                objet.intrigue = None
+            if hasattr(objet, 'inIntrigues'):
+                if len(objet.inIntrigues) > 0:
+                    objet.intrigue = list(objet.inIntrigues)[0]
+                delattr(objet, 'inIntrigues')
 
 
         if not hasattr(intrigue, 'commentaires'):
