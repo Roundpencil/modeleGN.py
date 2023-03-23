@@ -104,7 +104,7 @@ def main():
     extraireTexteDeGoogleDoc.extraire_pjs(monGN, api_drive=apiDrive, api_doc=apiDoc, singletest=args.perso,
                                           fast=(not args.allpjs))
 
-    extraireTexteDeGoogleDoc.extraire_factions(monGN, apiDoc=apiDoc)
+    extraireTexteDeGoogleDoc.extraire_factions(monGN, api_doc=apiDoc)
     # extraire_texte_de_google_doc.lire_factions_depuis_fichier(gn, fichier_faction)
 
     monGN.forcer_import_pjs(noms_persos)

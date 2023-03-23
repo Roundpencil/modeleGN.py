@@ -12,9 +12,6 @@ from modeleGN import *
 # communication :
 
 # bugs
-#todo : vérifier quel faction on lit / met a jour avec la donnée faction :
-# le texte de la fiche PJ ou bien un objet faction?
-
 # todo : quand on loade le fichier faction, clearer les factions au début de extraitre texte / extraire_factions
 #  pour prendre en compte les suppressions entre deux loading
 
@@ -272,7 +269,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         mon_gn.forcer_import_pjs(liste_noms_pjs, verbal=verbal, table_orgas_referent=liste_orgas)
         logging.debug("PJs forcés ok")
 
-    extraireTexteDeGoogleDoc.extraire_factions(mon_gn, apiDoc=api_doc, verbal=verbal)
+    extraireTexteDeGoogleDoc.extraire_factions(mon_gn, api_doc=api_doc, verbal=verbal)
     # print(f"gn.factions = {gn.factions}")
     logging.debug("factions lues")
 
@@ -1626,7 +1623,7 @@ def mettre_a_jour_champs(gn: GN):
                 intervention.noms_pjs_impliques = intervention.pj_impliques
                 delattr(intervention, 'pj_impliques')
 
-        if not hasattr(intervention, 'objets'):
+        if not hasattr(evenement, 'objets'):
             evenement.objets = set()
 
     for pj in gn.dictPJs:
@@ -1639,6 +1636,11 @@ def mettre_a_jour_champs(gn: GN):
             personnage.informations_evenements = set()
         if not hasattr(personnage, 'intervient_comme'):
             personnage.intervient_comme = set()
+        if hasattr(personnage, 'factions'):
+            personnage.groupes = []
+            personnage.groupes.extend(personnage.factions)
+            delattr(personnage, 'factions')
+
 
     for objet_de_reference in gn.objets.values():
         if not hasattr(objet_de_reference, 'ajoute_via_forcage'):

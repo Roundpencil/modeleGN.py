@@ -159,7 +159,8 @@ class Personnage(ConteneurDeScene):
         self.joueurs = {}
         self.pitchJoueur = pitch_joueur
         self.indicationsCostume = indications_costume
-        self.factions = []
+        self.factions = [] #todo : supprimer
+        self.groupes = []
         self.datesClefs = dates_clefs
         self.textesAnnexes = textes_annexes
         self.lastProcessing = last_change

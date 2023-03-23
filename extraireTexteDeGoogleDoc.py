@@ -1258,16 +1258,16 @@ def personnage_costume(texte: str, perso_en_cours: Personnage, text_label: str):
 
 
 def personnage_faction1(texte: str, perso_en_cours: Personnage, text_label: str):
-    perso_en_cours.factions.append(retirer_label(texte, text_label).splitlines()[0])
+    perso_en_cours.groupes.append(retirer_label(texte, text_label).splitlines()[0])
 
 
 def personnage_factions2(texte: str, perso_en_cours: Personnage, text_label: str):
-    perso_en_cours.factions.append(retirer_label(texte, text_label).splitlines()[0])
+    perso_en_cours.groupes.append(retirer_label(texte, text_label).splitlines()[0])
 
 
 def personnage_groupes(texte: str, perso_en_cours: Personnage, text_label: str):
     texte = retirer_label(texte, text_label)
-    perso_en_cours.factions.extend([nom_groupe.strip() for nom_groupe in texte.split(',')])
+    perso_en_cours.groupes.extend([nom_groupe.strip() for nom_groupe in texte.split(',')])
 
 
 def personnage_bio(texte: str, perso_en_cours: Personnage, text_label: str):
@@ -1427,13 +1427,13 @@ def ref_du_doc(s: str, prefixes=""):
     return int(match.group(1)) if (match := re.match(r'^(\d+)\s*-.*$', s)) else -1
 
 
-def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
-    if mon_GN.id_factions is None:
+def extraire_factions(mon_gn: GN, api_doc, verbal=True):
+    if mon_gn.id_factions is None:
         logging.info('id faction était None')
         return -1
 
     try:
-        document = apiDoc.documents().get(documentId=mon_GN.id_factions).execute()
+        document = api_doc.documents().get(documentId=mon_gn.id_factions).execute()
         contenu_document = document.get('body').get('content')
         text = lecteurGoogle.read_structural_elements(contenu_document)
         text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
@@ -1447,10 +1447,10 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
     # à ce stade, j'ai lu les factions et je peux dépouiller
     # print(f"clefs dictionnaire : {mon_GN.dictPJs.keys()}")
     lines = text.splitlines()
-    noms_persos = list(mon_GN.noms_pjs()) + list(mon_GN.noms_pnjs())
+    noms_persos = list(mon_gn.noms_pjs()) + list(mon_gn.noms_pnjs())
     # on crée un dictionnaire qui permettra de retrouver les id en fonction des noms
-    temp_dict_pjs = {mon_GN.dictPJs[x].nom: x for x in mon_GN.dictPJs}
-    temp_dict_pnjs = {mon_GN.dictPNJs[x].nom: x for x in mon_GN.dictPNJs}
+    temp_dict_pjs = {mon_gn.dictPJs[x].nom: x for x in mon_gn.dictPJs}
+    temp_dict_pnjs = {mon_gn.dictPNJs[x].nom: x for x in mon_gn.dictPNJs}
 
     current_faction = None
     for line in lines:
@@ -1458,7 +1458,7 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
             faction_name = line.replace("### ", "")
             faction_name = faction_name.strip()
             current_faction = Faction(faction_name)
-            mon_GN.factions[faction_name] = current_faction
+            mon_gn.factions[faction_name] = current_faction
             logging.info(f"J'ai ajouté la faction {faction_name}")
         elif line.startswith("## "):
             line = line.replace("## ", "")
@@ -1473,10 +1473,10 @@ def extraire_factions(mon_GN: GN, apiDoc, verbal=True):
                     print(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
                 logging.info(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
                 if temp_dict_pjs.get(score[0]):
-                    personnages_a_ajouter = mon_GN.dictPJs[temp_dict_pjs.get(score[0])]
+                    personnages_a_ajouter = mon_gn.dictPJs[temp_dict_pjs.get(score[0])]
                     logging.info("et il venait des pjs")
                 else:
-                    personnages_a_ajouter = mon_GN.dictPNJs[temp_dict_pnjs.get(score[0])]
+                    personnages_a_ajouter = mon_gn.dictPNJs[temp_dict_pnjs.get(score[0])]
                     logging.info("et il venait des pnjs")
 
                 current_faction.personnages.add(personnages_a_ajouter)
