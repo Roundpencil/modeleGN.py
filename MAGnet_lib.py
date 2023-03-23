@@ -21,8 +21,11 @@ from modeleGN import *
 
 # à faire - plus long
 
-# todo : proposer un format custom pour la lecture des tableaux basé sur le nom des colonnes
-# todo : préparer les données pour permettre de prendre en compte les associations au sein de l'intrigue
+### assciations manuelles
+# todo : mettre à jour le fichier de paramètres pour prendre en compte les associations manuelles
+#  depuis fiches et depuis tableau
+
+# todo : écrire la fonction d'association depuis fiche
 
 ## évolution GUI et suivi du chargement
 # todo : ajouter un parametre avec une méthode pour permettre d'envoyer des infos à un champ label (print par défaut)

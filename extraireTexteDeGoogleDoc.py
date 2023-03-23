@@ -5,7 +5,7 @@ from enum import Enum
 
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
-from setuptools._distutils.sysconfig import _get_python_inc_posix_prefix
+
 
 import lecteurGoogle
 from modeleGN import *
@@ -332,23 +332,47 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
     noms_colonnes = [nc.value for nc in NomsColonnes]
     headers = tableau_pjs[0]
     tab_rectifie = []
-    for i, head in enumerate(headers):
-        tab_rectifie[i] = process.extractOne(head, noms_colonnes)[0]
-    logging.debug(f"lecture auto des tableaux : \n"
-                  f" chaine de début : {headers}"
-                  f" chaine de sortie : {tab_rectifie}")
+    min_score = 100
+    pire_match = ""
+    for head in headers:
+        score = process.extractOne(head, noms_colonnes)
+        tab_rectifie.append(score[0])
+        if score[1] < min_score:
+            min_score = score[1]
+            pire_match = score[0]
+    logging.debug("lecture auto des tableaux :")
+    for i in range(len(headers)):
+        logging.debug(f"{headers[i]} > {tab_rectifie[i]}")
+
+    if min_score < 85:
+        texte_erreur = f"Attention, score bas de lecture des entêtes du tableau des personnages. " \
+                       f"Pire score : {min_score}% pour {pire_match}"
+        current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+                                          texte_erreur,
+                                          ErreurManager.ORIGINES.SCENE)
+
+    if len(set(tab_rectifie)) != len(tab_rectifie):
+        texte_erreur = "une valeur a été trouvée en double dans les en-têtes de colonne du tableau des persos"
+        current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                          texte_erreur,
+                                          ErreurManager.ORIGINES.SCENE)
+
+
 
     header_to_index = {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
 
-    print(header_to_index['Nom du personnage'])  # Output: 0
-    print(header_to_index['Type d’intrigue'])  # Output: 1
-    print(header_to_index['points d’intérêt'])  # Output: 2
-
     def header_2_value(ligne_tableau: list[str], table_header: dict, header_value, default):
-        return ligne_tableau[table_header[header_value]] if table_header.get(header_value) else default
+        # logging.debug(f"header / table header {header_value} {table_header.get(header_value)}")
+        # logging.debug(f"ligne : {ligne_tableau}")
+        # debug_value = table_header.get(header_value)
+        # if debug_value is not None:
+        #     logging.debug(f"pour la valeur {debug_value} : {ligne_tableau[debug_value]}")
+        index = table_header.get(header_value)
+        return ligne_tableau[index] if index is not None else default
 
     for ligne in tableau_pjs[1:]:
-        nom = header_2_value(ligne, header_to_index, NomsColonnes.NOM_PERSO.value, "rôle sans nom")
+        nom = header_2_value(ligne, header_to_index, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
+        logging.debug(f"value  ={NomsColonnes.NOM_PERSO.value}, nom = {nom}")
         description = header_2_value(ligne, header_to_index, NomsColonnes.DESCRIPTION.value, "")
         pipi = header_2_value(ligne, header_to_index, NomsColonnes.PIP_I.value, 0)
         pipr = header_2_value(ligne, header_to_index, NomsColonnes.PIP_R.value, 0)
@@ -356,12 +380,15 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         type_intrigue = header_2_value(ligne, header_to_index, NomsColonnes.TYPE_INTRIGUE.value, "")
         niveau_implication = header_2_value(ligne, header_to_index, NomsColonnes.IMPLICATION.value, "")
         pip_globaux = header_2_value(ligne, header_to_index, NomsColonnes.PIP.value, 0)
-        if len(liste_pips := pip_globaux.split('/')) == 2:
+        if len(liste_pips := str(pip_globaux).split('/')) == 2:
             pip_globaux = 0
             pipi = liste_pips[0] + pipi
             pipr = liste_pips[1] + pipr
         affectation = header_2_value(ligne, header_to_index, NomsColonnes.AFFECTATION.value, 0)
-
+        logging.debug(f"Tableau des headers : {header_to_index}")
+        logging.debug(f"ligne = {ligne}")
+        logging.debug(f"lecture associée : "
+                      f"{[nom, description, pipi, pipr, sexe, type_intrigue, niveau_implication, pip_globaux, affectation]}")
         role_a_ajouter = Role(current_intrigue,
                               nom=nom.split("http")[0],
                               description=description,
@@ -2031,13 +2058,13 @@ def reconstituer_tableau(texte_lu: str, sans_la_premiere_ligne=True):
 
     for ligne in lignes[base_index:]:
         tmp_ligne = [element.strip() for element in ligne.split(lecteurGoogle.SEPARATEUR_COLONNES)]
-        taille_ligne = sum([len(element) for element in tmp_ligne])
+        taille_ligne = sum(len(element) for element in tmp_ligne)
         if taille_ligne > 1:
             to_return.append(tmp_ligne)
 
-    logging.debug(f"a partir de la chaine {repr(texte_lu)} "
-                  f"j'ai reconstitué le tableau \n {to_return}"
-                  )
+    # logging.debug(f"a partir de la chaine {repr(texte_lu)} "
+    #               f"j'ai reconstitué le tableau \n {to_return}"
+    #               )
     return to_return if to_return else [], (len(to_return[0]) if to_return else 0)
 
 
