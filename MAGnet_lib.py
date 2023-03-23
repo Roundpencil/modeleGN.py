@@ -12,12 +12,8 @@ from modeleGN import *
 # communication :
 
 # bugs
-# todo : quand on loade le fichier faction, clearer les factions au début de extraitre texte / extraire_factions
-#  pour prendre en compte les suppressions entre deux loading
 
 # à tester
-# todo gérer les objets dans les évènements
-
 
 # à faire - rapide
 ### Objets
@@ -32,13 +28,14 @@ from modeleGN import *
 # todo : ajouter un parametre avec une méthode pour permettre d'envoyer des infos
 #  à un champ label (print par défaut)
 
+# todo : re-griser les champs quand on n'a pas de GN
+
+# todo : passer sur TTK ♥
+
 # confort / logique
 # todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos
 #  faire la meme chose avec les PNJs
 #  ajouter un paramètre dans le GN pour le nombre de sessions envisagées pour savoir combien de colonnes on lit
-
-#todo : introduire un paramètre "groupes" dans les fiches de persos qui remplace les factions actuelles par un seul
-# champ, séparé par des virgules
 
 # todo : tenter de supprimer le dict PNJ et le dict PJ : peut-être qu'on n'a besoin que d'un seul, en fait...
 

@@ -1432,6 +1432,13 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
         logging.info('id faction était None')
         return -1
 
+    #on commence par effacer les factions existantes pour éviter les doublons
+    factions = mon_gn.factions.values()
+    for faction in factions:
+        faction.personnages.clear()
+        del faction
+    mon_gn.factions.clear()
+
     try:
         document = api_doc.documents().get(documentId=mon_gn.id_factions).execute()
         contenu_document = document.get('body').get('content')
