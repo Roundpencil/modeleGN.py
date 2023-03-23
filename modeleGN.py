@@ -247,7 +247,7 @@ class Role:
                  sexe="i",
                  pj: TypePerso = TypePerso.EST_PJ,
                  type_intrigue="", niveau_implication="", perimetre_intervention="", issu_dune_faction=False,
-                 pip_globaux=0):
+                 pip_globaux=0, affectation=""):
         self.conteneur = conteneur
         self.personnage = personnage
         self.nom = nom
@@ -280,6 +280,7 @@ class Role:
         self.briefs_pnj_pour_evenement = {}  # evenement, brief
         self.infos_pj_pour_evenement = {}  # evenement, brief
         self.interventions = {}  # evenement, intervention
+        self.affectation = affectation
 
     def __str__(self):
         to_return = ""

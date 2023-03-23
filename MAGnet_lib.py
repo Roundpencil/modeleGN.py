@@ -25,12 +25,13 @@ from modeleGN import *
 # todo : préparer les données pour permettre de prendre en compte les associations au sein de l'intrigue
 
 ## évolution GUI et suivi du chargement
-# todo : ajouter un parametre avec une méthode pour permettre d'envoyer des infos
-#  à un champ label (print par défaut)
+# todo : ajouter un parametre avec une méthode pour permettre d'envoyer des infos à un champ label (print par défaut)
 
 # todo : re-griser les champs quand on n'a pas de GN
 
 # todo : passer sur TTK ♥
+
+# todo : ajouter des frames pour grouper les éléments et facilement masquer / afficher en fonction des options
 
 # confort / logique
 # todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos
@@ -1575,6 +1576,8 @@ def mettre_a_jour_champs(gn: GN):
     for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
         for role in conteneur.rolesContenus.values():
             print(f"clefs (2) pour {role.nom} = {vars(role).keys()}")
+            if not hasattr(role, 'affectation'):
+                role.affectation = ""
             if hasattr(role, 'perimetreIntervention'):
                 if not hasattr(role, 'perimetre_intervention'):
                     role.perimetre_intervention = role.perimetreIntervention

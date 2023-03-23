@@ -5,6 +5,7 @@ from enum import Enum
 
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
+from setuptools._distutils.sysconfig import _get_python_inc_posix_prefix
 
 import lecteurGoogle
 from modeleGN import *
@@ -315,18 +316,76 @@ def intrigue_pitch(texte: str, intrigue: Intrigue, texte_label: str):
 
 
 def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
-    tableau_pjs, nb_colonnes = reconstituer_tableau(texte)
-    if nb_colonnes == 4:
-        lire_tableau_pj_chalacta(current_intrigue, tableau_pjs)
-    elif nb_colonnes == 5:
-        lire_tableau_pj_5_colonnes(current_intrigue, tableau_pjs)
-    elif nb_colonnes == 6:
-        lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs)
-    else:
-        current_intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
-                                                  "Tableau des personnages dans l'intrigue non standard",
-                                                  ErreurManager.ORIGINES.SCENE)
-        print("Erreur : tableau d'intrigue non standard")
+    tableau_pjs, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
+
+    class NomsColonnes(Enum):
+        AFFECTATION = "Affecté à"
+        GENRE = "Genre"
+        NOM_PERSO = "Nom du personnage"
+        PIP_I = "Points d’intérêt intrigue"
+        PIP_R = "Points d’intérêt roleplay"
+        IMPLICATION = "Type d’implication"
+        TYPE_INTRIGUE = "Type d’intrigue"
+        PIP = "Points d’intérêt"
+        DESCRIPTION = "Résumé de l’implication"
+
+    noms_colonnes = [nc.value for nc in NomsColonnes]
+    headers = tableau_pjs[0]
+    tab_rectifie = []
+    for i, head in enumerate(headers):
+        tab_rectifie[i] = process.extractOne(head, noms_colonnes)[0]
+    logging.debug(f"lecture auto des tableaux : \n"
+                  f" chaine de début : {headers}"
+                  f" chaine de sortie : {tab_rectifie}")
+
+    header_to_index = {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
+
+    print(header_to_index['Nom du personnage'])  # Output: 0
+    print(header_to_index['Type d’intrigue'])  # Output: 1
+    print(header_to_index['points d’intérêt'])  # Output: 2
+
+    def header_2_value(ligne_tableau: list[str], table_header: dict, header_value, default):
+        return ligne_tableau[table_header[header_value]] if table_header.get(header_value) else default
+
+    for ligne in tableau_pjs[1:]:
+        nom = header_2_value(ligne, header_to_index, NomsColonnes.NOM_PERSO.value, "rôle sans nom")
+        description = header_2_value(ligne, header_to_index, NomsColonnes.DESCRIPTION.value, "")
+        pipi = header_2_value(ligne, header_to_index, NomsColonnes.PIP_I.value, 0)
+        pipr = header_2_value(ligne, header_to_index, NomsColonnes.PIP_R.value, 0)
+        sexe = header_2_value(ligne, header_to_index, NomsColonnes.GENRE.value, "i")
+        type_intrigue = header_2_value(ligne, header_to_index, NomsColonnes.TYPE_INTRIGUE.value, "")
+        niveau_implication = header_2_value(ligne, header_to_index, NomsColonnes.IMPLICATION.value, "")
+        pip_globaux = header_2_value(ligne, header_to_index, NomsColonnes.PIP.value, 0)
+        if len(liste_pips := pip_globaux.split('/')) == 2:
+            pip_globaux = 0
+            pipi = liste_pips[0] + pipi
+            pipr = liste_pips[1] + pipr
+        affectation = header_2_value(ligne, header_to_index, NomsColonnes.AFFECTATION.value, 0)
+
+        role_a_ajouter = Role(current_intrigue,
+                              nom=nom.split("http")[0],
+                              description=description,
+                              type_intrigue=type_intrigue,
+                              niveau_implication=niveau_implication,
+                              pipi=pipi,
+                              pipr=pipr,
+                              sexe=sexe,
+                              pip_globaux=pip_globaux,
+                              affectation=affectation
+                              )
+        current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
+
+    # if nb_colonnes == 4:
+    #     lire_tableau_pj_chalacta(current_intrigue, tableau_pjs)
+    # elif nb_colonnes == 5:
+    #     lire_tableau_pj_5_colonnes(current_intrigue, tableau_pjs)
+    # elif nb_colonnes == 6:
+    #     lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs)
+    # else:
+    #     current_intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+    #                                               "Tableau des personnages dans l'intrigue non standard",
+    #                                               ErreurManager.ORIGINES.SCENE)
+    #     print("Erreur : tableau d'intrigue non standard")
 
 
 def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
@@ -1316,11 +1375,11 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
 
     nom_objet_en_cours = re.sub(r"^\d+\s*-", '', nom_doc).strip()
 
-    #extraction du code objet qui peut être au format X123-4 - Nom ou X456 - Nom
+    # extraction du code objet qui peut être au format X123-4 - Nom ou X456 - Nom
     pattern = r'^[A-Za-z]?\d+\s*-(\s*\d+\s*-)?'
     match = re.search(pattern, nom_doc)
     if match:
-        #on prend tout le prefixe, sauf le "-" qui est à la fin, et on strip
+        # on prend tout le prefixe, sauf le "-" qui est à la fin, et on strip
         code_objet = match[0][:-1].strip()
     else:
         print(f"debug : pas de match de code objet pour l'objet {nom_doc}")
@@ -1432,7 +1491,7 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
         logging.info('id faction était None')
         return -1
 
-    #on commence par effacer les factions existantes pour éviter les doublons
+    # on commence par effacer les factions existantes pour éviter les doublons
     factions = mon_gn.factions.values()
     for faction in factions:
         faction.personnages.clear()
