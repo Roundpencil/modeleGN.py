@@ -109,6 +109,23 @@ class ConteneurDeScene:
         # print(f"intrigue effacée {self.nom}")
         self.error_log.clear()
 
+    # def effacer_roles_issus_de_factions(self):
+    #     roles_a_effacer = [role for role in self.rolesContenus.values() if role.issu_dune_faction]
+    #     for role in roles_a_effacer:
+    #         # print(f"Role à dissocier  : {role.nom} de {role.personnage}")
+    #         if role.personnage is not None:
+    #             debug_asso = [f"{r.nom} : {repr(r)} dans {r.conteneur.nom}" for r in role.personnage.roles]
+    #             print(f"debug : role à retirer = {role.nom} : {repr(role)}, personnage.roles = {debug_asso}")
+    #
+    #             with contextlib.suppress(Exception):
+    #                 role.personnage.roles.remove(role)
+    #             # role.personnage.roles.remove(role)
+    #
+    #             del role
+    # #todo : effacer les scènes, effacer les liens roles-scène, effacer les liens roles-conteneurs
+
+
+
     def get_full_url(self):
         return f"https://docs.google.com/document/d/{self.url}"
 
@@ -527,6 +544,7 @@ class Scene:
         for role in self.roles:
             if role.personnage is None:
                 str_roles_persos += f"{role.nom} (pas de personnage affecté) / "
+                print(f"$$$$$$$$$$$ J'ai trouvé un role sans perso = {role.nom}")
             else:
                 str_roles_persos += f" {role.nom} ({role.personnage.nom}) / "
         to_return += f"roles  : {str_roles_persos[:-2]} \n"
@@ -1098,6 +1116,8 @@ class GN:
             # intrigue.clear_error_log()
             for role in intrigue.rolesContenus.values():
                 role.personnage = None
+            # intrigue.effacer_roles_issus_de_factions()
+
             intrigue.error_log.clear(ErreurManager.ORIGINES.ASSOCIATION_AUTO)
             intrigue.error_log.clear(ErreurManager.ORIGINES.FACTION)
             intrigue.error_log.clear(ErreurManager.ORIGINES.PERSOS_SANS_SCENE)

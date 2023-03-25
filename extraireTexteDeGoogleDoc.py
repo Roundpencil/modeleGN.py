@@ -6,28 +6,38 @@ from enum import Enum
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
 
-
 import lecteurGoogle
 from modeleGN import *
 
 import dateparser
 
 
-def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
+def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
+                       visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
+                       taille_visualisation=100.0):
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_intrigue_de_texte, mon_gn.intrigues,
                                         mon_gn.dossiers_intrigues,
-                                        singletest, verbal=verbal, fast=fast, prefixes="i")
+                                        singletest, verbal=verbal, fast=fast, prefixes="i", m_print=m_print,
+                                        visualisation=visualisation,
+                                        taille_visualisation=taille_visualisation
+                                        )
 
 
-def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
+def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
+                 visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
+                 taille_visualisation=100.0):
     # print(f"je m'apprête à extraire les PJs depuis {gn.dossiers_pjs}")
     return extraire_texte_de_google_doc(
         api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
         singletest,
-        verbal=verbal, fast=fast, prefixes="p")
+        verbal=verbal, fast=fast, prefixes="p", m_print=m_print,
+        visualisation=visualisation,
+        taille_visualisation=taille_visualisation)
 
 
-def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
+def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
+                  visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
+                  taille_visualisation=100.0):
     # print(f"je m'apprête à extraire les PNJs depuis {gn.dossiers_pnjs}")
     if mon_gn.dossiers_pnjs is None or len(mon_gn.dossiers_pnjs) == 0:
         logging.debug("pas de dossier pnj trouvé dans le gn")
@@ -41,10 +51,14 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_pnj_de_texte, mon_gn.dictPNJs,
                                         mon_gn.dossiers_pnjs,
                                         singletest,
-                                        verbal=verbal, fast=fast, prefixes="p")
+                                        verbal=verbal, fast=fast, prefixes="p", m_print=m_print,
+                                        visualisation=visualisation,
+                                        taille_visualisation=taille_visualisation)
 
 
-def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
+def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
+                        visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
+                        taille_visualisation=100.0):
     # print(f"je m'apprete à extraire les évènements depuis {mon_gn.dossiers_evenements}")
     if mon_gn.dossiers_evenements is None or len(mon_gn.dossiers_evenements) == 0:
         logging.debug("pas de dossier évènement trouvé dans le gn")
@@ -52,10 +66,14 @@ def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_evenement_de_texte, mon_gn.evenements,
                                         mon_gn.dossiers_evenements,
                                         singletest,
-                                        verbal=verbal, fast=fast, prefixes="e")
+                                        verbal=verbal, fast=fast, prefixes="e", m_print=m_print,
+                                        visualisation=visualisation,
+                                        taille_visualisation=taille_visualisation)
 
 
-def extraire_objets(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True):
+def extraire_objets(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
+                    visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
+                    taille_visualisation=100.0):
     print(f"je m'apprete à extraire les objets depuis {mon_gn.dossiers_objets}")
     if mon_gn.dossiers_objets is None or len(mon_gn.dossiers_objets) == 0:
         logging.debug("pas de dossier objets trouvé dans le gn")
@@ -63,11 +81,15 @@ def extraire_objets(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=Fal
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_objets_de_texte, mon_gn.objets,
                                         mon_gn.dossiers_objets,
                                         singletest,
-                                        verbal=verbal, fast=fast, prefixes="ao")
+                                        verbal=verbal, fast=fast, prefixes="ao", m_print=m_print,
+                                        visualisation=visualisation,
+                                        taille_visualisation=taille_visualisation)
 
 
 def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_ids: dict, folder_array,
-                                 single_test="-01", verbal=False, fast=True, prefixes=""):
+                                 single_test="-01", verbal=False, fast=True, prefixes="", m_print=print,
+                                 visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
+                                 taille_visualisation=100.0):
     items = lecteurGoogle.generer_liste_items(api_drive=api_drive, nom_fichier=folder_array)
     # print(f"folder = {folder_array}  items = {items}")
 
@@ -82,7 +104,7 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
                 # Retrieve the documents contents from the Docs api_doc.
                 document = api_doc.documents().get(documentId=item['id']).execute()
 
-                print(f"Document en cours de lecture (singletest = {single_test}) : {document.get('title')}")
+                m_print(f"Document en cours de lecture (singletest = {single_test}) : {document.get('title')}")
 
                 # Alors on se demande si c'est le bon doc
                 # if document.get('title')[0:3].strip() != str(single_test):  # numéro de l'intrigue
@@ -91,7 +113,7 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
                 if ref_du_doc(document.get('title'), prefixes=prefixes) != int(single_test):
                     continue
 
-                print(f"j'ai trouvé le doc #{single_test} : {document.get('title')}")
+                m_print(f"j'ai trouvé le doc #{single_test} : {document.get('title')}")
                 # if item['id'] in gn.intrigues.keys():
                 #     gn.intrigues[item['id']].clear()
                 #     del gn.intrigues[item['id']]
@@ -121,12 +143,15 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
 
     else:
         # dans ce cas, on lit tout, jusqu'à ce qu'on tombe sur une entrée qui n'a pas été modifiée
-        for item in items:
+        nb_items = len(items)
+        pas_visualisation = taille_visualisation/nb_items
+        for i, item in enumerate(items, start=1):
             try:
+                visualisation(pas_visualisation)
                 # Retrieve the documents contents from the Docs api_doc.
                 document = api_doc.documents().get(documentId=item['id']).execute()
 
-                print(f"Document en cours de lecture : {document.get('title')}")
+                m_print(f"Document en cours de lecture ({i}/{nb_items}) : {document.get('title')}")
 
                 # print(f"débug : ref du doc = {ref_du_doc(document.get('title'))}")
 
@@ -158,10 +183,11 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
                         item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
 
-                        print(
+                        m_print(
                             f"et il n'a pas changé (dernier changement : "
                             f"{datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')}) "
                             f"depuis le dernier passage ({dict_ids[item['id']].lastProcessing})")
+                        visualisation(pas_visualisation * nb_items-i)
                         # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
                         # si c'était la plus vieille du GN, pas la peine de continuer
 
@@ -356,8 +382,6 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
                                           texte_erreur,
                                           ErreurManager.ORIGINES.SCENE)
-
-
 
     header_to_index = {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
 
@@ -688,7 +712,7 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, table
         scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
         scene_a_ajouter.modifie_par = conteneur.modifie_par
         # print("titre de la scène ajoutée : " + scene_a_ajouter.titre)
-
+        # print(f"Pour sandrine : extraction des balises pour l'intrigue {conteneur.nom}")
         balises = re.findall(r'##.*', scene)
         for balise in balises:
             # print("balise : " + balise)
@@ -862,6 +886,7 @@ def extraire_date_scene(balise_date, scene_a_ajouter):
 
 def extraire_il_y_a_scene(baliseDate, scene_a_ajouter):
     # print("balise date : " + balise_date)
+    # print(f" pour sandrine : nom_scene avec il y a  : {scene_a_ajouter.titre}")
     # trouver s'il y a un nombre a[ns]
     date_en_jours = calculer_jours_il_y_a(baliseDate)
     # print(f"dans extraire il y a scene : {date_en_jours} avant de mettre à jour")
@@ -1519,11 +1544,13 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
         return -1
 
     # on commence par effacer les factions existantes pour éviter les doublons
-    factions = mon_gn.factions.values()
-    for faction in factions:
-        faction.personnages.clear()
-        del faction
-    mon_gn.factions.clear()
+    # todo : réécrire et débugger
+
+    # factions = mon_gn.factions.values()
+    # for faction in factions:
+    #     faction.personnages.clear()
+    #     del faction
+    # mon_gn.factions.clear()
 
     try:
         document = api_doc.documents().get(documentId=mon_gn.id_factions).execute()
@@ -1611,7 +1638,7 @@ def is_document_being_edited(service, file_id):
         return None
 
 
-def add_doc(service, nom_fichier, parent):
+def add_doc(service, nom_fichier, parent, m_print=print):
     try:
         # create the metadata for the new document
         file_metadata = {
@@ -1622,7 +1649,7 @@ def add_doc(service, nom_fichier, parent):
 
         # create the document
         file = service.files().create(body=file_metadata, fields='id').execute()
-        print(f'File ID pour {nom_fichier}: {file.get("id")}')
+        m_print(f'File ID pour {nom_fichier}: {file.get("id")}')
         return file.get("id")
 
     except HttpError as error:

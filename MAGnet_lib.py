@@ -8,10 +8,11 @@ import extraireTexteDeGoogleDoc
 import lecteurGoogle
 from modeleGN import *
 
-
 # communication :
 
 # bugs
+# todo : réécrire et débugger la suppression des factions qui casse tout.
+#  Dès que je suis en lecture rapide, ca plante
 
 # à tester
 
@@ -28,11 +29,7 @@ from modeleGN import *
 # todo : écrire la fonction d'association depuis fiche
 
 ## évolution GUI et suivi du chargement
-# todo : ajouter un parametre avec une méthode pour permettre d'envoyer des infos à un champ label (print par défaut)
-
 # todo : re-griser les champs quand on n'a pas de GN
-
-# todo : passer sur TTK ♥
 
 # todo : ajouter des frames pour grouper les éléments et facilement masquer / afficher en fonction des options
 
@@ -53,14 +50,18 @@ from modeleGN import *
 
 methode_custom_printing = print
 
+
 def changer_custom_printing(methode_printing):
     methode_custom_printing = methode_printing
+
 
 def print_MAGnet(s: str):
     methode_custom_printing(s)
 
+
 def print_progress(v: float):
     print(f"La génération a progressé de {v}%")
+
 
 def charger_fichier_init(fichier_init: str):
     # init configuration
@@ -96,8 +97,8 @@ def charger_fichier_init(fichier_init: str):
                                               if key.startswith("id_dossier_evenements")]
 
         dict_config['dossiers_objets'] = [config.get("Optionnels", key)
-                                              for key in config.options("Optionnels")
-                                              if key.startswith("id_dossier_objets")]
+                                          for key in config.options("Optionnels")
+                                          if key.startswith("id_dossier_objets")]
 
         dict_config['id_factions'] = config.get('Optionnels', 'id_factions', fallback=None)
 
@@ -161,7 +162,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, fast_pnjs=True, fast_evenements=True,
                          fast_objets=True,
-                         verbal: bool = False, visualisation=print_progress):
+                         verbal: bool = False, visualisation=print_progress, m_print=print):
     visualisation(-100)
     pas_visualisation = 50 / 6.0
 
@@ -169,7 +170,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
 
     if sans_chargement_fichier:
-        print("recréation d'un GN from scratch")
+        m_print("recréation d'un GN from scratch")
         new_gn = GN(
             dossiers_intrigues=mon_gn.dossiers_intrigues,
             dossier_output=mon_gn.dossier_outputs_drive,
@@ -198,46 +199,65 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                                                           api_doc=api_doc,
                                                           singletest=singletest_intrigue,
                                                           fast=fast_intrigues,
-                                                          verbal=verbal)
+                                                          verbal=verbal,
+                                                          m_print=m_print,
+                                                          visualisation=visualisation,
+                                                          taille_visualisation=pas_visualisation)
     retirer_intrigues_supprimees(mon_gn, ids_lus)
-    visualisation(pas_visualisation)
+    # visualisation(pas_visualisation)
+    m_print("****** fin de la lecture des intrigues  *********")
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_pjs(mon_gn,
                                                     api_drive=api_drive,
                                                     api_doc=api_doc,
                                                     singletest=singletest_perso,
                                                     fast=fast_persos,
-                                                    verbal=verbal)
+                                                    verbal=verbal,
+                                                    m_print=m_print,
+                                                    visualisation=visualisation,
+                                                    taille_visualisation=pas_visualisation)
 
     retirer_pjs_supprimees(mon_gn, ids_lus)
-    visualisation(pas_visualisation)
+    # visualisation(pas_visualisation)
+    m_print("****** fin de la lecture des pjs  *********")
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_pnjs(mon_gn,
                                                      api_drive=api_drive,
                                                      api_doc=api_doc,
                                                      singletest=singletest_perso,
                                                      fast=fast_pnjs,
-                                                     verbal=verbal)
+                                                     verbal=verbal,
+                                                     m_print=m_print,
+                                                     visualisation=visualisation,
+                                                     taille_visualisation=pas_visualisation)
 
     retirer_pnjs_supprimes(mon_gn, ids_lus)
-    visualisation(pas_visualisation)
+    # visualisation(pas_visualisation)
+    m_print("****** fin de la lecture des pnjs *********")
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_evenements(mon_gn,
                                                            api_drive=api_drive,
                                                            api_doc=api_doc,
-                                                           fast=fast_evenements
+                                                           fast=fast_evenements,
+                                                           m_print=m_print,
+                                                           visualisation=visualisation,
+                                                           taille_visualisation=pas_visualisation
                                                            )
 
     retirer_evenements_supprimes(mon_gn, ids_lus)
-    visualisation(pas_visualisation)
+    # visualisation(pas_visualisation)
+    m_print("****** fin de la lecture des évènements *********")
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_objets(mon_gn,
-                                                           api_drive=api_drive,
-                                                           api_doc=api_doc,
-                                                           fast=fast_objets
-                                                           )
+                                                       api_drive=api_drive,
+                                                       api_doc=api_doc,
+                                                       fast=fast_objets,
+                                                       m_print=m_print,
+                                                       visualisation=visualisation,
+                                                       taille_visualisation=pas_visualisation
+                                                       )
     retirer_objets_supprimes(mon_gn, ids_lus)
-    visualisation(pas_visualisation)
+    # visualisation(pas_visualisation)
 
     liste_orgas = None
     liste_noms_pnjs = None
@@ -283,67 +303,63 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     # visualisation(25)
 
-
-    print("****** fin de la lecture du drive *********")
+    m_print("****** fin de la lecture du drive *********")
     pas_visualisation = 25.0 / 11.0
-    print("*******************************************")
-    print("*******************************************")
+    m_print("*******************************************")
+    m_print("*******************************************")
     # prefixe_fichiers = str(datetime.date.today())
-    print("* génération du fichier des erreurs intrigues * ")
+    m_print("* génération du fichier des erreurs intrigues * ")
     if fichier_erreurs_intrigues:
         # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
         ecrire_erreurs_intrigues_dans_drive(mon_gn, api_doc, api_drive, mon_gn.dossier_outputs_drive)
 
     visualisation(pas_visualisation)
 
-    print("* génération du fichier des erreurs évènements * ")
+    m_print("* génération du fichier des erreurs évènements * ")
     if fichier_erreurs_evenements:
         # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
         ecrire_erreurs_evenements_dans_drive(mon_gn, api_doc, api_drive, mon_gn.dossier_outputs_drive)
 
     visualisation(pas_visualisation)
 
-    print("******* statut intrigues *******************")
+    m_print("******* statut intrigues *******************")
     if table_intrigues:
         creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive)
 
     visualisation(pas_visualisation)
 
-    print("*******changelog*****************************")
+    m_print("*******changelog*****************************")
     if changelog:
         generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets)
-        # genererChangeLog(gn, prefixe_fichiers, nbJours=3)
-        # genererChangeLog(gn, prefixe_fichiers, nbJours=4)
 
     visualisation(pas_visualisation)
 
-    print("*********touslesquelettes*********************")
+    m_print("*********touslesquelettes*********************")
     if generer_fichiers_pjs:
-        generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=True)
-
-    visualisation(12.5)
+        generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=True,
+                                      m_print=m_print, visualisation=visualisation, taille_visualisation=12.5)
+    else:
+        visualisation(12.5)
 
     if generer_fichiers_pnjs:
-        generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=False)
+        generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=False,
+                                      m_print=m_print, visualisation=visualisation, taille_visualisation=12.5)
+    else:
+        visualisation(12.5)
 
-    visualisation(12.5)
-
-    # ecrire_squelettes_localement(mon_gn, prefixe_fichiers)
-    # ecrire_squelettes_localement(mon_gn, prefixe_fichiers, pj=False)
-
-    print("************* table objets *******************")
+    m_print("************* table objets *******************")
     if table_objets:
         ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
 
-    print("******* table planning ***********************")
+    m_print("******* table planning ***********************")
     if table_chrono:
         ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
 
-    print("************ table persos ********************")
+    m_print("************ table persos ********************")
     if table_persos:
         ecrire_table_persos(mon_gn, api_drive, api_sheets)
     if table_pnjs:
@@ -351,32 +367,32 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     visualisation(pas_visualisation)
 
-    print("******* table commentaires *******************")
+    m_print("******* table commentaires *******************")
     if table_commentaires:
         ecrire_table_commentaires(mon_gn, api_drive, api_doc, api_sheets)
 
     visualisation(pas_visualisation)
 
-    print("********** table relations *******************")
+    m_print("********** table relations *******************")
     if table_relations:
         ecrire_table_relation(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
 
-    print("******* aides de jeu *************************")
+    m_print("******* aides de jeu *************************")
     if aides_de_jeu:
         ecrire_texte_info(mon_gn, api_doc, api_drive)
 
     visualisation(pas_visualisation)
 
-    print("******* table des évènements ******************")
+    m_print("******* table des évènements ******************")
 
     if table_evenements:
         ecrire_table_evenements(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
 
-    print("******* fin de la génération  ****************")
+    m_print("******* fin de la génération  ****************")
 
 
 def retirer_intrigues_supprimees(mon_gn: GN, ids_intrigues_lus: list[str]):
@@ -393,6 +409,7 @@ def retirer_pnjs_supprimes(mon_gn: GN, ids_pnjs_lus: list[str]):
 
 def retirer_evenements_supprimes(mon_gn: GN, ids_evenements_lus: list[str]):
     retirer_elements_supprimes(ids_evenements_lus, mon_gn.evenements)
+
 
 def retirer_objets_supprimes(mon_gn: GN, ids_objets_lus: list[str]):
     retirer_elements_supprimes(ids_objets_lus, mon_gn.objets)
@@ -646,13 +663,15 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_intrigues, mon_id)
 
 
-def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True):
+def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_print=print,
+                                  visualisation=print_progress, taille_visualisation=100.0):
     parent = mon_gn.dossier_outputs_drive
     pj_pnj = "PJ" if pj else "PNJ"
     nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes {pj_pnj}'
     nouveau_dossier = extraireTexteDeGoogleDoc.creer_dossier(api_drive, parent, nom_dossier)
-    d = squelettes_par_perso(mon_gn, pj=pj)
+    d = squelettes_par_perso(mon_gn, pj=pj, m_print=m_print)
     nb_persos_source = len(d)
+    pas_visualisation = taille_visualisation / nb_persos_source
     for index, nom_perso in enumerate(d, start=1):
         prefixe = (f"écriture des fichiers des {pj_pnj} dans drive ({index}/{nb_persos_source})")
 
@@ -663,13 +682,15 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True):
         # extraireTexteDeGoogleDoc.inserer_squelettes_dans_drive(nouveau_dossier, api_doc, api_drive, texte, nom_fichier,
         #                                                        prefixe)
 
-        print(f'{prefixe}', end=" - ")
+        m_print(f'{prefixe} : {nom_perso}')
+        visualisation(pas_visualisation)
+
         file_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, nouveau_dossier)
         extraireTexteDeGoogleDoc.write_to_doc(api_doc, file_id, texte, titre=nom_fichier)
         extraireTexteDeGoogleDoc.formatter_titres_scenes_dans_squelettes(api_doc, file_id)
 
 
-def squelettes_par_perso(mon_gn: GN, pj=True):
+def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
     squelettes_persos = {}
     if pj:
         liste_persos_source = mon_gn.dictPJs.values()
@@ -681,8 +702,8 @@ def squelettes_par_perso(mon_gn: GN, pj=True):
     nb_persos_source = len(liste_persos_source)
     pj_pnj = "pjs" if pj else "pnjs"
     for index, perso in enumerate(liste_persos_source, start=1):
-        print(f"génération des fichiers des {pj_pnj} ({index}/{nb_persos_source})"
-              f": personnage en cours d'écriture : {perso.nom}")
+        m_print(f"génération des fichiers des {pj_pnj} ({index}/{nb_persos_source})"
+                f": personnage en cours de synthèse : {perso.nom}")
 
         # ajout des informations issues des fiches :
         texte_perso = ""
@@ -885,7 +906,7 @@ def generer_table_objets_from_intrigues(mon_gn):
                   'fiche objet trouvée?']]
     for objet_ref in mon_gn.objets.values():
         ma_liste = [objet for objet in objet_ref.objets_dans_intrigues if objet.intrigue is not None]
-        for objet in ma_liste :
+        for objet in ma_liste:
             code = objet.code.replace('\n', '\v')
             description = objet.description.replace('\n', '\v')
             avecfx = objet.avec_fx()
@@ -1568,7 +1589,6 @@ def mettre_a_jour_champs(gn: GN):
                     objet.intrigue = list(objet.inIntrigues)[0]
                 delattr(objet, 'inIntrigues')
 
-
         if not hasattr(intrigue, 'commentaires'):
             intrigue.commentaires = []
         if not hasattr(intrigue, 'codes_evenements_raw'):
@@ -1644,11 +1664,9 @@ def mettre_a_jour_champs(gn: GN):
             personnage.groupes.extend(personnage.factions)
             delattr(personnage, 'factions')
 
-
     for objet_de_reference in gn.objets.values():
         if not hasattr(objet_de_reference, 'ajoute_via_forcage'):
             objet_de_reference.ajoute_via_forcage = True
 
         if not hasattr(objet_de_reference, 'objets_dans_evenements'):
             objet_de_reference.objets_dans_evenements = set()
-
