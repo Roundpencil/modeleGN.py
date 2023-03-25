@@ -482,7 +482,9 @@ class Scene:
         return self.date
 
     def effacer_roles_issus_de_factions(self):
-        qdfhzslfekhzse
+        roles_a_effacer = [r for r in self.roles if r.issu_dune_faction]
+        for role in roles_a_effacer:
+            self.roles.remove(role)
 
     def get_liste_noms_roles(self):
         return [r.nom for r in self.roles]
