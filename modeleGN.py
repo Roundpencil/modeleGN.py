@@ -191,6 +191,17 @@ class Personnage(ConteneurDeScene):
             role.personnage = None
         self.roles.clear()
 
+    def clear_roles(self, y_compris_from_factions=True):
+        if y_compris_from_factions:
+            self.roles.clear()
+            return
+        to_clear = [role for role in self.roles if not role.issu_dune_faction]
+        for role in to_clear:
+            self.roles.remove(role)
+        print(f"debug : apres avoir retiré les roles non issus de factions, mes roles contenaient : "
+              f"{[r.nom for r in self.roles]}")
+
+
     def ajouter_role(self, r):
         self.roles.add(r)
 
@@ -470,6 +481,12 @@ class Scene:
     def get_date(self):
         return self.date
 
+    def effacer_roles_issus_de_factions(self):
+        qdfhzslfekhzse
+
+    def get_liste_noms_roles(self):
+        return [r.nom for r in self.roles]
+
     def get_formatted_date(self, date_gn=None, jours_semaine=False):
         # print(f"debut du débug affichage dates pour la scène {self.titre}, clef de tri = {self.clef_tri(date_gn)}")
         # print(f"date relative = {self.date}")
@@ -544,7 +561,8 @@ class Scene:
         for role in self.roles:
             if role.personnage is None:
                 str_roles_persos += f"{role.nom} (pas de personnage affecté) / "
-                print(f"$$$$$$$$$$$ J'ai trouvé un role sans perso = {role.nom}")
+                print(f"$$$$$$$$$$$ J'ai trouvé un role sans perso = {role.nom} "
+                      f"est_il est factionneux ? {role.issu_dune_faction}")
             else:
                 str_roles_persos += f" {role.nom} ({role.personnage.nom}) / "
         to_return += f"roles  : {str_roles_persos[:-2]} \n"
@@ -1038,7 +1056,7 @@ class GN:
     # lire les factions dans toutes les scènes
     # normaliser leurs noms pour etre sur de lire la bonne
     # pour chaque nom de la faction chercher si le role est dans la scène
-    # si oui (indice de confiance suffisant) > ajouter la scène au role
+    # si oui (indice de confiance suffisant) > ne rien faire
     # si non > ajouter un nouveau role avec une propriété issu_dune_faction= true
     def ajouter_roles_issus_de_factions(self, seuil_nom_faction=85, seuil_reconciliation_role=80, verbal: bool = False):
         # lire toutes les scènes pours trouver les factions
@@ -1065,35 +1083,31 @@ class GN:
                         if verbal:
                             print(f"personnage_dans_faction, intrigue.rolesContenus.keys() ="
                                   f" {personnage_dans_faction.nom}, {intrigue.rolesContenus.keys()}")
-                        score_role = process.extractOne(personnage_dans_faction.nom, intrigue.rolesContenus.keys())
-                        if score_role[1] < seuil_reconciliation_role:
-                            texte_info = f"{personnage_dans_faction.nom} " \
-                                         f"a été ajouté via la faction {nom_faction} " \
-                                         f"pour la scène {scene.titre} \n"
-                            intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.INFO,
-                                                              texte_info,
-                                                              ErreurManager.ORIGINES.FACTION
-                                                              )
-                            if verbal:
-                                print(f"intrigue : {intrigue.nom} :  {texte_info}, score = {score_role}")
-                            # ajouter un nouveau role dans l'intrigue avec personnage_dans_faction = true
-                            role_a_ajouter = Role(intrigue,
-                                                  nom=personnage_dans_faction.nom,
-                                                  description=f"Role ajouté via la faction {nom_faction}",
-                                                  issu_dune_faction=True,
-                                                  personnage=personnage_dans_faction
-                                                  )
-                            intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
-                            personnage_dans_faction.roles.add(role_a_ajouter)  # mieux?
-                        else:
-                            # ajouter la scène au role
-                            role_a_ajouter = intrigue.rolesContenus[score_role[0]]
-                            if verbal:
-                                print(
-                                    f"intrigue : {intrigue.nom} : le personnage {personnage_dans_faction.nom} a été identifié et ajouté, "
-                                    f"score = {score_role}")
+                        noms_roles_dans_scene = scene.get_liste_noms_roles
+                        score_role = process.extractOne(personnage_dans_faction.nom, noms_roles_dans_scene)
+                        if score_role[1] >= seuil_reconciliation_role:
+                            #dans ce cas, le role est déjà présent dans la scène, ne rien faire
+                            continue
 
-                        # à ce stade on a identifié le bon role
+                        #du coup on est dans le cas ou on n'a pas trouvé le rôle :
+                        # il faut ajouter un nouveau role, issu d'une faction
+                        texte_info = f"{personnage_dans_faction.nom} " \
+                                     f"a été ajouté via la faction {nom_faction} " \
+                                     f"pour la scène {scene.titre} \n"
+                        intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.INFO,
+                                                          texte_info,
+                                                          ErreurManager.ORIGINES.FACTION
+                                                          )
+
+                        # ajouter un nouveau role dans l'intrigue avec personnage_dans_faction = true
+                        # et réaliser l'association
+                        role_a_ajouter = Role(intrigue,
+                                              nom=personnage_dans_faction.nom,
+                                              description=f"Role ajouté via la faction {nom_faction}",
+                                              issu_dune_faction=True,
+                                              personnage=personnage_dans_faction
+                                              )
+                        personnage_dans_faction.roles.add(role_a_ajouter)
 
                         # l'ajouter à la scène
                         role_a_ajouter.ajouter_a_scene(scene)
@@ -1103,19 +1117,25 @@ class GN:
     # nettoie aussi toutes les erreurs qui peuvent apparaitre durant l'association,
     # pour que celles qui restent soient celles d'actualité
     def clear_all_associations(self):
-        # for pj in self.dictPJs.values():
-        #     pj.roles.clear()
-        # for pnj in self.dictPNJs.values():
-        #     pnj.roles.clear()
-        for perso in list(self.dictPJs.values()) + list(self.dictPNJs.values()):
-            perso.roles.clear()
+        #nettoyer les factions
+
+        # oter les persos issus de fation de toutes les scènes
+        toutes_scene = self.lister_toutes_les_scenes()
+        for scene in toutes_scene:
+            scene.effacer_roles_issus_de_factions()
+        # todo : casser les assocaitions entre les personnages et les roles issus de faction
+
+        for perso in self.lister_tous_les_persos():
+            perso.clear_roles(y_compris_from_factions=False)
+            # perso.roles.clear()
             perso.error_log.clear(ErreurManager.ORIGINES.ASSOCIATION_AUTO)
             perso.error_log.clear(ErreurManager.ORIGINES.FACTION)
 
         for intrigue in self.intrigues.values():
             # intrigue.clear_error_log()
             for role in intrigue.rolesContenus.values():
-                role.personnage = None
+                if not role.issu_dune_faction:
+                    role.personnage = None
             # intrigue.effacer_roles_issus_de_factions()
 
             intrigue.error_log.clear(ErreurManager.ORIGINES.ASSOCIATION_AUTO)
@@ -1185,6 +1205,9 @@ class GN:
                                                              forced=True, orga_referent=orga_referent)
                     # on met son nom en clef pour se souvenir qu'il a été généré
 
+    def lister_tous_les_persos(self):
+        return list(self.dictPJs.values()) + list(self.dictPNJs.values())
+
 
 # objets
 
@@ -1196,10 +1219,6 @@ class Objet:
         self.specialEffect = special_effect
         self.code = code
         self.inIntrigues = set()  # ne pas utiliser, ici pour des besoins de rétro-compatibilité
-        # todo : remplacer par un one to one : l'association n'est pas faite ici (cf. ci-dessous)
-        #  créer une fonction dans objet de référence qui lit tout
-        #  mettre à jour la fonction de nettoyage
-
         self.intrigue = None
         # self.objet_de_reference=None
 

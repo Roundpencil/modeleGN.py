@@ -166,6 +166,9 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     visualisation(-100)
     pas_visualisation = 50 / 6.0
 
+    #todo : retire cette ligne une fois qu'on sera bon sur a compréhension de ce qui ne marche pas avec la barre de progression :)
+    m_print = print
+
     if api_doc is None or api_sheets is None or api_drive is None:
         api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
 
@@ -296,10 +299,14 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     visualisation(pas_visualisation)
 
+
     mon_gn.rebuild_links(verbal)
 
     if sauver_apres_operation:
         mon_gn.save(nom_fichier_sauvegarde)
+
+    #todo : virer cette partie (return) apres debug
+    return
 
     # visualisation(25)
 
