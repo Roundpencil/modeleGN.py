@@ -26,11 +26,6 @@ from modeleGN import *
 
 # todo : écrire la fonction d'association depuis fiche
 
-## évolution GUI et suivi du chargement
-# todo : re-griser les champs quand on n'a pas de GN
-
-# todo : ajouter des frames pour grouper les éléments et facilement masquer / afficher en fonction des options
-
 # confort / logique
 # todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos
 #  faire la meme chose avec les PNJs
