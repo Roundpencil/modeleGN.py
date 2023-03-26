@@ -11,8 +11,6 @@ from modeleGN import *
 # communication :
 
 # bugs
-# todo : réécrire et débugger la suppression des factions qui casse tout.
-#  Dès que je suis en lecture rapide, ca plante
 
 # à tester
 
