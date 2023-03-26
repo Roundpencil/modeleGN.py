@@ -396,6 +396,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     visualisation(pas_visualisation)
 
     m_print("******* fin de la génération  ****************\n\n\n\n")
+    visualisation(1000)
 
 
 def retirer_intrigues_supprimees(mon_gn: GN, ids_intrigues_lus: list[str]):

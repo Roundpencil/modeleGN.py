@@ -25,12 +25,12 @@ class Application(tk.Frame):
 
         # reprise de l'ancien code de regen
         regen_window = self.master
-        regen_window.geometry("675x720")  # chaque nouvelle ligne fait +25 de hauteur
+        regen_window.geometry("675x510") # chaque nouvelle ligne fait +25 de hauteur
 
         # ajouter le bouton et le label ini a la première ligne
         # ajout d'un labelframe pour le fichier ini
         ini_labelframe = ttk.Labelframe(regen_window, text="Sélection du GN à lire", width=700)
-        ini_labelframe.grid(row=0, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
+        ini_labelframe.grid(row=5, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
 
         self.config_button = ttk.Button(ini_labelframe, text="Changer fichier de configuration",
                                         command=self.change_config_file)
@@ -43,7 +43,7 @@ class Application(tk.Frame):
 
         # ajout d'un labelframe pour les fonctions du mode diagnostic
         diagnostic_labelframe = ttk.Labelframe(regen_window, text="Outils diagnostic", width=700)
-        diagnostic_labelframe.grid(row=50, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
+        # diagnostic_labelframe.grid(row=50, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
 
         lecture_label = ttk.Label(diagnostic_labelframe, text="Options de lecture")
         lecture_label.grid(row=50, column=0, columnspan=3)
@@ -104,7 +104,7 @@ class Application(tk.Frame):
 
         repartir_de_0_var = tk.BooleanVar()
         repartir_de_0_var.set(False)
-        charger_fichier_check = ttk.Checkbutton(diagnostic_labelframe, text="Repartir de 0",
+        charger_fichier_check = ttk.Checkbutton(diagnostic_labelframe, text="Tout effacer",
                                                 variable=repartir_de_0_var)
         charger_fichier_check.grid(row=104, column=0, pady=(0, 10))
 
@@ -113,6 +113,25 @@ class Application(tk.Frame):
         sauver_apres_operation_check = ttk.Checkbutton(diagnostic_labelframe, text="Sauver après opération",
                                                        variable=sauver_apres_operation_var)
         sauver_apres_operation_check.grid(row=104, column=1, pady=(0, 10))
+
+        # ajouter un bouton pour afficher ou pas les options du mode diagnostic au dessus
+        switch_diag_var = tk.BooleanVar()
+        def gerer_frame_diag():
+            if switch_diag_var.get():
+                # Show the diagnostic_labelframe
+                diagnostic_labelframe.grid(row=50, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
+                regen_window.geometry("675x735")
+            else:
+                # Hide the diagnostic_labelframe
+                diagnostic_labelframe.grid_forget()
+                regen_window.geometry("675x510")
+
+        switch_diag_var = tk.BooleanVar()
+        switch_diag_var.set(False)
+        switch_diag = ttk.Checkbutton(regen_window, text="Afficher outils diagnostic",
+                                      variable=switch_diag_var, onvalue=1, style="Switch",
+                                      command=gerer_frame_diag)
+        switch_diag.grid(row=0, column=0, padx=(10, 0))
 
         # début de la zone génération
         generer_labelframe = ttk.Labelframe(regen_window, text="Options de génération", width=700)
@@ -254,6 +273,8 @@ class Application(tk.Frame):
                   f"j'ai reçu une demande de l'augmenter de {evolution} ")
             if evolution == -100:
                 progress['value'] = 0
+            elif evolution == 1000:
+                progress['value'] = 100
             else:
                 progress['value'] += evolution
 
