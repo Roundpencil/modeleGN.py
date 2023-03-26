@@ -191,14 +191,18 @@ class Personnage(ConteneurDeScene):
             role.personnage = None
         self.roles.clear()
 
-    def clear_roles(self, y_compris_from_factions=True):
-        if y_compris_from_factions:
-            self.roles.clear()
-            return
+    def clear_roles_hors_factions(self):
         to_clear = [role for role in self.roles if not role.issu_dune_faction]
         for role in to_clear:
             self.roles.remove(role)
         print(f"debug : apres avoir retiré les roles non issus de factions, mes roles contenaient : "
+              f"{[r.nom for r in self.roles]}")
+
+    def clear_roles_issus_de_factions(self):
+        to_clear = [role for role in self.roles if role.issu_dune_faction]
+        for role in to_clear:
+            self.roles.remove(role)
+        print(f"debug : apres avoir retiré les roles issus de factions, mes roles contenaient : "
               f"{[r.nom for r in self.roles]}")
 
 
@@ -1121,14 +1125,21 @@ class GN:
     def clear_all_associations(self):
         #nettoyer les factions
 
+        #casser toutes les associations entre les persos issus de factions et leurs personnages
+        tous_les_roles = self.lister_tous_les_roles()
+        for role in tous_les_roles:
+            if role.issu_dune_faction and role.personnage is not None:
+                role.personnage.roles.remove(role)
+                role.personnage = None
+
         # oter les persos issus de fation de toutes les scènes
         toutes_scene = self.lister_toutes_les_scenes()
         for scene in toutes_scene:
             scene.effacer_roles_issus_de_factions()
-        # todo : casser les assocaitions entre les personnages et les roles issus de faction
+
 
         for perso in self.lister_tous_les_persos():
-            perso.clear_roles(y_compris_from_factions=False)
+            perso.clear_roles_hors_factions()
             # perso.roles.clear()
             perso.error_log.clear(ErreurManager.ORIGINES.ASSOCIATION_AUTO)
             perso.error_log.clear(ErreurManager.ORIGINES.FACTION)
@@ -1209,6 +1220,12 @@ class GN:
 
     def lister_tous_les_persos(self):
         return list(self.dictPJs.values()) + list(self.dictPNJs.values())
+
+    def lister_tous_les_roles(self):
+        tous_les_roles = []
+        for scene in self.lister_toutes_les_scenes():
+            tous_les_roles.extend(scene.roles)
+        return tous_les_roles
 
 
 # objets

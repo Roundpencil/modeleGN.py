@@ -305,9 +305,6 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     if sauver_apres_operation:
         mon_gn.save(nom_fichier_sauvegarde)
 
-    #todo : virer cette partie (return) apres debug
-    return
-
     # visualisation(25)
 
     m_print("****** fin de la lecture du drive *********")
