@@ -46,7 +46,7 @@ class Application(tk.Frame):
         lecture_label = ttk.Label(diagnostic_labelframe, text="Options de lecture")
         lecture_label.grid(row=50, column=0, columnspan=3)
 
-        forcer_update_gn_button = ttk.Button(diagnostic_labelframe, text="adapter le GN aux \n dernières maj de Magnet",
+        forcer_update_gn_button = ttk.Button(diagnostic_labelframe, text="Vérifier le modèle \nde la sauvegarde",
                                              command=lambda: mettre_a_jour_champs(self.gn))
         forcer_update_gn_button.grid(row=50, column=3, rowspan=2, columnspan=2,
                                      sticky="ne")  # , sticky="nsew"
@@ -135,7 +135,7 @@ class Application(tk.Frame):
                                           variable=switch_diag_var, onvalue=1, style="Switch",
                                           command=gerer_frame_diag)
 
-        switch_diag.grid(row=0, column=0, padx=(10, 0))
+        switch_diag.grid(row=999, column=0, padx=(10, 0))
 
         # début de la zone génération
         generer_labelframe = ttk.Labelframe(regen_window, text="Options de génération", width=700)
@@ -610,7 +610,7 @@ class Application(tk.Frame):
                                                    command=lambda: print("Générer table des PNJs localement"))
         generer_table_pnj_local_button.grid(row=22, column=0, sticky="nsew")
 
-        forcer_update_gn_button = tk.Button(diagnostic_window, text="adapter le GN aux dernières maj de Magnet",
+        forcer_update_gn_button = tk.Button(diagnostic_window, text="Vérifier le modèle",
                                             command=lambda: mettre_a_jour_champs(self.gn))
         forcer_update_gn_button.grid(row=23, column=0, sticky="nsew")
 

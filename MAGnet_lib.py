@@ -953,7 +953,7 @@ def generer_table_objets_uniques(mon_gn):
         liste_noms_evenements = [o.evenement.nom_evenement for o in objet_ref.objets_dans_evenements if o.evenement is not None]
         evenements = '\n'.join(liste_noms_evenements)
         fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
-        to_return.append([f"{code}",
+        to_return.append([f"{code if len(code) > 1 else 'Pas de code'}",
                           f"{objet_ref.nom_objet}",
                           f"{intrigues}",
                           f"{evenements}",
