@@ -15,10 +15,7 @@ from modeleGN import *
 # à tester
 
 # à faire - rapide
-#todo : reprendre la focntion de lecture des tableaux pour améliorer la lecture des ttables évènements (fiches)
-
-### Objets
-# todo : renommer l'onglet du tableau actuel "lus dans les intrigues" et ajouter un onglet "d'apres les fiches objets"
+# todo : reprendre la focntion de lecture des tableaux pour améliorer la lecture des ttables évènements (fiches)
 
 # à faire - plus long
 
@@ -290,11 +287,6 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     logging.debug("factions lues")
 
     visualisation(pas_visualisation)
-
-
-    #todo : supprimer cette sauvegarde une fois les modifs faites
-    if sauver_apres_operation:
-        mon_gn.save(nom_fichier_sauvegarde)
 
     mon_gn.rebuild_links(verbal)
 
@@ -902,7 +894,7 @@ def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
         config.write(configfile)
 
 
-def generer_table_objets_from_intrigues(mon_gn):
+def generer_table_objets_from_intrigues_et_evenements(mon_gn):
     to_return = [['code', 'description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'Intrigues', 'Evènements',
                   'fiche objet trouvée?']]
     for objet_ref in mon_gn.objets.values():
@@ -952,14 +944,35 @@ def generer_table_objets_from_intrigues(mon_gn):
     return to_return
 
 
+def generer_table_objets_uniques(mon_gn):
+    to_return = [['Code', 'Nom', 'Intrigues', 'Evènements', 'fiche objet trouvée?']]
+    for objet_ref in mon_gn.objets.values():
+        code = objet_ref.code_objet.replace('\n', '\v')
+        liste_noms_intrigues = [o.intrigue.nom for o in objet_ref.objets_dans_intrigues if o.intrigue is not None]
+        intrigues = '\n'.join(liste_noms_intrigues)
+        liste_noms_evenements = [o.evenement.nom_evenement for o in objet_ref.objets_dans_evenements if o.evenement is not None]
+        evenements = '\n'.join(liste_noms_evenements)
+        fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
+        to_return.append([f"{code}",
+                          f"{objet_ref.nom_objet}",
+                          f"{intrigues}",
+                          f"{evenements}",
+                          f"{fiche_objet}"]
+                         )
+
+    return to_return
+
+
 def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.dossier_outputs_drive
-    table = generer_table_objets_from_intrigues(mon_gn)
+    table_detaillee = generer_table_objets_from_intrigues_et_evenements(mon_gn)
+    table_condensee = generer_table_objets_uniques(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Table des objets'
     mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, mon_id)
-
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_detaillee, mon_id, "lus dans les fiches")
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_condensee, mon_id, "objets uniques")
+    extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, mon_id)
 
 def generer_table_chrono_condensee_raw(gn: GN):
     # pour chaque personnage, construire un tableau contenant, dans l'ordre chronologique,
