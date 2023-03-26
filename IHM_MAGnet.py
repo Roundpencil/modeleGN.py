@@ -25,7 +25,7 @@ class Application(tk.Frame):
 
         # reprise de l'ancien code de regen
         regen_window = self.master
-        regen_window.geometry("715x560")  # chaque nouvelle ligne fait +25 de hauteur
+        regen_window.geometry("675x720")  # chaque nouvelle ligne fait +25 de hauteur
 
         # ajouter le bouton et le label ini a la première ligne
         # ajout d'un labelframe pour le fichier ini
@@ -33,7 +33,7 @@ class Application(tk.Frame):
         ini_labelframe.grid(row=0, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
 
         self.config_button = ttk.Button(ini_labelframe, text="Changer fichier de configuration",
-                                       command=self.change_config_file)
+                                        command=self.change_config_file)
         self.config_button.grid(row=0, column=0, pady=(10, 10), padx=(10, 10))
 
         # Create the label
@@ -41,17 +41,17 @@ class Application(tk.Frame):
         self.current_file_label.grid(row=0, column=1, columnspan=3, sticky='w')
         self.lire_fichier_config()
 
-
         # ajout d'un labelframe pour les focntion du mode diagnostic
         diagnostic_labelframe = ttk.Labelframe(regen_window, text="Outils diagnostic", width=700)
-        diagnostic_labelframe.grid(row=50, column=0, columnspan=4, sticky="nsew", padx=(10, 0))
+        diagnostic_labelframe.grid(row=50, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
 
         lecture_label = ttk.Label(diagnostic_labelframe, text="Options de lecture")
         lecture_label.grid(row=50, column=0, columnspan=3)
 
         forcer_update_gn_button = ttk.Button(diagnostic_labelframe, text="adapter le GN aux \n dernières maj de Magnet",
-                                            command=lambda: mettre_a_jour_champs(self.gn))
-        forcer_update_gn_button.grid(row=50, column=3, rowspan=2, columnspan=2, padx=(150, 10), sticky="ne")  # , sticky="nsew"
+                                             command=lambda: mettre_a_jour_champs(self.gn))
+        forcer_update_gn_button.grid(row=50, column=3, rowspan=2, columnspan=2, padx=(150, 10),
+                                     sticky="ne")  # , sticky="nsew"
 
         # Intrigues
         var_fast_intrigue = tk.BooleanVar(value=True)
@@ -62,49 +62,62 @@ class Application(tk.Frame):
 
         # Intrigue Line
         ttk.Label(diagnostic_labelframe, text="Intrigue").grid(row=51, column=0)
-        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_intrigue, value=True).grid(row=51, column=1)
-        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_intrigue, value=False).grid(row=51, column=2)
+        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_intrigue, value=True).grid(row=51,
+                                                                                                           column=1)
+        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_intrigue, value=False).grid(row=51,
+                                                                                                             column=2)
 
         # Fiches PJs Line
         ttk.Label(diagnostic_labelframe, text="Fiches PJs").grid(row=52, column=0)
-        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_fiches_pjs, value=True).grid(row=52, column=1)
-        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_fiches_pjs, value=False).grid(row=52, column=2)
+        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_fiches_pjs, value=True).grid(row=52,
+                                                                                                             column=1)
+        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_fiches_pjs, value=False).grid(row=52,
+                                                                                                               column=2)
 
         # Fiches PNJs Line
         ttk.Label(diagnostic_labelframe, text="Fiches PNJs").grid(row=53, column=0)
-        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_fiches_pnjs, value=True).grid(row=53, column=1)
-        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_fiches_pnjs, value=False).grid(row=53, column=2)
+        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_fiches_pnjs, value=True).grid(row=53,
+                                                                                                              column=1)
+        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_fiches_pnjs, value=False).grid(row=53,
+                                                                                                                column=2)
 
         # Evenements Line
         ttk.Label(diagnostic_labelframe, text="Evenements").grid(row=54, column=0)
-        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_evenements, value=True).grid(row=54, column=1)
-        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_evenements, value=False).grid(row=54, column=2)
+        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_evenements, value=True).grid(row=54,
+                                                                                                             column=1)
+        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_evenements, value=False).grid(row=54,
+                                                                                                               column=2)
 
         # Objets Line
         ttk.Label(diagnostic_labelframe, text="Objets").grid(row=55, column=0)
-        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_objets, value=True).grid(row=55, column=1)
-        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_objets, value=False).grid(row=55, column=2)
+        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_objets, value=True).grid(row=55,
+                                                                                                         column=1)
+        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_objets, value=False).grid(row=55,
+                                                                                                           column=2)
 
         repartir_de_0_var = tk.BooleanVar()
         repartir_de_0_var.set(False)
         charger_fichier_check = ttk.Checkbutton(diagnostic_labelframe, text="Repartir de 0",
-                                               variable=repartir_de_0_var)
-        charger_fichier_check.grid(row=104, column=0)
+                                                variable=repartir_de_0_var)
+        charger_fichier_check.grid(row=104, column=0, pady=(0, 10))
 
         sauver_apres_operation_var = tk.BooleanVar()
         sauver_apres_operation_var.set(True)
         sauver_apres_operation_check = ttk.Checkbutton(diagnostic_labelframe, text="Sauver après opération",
-                                                      variable=sauver_apres_operation_var)
-        sauver_apres_operation_check.grid(row=104, column=1)
+                                                       variable=sauver_apres_operation_var)
+        sauver_apres_operation_check.grid(row=104, column=1, pady=(0, 10))
 
-        #début de la zone génération
-        generer_label = ttk.Label(regen_window, text="Générer...")
+        # début de la zone génération
+        generer_labelframe = ttk.Labelframe(regen_window, text="Options de génération", width=700)
+        generer_labelframe.grid(row=100, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
+
+        generer_label = ttk.Label(generer_labelframe, text="Générer...")
         generer_label.grid(row=105, column=0, columnspan=2)
 
         master_state = tk.BooleanVar()
         master_state.set(True)
-        master_checkbox = ttk.Checkbutton(regen_window, text="cocher / décocher tout", variable=master_state,
-                                         command=lambda: update_checkboxes(master_state))
+        master_checkbox = ttk.Checkbutton(generer_labelframe, text="cocher / décocher tout", variable=master_state,
+                                          command=lambda: update_checkboxes(master_state))
         master_checkbox.grid(sticky="W", row=105, column=2)
 
         def update_checkboxes(etat_a_forcer):
@@ -130,103 +143,106 @@ class Application(tk.Frame):
 
         generer_fichiers_pj_var = tk.BooleanVar()
         generer_fichiers_pj_var.set(True)
-        generer_fichiers_drive_check = ttk.Checkbutton(regen_window, text="Squelettes PJs",
-                                                      variable=generer_fichiers_pj_var)
+        generer_fichiers_drive_check = ttk.Checkbutton(generer_labelframe, text="Squelettes PJs",
+                                                       variable=generer_fichiers_pj_var)
         generer_fichiers_drive_check.grid(sticky="W", row=106, column=0)
 
         generer_fichiers_pnjs_var = tk.BooleanVar()
         generer_fichiers_pnjs_var.set(True)
-        generer_fichiers_pnjs_check = ttk.Checkbutton(regen_window, text="Squelettes PNJs",
-                                                     variable=generer_fichiers_pnjs_var)
+        generer_fichiers_pnjs_check = ttk.Checkbutton(generer_labelframe, text="Squelettes PNJs",
+                                                      variable=generer_fichiers_pnjs_var)
         generer_fichiers_pnjs_check.grid(sticky="W", row=106, column=1)
 
         fichier_erreurs_intrigues_var = tk.BooleanVar()
         fichier_erreurs_intrigues_var.set(True)
-        fichier_erreurs_check = ttk.Checkbutton(regen_window, text="Fichier erreurs intrigues",
-                                               variable=fichier_erreurs_intrigues_var)
+        fichier_erreurs_check = ttk.Checkbutton(generer_labelframe, text="Fichier erreurs intrigues",
+                                                variable=fichier_erreurs_intrigues_var)
         fichier_erreurs_check.grid(sticky="W", row=106, column=2)
 
         changelog_var = tk.BooleanVar()
         changelog_var.set(True)
-        changelog_check = ttk.Checkbutton(regen_window, text="Changelog",
-                                         variable=changelog_var)
+        changelog_check = ttk.Checkbutton(generer_labelframe, text="Changelog",
+                                          variable=changelog_var)
         changelog_check.grid(sticky="W", row=106, column=3)
 
         table_intrigues_var = tk.BooleanVar()
         table_intrigues_var.set(True)
-        table_intrigues_check = ttk.Checkbutton(regen_window, text="Table des intrigues",
-                                               variable=table_intrigues_var)
+        table_intrigues_check = ttk.Checkbutton(generer_labelframe, text="Table des intrigues",
+                                                variable=table_intrigues_var)
         table_intrigues_check.grid(sticky="W", row=107, column=0)
 
         table_objets_var = tk.BooleanVar()
         table_objets_var.set(True)
-        table_objets_check = ttk.Checkbutton(regen_window, text="Table des objets",
-                                            variable=table_objets_var)
+        table_objets_check = ttk.Checkbutton(generer_labelframe, text="Table des objets",
+                                             variable=table_objets_var)
         table_objets_check.grid(sticky="W", row=107, column=1)
 
         table_chrono_var = tk.BooleanVar()
         table_chrono_var.set(True)
-        table_chrono_check = ttk.Checkbutton(regen_window, text="Chronologie des persos",
-                                            variable=table_chrono_var)
+        table_chrono_check = ttk.Checkbutton(generer_labelframe, text="Chronologie des persos",
+                                             variable=table_chrono_var)
         table_chrono_check.grid(sticky="W", row=107, column=2)
 
         table_persos_var = tk.BooleanVar()
         table_persos_var.set(True)
-        table_persos_check = ttk.Checkbutton(regen_window, text="Table des persos",
-                                            variable=table_persos_var)
+        table_persos_check = ttk.Checkbutton(generer_labelframe, text="Table des persos",
+                                             variable=table_persos_var)
         table_persos_check.grid(sticky="W", row=107, column=3)
 
         table_pnjs_var = tk.BooleanVar()
         table_pnjs_var.set(True)
-        table_pnjs_check = ttk.Checkbutton(regen_window, text="Table des pnjs",
-                                          variable=table_pnjs_var)
+        table_pnjs_check = ttk.Checkbutton(generer_labelframe, text="Table des pnjs",
+                                           variable=table_pnjs_var)
         table_pnjs_check.grid(sticky="W", row=108, column=0)
 
         aide_de_jeu_var = tk.BooleanVar()
         aide_de_jeu_var.set(True)
-        aide_de_jeu_check = ttk.Checkbutton(regen_window, text="Inputs aides de jeu",
-                                           variable=aide_de_jeu_var)
+        aide_de_jeu_check = ttk.Checkbutton(generer_labelframe, text="Inputs aides de jeu",
+                                            variable=aide_de_jeu_var)
         aide_de_jeu_check.grid(sticky="W", row=108, column=1)
 
         table_commentaires_var = tk.BooleanVar()
         table_commentaires_var.set(True)
-        table_commentaires_check = ttk.Checkbutton(regen_window, text="Extraire les commentaires",
-                                                  variable=table_commentaires_var)
+        table_commentaires_check = ttk.Checkbutton(generer_labelframe, text="Extraire les commentaires",
+                                                   variable=table_commentaires_var)
         table_commentaires_check.grid(sticky="W", row=108, column=2)
 
         table_relations_var = tk.BooleanVar()
         table_relations_var.set(True)
-        table_relations_check = ttk.Checkbutton(regen_window, text="Table des relations",
-                                               variable=table_relations_var)
+        table_relations_check = ttk.Checkbutton(generer_labelframe, text="Table des relations",
+                                                variable=table_relations_var)
         table_relations_check.grid(sticky="W", row=108, column=3)
 
         table_evenements_var = tk.BooleanVar()
         table_evenements_var.set(True)
-        table_evenements_check = ttk.Checkbutton(regen_window, text="Table des évènements",
-                                                variable=table_evenements_var)
+        table_evenements_check = ttk.Checkbutton(generer_labelframe, text="Table des évènements",
+                                                 variable=table_evenements_var)
         table_evenements_check.grid(sticky="W", row=109, column=0)
 
         fichier_erreurs_evenements_var = tk.BooleanVar()
         fichier_erreurs_evenements_var.set(True)
-        fichier_erreurs_evenements_check = ttk.Checkbutton(regen_window, text="Fichier erreurs évènements",
-                                                          variable=fichier_erreurs_evenements_var)
+        fichier_erreurs_evenements_check = ttk.Checkbutton(generer_labelframe, text="Fichier erreurs évènements",
+                                                           variable=fichier_erreurs_evenements_var)
         fichier_erreurs_evenements_check.grid(sticky="W", row=109, column=1)
 
         # Buttons
-        cancel_button = ttk.Button(regen_window, text="Quitter", command=regen_window.destroy)
-        cancel_button.grid(row=200, column=0)
+        cancel_button = ttk.Button(generer_labelframe, text="Quitter", command=regen_window.destroy)
+        cancel_button.grid(row=200, column=0, pady=(0, 10))
 
         verbal_var = tk.BooleanVar()
         verbal_var.set(False)
-        verbal_check = ttk.Checkbutton(regen_window, text='Mode "bavard"',
-                                      variable=verbal_var)
+        verbal_check = ttk.Checkbutton(generer_labelframe, text='Mode "bavard"',
+                                       variable=verbal_var)
         verbal_check.grid(row=200, column=2)
 
         # ajout des méthodes nécessaires pour gérer le thread
-        progress = Progressbar(regen_window, orient='horizontal', length=580, mode='determinate')
+        progression_labelframe = ttk.Labelframe(regen_window, text="Progression de la génération", width=700)
+        progression_labelframe.grid(row=300, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
+
+        progress = Progressbar(progression_labelframe, orient='horizontal', length=580, mode='determinate')
         progress.grid(row=301, column=0, columnspan=4)
 
-        message_label = ttk.Label(regen_window, text="\n\n\n\n\n", anchor="w")
+        message_label = ttk.Label(progression_labelframe, text="\n\n\n\n\n", anchor="w")
         message_label.grid(row=302, column=0, columnspan=4, rowspan=5)
 
         def faire_evoluer_barre(evolution: float):
@@ -286,13 +302,13 @@ class Application(tk.Frame):
                                                       m_print=afficher_message_statut
                                                       )
 
-        ok_button = ttk.Button(regen_window, text="OK",
-                              command=lambda: threading.Thread(target=t_lambda_regen).start()
-                              )
+        ok_button = ttk.Button(generer_labelframe, text="OK",
+                               command=lambda: threading.Thread(target=t_lambda_regen).start()
+                               )
 
-        ok_button.grid(row=200, column=1)
+        ok_button.grid(row=200, column=1, pady=(0, 10))
 
-        lecture_label = ttk.Label(regen_window, text="\n Progression de la régénération... \n")
+        lecture_label = ttk.Label(progression_labelframe, text="\n Progression de la régénération... \n")
         lecture_label.grid(row=300, column=1, columnspan=2)
 
         # # Create the buttons
@@ -1035,13 +1051,13 @@ class Application(tk.Frame):
     #                          table_evenements=table_evenements_var)
 
 
-def main():
-    sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
-    app = tk.Tk()
-    app.title('MAGnet, la moulinette')
-    # app = Application(master=root)
-    app.iconbitmap(r'MAGnet.ico')
-    app.mainloop()
+# def main():
+#     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
+#     app = tk.Tk()
+#     app.title('MAGnet, la moulinette')
+#     # app = Application(master=root)
+#     app.iconbitmap(r'MAGnet.ico')
+#     app.mainloop()
 
 
 if __name__ == '__main__':
