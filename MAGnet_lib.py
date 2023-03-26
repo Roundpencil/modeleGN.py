@@ -164,9 +164,6 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     visualisation(-100)
     pas_visualisation = 50 / 6.0
 
-    #todo : retire cette ligne une fois qu'on sera bon sur a compréhension de ce qui ne marche pas avec la barre de progression :)
-    m_print = print
-
     if api_doc is None or api_sheets is None or api_drive is None:
         api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
 
@@ -398,7 +395,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     visualisation(pas_visualisation)
 
-    m_print("******* fin de la génération  ****************")
+    m_print("******* fin de la génération  ****************\n\n\n\n")
 
 
 def retirer_intrigues_supprimees(mon_gn: GN, ids_intrigues_lus: list[str]):
@@ -679,7 +676,7 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
     nb_persos_source = len(d)
     pas_visualisation = taille_visualisation / nb_persos_source
     for index, nom_perso in enumerate(d, start=1):
-        prefixe = (f"écriture des fichiers des {pj_pnj} dans drive ({index}/{nb_persos_source})")
+        prefixe = (f"Écriture des fichiers des {pj_pnj} dans drive ({index}/{nb_persos_source})")
 
         # créer le fichier et récupérer l'ID
         nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
@@ -708,7 +705,7 @@ def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
     nb_persos_source = len(liste_persos_source)
     pj_pnj = "pjs" if pj else "pnjs"
     for index, perso in enumerate(liste_persos_source, start=1):
-        m_print(f"génération des fichiers des {pj_pnj} ({index}/{nb_persos_source})"
+        m_print(f"Génération des fichiers des {pj_pnj} ({index}/{nb_persos_source})"
                 f": personnage en cours de synthèse : {perso.nom}")
 
         # ajout des informations issues des fiches :

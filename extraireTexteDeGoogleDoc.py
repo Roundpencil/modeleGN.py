@@ -144,7 +144,8 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
     else:
         # dans ce cas, on lit tout, jusqu'à ce qu'on tombe sur une entrée qui n'a pas été modifiée
         nb_items = len(items)
-        pas_visualisation = taille_visualisation/nb_items
+        pas_visualisation = taille_visualisation / nb_items
+        print(f"debug : taille visualisation / pas de visuations : {taille_visualisation} / {pas_visualisation}")
         for i, item in enumerate(items, start=1):
             try:
                 visualisation(pas_visualisation)
@@ -181,13 +182,14 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
                     # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
                     if fast and \
                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
-                        item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
+                            item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
 
                         m_print(
                             f"et il n'a pas changé (dernier changement : "
                             f"{datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')}) "
                             f"depuis le dernier passage ({dict_ids[item['id']].lastProcessing})")
-                        visualisation(pas_visualisation * nb_items-i)
+
+                        visualisation(pas_visualisation * (nb_items - i))
                         # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
                         # si c'était la plus vieille du GN, pas la peine de continuer
 
