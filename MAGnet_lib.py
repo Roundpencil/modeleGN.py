@@ -16,7 +16,6 @@ from modeleGN import *
 
 # à faire - rapide
 #todo : reprendre la focntion de lecture des tableaux pour améliorer la lecture des ttables évènements (fiches)
-#todo : créer un compte google pour MAGnet
 
 ### Objets
 # todo : renommer l'onglet du tableau actuel "lus dans les intrigues" et ajouter un onglet "d'apres les fiches objets"
