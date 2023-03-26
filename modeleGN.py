@@ -92,8 +92,8 @@ class ConteneurDeScene:
         for role in roles_a_effacer:
             # print(f"Role à dissocier  : {role.nom} de {role.personnage}")
             if role.personnage is not None:
-                debug_asso = [f"{r.nom} : {repr(r)} dans {r.conteneur.nom}" for r in role.personnage.roles]
-                print(f"debug : role à retirer = {role.nom} : {repr(role)}, personnage.roles = {debug_asso}")
+                # debug_asso = [f"{r.nom} : {repr(r)} dans {r.conteneur.nom}" for r in role.personnage.roles]
+                # print(f"debug : role à retirer = {role.nom} : {repr(role)}, personnage.roles = {debug_asso}")
 
                 with contextlib.suppress(Exception):
                     role.personnage.roles.remove(role)
@@ -123,8 +123,6 @@ class ConteneurDeScene:
     #
     #             del role
     # #todo : effacer les scènes, effacer les liens roles-scène, effacer les liens roles-conteneurs
-
-
 
     def get_full_url(self):
         return f"https://docs.google.com/document/d/{self.url}"
@@ -176,7 +174,7 @@ class Personnage(ConteneurDeScene):
         self.joueurs = {}
         self.pitchJoueur = pitch_joueur
         self.indicationsCostume = indications_costume
-        self.factions = [] #todo : supprimer
+        self.factions = []  # todo : supprimer
         self.groupes = []
         self.datesClefs = dates_clefs
         self.textesAnnexes = textes_annexes
@@ -195,16 +193,15 @@ class Personnage(ConteneurDeScene):
         to_clear = [role for role in self.roles if not role.issu_dune_faction]
         for role in to_clear:
             self.roles.remove(role)
-        print(f"debug : apres avoir retiré les roles non issus de factions, mes roles contenaient : "
-              f"{[r.nom for r in self.roles]}")
+        # print(f"debug : apres avoir retiré les roles non issus de factions, mes roles contenaient : "
+        #       f"{[r.nom for r in self.roles]}")
 
     def clear_roles_issus_de_factions(self):
         to_clear = [role for role in self.roles if role.issu_dune_faction]
         for role in to_clear:
             self.roles.remove(role)
-        print(f"debug : apres avoir retiré les roles issus de factions, mes roles contenaient : "
-              f"{[r.nom for r in self.roles]}")
-
+        # print(f"debug : apres avoir retiré les roles issus de factions, mes roles contenaient : "
+        #       f"{[r.nom for r in self.roles]}")
 
     def ajouter_role(self, r):
         self.roles.add(r)
@@ -486,11 +483,11 @@ class Scene:
         return self.date
 
     def effacer_roles_issus_de_factions(self):
-        print(f"debug : {self.titre} avant effaçage de mes roles, j'avais : {list(self.roles)} ")
+        # print(f"debug : {self.titre} avant effaçage de mes roles, j'avais : {list(self.roles)} ")
         roles_a_effacer = [r for r in self.roles if r.issu_dune_faction]
         for role in roles_a_effacer:
             self.roles.remove(role)
-        print(f"debug : {self.titre} apès effaçage de mes roles, j'ai : {list(self.roles)} ")
+        # print(f"debug : {self.titre} apès effaçage de mes roles, j'ai : {list(self.roles)} ")
 
     def get_liste_noms_roles(self):
         return [r.nom for r in self.roles]
@@ -829,8 +826,8 @@ class GN:
                     score = process.extractOne(role.nom, noms_persos)
                     if verbal:
                         print(f"Rôles issus d'intrigues - Pour {role.nom} dans {intrigue.nom}, score = {score}")
-                    check = intrigue.associer_role_a_perso(role_a_associer=role, personnage=dict_noms_persos[score[0]],
-                                                           verbal=verbal)
+                    intrigue.associer_role_a_perso(role_a_associer=role, personnage=dict_noms_persos[score[0]],
+                                                   verbal=verbal)
 
                     if score[1] < seuil_alerte:
                         texte_erreur = f"Association ({score[1]}) - nom rôle : " \
@@ -1095,12 +1092,12 @@ class GN:
                         if len(scene.roles) > 1:
                             noms_roles_dans_scene = scene.get_liste_noms_roles()
                             score_role = process.extractOne(personnage_dans_faction.nom, noms_roles_dans_scene)
-                            print(f"debug : scene : {scene.titre} / {noms_roles_dans_scene} / {score_role}")
+                            # print(f"debug : scene : {scene.titre} / {noms_roles_dans_scene} / {score_role}")
                             if score_role[1] >= seuil_reconciliation_role:
-                                #dans ce cas, le role est déjà présent dans la scène, ne rien faire
+                                # dans ce cas, le role est déjà présent dans la scène, ne rien faire
                                 continue
 
-                        #du coup on est dans le cas ou on n'a pas trouvé le rôle :
+                        # du coup on est dans le cas ou on n'a pas trouvé le rôle :
                         # il faut ajouter un nouveau role, issu d'une faction
                         texte_info = f"{personnage_dans_faction.nom} " \
                                      f"a été ajouté via la faction {nom_faction} " \
@@ -1128,9 +1125,9 @@ class GN:
     # nettoie aussi toutes les erreurs qui peuvent apparaitre durant l'association,
     # pour que celles qui restent soient celles d'actualité
     def clear_all_associations(self):
-        #nettoyer les factions
+        # nettoyer les factions
 
-        #casser toutes les associations entre les persos issus de factions et leurs personnages
+        # casser toutes les associations entre les persos issus de factions et leurs personnages
         tous_les_roles = self.lister_tous_les_roles()
         for role in tous_les_roles:
             if role.issu_dune_faction and role.personnage is not None:
@@ -1141,7 +1138,6 @@ class GN:
         toutes_scene = self.lister_toutes_les_scenes()
         for scene in toutes_scene:
             scene.effacer_roles_issus_de_factions()
-
 
         for perso in self.lister_tous_les_persos():
             perso.clear_roles_hors_factions()
@@ -1449,7 +1445,8 @@ class Intervention:
 #     return [info_pj.nom_pj for info_pj in self.evenement.infos_pj]
 #
 # def get_noms_pnj_impliques(self):
-#     # print(f"debug : pour l'intervention {self.description}, len = {len(self.noms_pnjs_impliques)} / {self.noms_pnjs_impliques}")
+#     # print(f"debug : pour l'intervention {self.description},
+#     len = {len(self.noms_pnjs_impliques)} / {self.noms_pnjs_impliques}")
 #     if self.noms_pnjs_impliques != ['']:
 #         return self.noms_pnjs_impliques
 #     # print(f"debug : self.evenement.briefs_pnj = {len(self.evenement.briefs_pnj)} {self.evenement.briefs_pnj}")
@@ -1504,4 +1501,3 @@ class ObjetDeReference:
 
     def get_full_url(self):
         return f"https://docs.google.com/document/d/{self.id_url}"
-
