@@ -10,7 +10,7 @@ from modeleGN import GN
 
 
 class Application(tk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, mode_leger=True, master=None):
         super().__init__(master)
         self.master = master
         self.master.title("MAGnet, la moulinette")
@@ -127,9 +127,14 @@ class Application(tk.Frame):
 
         switch_diag_var = tk.BooleanVar()
         switch_diag_var.set(False)
-        switch_diag = ttk.Checkbutton(regen_window, text="Afficher outils diagnostic",
-                                      variable=switch_diag_var, onvalue=1, style="Switch",
-                                      command=gerer_frame_diag)
+        if mode_leger:
+            switch_diag = ttk.Checkbutton(regen_window, text="Afficher outils diagnostic",
+                                          variable=switch_diag_var, onvalue=1, command=gerer_frame_diag)
+        else:
+            switch_diag = ttk.Checkbutton(regen_window, text="Afficher outils diagnostic",
+                                          variable=switch_diag_var, onvalue=1, style="Switch",
+                                          command=gerer_frame_diag)
+
         switch_diag.grid(row=0, column=0, padx=(10, 0))
 
         # début de la zone génération

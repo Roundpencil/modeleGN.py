@@ -65,12 +65,15 @@ def main():
         root.iconbitmap(r'coin-MAGNet.ico')
         style = ttk.Style(root)
         # root.tk.call('source', 'azure dark/azure dark.tcl')
-        root.tk.call('source', 'azure3/azure.tcl')
-        style.theme_use('azure')
-        style.configure("Accentbutton", foreground='white')
-        style.configure("Togglebutton", foreground='white')
 
-        app = Application(master=root)
+        mode_leger = True
+        if not mode_leger:
+            root.tk.call('source', 'azure3/azure.tcl')
+            style.theme_use('azure')
+            style.configure("Accentbutton", foreground='white')
+            style.configure("Togglebutton", foreground='white')
+
+        app = Application(mode_leger=mode_leger, master=root)
         app.mainloop()
 
     if args.console:
