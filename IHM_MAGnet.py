@@ -28,20 +28,21 @@ class Application(tk.Frame):
         regen_window.geometry("715x560")  # chaque nouvelle ligne fait +25 de hauteur
 
         # ajouter le bouton et le label ini a la première ligne
-        #ajout d'un labelframe pour le fichier ini
+        # ajout d'un labelframe pour le fichier ini
         ini_labelframe = ttk.Labelframe(regen_window, text="Sélection du GN à lire", width=700)
-        ini_labelframe.grid(row=0, column=0, columnspan=4, sticky="nsew", padx=(10, 0))
+        ini_labelframe.grid(row=0, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
 
         self.config_button = ttk.Button(ini_labelframe, text="Changer fichier de configuration",
                                        command=self.change_config_file)
-        self.config_button.grid(row=0, column=0, pady=(10, 10))
+        self.config_button.grid(row=0, column=0, pady=(10, 10), padx=(10, 10))
 
         # Create the label
         self.current_file_label = ttk.Label(ini_labelframe, text="Fichier ini actuel : Aucun")
         self.current_file_label.grid(row=0, column=1, columnspan=3, sticky='w')
         self.lire_fichier_config()
 
-        #ajout d'un labelframe pour les focntion du mode diagnostic
+
+        # ajout d'un labelframe pour les focntion du mode diagnostic
         diagnostic_labelframe = ttk.Labelframe(regen_window, text="Outils diagnostic", width=700)
         diagnostic_labelframe.grid(row=50, column=0, columnspan=4, sticky="nsew", padx=(10, 0))
 
@@ -50,7 +51,7 @@ class Application(tk.Frame):
 
         forcer_update_gn_button = ttk.Button(diagnostic_labelframe, text="adapter le GN aux \n dernières maj de Magnet",
                                             command=lambda: mettre_a_jour_champs(self.gn))
-        forcer_update_gn_button.grid(row=50, column=3, rowspan=2, columnspan=2, sticky="ne")  # , sticky="nsew"
+        forcer_update_gn_button.grid(row=50, column=3, rowspan=2, columnspan=2, padx=(150, 10), sticky="ne")  # , sticky="nsew"
 
         # Intrigues
         var_fast_intrigue = tk.BooleanVar(value=True)
