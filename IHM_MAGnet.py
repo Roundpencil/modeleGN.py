@@ -25,21 +25,19 @@ class Application(tk.Frame):
 
         # reprise de l'ancien code de regen
         regen_window = self.master
-        regen_window.geometry("675x510") # chaque nouvelle ligne fait +25 de hauteur
+        regen_window.geometry("675x510")  # chaque nouvelle ligne fait +25 de hauteur
 
         # ajouter le bouton et le label ini a la première ligne
         # ajout d'un labelframe pour le fichier ini
         ini_labelframe = ttk.Labelframe(regen_window, text="Sélection du GN à lire", width=700)
         ini_labelframe.grid(row=5, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
 
-        self.config_button = ttk.Button(ini_labelframe, text="Changer fichier de configuration",
-                                        command=self.change_config_file)
-        self.config_button.grid(row=0, column=0, pady=(10, 10), padx=(10, 10))
+        config_button = ttk.Button(ini_labelframe, text="Changer fichier de configuration")
+        config_button.grid(row=0, column=0, pady=(10, 10), padx=(10, 10))
 
         # Create the label
-        self.current_file_label = ttk.Label(ini_labelframe, text="Fichier ini actuel : Aucun")
-        self.current_file_label.grid(row=0, column=1, columnspan=3, sticky='w')
-        self.lire_fichier_config()
+        current_file_label = ttk.Label(ini_labelframe, text="Fichier ini actuel : Aucun")
+        current_file_label.grid(row=0, column=1, columnspan=3, sticky='w')
 
         # ajout d'un labelframe pour les fonctions du mode diagnostic
         diagnostic_labelframe = ttk.Labelframe(regen_window, text="Outils diagnostic", width=700)
@@ -50,7 +48,7 @@ class Application(tk.Frame):
 
         forcer_update_gn_button = ttk.Button(diagnostic_labelframe, text="adapter le GN aux \n dernières maj de Magnet",
                                              command=lambda: mettre_a_jour_champs(self.gn))
-        forcer_update_gn_button.grid(row=50, column=3, rowspan=2, columnspan=2, padx=(150, 10),
+        forcer_update_gn_button.grid(row=50, column=3, rowspan=2, columnspan=2,
                                      sticky="ne")  # , sticky="nsew"
 
         verbal_var = tk.BooleanVar()
@@ -58,7 +56,7 @@ class Application(tk.Frame):
         verbal_check = ttk.Checkbutton(diagnostic_labelframe, text='Mode "bavard"',
                                        variable=verbal_var)
         verbal_check.grid(row=53, column=3, rowspan=2, columnspan=2, padx=(150, 10),
-                                     sticky="nw")
+                          sticky="nw")
 
         # Intrigues
         var_fast_intrigue = tk.BooleanVar(value=True)
@@ -116,6 +114,7 @@ class Application(tk.Frame):
 
         # ajouter un bouton pour afficher ou pas les options du mode diagnostic au dessus
         switch_diag_var = tk.BooleanVar()
+
         def gerer_frame_diag():
             if switch_diag_var.get():
                 # Show the diagnostic_labelframe
@@ -144,7 +143,7 @@ class Application(tk.Frame):
         master_state.set(True)
         master_checkbox = ttk.Checkbutton(generer_labelframe, text="Cocher / Décocher tout", variable=master_state,
                                           command=lambda: update_checkboxes(master_state))
-        master_checkbox.grid( row=105, column=0, columnspan=4)
+        master_checkbox.grid(row=105, column=0, columnspan=4)
 
         def update_checkboxes(etat_a_forcer):
             args = [generer_fichiers_pj_var,
@@ -332,7 +331,10 @@ class Application(tk.Frame):
                                )
 
         ok_button.grid(row=200, column=1, pady=(0, 10))
+        boutons = [ok_button, forcer_update_gn_button]
+        config_button.config(command=lambda : self.change_config_file(boutons, current_file_label))
 
+        self.lire_fichier_config(boutons, current_file_label)
 
 
         # # Create the buttons
@@ -358,17 +360,16 @@ class Application(tk.Frame):
         # # self.current_file_label.grid(row=5, column=0, columnspan=2, sticky='w')
         # # self.lire_fichier_config()
 
-    def updater_boutons_disponibles(self):
-        if not self.dict_config:
-            self.updateur_de_boutons_disponibles("disabled")
-        else:
-            self.updateur_de_boutons_disponibles("normal")
+    def updater_boutons_disponibles(self, on: bool, boutons: list):
+        to_set = "normal" if on else "disabled"
+        for bouton in boutons:
+            bouton.config(state=to_set)
 
-    def updateur_de_boutons_disponibles(self, state):
-        # self.ok_button.config(state=state)
-        # self.diagnostic_button.config(state=state)
-        # self.edit_config_button.config(state=state)
-        pass
+    # def updateur_de_boutons_disponibles(self, state, boutons):
+    #     # self.ok_button.config(state=state)
+    #     # self.diagnostic_button.config(state=state)
+    #     # self.edit_config_button.config(state=state)
+    #     pass
 
     def create_new_gn(self):
         new_gn_window = tk.Toplevel(self.master)
@@ -612,17 +613,17 @@ class Application(tk.Frame):
         #                                    command=lambda: print("Relire les factions"))
         # relire_factions_button.grid(row=23, column=0, sticky="nsew")
 
-    def change_config_file(self):
+    def change_config_file(self, boutons: list, display_label):
         config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
                                                  filetypes=(("ini files", "*.ini"), ("all files", "*.*")))
-        self.lire_fichier_config(config_file)
+        self.lire_fichier_config(boutons, display_label, config_file)
 
-    def lire_fichier_config(self, config_file: str = 'config.ini'):
+    def lire_fichier_config(self, boutons: list, display_label, config_file: str = 'config.ini'):
         try:
             self.dict_config = charger_fichier_init(config_file)
             # print("ping")
-            self.updater_boutons_disponibles()
-            self.current_file_label.config(text=config_file)
+            self.updater_boutons_disponibles(True, boutons)
+            display_label.config(text=config_file)
             try:
                 self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'])
                 self.gn.injecter_config(dossiers_evenements=self.dict_config['dossiers_evenements'],
@@ -665,7 +666,7 @@ class Application(tk.Frame):
             print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")
             traceback.print_exc()
             self.dict_config = None
-            self.updater_boutons_disponibles()
+            self.updater_boutons_disponibles(False, boutons)
 
     def modify_config(self):
         config_window = tk.Toplevel(self.master)
@@ -1073,7 +1074,6 @@ class Application(tk.Frame):
     #                          verbal=verbal_var,
     #                          table_relations=table_relations_var,
     #                          table_evenements=table_evenements_var)
-
 
 # def main():
 #     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
