@@ -27,12 +27,30 @@ class Application(tk.Frame):
         regen_window = self.master
         regen_window.geometry("715x560")  # chaque nouvelle ligne fait +25 de hauteur
 
-        lecture_label = ttk.Label(regen_window, text="Options de lecture")
-        lecture_label.grid(row=50, column=0, columnspan=2)
+        # ajouter le bouton et le label ini a la première ligne
+        #ajout d'un labelframe pour le fichier ini
+        ini_labelframe = ttk.Labelframe(regen_window, text="Sélection du GN à lire", width=700)
+        ini_labelframe.grid(row=0, column=0, columnspan=4, sticky="nsew", padx=(10, 0))
 
-        forcer_update_gn_button = ttk.Button(regen_window, text="adapter le GN aux \n dernières maj de Magnet",
+        self.config_button = ttk.Button(ini_labelframe, text="Changer fichier de configuration",
+                                       command=self.change_config_file)
+        self.config_button.grid(row=0, column=0, pady=(10, 10))
+
+        # Create the label
+        self.current_file_label = ttk.Label(ini_labelframe, text="Fichier ini actuel : Aucun")
+        self.current_file_label.grid(row=0, column=1, columnspan=3, sticky='w')
+        self.lire_fichier_config()
+
+        #ajout d'un labelframe pour les focntion du mode diagnostic
+        diagnostic_labelframe = ttk.Labelframe(regen_window, text="Outils diagnostic", width=700)
+        diagnostic_labelframe.grid(row=50, column=0, columnspan=4, sticky="nsew", padx=(10, 0))
+
+        lecture_label = ttk.Label(diagnostic_labelframe, text="Options de lecture")
+        lecture_label.grid(row=50, column=0, columnspan=3)
+
+        forcer_update_gn_button = ttk.Button(diagnostic_labelframe, text="adapter le GN aux \n dernières maj de Magnet",
                                             command=lambda: mettre_a_jour_champs(self.gn))
-        forcer_update_gn_button.grid(row=50, column=3, rowspan=2)  # , sticky="nsew"
+        forcer_update_gn_button.grid(row=50, column=3, rowspan=2, columnspan=2, sticky="ne")  # , sticky="nsew"
 
         # Intrigues
         var_fast_intrigue = tk.BooleanVar(value=True)
@@ -41,53 +59,44 @@ class Application(tk.Frame):
         var_fast_evenements = tk.BooleanVar(value=True)
         var_fast_objets = tk.BooleanVar(value=True)
 
-        # ajouter le bouton et le label ini a la première ligne
-        self.config_button = ttk.Button(regen_window, text="Changer fichier de configuration",
-                                       command=self.change_config_file)
-        self.config_button.grid(row=0, column=0)  # , sticky="nsew"
-
-        # Create the label
-        self.current_file_label = ttk.Label(regen_window, text="Fichier ini actuel : Aucun")
-        self.current_file_label.grid(row=0, column=1, columnspan=3, sticky='w')
-        self.lire_fichier_config()
-
         # Intrigue Line
-        ttk.Label(regen_window, text="Intrigue").grid(row=51, column=0)
-        ttk.Radiobutton(regen_window, text="Rapide", variable=var_fast_intrigue, value=True).grid(row=51, column=1)
-        ttk.Radiobutton(regen_window, text="Complet", variable=var_fast_intrigue, value=False).grid(row=51, column=2)
+        ttk.Label(diagnostic_labelframe, text="Intrigue").grid(row=51, column=0)
+        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_intrigue, value=True).grid(row=51, column=1)
+        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_intrigue, value=False).grid(row=51, column=2)
 
         # Fiches PJs Line
-        ttk.Label(regen_window, text="Fiches PJs").grid(row=52, column=0)
-        ttk.Radiobutton(regen_window, text="Rapide", variable=var_fast_fiches_pjs, value=True).grid(row=52, column=1)
-        ttk.Radiobutton(regen_window, text="Complet", variable=var_fast_fiches_pjs, value=False).grid(row=52, column=2)
+        ttk.Label(diagnostic_labelframe, text="Fiches PJs").grid(row=52, column=0)
+        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_fiches_pjs, value=True).grid(row=52, column=1)
+        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_fiches_pjs, value=False).grid(row=52, column=2)
 
         # Fiches PNJs Line
-        ttk.Label(regen_window, text="Fiches PNJs").grid(row=53, column=0)
-        ttk.Radiobutton(regen_window, text="Rapide", variable=var_fast_fiches_pnjs, value=True).grid(row=53, column=1)
-        ttk.Radiobutton(regen_window, text="Complet", variable=var_fast_fiches_pnjs, value=False).grid(row=53, column=2)
+        ttk.Label(diagnostic_labelframe, text="Fiches PNJs").grid(row=53, column=0)
+        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_fiches_pnjs, value=True).grid(row=53, column=1)
+        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_fiches_pnjs, value=False).grid(row=53, column=2)
 
         # Evenements Line
-        ttk.Label(regen_window, text="Evenements").grid(row=54, column=0)
-        ttk.Radiobutton(regen_window, text="Rapide", variable=var_fast_evenements, value=True).grid(row=54, column=1)
-        ttk.Radiobutton(regen_window, text="Complet", variable=var_fast_evenements, value=False).grid(row=54, column=2)
+        ttk.Label(diagnostic_labelframe, text="Evenements").grid(row=54, column=0)
+        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_evenements, value=True).grid(row=54, column=1)
+        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_evenements, value=False).grid(row=54, column=2)
 
         # Objets Line
-        ttk.Label(regen_window, text="Objets").grid(row=55, column=0)
-        ttk.Radiobutton(regen_window, text="Rapide", variable=var_fast_objets, value=True).grid(row=55, column=1)
-        ttk.Radiobutton(regen_window, text="Complet", variable=var_fast_objets, value=False).grid(row=55, column=2)
+        ttk.Label(diagnostic_labelframe, text="Objets").grid(row=55, column=0)
+        ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_objets, value=True).grid(row=55, column=1)
+        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_objets, value=False).grid(row=55, column=2)
 
         repartir_de_0_var = tk.BooleanVar()
         repartir_de_0_var.set(False)
-        charger_fichier_check = ttk.Checkbutton(regen_window, text="Repartir de 0",
+        charger_fichier_check = ttk.Checkbutton(diagnostic_labelframe, text="Repartir de 0",
                                                variable=repartir_de_0_var)
         charger_fichier_check.grid(row=104, column=0)
 
         sauver_apres_operation_var = tk.BooleanVar()
         sauver_apres_operation_var.set(True)
-        sauver_apres_operation_check = ttk.Checkbutton(regen_window, text="Sauver après opération",
+        sauver_apres_operation_check = ttk.Checkbutton(diagnostic_labelframe, text="Sauver après opération",
                                                       variable=sauver_apres_operation_var)
         sauver_apres_operation_check.grid(row=104, column=1)
 
+        #début de la zone génération
         generer_label = ttk.Label(regen_window, text="Générer...")
         generer_label.grid(row=105, column=0, columnspan=2)
 

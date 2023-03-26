@@ -486,9 +486,11 @@ class Scene:
         return self.date
 
     def effacer_roles_issus_de_factions(self):
+        print(f"debug : {self.titre} avant effaçage de mes roles, j'avais : {list(self.roles)} ")
         roles_a_effacer = [r for r in self.roles if r.issu_dune_faction]
         for role in roles_a_effacer:
             self.roles.remove(role)
+        print(f"debug : {self.titre} apès effaçage de mes roles, j'ai : {list(self.roles)} ")
 
     def get_liste_noms_roles(self):
         return [r.nom for r in self.roles]
@@ -1089,11 +1091,14 @@ class GN:
                         if verbal:
                             print(f"personnage_dans_faction, intrigue.rolesContenus.keys() ="
                                   f" {personnage_dans_faction.nom}, {intrigue.rolesContenus.keys()}")
-                        noms_roles_dans_scene = scene.get_liste_noms_roles
-                        score_role = process.extractOne(personnage_dans_faction.nom, noms_roles_dans_scene)
-                        if score_role[1] >= seuil_reconciliation_role:
-                            #dans ce cas, le role est déjà présent dans la scène, ne rien faire
-                            continue
+
+                        if len(scene.roles) > 1:
+                            noms_roles_dans_scene = scene.get_liste_noms_roles()
+                            score_role = process.extractOne(personnage_dans_faction.nom, noms_roles_dans_scene)
+                            print(f"debug : scene : {scene.titre} / {noms_roles_dans_scene} / {score_role}")
+                            if score_role[1] >= seuil_reconciliation_role:
+                                #dans ce cas, le role est déjà présent dans la scène, ne rien faire
+                                continue
 
                         #du coup on est dans le cas ou on n'a pas trouvé le rôle :
                         # il faut ajouter un nouveau role, issu d'une faction
