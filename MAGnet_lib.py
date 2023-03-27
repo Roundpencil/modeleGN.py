@@ -19,10 +19,6 @@ from modeleGN import *
 
 # à faire - plus long
 
-### assciations manuelles
-# todo : mettre à jour le fichier de paramètres pour prendre en compte les associations manuelles
-#  depuis fiches et depuis tableau
-
 # confort / logique
 # todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos
 #  faire la meme chose avec les PNJs
@@ -414,6 +410,8 @@ def retirer_objets_supprimes(mon_gn: GN, ids_objets_lus: list[str]):
 
 
 def retirer_elements_supprimes(ids_lus: list[str], dict_reference: dict):
+    if ids_lus is None:
+        return
     # print(f"debug : id lus = {ids_lus}")
     # print(f"debug : ids_dict = {dict_reference.keys()}")
     ids_a_supprimer = [mon_id for mon_id in dict_reference if mon_id not in ids_lus]

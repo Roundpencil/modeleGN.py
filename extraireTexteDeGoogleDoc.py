@@ -374,13 +374,14 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
 
     if min_score < 85:
         texte_erreur = f"Attention, score bas de lecture des entêtes du tableau des personnages. " \
-                       f"Pire score : {min_score}% pour {pire_match}"
+                       f"Pire score : {min_score}% pour {pire_match}. Tableau lu = {tab_rectifie}"
         current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                           texte_erreur,
                                           ErreurManager.ORIGINES.SCENE)
 
     if len(set(tab_rectifie)) != len(tab_rectifie):
-        texte_erreur = "une valeur a été trouvée en double dans les en-têtes de colonne du tableau des persos"
+        texte_erreur = f"une valeur a été trouvée en double dans les en-têtes de colonne du tableau des persos. " \
+                       f"Tableau lu = {tab_rectifie}"
         current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
                                           texte_erreur,
                                           ErreurManager.ORIGINES.SCENE)
@@ -388,11 +389,11 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
     header_to_index = {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
 
     def header_2_value(ligne_tableau: list[str], table_header: dict, header_value, default):
-        # logging.debug(f"header / table header {header_value} {table_header.get(header_value)}")
-        # logging.debug(f"ligne : {ligne_tableau}")
-        # debug_value = table_header.get(header_value)
-        # if debug_value is not None:
-        #     logging.debug(f"pour la valeur {debug_value} : {ligne_tableau[debug_value]}")
+        logging.debug(f"header / table header {header_value} {table_header.get(header_value)}")
+        logging.debug(f"ligne : {ligne_tableau}")
+        debug_value = table_header.get(header_value)
+        if debug_value is not None:
+            logging.debug(f"pour la valeur {debug_value} : {ligne_tableau[debug_value]}")
         index = table_header.get(header_value)
         return ligne_tableau[index] if index is not None else default
 
@@ -410,7 +411,7 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
             pip_globaux = 0
             pipi = liste_pips[0] + pipi
             pipr = liste_pips[1] + pipr
-        affectation = header_2_value(ligne, header_to_index, NomsColonnes.AFFECTATION.value, 0)
+        affectation = header_2_value(ligne, header_to_index, NomsColonnes.AFFECTATION.value, "")
         logging.debug(f"Tableau des headers : {header_to_index}")
         logging.debug(f"ligne = {ligne}")
         logging.debug(f"lecture associée : "
