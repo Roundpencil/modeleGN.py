@@ -23,8 +23,6 @@ from modeleGN import *
 # todo : mettre à jour le fichier de paramètres pour prendre en compte les associations manuelles
 #  depuis fiches et depuis tableau
 
-# todo : écrire la fonction d'association depuis fiche
-
 # confort / logique
 # todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos
 #  faire la meme chose avec les PNJs
@@ -71,7 +69,14 @@ def charger_fichier_init(fichier_init: str):
 
         dict_config['dossier_output'] = config.get('Essentiels', 'dossier_output_squelettes_pjs')
 
-        dict_config['association_auto'] = config.getboolean('Essentiels', 'association_auto')
+        mode_association = config.get('Essentiels', 'mode_association')
+
+        dict_association = {mode.value: mode for mode in GN.ModeAssociation}
+        # print(f"debug : dict assoce {dict_association}")
+
+        dict_config['mode_association'] = dict_association[int(mode_association[0])]
+        # print(f"debug : mode association = {mode_association} // {dict_config['mode_association']}")
+
 
         dict_config['nom_fichier_sauvegarde'] = config.get('Essentiels', 'nom_fichier_sauvegarde')
 

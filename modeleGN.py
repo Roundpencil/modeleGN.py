@@ -642,7 +642,7 @@ class Faction:
 class GN:
     def __init__(self,
                  dossiers_intrigues, dossier_output: str, mode_association=None,
-                 association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None,
+                 dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None,
                  dossiers_objets=None,
                  id_factions=None, date_gn=None,
                  id_pjs_et_pnjs=None, fichier_pnjs=None):
@@ -660,7 +660,7 @@ class GN:
         self.oldestUpdatedPJ = ""  # contient l'id du dernier PJ updaté dans le GN
 
         # injection des paramètres du fichier de config
-        self.association_auto = None  # todo : supprimer via la nettoyeuse
+        self.association_auto = None  # Ne pas utiliser, paramètres à supprimer
         self.id_factions = None
         self.dossiers_pnjs = None
         self.dossiers_pjs = None
@@ -673,9 +673,9 @@ class GN:
         self.fichier_pnjs = None
         # self.liste_noms_pjs = None
         # self.liste_noms_pnjs = None
-        self.mode_association = mode_association if mode_association is not None else self.ModeAssociation.AUTO  # todo : ajouter via la nettoyeuse
+        self.mode_association = None
 
-        self.injecter_config(dossiers_intrigues, dossier_output, association_auto, dossiers_pj=dossiers_pj,
+        self.injecter_config(dossiers_intrigues, dossier_output, mode_association, dossiers_pj=dossiers_pj,
                              dossiers_evenements=dossiers_evenements, dossiers_objets=dossiers_objets,
                              dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn,
                              id_pjs_et_pnjs=id_pjs_et_pnjs, fichier_pnjs=fichier_pnjs)
@@ -685,11 +685,13 @@ class GN:
         MANUEL_VIA_FICHES = 1
 
     def injecter_config(self,
-                        dossiers_intrigues, dossier_output, association_auto,
+                        dossiers_intrigues, dossier_output, mode_association=None,
                         dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None, dossiers_objets=None,
                         id_factions=None,
                         date_gn=None, id_pjs_et_pnjs=None, fichier_pnjs=None):
 
+        mode_association = mode_association if mode_association is not None else self.ModeAssociation.AUTO
+        self.mode_association = mode_association
         self.id_pjs_et_pnjs = id_pjs_et_pnjs
         self.fichier_pnjs = fichier_pnjs
         # # self.liste_noms_pjs = liste_noms_pjs
@@ -730,7 +732,6 @@ class GN:
         self.id_factions = id_factions
         self.dossier_outputs_drive = dossier_output
 
-        self.association_auto = association_auto
         self.date_gn = date_gn
 
     def lister_toutes_les_scenes(self):

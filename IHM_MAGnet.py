@@ -357,7 +357,7 @@ class Application(tk.Frame):
     def lire_fichier_config(self, boutons: list, display_label, config_file: str = 'config.ini'):
         try:
             self.dict_config = charger_fichier_init(config_file)
-            # print("ping")
+            print(f"debug : dict config = {self.dict_config}")
             self.updater_boutons_disponibles(True, boutons)
             display_label.config(text=config_file)
             try:
@@ -365,7 +365,7 @@ class Application(tk.Frame):
                 self.gn.injecter_config(dossiers_evenements=self.dict_config['dossiers_evenements'],
                                         dossiers_intrigues=self.dict_config['dossiers_intrigues'],
                                         dossier_output=self.dict_config['dossier_output'],
-                                        association_auto=self.dict_config['association_auto'],
+                                        mode_association=self.dict_config['mode_association'],
                                         dossiers_pj=self.dict_config.get('dossiers_pjs'),
                                         dossiers_pnj=self.dict_config.get('dossiers_pnjs'),
                                         id_factions=self.dict_config.get('id_factions'),
@@ -388,7 +388,7 @@ class Application(tk.Frame):
                 print(f"le self {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
                 self.gn = GN(dossiers_intrigues=self.dict_config['dossiers_intrigues'],
                              dossier_output=self.dict_config['dossier_output'],
-                             association_auto=self.dict_config['association_auto'],
+                             mode_association=self.dict_config['mode_association'],
                              dossiers_pj=self.dict_config.get('dossiers_pjs'),
                              dossiers_pnj=self.dict_config.get('dossiers_pjs'),
                              id_factions=self.dict_config.get('id_factions'),
