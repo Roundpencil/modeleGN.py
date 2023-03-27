@@ -1584,6 +1584,12 @@ def mettre_a_jour_champs(gn: GN):
         delattr(gn, 'dossier_evenements')
     if not hasattr(gn, 'objets'):
         gn.objets = {}
+    if hasattr(gn, 'association_auto'):
+        delattr(gn, 'association_auto')
+    if not hasattr(gn, 'mode_association'):
+        gn.mode_association = GN.ModeAssociation.AUTO
+
+
 
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'date_absolue'):
@@ -1639,8 +1645,8 @@ def mettre_a_jour_champs(gn: GN):
                     delattr(role, 'perso')
                 else:
                     role.personnage = None
-            # if isinstance(role.interventions, set):
-            #     role.interventions = {intervention.evenement: intervention for intervention in role.interventions}
+            if not hasattr(role, 'affectation'):
+                role.affectation = None
 
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'infos'):

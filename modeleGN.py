@@ -820,7 +820,12 @@ class GN:
         # faire l'association dans les intrigues à partir du nom de l'intrigue
         #on crée une focntion pour choisir sur quelle valeur on fera les associations
         def nom_association(role: Role):
-            return role.nom if self.ModeAssociation == GN.ModeAssociation.AUTO else role.affectation
+            if self.mode_association == GN.ModeAssociation.AUTO:
+                return role.nom
+            if self.mode_association == GN.ModeAssociation.MANUEL_VIA_FICHES:
+                return role.affectation
+            print("Erreur de mode association")
+            return -1
 
         self.associer_roles_issus_dintrigues(dict_noms_persos, nom_association, pj, seuil_alerte, verbal)
 
@@ -837,6 +842,7 @@ class GN:
                 # mais aussi qui ne viennent pas d'une faction : ceux-ci arrivent déjà associés
                 if critere(role.pj) and not role.issu_dune_faction and nom_association(role) is not None:
                     # print(f"nom du role testé = {role.nom}")
+                    # print(f"debug : nom assocaition = {nom_association(role)} pour {role.nom}")
                     score = process.extractOne(nom_association(role), noms_persos)
                     if verbal:
                         print(f"Rôles issus d'intrigues - Pour {nom_association(role)} "
