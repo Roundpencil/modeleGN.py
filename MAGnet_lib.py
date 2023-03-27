@@ -945,16 +945,22 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
 
 
 def generer_table_objets_uniques(mon_gn):
-    to_return = [['Code', 'Nom', 'Intrigues', 'Evènements', 'fiche objet trouvée?']]
+    to_return = [['Code', 'Nom / Description', 'Intrigues', 'Evènements', 'fiche objet trouvée?']]
     for objet_ref in mon_gn.objets.values():
         code = objet_ref.code_objet.replace('\n', '\v')
+        if objet_ref.nom_objet != "":
+            nom = objet_ref.nom_objet
+        elif len(objet_ref.objets_dans_intrigues) != 0:
+            nom = list(objet_ref.objets_dans_intrigues)[0].description
+        else:
+            nom = list(objet_ref.objets_dans_evenements)[0].description
         liste_noms_intrigues = [o.intrigue.nom for o in objet_ref.objets_dans_intrigues if o.intrigue is not None]
         intrigues = '\n'.join(liste_noms_intrigues)
         liste_noms_evenements = [o.evenement.nom_evenement for o in objet_ref.objets_dans_evenements if o.evenement is not None]
         evenements = '\n'.join(liste_noms_evenements)
         fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
         to_return.append([f"{code if len(code) > 1 else 'Pas de code'}",
-                          f"{objet_ref.nom_objet}",
+                          f"{nom}",
                           f"{intrigues}",
                           f"{evenements}",
                           f"{fiche_objet}"]
