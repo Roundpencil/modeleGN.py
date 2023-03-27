@@ -328,6 +328,12 @@ class Role:
         to_return += f"niveauImplication : {self.niveauImplication}" + "\n"
         return to_return
 
+    def get_noms_role(self):
+        return self.nom
+
+    def get_nom_affectation(self):
+        return self.affectation
+
     def str_avec_perso(self):
         return f"{self.nom} ({self.personnage.nom})" if self.personnage is not None \
             else f"{self.nom} (pas de personnage associé)"
@@ -635,7 +641,7 @@ class Faction:
 
 class GN:
     def __init__(self,
-                 dossiers_intrigues, dossier_output: str,
+                 dossiers_intrigues, dossier_output: str, mode_association=None,
                  association_auto: bool = False, dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None,
                  dossiers_objets=None,
                  id_factions=None, date_gn=None,
@@ -654,7 +660,7 @@ class GN:
         self.oldestUpdatedPJ = ""  # contient l'id du dernier PJ updaté dans le GN
 
         # injection des paramètres du fichier de config
-        self.association_auto = None
+        self.association_auto = None  # todo : supprimer via la nettoyeuse
         self.id_factions = None
         self.dossiers_pnjs = None
         self.dossiers_pjs = None
@@ -667,11 +673,16 @@ class GN:
         self.fichier_pnjs = None
         # self.liste_noms_pjs = None
         # self.liste_noms_pnjs = None
+        self.mode_association = mode_association if mode_association is not None else self.ModeAssociation.AUTO  # todo : ajouter via la nettoyeuse
 
         self.injecter_config(dossiers_intrigues, dossier_output, association_auto, dossiers_pj=dossiers_pj,
                              dossiers_evenements=dossiers_evenements, dossiers_objets=dossiers_objets,
                              dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn,
                              id_pjs_et_pnjs=id_pjs_et_pnjs, fichier_pnjs=fichier_pnjs)
+
+    class ModeAssociation(IntEnum):
+        AUTO = 0
+        MANUEL_VIA_FICHES = 1
 
     def injecter_config(self,
                         dossiers_intrigues, dossier_output, association_auto,
@@ -794,26 +805,29 @@ class GN:
 
     def associer_pjpnj_a_roles(self, pj: bool, seuil_alerte=70, verbal=False):
         logging.debug(f"Début de l'association automatique des rôles aux persos. PJ = {pj}")
-        noms_persos = self.noms_pjpnjs(pj)
         dict_reference = self.dictPJs if pj else self.dictPNJs
 
         if verbal:
-            print(f"pj? {pj}, noms persos = {noms_persos}")
+            print(f"pj? {pj}, noms persos = {dict_reference.keys()}")
 
         # on crée un dictionnaire temporaire nom > pj pour faire les associations
         dict_noms_persos = {perso.nom: perso for perso in dict_reference.values()}
 
         # Associer les rôles sans passer par la case tableau d'association
         # pour les rôles issus des scènes dans les fiches de PJs
-        self.associer_roles_issus_de_pj(dict_noms_persos, dict_reference, noms_persos, seuil_alerte, verbal)
+        self.associer_roles_issus_de_pj(dict_noms_persos, dict_reference, seuil_alerte, verbal)
 
         # faire l'association dans les intrigues à partir du nom de l'intrigue
-        # identifier la bonne fonction à appliquer
-        self.associer_roles_issus_dintrigues(dict_noms_persos, noms_persos, pj, seuil_alerte, verbal)
+        #on crée une focntion pour choisir sur quelle valeur on fera les associations
+        def nom_association(role: Role):
+            return role.nom if self.ModeAssociation == GN.ModeAssociation.AUTO else role.affectation
+
+        self.associer_roles_issus_dintrigues(dict_noms_persos, nom_association, pj, seuil_alerte, verbal)
 
         logging.debug("Fin de l'association automatique des rôles aux persos")
 
-    def associer_roles_issus_dintrigues(self, dict_noms_persos, noms_persos, pj, seuil_alerte, verbal):
+    def associer_roles_issus_dintrigues(self, dict_noms_persos, nom_association, pj, seuil_alerte, verbal):
+        noms_persos = list(dict_noms_persos.keys())
         critere = est_un_pj if pj else est_un_pnj
         logging.debug(f"liste des noms sur lesquels sera basée l'association de {pj} : {noms_persos}")
         # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant
@@ -821,17 +835,18 @@ class GN:
             for role in intrigue.rolesContenus.values():
                 # on cherche les persos qui correspondent au critère,
                 # mais aussi qui ne viennent pas d'une faction : ceux-ci arrivent déjà associés
-                if critere(role.pj) and not role.issu_dune_faction:
+                if critere(role.pj) and not role.issu_dune_faction and nom_association(role) is not None:
                     # print(f"nom du role testé = {role.nom}")
-                    score = process.extractOne(role.nom, noms_persos)
+                    score = process.extractOne(nom_association(role), noms_persos)
                     if verbal:
-                        print(f"Rôles issus d'intrigues - Pour {role.nom} dans {intrigue.nom}, score = {score}")
+                        print(f"Rôles issus d'intrigues - Pour {nom_association(role)} "
+                              f"dans {intrigue.nom}, score = {score}")
                     intrigue.associer_role_a_perso(role_a_associer=role, personnage=dict_noms_persos[score[0]],
                                                    verbal=verbal)
 
                     if score[1] < seuil_alerte:
                         texte_erreur = f"Association ({score[1]}) - nom rôle : " \
-                                       f"{role.nom} > personnage : {score[0]} dans {intrigue.nom}"
+                                       f"{nom_association(role)} > personnage : {score[0]} dans {intrigue.nom}"
                         intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                                   texte_erreur,
                                                   ErreurManager.ORIGINES.ASSOCIATION_AUTO
@@ -840,7 +855,9 @@ class GN:
                             # print(f"je paaaaaarle {score[1]}")
                             print(texte_erreur)
 
-    def associer_roles_issus_de_pj(self, dict_noms_persos, dict_reference, noms_persos, seuil_alerte, verbal):
+    def associer_roles_issus_de_pj(self, dict_noms_persos, dict_reference, seuil_alerte,
+                                   verbal):
+        noms_persos = list(dict_noms_persos.keys())
         for perso in dict_reference.values():
             # print(f"je suis en train de chercher des roles dans le pj {pj.nom}")
             # print(f"noms de roles trouvés : {pj.rolesContenus}")
