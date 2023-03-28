@@ -927,7 +927,7 @@ class GN:
                 mon_objet = dict_code_objet_reference.get(code)
                 if mon_objet is None:
                     url = f"{code}_imported"
-                    mon_objet = ObjetDeReference(id_url=url, ajoute_via_forcage=True)
+                    mon_objet = ObjetDeReference(id_url=url, ajoute_via_forcage=True, code_objet=code)
                     dict_code_objet_reference[code] = mon_objet
                     self.objets[url] = mon_objet
 

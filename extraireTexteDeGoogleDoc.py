@@ -1048,7 +1048,7 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
         JOUR = 'Jour, au format “J1”, “J2”, etc.'
         HEURE = "Heure de démarrage"
         DECLENCHEUR = "Déclencheur"
-        CONSEQUENCES = "Conséquences Événement"
+        CONSEQUENCES = "Conséquences Évènement"
 
     noms_lignes = [e.value for e in NomsLignes]
 
