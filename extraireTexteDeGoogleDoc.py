@@ -1097,17 +1097,17 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
     #                                                     for key in dict_fiche
     #                                                     if key.startswith("Conséquences ")])
 
-    print(f"debug : tableau évènement après modification : {dict_fiche}")
+    # print(f"debug : tableau évènement après modification : {dict_fiche}")
 
-    current_evenement.code_evenement = dict_fiche.get(NomsLignes.CODE, "").strip()
-    current_evenement.etat = dict_fiche.get(NomsLignes.ETAT, "").strip()
-    current_evenement.referent = dict_fiche.get(NomsLignes.REFERENT, "").strip()
-    current_evenement.intrigue_liee = dict_fiche.get(NomsLignes.INTRIGUE_LIEE, "").strip()
-    current_evenement.lieu = dict_fiche.get(NomsLignes.LIEU, "").strip()
-    current_evenement.date = dict_fiche.get(NomsLignes.JOUR, "").strip()
-    current_evenement.heure_de_demarrage = dict_fiche.get(NomsLignes.HEURE, "").strip()
-    current_evenement.declencheur = dict_fiche.get(NomsLignes.DECLENCHEUR, "").strip()
-    current_evenement.consequences_evenement = dict_fiche.get(NomsLignes.CONSEQUENCES, "").strip()
+    current_evenement.code_evenement = dict_fiche.get(NomsLignes.CODE.value, "").strip()
+    current_evenement.etat = dict_fiche.get(NomsLignes.ETAT.value, "").strip()
+    current_evenement.referent = dict_fiche.get(NomsLignes.REFERENT.value, "").strip()
+    current_evenement.intrigue_liee = dict_fiche.get(NomsLignes.INTRIGUE_LIEE.value, "").strip()
+    current_evenement.lieu = dict_fiche.get(NomsLignes.LIEU.value, "").strip()
+    current_evenement.date = dict_fiche.get(NomsLignes.JOUR.value, "").strip()
+    current_evenement.heure_de_demarrage = dict_fiche.get(NomsLignes.HEURE.value, "").strip()
+    current_evenement.declencheur = dict_fiche.get(NomsLignes.DECLENCHEUR.value, "").strip()
+    current_evenement.consequences_evenement = dict_fiche.get(NomsLignes.CONSEQUENCES.value, "").strip()
 
 
 def evenement_lire_synopsis(texte: str, current_evenement: Evenement, texte_label: str):
