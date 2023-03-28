@@ -15,7 +15,7 @@ from modeleGN import *
 # à tester
 
 # à faire - rapide
-# todo : reprendre la focntion de lecture des tableaux pour améliorer la lecture des ttables évènements (fiches)
+
 
 # à faire - plus long
 
@@ -33,17 +33,6 @@ from modeleGN import *
 # todo : faire un menu qui crée le GN avec les options et crée tous les fichiers qui vont bien
 #  dans un dossier magnet du drive fourni en entrée, et des questions sous la forme de "allez-vous utiliser...?"
 #  pour déterminer les champs à créer
-
-methode_custom_printing = print
-
-
-def changer_custom_printing(methode_printing):
-    methode_custom_printing = methode_printing
-
-
-def print_MAGnet(s: str):
-    methode_custom_printing(s)
-
 
 def print_progress(v: float):
     print(f"La génération a progressé de {v}%")
