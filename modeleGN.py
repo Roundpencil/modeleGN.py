@@ -844,7 +844,7 @@ class GN:
                 if critere(role.pj) and not role.issu_dune_faction and nom_association(role) is not None:
                     # print(f"nom du role testé = {role.nom}")
                     # print(f"debug : nom assocaition = {nom_association(role)} pour {role.nom}")
-                    print(f"debug : nom assoce / noms = {nom_association(role)} / {noms_persos}")
+                    # print(f"debug : nom assoce / noms = {nom_association(role)} / {noms_persos}")
                     score = process.extractOne(nom_association(role), noms_persos)
                     if verbal:
                         print(f"Rôles issus d'intrigues - Pour {nom_association(role)} "
@@ -1193,7 +1193,7 @@ class GN:
 
         objets = list(self.objets.values())
         for objet_de_reference in objets:
-            print(f"debug : objref : {objet_de_reference} / {objet_de_reference.ajoute_via_forcage} / {objet_de_reference.id_url}")
+            # print(f"debug : objref : {objet_de_reference} / {objet_de_reference.ajoute_via_forcage} / {objet_de_reference.id_url}")
             if objet_de_reference.ajoute_via_forcage:
                 objet_de_reference.clear()
                 self.objets.pop(objet_de_reference.id_url)

@@ -145,7 +145,7 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
         # dans ce cas, on lit tout, jusqu'à ce qu'on tombe sur une entrée qui n'a pas été modifiée
         nb_items = len(items)
         pas_visualisation = taille_visualisation / nb_items
-        print(f"debug : taille visualisation / pas de visuations : {taille_visualisation} / {pas_visualisation}")
+        # print(f"debug : taille visualisation / pas de visuations : {taille_visualisation} / {pas_visualisation}")
         for i, item in enumerate(items, start=1):
             try:
                 visualisation(pas_visualisation)
@@ -1096,6 +1096,8 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
     # current_evenement.consequences_evenement = ''.join([dict_fiche.get(key, "").strip()
     #                                                     for key in dict_fiche
     #                                                     if key.startswith("Conséquences ")])
+
+    print(f"debug : tableau évènement après modification : {dict_fiche}")
 
     current_evenement.code_evenement = dict_fiche.get(NomsLignes.CODE, "").strip()
     current_evenement.etat = dict_fiche.get(NomsLignes.ETAT, "").strip()
