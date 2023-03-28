@@ -346,6 +346,13 @@ def intrigue_pitch(texte: str, intrigue: Intrigue, texte_label: str):
 def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
     tableau_pjs, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
 
+    if nb_colonnes == 0:
+        texte_erreur = "le tableau des PJs est inexploitable"
+        current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                          texte_erreur,
+                                          ErreurManager.ORIGINES.SCENE)
+        return
+
     class NomsColonnes(Enum):
         AFFECTATION = "Affecté à"
         GENRE = "Genre"
