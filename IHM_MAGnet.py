@@ -273,8 +273,8 @@ class Application(tk.Frame):
         message_label.grid(row=302, rowspan=5, padx=(10, 10), sticky="nsew")
 
         def faire_evoluer_barre(evolution: float):
-            print(f"debug : la valeur de la barre est de {progress['value']}, "
-                  f"j'ai reçu une demande de l'augmenter de {evolution} ")
+            # print(f"debug : la valeur de la barre est de {progress['value']}, "
+            #       f"j'ai reçu une demande de l'augmenter de {evolution} ")
             if evolution == -100:
                 progress['value'] = 0
             elif evolution == 1000:

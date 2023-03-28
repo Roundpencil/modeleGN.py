@@ -182,7 +182,7 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
                     # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
                     if fast and \
                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
-                            item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
+                        item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
 
                         m_print(
                             f"et il n'a pas changé (dernier changement : "
@@ -1039,21 +1039,73 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
                                                         ErreurManager.ORIGINES.LECTURE_EVENEMENT)
         return
 
+    class NomsLignes(Enum):
+        CODE = "Code de l'évènement"
+        REFERENT = "Référent"
+        ETAT = "Etat"
+        INTRIGUE_LIEE = "Intrigue Liée"
+        LIEU = "Lieu"
+        JOUR = 'Jour, au format “J1”, “J2”, etc.'
+        HEURE = "Heure de démarrage"
+        DECLENCHEUR = "Déclencheur"
+        CONSEQUENCES = "Conséquences Événement"
+
+    noms_lignes = [e.value for e in NomsLignes]
+
+    min_score = 100
+    pire_match = ""
+
+    # print(f"debug : tableau evènement avant harmonisation : {[ligne[0] for ligne in tableau_fiche]}")
+    for ligne in tableau_fiche:
+        score = process.extractOne(ligne[0], noms_lignes)
+        ligne[0] = score[0]
+        if score[1] < min_score:
+            min_score = score[1]
+            pire_match = score[0]
+
+    tab_rectifie = [ligne[0] for ligne in tableau_fiche]
+    if min_score < 85:
+        texte_erreur = f"Attention, score bas de lecture des lignes du premier tableau de la fiche évènement. " \
+                       f"Pire score : {min_score}% pour {pire_match}. " \
+                       f"Tableau lu = {tab_rectifie}"
+        current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                        texte_erreur,
+                                                        ErreurManager.ORIGINES.SCENE)
+
+    if len(set(tab_rectifie)) != len(tab_rectifie):
+        texte_erreur = f"une valeur a été trouvée en double dans les lignes du premier tableau de la fiche évènement." \
+                       f"Tableau lu = {tab_rectifie}"
+        current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                        texte_erreur,
+                                                        ErreurManager.ORIGINES.SCENE)
+
+    # print(f"debug : tableau evènement après  harmonisation : {[ligne[0] for ligne in tableau_fiche]}")
+
     dict_fiche = dict(tableau_fiche)
     # print(f"debug : dict fiche = {dict_fiche}")
-    current_evenement.code_evenement = ''.join([dict_fiche.get(key, "").strip()
-                                                for key in dict_fiche
-                                                if key.startswith("Code")])
-    current_evenement.etat = dict_fiche.get("État", "").strip()
-    current_evenement.referent = dict_fiche.get("Référent", "").strip()
-    current_evenement.intrigue_liee = dict_fiche.get("Intrigue liée", "").strip()
-    current_evenement.lieu = dict_fiche.get("Lieu", "").strip()
-    current_evenement.date = dict_fiche.get('Jour, au format “J1”, “J2”, etc.', "").strip()
-    current_evenement.heure_de_demarrage = dict_fiche.get("Heure de démarrage", "").strip()
-    current_evenement.declencheur = dict_fiche.get("Déclencheur", "").strip()
-    current_evenement.consequences_evenement = ''.join([dict_fiche.get(key, "").strip()
-                                                        for key in dict_fiche
-                                                        if key.startswith("Conséquences ")])
+    # current_evenement.code_evenement = ''.join([dict_fiche.get(key, "").strip()
+    #                                             for key in dict_fiche
+    #                                             if key.startswith("Code")])
+    # current_evenement.etat = dict_fiche.get("État", "").strip()
+    # current_evenement.referent = dict_fiche.get("Référent", "").strip()
+    # current_evenement.intrigue_liee = dict_fiche.get("Intrigue liée", "").strip()
+    # current_evenement.lieu = dict_fiche.get("Lieu", "").strip()
+    # current_evenement.date = dict_fiche.get('Jour, au format “J1”, “J2”, etc.', "").strip()
+    # current_evenement.heure_de_demarrage = dict_fiche.get("Heure de démarrage", "").strip()
+    # current_evenement.declencheur = dict_fiche.get("Déclencheur", "").strip()
+    # current_evenement.consequences_evenement = ''.join([dict_fiche.get(key, "").strip()
+    #                                                     for key in dict_fiche
+    #                                                     if key.startswith("Conséquences ")])
+
+    current_evenement.code_evenement = dict_fiche.get(NomsLignes.CODE, "").strip()
+    current_evenement.etat = dict_fiche.get(NomsLignes.ETAT, "").strip()
+    current_evenement.referent = dict_fiche.get(NomsLignes.REFERENT, "").strip()
+    current_evenement.intrigue_liee = dict_fiche.get(NomsLignes.INTRIGUE_LIEE, "").strip()
+    current_evenement.lieu = dict_fiche.get(NomsLignes.LIEU, "").strip()
+    current_evenement.date = dict_fiche.get(NomsLignes.JOUR, "").strip()
+    current_evenement.heure_de_demarrage = dict_fiche.get(NomsLignes.HEURE, "").strip()
+    current_evenement.declencheur = dict_fiche.get(NomsLignes.DECLENCHEUR, "").strip()
+    current_evenement.consequences_evenement = dict_fiche.get(NomsLignes.CONSEQUENCES, "").strip()
 
 
 def evenement_lire_synopsis(texte: str, current_evenement: Evenement, texte_label: str):
