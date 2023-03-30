@@ -648,8 +648,9 @@ class GN:
                  id_pjs_et_pnjs=None, fichier_pnjs=None):
 
         # création des objets nécessaires
-        self.dictPJs = {}  # idgoogle, personnage
-        self.dictPNJs = {}  # idgoogle, personnage
+        # self.dictPJs = {}  # idgoogle, personnage
+        # self.dictPNJs = {}  # idgoogle, personnage
+        self.personnages = {}
         self.factions = {}  # nom, Faction
         self.intrigues = {}  # clef : id google
         self.evenements = {}  # clef : id google
@@ -734,9 +735,15 @@ class GN:
 
         self.date_gn = date_gn
 
+    def get_dict_pj(self):
+        return {key: self.personnages[key] for key in self.personnages if self.personnages[key].est_un_pj()}
+
+    def get_dict_pnj(self):
+        return {key: self.personnages[key] for key in self.personnages if self.personnages[key].est_un_pnj()}
+
     def lister_toutes_les_scenes(self):
         to_return = []
-        for conteneur in list(self.dictPJs.values()) + list(self.dictPNJs.values()) + list(self.intrigues.values()):
+        for conteneur in list(self.personnages.values()) + list(self.intrigues.values()):
             to_return.extend(iter(conteneur.scenes))
         return to_return
 
@@ -750,16 +757,22 @@ class GN:
     #         raise ValueError(f"La faction {nom} n'a pas été trouvée")
 
     def effacer_personnages_forces(self):
-        for key_personnage in list(self.dictPJs.keys()):
+        for key_personnage in list(self.personnages.keys()):
             # print(f"personnage = {self.dictPJs[key_personnage].nom}, forced = {self.dictPJs[key_personnage].forced}")
-            if self.dictPJs[key_personnage].forced:
-                perso = self.dictPJs.pop(key_personnage)
+            if self.personnages[key_personnage].forced:
+                perso = self.personnages.pop(key_personnage)
                 perso.clear()
-        for key_personnage in list(self.dictPNJs.keys()):
-            # print(f"personnage = {self.dictPJs[key_personnage].nom}, forced = {self.dictPJs[key_personnage].forced}")
-            if self.dictPNJs[key_personnage].forced:
-                perso = self.dictPNJs.pop(key_personnage)
-                perso.clear()
+
+        # for key_personnage in list(self.dictPJs.keys()):
+        #     # print(f"personnage = {self.dictPJs[key_personnage].nom}, forced = {self.dictPJs[key_personnage].forced}")
+        #     if self.dictPJs[key_personnage].forced:
+        #         perso = self.dictPJs.pop(key_personnage)
+        #         perso.clear()
+        # for key_personnage in list(self.dictPNJs.keys()):
+        #     # print(f"personnage = {self.dictPJs[key_personnage].nom}, forced = {self.dictPJs[key_personnage].forced}")
+        #     if self.dictPNJs[key_personnage].forced:
+        #         perso = self.dictPNJs.pop(key_personnage)
+        #         perso.clear()
 
     # permet de mettre à jour la date d'intrigue la plus ancienne
     # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
@@ -774,7 +787,7 @@ class GN:
             self.oldestUpdatedIntrigue = pairesDatesIdIntrigues[self.oldestUpdateIntrigue]
 
         if pairesDatesIdPJ := {
-            pj.lastProcessing: pj.url for pj in self.dictPJs.values()
+            pj.lastProcessing: pj.url for pj in self.personnages.values() if pj.est_un_pj()
         }:
             self.oldestUpdatePJ = min(pairesDatesIdPJ.keys())
             # print(f"oldestdate pj : {self.oldestUpdatePJ} ")
@@ -786,10 +799,10 @@ class GN:
 
     def noms_pjs(self):
         # return self.dictPJs.keys()
-        return [x.nom for x in self.dictPJs.values()]
+        return [x.nom for x in self.personnages.values() if x.est_un_pj()]
 
     def noms_pnjs(self):
-        return [pnj.nom for pnj in self.dictPNJs.values()]
+        return [x.nom for x in self.personnages.values() if x.est_un_pnj()]
 
     def noms_pjpnjs(self, pj: bool):
         return self.noms_pjs() if pj else self.noms_pnjs()
@@ -806,7 +819,7 @@ class GN:
 
     def associer_pjpnj_a_roles(self, pj: bool, seuil_alerte=70, verbal=False):
         logging.debug(f"Début de l'association automatique des rôles aux persos. PJ = {pj}")
-        dict_reference = self.dictPJs if pj else self.dictPNJs
+        dict_reference = self.get_dict_pj() if pj else self.get_dict_pnj()
 
         if verbal:
             print(f"pj? {pj}, noms persos = {dict_reference.keys()}")
@@ -819,7 +832,7 @@ class GN:
         self.associer_roles_issus_de_pj(dict_noms_persos, dict_reference, seuil_alerte, verbal)
 
         # faire l'association dans les intrigues à partir du nom de l'intrigue
-        #on crée une focntion pour choisir sur quelle valeur on fera les associations
+        # on crée une focntion pour choisir sur quelle valeur on fera les associations
         def nom_association(role: Role):
             if self.mode_association == GN.ModeAssociation.AUTO:
                 return role.nom
@@ -997,7 +1010,7 @@ class GN:
                     evenement.pjs_concernes_evenement[personnage.nom] = info_a_ajouter
 
     def associer_pjs_a_evenements(self, seuil_nom_roles: int = 80):
-        dict_noms_persos = {pj.nom: pj for pj in self.dictPJs.values()}
+        dict_noms_persos = {pj.nom: pj for pj in self.get_dict_pj().values()}
         liste_noms_persos = list(dict_noms_persos.keys())
         for evenement in self.evenements.values():
             for pj_informe in evenement.pjs_concernes_evenement.values():
@@ -1015,7 +1028,7 @@ class GN:
                 pj_informe.pj = pj_cible
 
     def associer_pnjs_a_evenements(self, seuil_nom_roles=80):
-        dict_noms_persos = {pnj.nom: pnj for pnj in self.dictPNJs.values()}
+        dict_noms_persos = {pnj.nom: pnj for pnj in self.get_dict_pnj().values()}
         liste_noms_persos = list(dict_noms_persos.keys())
         for evenement in self.evenements.values():
             for intervenant in evenement.intervenants_evenement.values():
@@ -1211,7 +1224,6 @@ class GN:
             table_orgas_referent = [None for _ in range(len(noms_persos))]
         logging.debug("début de l'ajout des personnages sans fiche")
         # nomsLus = [x.nom for x in self.dictPJs.values()]
-        dict_actif = self.dictPJs if pj else self.dictPNJs
 
         # if pj:
         #     dict_actif = self.dictPJs
@@ -1234,7 +1246,7 @@ class GN:
                 print(f"le personnage {perso} a une correspondance dans les persos déjà présents")
             else:
                 score_proche = process.extractOne(perso, noms_lus)
-                # print(f"avant assicoation, {personnage} correspond à {score_proche[0]} à {score_proche[1]}%")
+                # print(f"avant association, {personnage} correspond à {score_proche[0]} à {score_proche[1]}%")
                 if score_proche is not None and score_proche[1] >= 75:
                     if verbal:
                         print(f"{perso} correspond à {score_proche[0]} à {score_proche[1]}%")
@@ -1242,12 +1254,12 @@ class GN:
                 else:
                     if verbal:
                         print(f"{perso} a été créé (coquille vide)")
-                    dict_actif[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
-                                                             forced=True, orga_referent=orga_referent)
+                    self.personnages[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
+                                                                   forced=True, orga_referent=orga_referent)
                     # on met son nom en clef pour se souvenir qu'il a été généré
 
     def lister_tous_les_persos(self):
-        return list(self.dictPJs.values()) + list(self.dictPNJs.values())
+        return list(self.personnages.values())
 
     def lister_tous_les_roles(self):
         tous_les_roles = []

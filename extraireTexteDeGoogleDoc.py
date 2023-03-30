@@ -363,6 +363,7 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         TYPE_INTRIGUE = "Type d’intrigue"
         PIP = "Points d’intérêt"
         DESCRIPTION = "Résumé de l’implication"
+        TYPE_PERSONNAGE = "Type de Personnage"
 
     noms_colonnes = [nc.value for nc in NomsColonnes]
     headers = tableau_pjs[0]
@@ -414,6 +415,18 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         type_intrigue = header_2_value(ligne, header_to_index, NomsColonnes.TYPE_INTRIGUE.value, "")
         niveau_implication = header_2_value(ligne, header_to_index, NomsColonnes.IMPLICATION.value, "")
         pip_globaux = header_2_value(ligne, header_to_index, NomsColonnes.PIP.value, 0)
+        type_personnage_brut = header_2_value(ligne, header_to_index, NomsColonnes.TYPE_PERSONNAGE.value,
+                                              "PJ")
+        grille_types_persos = {"PJ": TypePerso.EST_PJ,
+                     "PNJ": TypePerso.EST_PNJ_HORS_JEU,
+                     "Reroll": TypePerso.EST_REROLL,
+                     "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
+                     "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
+                     "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
+                     "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
+        type_personnage_brut = process.extractOne(type_personnage_brut, grille_types_persos.keys())
+        type_perso = grille_types_persos[type_personnage_brut]
+
         if len(liste_pips := str(pip_globaux).split('/')) == 2:
             pip_globaux = 0
             pipi = liste_pips[0] + pipi
@@ -432,7 +445,8 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
                               pipr=pipr,
                               sexe=sexe,
                               pip_globaux=pip_globaux,
-                              affectation=affectation
+                              affectation=affectation,
+                              pj=type_perso
                               )
         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 

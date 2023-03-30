@@ -13,6 +13,7 @@ from modeleGN import *
 # bugs
 
 # à tester
+#todo : tester les types persos dans les tableaux personnages
 
 # à faire - rapide
 
@@ -23,8 +24,6 @@ from modeleGN import *
 # todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos
 #  faire la meme chose avec les PNJs
 #  ajouter un paramètre dans le GN pour le nombre de sessions envisagées pour savoir combien de colonnes on lit
-
-# todo : tenter de supprimer le dict PNJ et le dict PJ : peut-être qu'on n'a besoin que d'un seul, en fait...
 
 # todo : refaire version console
 
@@ -156,7 +155,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         new_gn = GN(
             dossiers_intrigues=mon_gn.dossiers_intrigues,
             dossier_output=mon_gn.dossier_outputs_drive,
-            association_auto=mon_gn.association_auto,
+            mode_association=mon_gn.mode_association,
             dossiers_pj=mon_gn.dossiers_pjs,
             dossiers_pnj=mon_gn.dossiers_pnjs,
             id_factions=mon_gn.id_factions,
@@ -168,13 +167,17 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     else:
         mon_gn.effacer_personnages_forces()
 
-    for perso in mon_gn.dictPJs.values():
+    for perso in mon_gn.personnages.values():
         logging.debug(f"nom du personnage = {perso.nom} / {perso.forced}")
     logging.debug(f"noms persos = {mon_gn.noms_pjs()}")
 
-    for perso in mon_gn.dictPNJs.values():
-        logging.debug(f"nom du pnj = {perso.nom} / {perso.forced}")
-    logging.debug(f"noms pnjs = {mon_gn.noms_pnjs()}")
+    # for perso in mon_gn.dictPJs.values():
+    #     logging.debug(f"nom du personnage = {perso.nom} / {perso.forced}")
+    # logging.debug(f"noms persos = {mon_gn.noms_pjs()}")
+    #
+    # for perso in mon_gn.dictPNJs.values():
+    #     logging.debug(f"nom du pnj = {perso.nom} / {perso.forced}")
+    # logging.debug(f"noms pnjs = {mon_gn.noms_pnjs()}")
 
     ids_lus = extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn,
                                                           api_drive=api_drive,
@@ -383,11 +386,11 @@ def retirer_intrigues_supprimees(mon_gn: GN, ids_intrigues_lus: list[str]):
 
 
 def retirer_pjs_supprimees(mon_gn: GN, ids_pjs_lus: list[str]):
-    retirer_elements_supprimes(ids_pjs_lus, mon_gn.dictPJs)
+    retirer_elements_supprimes(ids_pjs_lus, mon_gn.personnages)
 
 
 def retirer_pnjs_supprimes(mon_gn: GN, ids_pnjs_lus: list[str]):
-    retirer_elements_supprimes(ids_pnjs_lus, mon_gn.dictPNJs)
+    retirer_elements_supprimes(ids_pnjs_lus, mon_gn.personnages)
 
 
 def retirer_evenements_supprimes(mon_gn: GN, ids_evenements_lus: list[str]):
@@ -678,9 +681,9 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
 def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
     squelettes_persos = {}
     if pj:
-        liste_persos_source = mon_gn.dictPJs.values()
+        liste_persos_source = mon_gn.get_dict_pj().values()
     else:
-        liste_persos_source = mon_gn.dictPNJs.values()
+        liste_persos_source = mon_gn.get_dict_pnj().values()
 
     # for perso in liste_persos_source:
     #     print(f"génération du texte des persos : personnage en cours d'écriture : {perso.nom}")
@@ -976,7 +979,7 @@ def generer_table_chrono_condensee_raw(gn: GN):
     # pour chaque personnage, construire un tableau contenant, dans l'ordre chronologique,
     # toutes les scènes du personnage avec le texte "il y a..., titrescène"
     tableau_sortie = []
-    for perso in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()):
+    for perso in list(gn.personnages.values()):
         mes_scenes = []
         for role in perso.roles:
             for scene in role.scenes:
@@ -1151,7 +1154,7 @@ def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets):
 def generer_tableau_recap_persos(gn: GN):
     # to_return = []
     to_return = [["Nom Perso", "Orga Référent", "Points", "Intrigues"]]
-    for perso in gn.dictPJs.values():
+    for perso in gn.get_dict_pj().values():
         table_perso = [role.conteneur.nom for role in perso.roles]
         # for role in perso.roles:
         #     table_perso += [role.conteneur.nom]
@@ -1580,8 +1583,10 @@ def mettre_a_jour_champs(gn: GN):
         delattr(gn, 'association_auto')
     if not hasattr(gn, 'mode_association'):
         gn.mode_association = GN.ModeAssociation.AUTO
-
-
+    if hasattr(gn, 'dictPJs') and hasattr(gn, 'dictPNJs'):
+        gn.personnages = gn.dictPJs | gn.dictPNJs
+        delattr(gn, 'dictPJs')
+        delattr(gn, 'dictPNJs')
 
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'date_absolue'):
@@ -1614,43 +1619,48 @@ def mettre_a_jour_champs(gn: GN):
         if not hasattr(intrigue, 'evenements'):
             intrigue.evenements = set()
 
-    for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
-        for role in conteneur.rolesContenus.values():
-            print(f"clefs (2) pour {role.nom} = {vars(role).keys()}")
-            if not hasattr(role, 'affectation'):
-                role.affectation = ""
-            if hasattr(role, 'perimetreIntervention'):
-                if not hasattr(role, 'perimetre_intervention'):
-                    role.perimetre_intervention = role.perimetreIntervention
-                delattr(role, 'perimetreIntervention')
-                # print(f"PerimetreIntervention supprimé pour {role.nom}")
+    # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
+    #     for role in conteneur.rolesContenus.values():
+    for role in gn.lister_tous_les_roles():
+        print(f"clefs (2) pour {role.nom} = {vars(role).keys()}")
+        if not hasattr(role, 'affectation'):
+            role.affectation = ""
+        if hasattr(role, 'perimetreIntervention'):
+            if not hasattr(role, 'perimetre_intervention'):
+                role.perimetre_intervention = role.perimetreIntervention
+            delattr(role, 'perimetreIntervention')
+            # print(f"PerimetreIntervention supprimé pour {role.nom}")
 
-            if hasattr(role, 'perimetre_Intervention'):
-                if not hasattr(role, 'perimetre_intervention'):
-                    role.perimetre_intervention = role.perimetre_Intervention
-                delattr(role, 'perimetre_Intervention')
-            if not hasattr(role, 'relations'):
-                role.relations = set()
-            if not hasattr(role, 'personnage'):
-                if hasattr(role, 'perso'):
-                    role.personnage = role.perso
-                    delattr(role, 'perso')
-                else:
-                    role.personnage = None
-            if not hasattr(role, 'affectation'):
-                role.affectation = None
+        if hasattr(role, 'perimetre_Intervention'):
+            if not hasattr(role, 'perimetre_intervention'):
+                role.perimetre_intervention = role.perimetre_Intervention
+            delattr(role, 'perimetre_Intervention')
+        if not hasattr(role, 'relations'):
+            role.relations = set()
+        if not hasattr(role, 'personnage'):
+            if hasattr(role, 'perso'):
+                role.personnage = role.perso
+                delattr(role, 'perso')
+            else:
+                role.personnage = None
+        if not hasattr(role, 'affectation'):
+            role.affectation = None
 
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'infos'):
             scene.infos = set()
 
-    for pnj in gn.dictPNJs.values():
-        if not hasattr(pnj, 'commentaires'):
-            pnj.commentaires = []
+    # for pnj in gn.dictPNJs.values():
+    #     if not hasattr(pnj, 'commentaires'):
+    #         pnj.commentaires = []
+    #
+    # for pj in gn.dictPJs.values():
+    #     if not hasattr(pj, 'commentaires'):
+    #         pj.commentaires = []
 
-    for pj in gn.dictPJs.values():
-        if not hasattr(pj, 'commentaires'):
-            pj.commentaires = []
+    for p in gn.personnages.values():
+        if not hasattr(p, 'commentaires'):
+            p.commentaires = []
 
     for evenement in gn.evenements.values():
         for intervention in evenement.interventions:
@@ -1667,12 +1677,12 @@ def mettre_a_jour_champs(gn: GN):
         if not hasattr(evenement, 'objets'):
             evenement.objets = set()
 
-    for pj in gn.dictPJs:
-        if pj in gn.dictPNJs:
-            gn.dictPJs.pop(pj)
-            print(f"le personnage {gn.dictPJs[pj].name} a été retiré car c'était un pnj")
+    # for pj in gn.dictPJs:
+    #     if pj in gn.dictPNJs:
+    #         gn.dictPJs.pop(pj)
+    #         print(f"le personnage {gn.dictPJs[pj].name} a été retiré car c'était un pnj")
 
-    for personnage in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()):
+    for personnage in list(gn.personnages.values()):
         if not hasattr(personnage, 'informations_evenements'):
             personnage.informations_evenements = set()
         if not hasattr(personnage, 'intervient_comme'):
