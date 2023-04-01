@@ -13,8 +13,9 @@ from modeleGN import *
 # bugs
 
 # à tester
-#todo : tester les types persos dans les tableaux personnages
 #todo : vérifier la prise en compte du type "maximum" des pnjs, et la prise en compte des évènements
+#todo : ajouter les évènements dans les interventions PNJS
+
 # à faire - rapide
 
 

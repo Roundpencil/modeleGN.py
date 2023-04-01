@@ -1043,6 +1043,8 @@ class GN:
                                                             )
                 pnj_cible = dict_noms_persos[score[0]]
                 pnj_cible.intervient_comme.add(intervenant)
+                # si un PNJ intervient dans un évènement, il est à minima PNJ temporaire
+                pnj_cible.pj = max(pnj_cible.pj, TypePerso.EST_PNJ_TEMPORAIRE)
                 intervenant.pnj = pnj_cible
 
     def lier_les_evenements_aux_intrigues(self):
