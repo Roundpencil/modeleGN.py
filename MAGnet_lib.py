@@ -14,7 +14,7 @@ from modeleGN import *
 
 # à tester
 #todo : tester les types persos dans les tableaux personnages
-
+#todo : vérifier la prise en compte du type "maximum" des pnjs, et la prise en compte des évènements
 # à faire - rapide
 
 
@@ -1184,19 +1184,8 @@ def generer_table_pnjs_etendue(gn: GN, verbal=False):
 
     # print("ping table pnj")
     # print(f"pnjs contenus : {gn.dictPNJs.keys()}")
-
-    for pnj in gn.dictPNJs.values():
-        #     print(f"{pnj.nom}")
-        #     for role in pnj.roles:
-        #         print(f"table pnj : pnj en cours d'ajout : {pnj.nom}")
-        #         print(f"{pnj.nom}")
-        #         print(f"{role.description}")
-        #         print(f"{pnj.string_type_pj()}")
-        #         print(f"{role.niveauImplication}")
-        #         print(f"{role.perimetre_intervention}")
-        #         print(f"{role.conteneur.nom}")
-        #         print(f"{role.nom}")
-
+    liste_pnj = gn.get_dict_pnj().values()
+    for pnj in liste_pnj:
         table_pnj.extend(
             [
                 pnj.nom,
@@ -1220,7 +1209,7 @@ def generer_table_pnjs_simple(gn: GN, verbal=False):
                   "type_pj",
                   "intrigues"]]
 
-    logging.debug(f"pnjs contenus : {gn.dictPNJs.keys()}")
+    logging.debug(f"pnjs contenus : {gn.get_dict_pnj()}")
 
     table_pnj.extend(
         [
@@ -1228,11 +1217,11 @@ def generer_table_pnjs_simple(gn: GN, verbal=False):
             pnj.string_type_pj(),
             pnj.toutes_les_apparitions(),
         ]
-        for pnj in gn.dictPNJs.values()
+        for pnj in gn.get_dict_pnj().values()
     )
 
     if verbal:
-        for pnj in gn.dictPNJs.values():
+        for pnj in gn.get_dict_pnj().values():
             print(f"{pnj.nom}")
             for role in pnj.roles:
                 print(f"table pnj : pnj en cours d'ajout : {pnj.nom}")
@@ -1416,7 +1405,8 @@ def ecrire_table_commentaires(gn: GN, api_drive, api_doc, api_sheets):
 
 
 def generer_table_relations_personnages(gn):
-    tous_les_persos = gn.dictPJs.values()
+    # tous_les_persos = gn.dictPJs.values()
+    tous_les_persos = gn.personnages.values()
 
     dict_relations_nature = {}  # [perso.nom][nom corelationnaire] > [] de natures de relations
     for perso in tous_les_persos:

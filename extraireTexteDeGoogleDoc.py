@@ -7,6 +7,7 @@ import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
 
 import lecteurGoogle
+import modeleGN
 from modeleGN import *
 
 import dateparser
@@ -28,7 +29,8 @@ def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False,
                  taille_visualisation=100.0):
     # print(f"je m'apprête à extraire les PJs depuis {gn.dossiers_pjs}")
     return extraire_texte_de_google_doc(
-        api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
+        api_drive, api_doc, extraire_persos_de_texte, mon_gn.personnages, mon_gn.dossiers_pjs,
+        # api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
         singletest,
         verbal=verbal, fast=fast, prefixes="p", m_print=m_print,
         visualisation=visualisation,
@@ -48,7 +50,7 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
     #                                     singletest,
     #                                     verbal=verbal, fast=fast, prefixes="p")
 
-    return extraire_texte_de_google_doc(api_drive, api_doc, extraire_pnj_de_texte, mon_gn.dictPNJs,
+    return extraire_texte_de_google_doc(api_drive, api_doc, extraire_pnj_de_texte, mon_gn.personnages,
                                         mon_gn.dossiers_pnjs,
                                         singletest,
                                         verbal=verbal, fast=fast, prefixes="p", m_print=m_print,
@@ -424,7 +426,7 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
                      "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
                      "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
                      "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
-        type_personnage_brut = process.extractOne(type_personnage_brut, grille_types_persos.keys())
+        type_personnage_brut = process.extractOne(type_personnage_brut, grille_types_persos.keys())[0]
         type_perso = grille_types_persos[type_personnage_brut]
 
         if len(liste_pips := str(pip_globaux).split('/')) == 2:
@@ -1647,8 +1649,9 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
     lines = text.splitlines()
     noms_persos = list(mon_gn.noms_pjs()) + list(mon_gn.noms_pnjs())
     # on crée un dictionnaire qui permettra de retrouver les id en fonction des noms
-    temp_dict_pjs = {mon_gn.dictPJs[x].nom: x for x in mon_gn.dictPJs}
-    temp_dict_pnjs = {mon_gn.dictPNJs[x].nom: x for x in mon_gn.dictPNJs}
+    # temp_dict_pjs = {mon_gn.dictPJs[x].nom: x for x in mon_gn.dictPJs}
+    # temp_dict_pnjs = {mon_gn.dictPNJs[x].nom: x for x in mon_gn.dictPNJs}
+    dict_nom_id = {mon_gn.personnages[x].nom: x for x in mon_gn.personnages}
 
     current_faction = None
     for line in lines:
@@ -1670,13 +1673,13 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
                 if verbal:
                     print(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
                 logging.info(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
-                if temp_dict_pjs.get(score[0]):
-                    personnages_a_ajouter = mon_gn.dictPJs[temp_dict_pjs.get(score[0])]
-                    logging.info("et il venait des pjs")
-                else:
-                    personnages_a_ajouter = mon_gn.dictPNJs[temp_dict_pnjs.get(score[0])]
-                    logging.info("et il venait des pnjs")
-
+                # if temp_dict_pjs.get(score[0]):
+                #     personnages_a_ajouter = mon_gn.dictPJs[temp_dict_pjs.get(score[0])]
+                #     logging.info("et il venait des pjs")
+                # else:
+                #     personnages_a_ajouter = mon_gn.dictPNJs[temp_dict_pnjs.get(score[0])]
+                #     logging.info("et il venait des pnjs")
+                personnages_a_ajouter = mon_gn.personnages[dict_nom_id.get(score[0])]
                 current_faction.personnages.add(personnages_a_ajouter)
     return 0
 

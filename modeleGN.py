@@ -648,9 +648,9 @@ class GN:
                  id_pjs_et_pnjs=None, fichier_pnjs=None):
 
         # création des objets nécessaires
-        # self.dictPJs = {}  # idgoogle, personnage
-        # self.dictPNJs = {}  # idgoogle, personnage
-        self.personnages = {}
+        self.dictPJs = {}  # idgoogle, personnage
+        self.dictPNJs = {}  # idgoogle, personnage
+        self.personnages = {} # idgoogle, personnage
         self.factions = {}  # nom, Faction
         self.intrigues = {}  # clef : id google
         self.evenements = {}  # clef : id google

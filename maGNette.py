@@ -723,9 +723,9 @@ if __name__ == '__main__':
 
 
 def convertir_erreur_manager(gn:GN):
-    print(gn.dictPJs)
+    # print(gn.dictPJs)
 
-    for obj in list(gn.dictPJs.values())+list(gn.dictPNJs.values())+list(gn.intrigues.values()):
+    for obj in list(gn.personnages.values())+list(gn.intrigues.values()):
         tmp = obj.error_log
         obj.error_log = ErreurManager()
         for erreur in tmp.erreurs:
@@ -756,9 +756,10 @@ def convertir_erreur_manager(gn:GN):
 
 
 def lister_rerolls(gn:GN):
-    for conteneur in list(gn.dictPJs.values()) \
-                     + list(gn.dictPNJs.values()) \
-                     + list(gn.intrigues.values()):
+    # for conteneur in list(gn.dictPJs.values()) \
+    #                  + list(gn.dictPNJs.values()) \
+    #                  + list(gn.intrigues.values()):
+    for conteneur in list(gn.personnages.values()) + list(gn.intrigues.values()):
         for scene in conteneur.scenes:
             for role in scene.roles:
                 if role.pj == TypePerso.EST_REROLL:
