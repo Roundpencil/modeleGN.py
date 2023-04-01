@@ -29,10 +29,6 @@ from modeleGN import *
 
 # todo créer un objet Paramètre qui stoque les paramètres du GN et les passer pour simplifier les créations
 
-# todo : faire un menu qui crée le GN avec les options et crée tous les fichiers qui vont bien
-#  dans un dossier magnet du drive fourni en entrée, et des questions sous la forme de "allez-vous utiliser...?"
-#  pour déterminer les champs à créer
-
 def print_progress(v: float):
     print(f"La génération a progressé de {v}%")
 
