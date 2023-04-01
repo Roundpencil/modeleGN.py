@@ -238,7 +238,7 @@ class Personnage(ConteneurDeScene):
         to_return += f"joueurs = {self.joueurs.values()} \n"
         to_return += f"pitchJoueur = {self.pitchJoueur} \n"
         to_return += f"indicationsCostume = {self.indicationsCostume} \n"
-        to_return += f"factions = {self.factions} \n"
+        # to_return += f"factions = {self.factions} \n"
         to_return += f"textesAnnexes = {self.textesAnnexes} \n"
         return to_return
 
