@@ -13,10 +13,9 @@ from modeleGN import *
 # bugs
 
 # à tester
-#todo : vérifier la prise en compte du type "maximum" des pnjs, et la prise en compte des évènements
-#todo : ajouter les évènements dans les interventions PNJS
 
 # à faire - rapide
+#todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
 
 # à faire - plus long
@@ -697,6 +696,7 @@ def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
         # ajout des informations issues des fiches :
         texte_perso = ""
         texte_perso += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
+        texte_perso += f"type de personnage : {perso.string_type_personnage()} \n"
         texte_perso += f"résumé de la bio : \n"
         for item in perso.description:
             texte_perso += f"{item} \n"
@@ -1191,7 +1191,7 @@ def generer_table_pnjs_etendue(gn: GN, verbal=False):
             [
                 pnj.nom,
                 role.description,
-                pnj.string_type_pj(),
+                pnj.string_type_personnage(),
                 role.niveauImplication,
                 role.perimetre_intervention,
                 role.conteneur.nom,
@@ -1215,7 +1215,7 @@ def generer_table_pnjs_simple(gn: GN, verbal=False):
     table_pnj.extend(
         [
             pnj.nom,
-            pnj.string_type_pj(),
+            pnj.string_type_personnage(),
             pnj.toutes_les_apparitions(),
         ]
         for pnj in gn.get_dict_pnj().values()
@@ -1228,7 +1228,7 @@ def generer_table_pnjs_simple(gn: GN, verbal=False):
                 print(f"table pnj : pnj en cours d'ajout : {pnj.nom}")
                 print(f"{pnj.nom}")
                 print(f"{role.description}")
-                print(f"{pnj.string_type_pj()}")
+                print(f"{pnj.string_type_personnage()}")
                 print(f"{role.niveauImplication}")
                 print(f"{role.perimetre_intervention}")
                 print(f"{role.conteneur.nom}")
@@ -1249,10 +1249,10 @@ def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets):
     file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="En synthèse")
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_etendue, file_id, feuille="Vision détaillée")
-
-    table_pnj_dedup = generer_table_pnj_dedupliquee(mon_gn)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_pnj_dedup, file_id,
-                                                        feuille="Suggestion liste dedupliquée")
+    if mon_gn.mode_association == GN.ModeAssociation.AUTO:
+        table_pnj_dedup = generer_table_pnj_dedupliquee(mon_gn)
+        extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_pnj_dedup, file_id,
+                                                            feuille="Suggestion liste dedupliquée")
     extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, file_id)
 
 

@@ -212,6 +212,15 @@ class Personnage(ConteneurDeScene):
     # def __str__(self):
     #     return "nom personnage : " + self.nom
 
+    def get_type_from_roles(self):
+        tous_les_types = [role.pj for role in self.roles]
+        if len(self.intervient_comme) + len(self.informations_evenements) > 0:
+            tous_les_types.append(TypePerso.EST_PNJ_TEMPORAIRE)
+        return max(tous_les_types)
+
+    def string_type_personnage(self):
+        return string_type_pj(self.get_type_from_roles())
+
     def __str__(self):
         to_return = ""
         to_return += f"nom = {self.nom} \n"
@@ -245,8 +254,8 @@ class Personnage(ConteneurDeScene):
     def sommer_pip(self):
         return sum(role.sommer_pip() for role in self.roles)
 
-    def string_type_pj(self):
-        return string_type_pj(self.pj)
+    # def string_type_pj(self):
+    #     return string_type_pj(self.pj)
 
     def toutes_les_apparitions(self):
         toutes = [role.conteneur.nom for role in self.roles]
@@ -428,7 +437,9 @@ class Intrigue(ConteneurDeScene):
                 return -1
         role_a_associer.personnage = personnage
         # au passage on update le niveau de personnage (surtout utile pour les PNJs), en prenant toujours le max
-        personnage.pj = max(personnage.pj, role_a_associer.pj)
+        # supprimé et remplacé par une méthode dynamique : cela créait un problème si l'intrigue qui
+        # définissait le niveau supérieur disparaissant
+        # personnage.pj = max(personnage.pj, role_a_associer.pj)
         personnage.roles.add(role_a_associer)
         return 0
 
@@ -1043,8 +1054,6 @@ class GN:
                                                             )
                 pnj_cible = dict_noms_persos[score[0]]
                 pnj_cible.intervient_comme.add(intervenant)
-                # si un PNJ intervient dans un évènement, il est à minima PNJ temporaire
-                pnj_cible.pj = max(pnj_cible.pj, TypePerso.EST_PNJ_TEMPORAIRE)
                 intervenant.pnj = pnj_cible
 
     def lier_les_evenements_aux_intrigues(self):
