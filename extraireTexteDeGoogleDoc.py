@@ -633,36 +633,70 @@ def intrigue_rerolls(texte: str, current_intrigue: Intrigue, texte_label: str):
                               )
         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
+
 def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
-    tab_objets, nb_colonnes = reconstituer_tableau(texte)
+    tab_objets, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
+
+    if nb_colonnes == 0:
+        texte_erreur = "le tableau des objets  est inexploitable"
+        current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                          texte_erreur,
+                                          ErreurManager.ORIGINES.SCENE)
+        return
+
+    class NomsColonnes(Enum):
+        CODE = "Code de l'objet"
+        DESCRIPTION = "Description"
+        FX = "Effets spéciaux nécessaires (si aucun, vide)"
+        START = "Où se trouve-t-il en début de jeu ?"
+        FOURNI_PAR = "Fourni par ?"
+
+    noms_colonnes = [nc.value for nc in NomsColonnes]
+    headers = tab_objets[0]
+    dict_headers = header_2_index(headers, noms_colonnes, current_intrigue.error_log)
+
     # faire un tableau avec une ligne par objet
-    for objet in tab_objets:  # on enlève la première ligne qui contient les titres
+    for ligne in tab_objets[1:]:
+        code = header_2_value(ligne, dict_headers, NomsColonnes.CODE.value, "")
+        description = header_2_value(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
+        fourni_par = header_2_value(ligne, dict_headers, NomsColonnes.FOURNI_PAR.value, "")
+        emplacement_debut = header_2_value(ligne, dict_headers, NomsColonnes.START.value, "")
+        special_effect = header_2_value(ligne, dict_headers, NomsColonnes.FX.value, "")
 
-        mon_objet = None
-        if nb_colonnes == 4:
-            mon_objet = Objet(description=objet[0].strip(),
-                              special_effect=objet[1].strip() if objet[1].strip().lower() != "non" else '',
-                              emplacement_debut=objet[2].strip(),
-                              fourni_par=objet[3].strip())
-            # if pnj[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
-            #     mon_objet.specialEffect = pnj[1].strip()
+        mon_objet = Objet(code=code,
+                          description=description,
+                          fourni_par=fourni_par,
+                          emplacement_debut=emplacement_debut,
+                          special_effect=special_effect)
 
-        elif nb_colonnes == 3:
-            mon_objet = Objet(description=objet[0].strip(),
-                              emplacement_debut=objet[1].strip(),
-                              fourni_par=objet[2].strip())
-        elif nb_colonnes == 6:
-            mon_objet = Objet(code=objet[0].strip(),
-                              description=objet[1].strip(),
-                              special_effect=objet[2].strip() if objet[2].strip().lower() != "non" else '',
-                              emplacement_debut=objet[3].strip(),
-                              fourni_par=objet[4].strip())
-        else:
-            print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {mon_objet}")
-
-        if mon_objet is not None:
-            current_intrigue.objets.add(mon_objet)
-            mon_objet.intrigue = current_intrigue
+        current_intrigue.objets.add(mon_objet)
+        mon_objet.intrigue = current_intrigue
+        #
+        # mon_objet = None
+        # if nb_colonnes == 4:
+        #     mon_objet = Objet(description=objet[0].strip(),
+        #                       special_effect=objet[1].strip() if objet[1].strip().lower() != "non" else '',
+        #                       emplacement_debut=objet[2].strip(),
+        #                       fourni_par=objet[3].strip())
+        #     # if pnj[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
+        #     #     mon_objet.specialEffect = pnj[1].strip()
+        #
+        # elif nb_colonnes == 3:
+        #     mon_objet = Objet(description=objet[0].strip(),
+        #                       emplacement_debut=objet[1].strip(),
+        #                       fourni_par=objet[2].strip())
+        # elif nb_colonnes == 6:
+        #     mon_objet = Objet(code=objet[0].strip(),
+        #                       description=objet[1].strip(),
+        #                       special_effect=objet[2].strip() if objet[2].strip().lower() != "non" else '',
+        #                       emplacement_debut=objet[3].strip(),
+        #                       fourni_par=objet[4].strip())
+        # else:
+        #     print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {mon_objet}")
+        #
+        # if mon_objet is not None:
+        #     current_intrigue.objets.add(mon_objet)
+        #     mon_objet.intrigue = current_intrigue
 
 
 def intrigue_scenesfx(texte: str, intrigue: Intrigue, texte_label: str):
