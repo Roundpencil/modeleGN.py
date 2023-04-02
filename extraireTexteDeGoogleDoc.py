@@ -369,16 +369,7 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
 
     noms_colonnes = [nc.value for nc in NomsColonnes]
     headers = tableau_pjs[0]
-    header_to_index = header_2_index(current_intrigue, headers, noms_colonnes)
-
-    def header_2_value(ligne_tableau: list[str], table_header: dict, header_value, default):
-        logging.debug(f"header / table header {header_value} {table_header.get(header_value)}")
-        logging.debug(f"ligne : {ligne_tableau}")
-        debug_value = table_header.get(header_value)
-        if debug_value is not None:
-            logging.debug(f"pour la valeur {debug_value} : {ligne_tableau[debug_value]}")
-        index = table_header.get(header_value)
-        return ligne_tableau[index] if index is not None else default
+    header_to_index = header_2_index(current_intrigue.error_log, headers, noms_colonnes)
 
     for ligne in tableau_pjs[1:]:
         nom = header_2_value(ligne, header_to_index, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
@@ -393,12 +384,12 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         type_personnage_brut = header_2_value(ligne, header_to_index, NomsColonnes.TYPE_PERSONNAGE.value,
                                               "PJ")
         grille_types_persos = {"PJ": TypePerso.EST_PJ,
-                     "PNJ": TypePerso.EST_PNJ_HORS_JEU,
-                     "Reroll": TypePerso.EST_REROLL,
-                     "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
-                     "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
-                     "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
-                     "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
+                               "PNJ": TypePerso.EST_PNJ_HORS_JEU,
+                               "Reroll": TypePerso.EST_REROLL,
+                               "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
+                               "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
+                               "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
+                               "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
         type_personnage_brut = process.extractOne(type_personnage_brut, grille_types_persos.keys())[0]
         type_perso = grille_types_persos[type_personnage_brut]
 
@@ -438,7 +429,7 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
     #     print("Erreur : tableau d'intrigue non standard")
 
 
-def header_2_index(current_intrigue, headers, noms_colonnes):
+def header_2_index(erreur_manager: ErreurManager, headers, noms_colonnes):
     tab_rectifie = []
     min_score = 100
     pire_match = ""
@@ -454,17 +445,27 @@ def header_2_index(current_intrigue, headers, noms_colonnes):
     if min_score < 85:
         texte_erreur = f"Attention, score bas de lecture des entêtes du tableau des personnages. " \
                        f"Pire score : {min_score}% pour {pire_match}. Tableau lu = {tab_rectifie}"
-        current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-                                          texte_erreur,
-                                          ErreurManager.ORIGINES.SCENE)
+        erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                      texte_erreur,
+                                      ErreurManager.ORIGINES.SCENE)
     if len(set(tab_rectifie)) != len(tab_rectifie):
         texte_erreur = f"une valeur a été trouvée en double dans les en-têtes de colonne du tableau des persos. " \
                        f"Tableau lu = {tab_rectifie}"
-        current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
-                                          texte_erreur,
-                                          ErreurManager.ORIGINES.SCENE)
+        erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                      texte_erreur,
+                                      ErreurManager.ORIGINES.SCENE)
     header_to_index = {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
     return header_to_index
+
+
+def header_2_value(ligne_tableau: list[str], table_header: dict, header_value, default):
+    logging.debug(f"header / table header {header_value} {table_header.get(header_value)}")
+    logging.debug(f"ligne : {ligne_tableau}")
+    debug_value = table_header.get(header_value)
+    if debug_value is not None:
+        logging.debug(f"pour la valeur {debug_value} : {ligne_tableau[debug_value]}")
+    index = table_header.get(header_value)
+    return ligne_tableau[index] if index is not None else default
 
 
 def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
@@ -508,8 +509,6 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
     tableau_pnjs, _ = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
     header = tableau_pnjs[0]
 
-
-
     class NomsColonnes(Enum):
         AFFECTATION = "Affecté à"
         GENRE = "Genre"
@@ -529,6 +528,7 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
 
         # du coup, on peut l'ajouter aux intrigues
         current_intrigue.rolesContenus[pnj_a_ajouter.nom] = pnj_a_ajouter
+
 
 def intrigue_rerolls(texte: str, intrigue: Intrigue, texte_label: str):
     tab_rerolls, _ = reconstituer_tableau(texte)
