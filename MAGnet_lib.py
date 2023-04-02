@@ -17,6 +17,7 @@ from modeleGN import *
 # à faire - rapide
 #todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
+# todo : ajuster la lecture du tableau PNJ comme celle du tableau des PJs
 
 # à faire - plus long
 
