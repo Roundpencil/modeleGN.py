@@ -369,34 +369,7 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
 
     noms_colonnes = [nc.value for nc in NomsColonnes]
     headers = tableau_pjs[0]
-    tab_rectifie = []
-    min_score = 100
-    pire_match = ""
-    for head in headers:
-        score = process.extractOne(head, noms_colonnes)
-        tab_rectifie.append(score[0])
-        if score[1] < min_score:
-            min_score = score[1]
-            pire_match = score[0]
-    logging.debug("lecture auto des tableaux :")
-    for i in range(len(headers)):
-        logging.debug(f"{headers[i]} > {tab_rectifie[i]}")
-
-    if min_score < 85:
-        texte_erreur = f"Attention, score bas de lecture des entêtes du tableau des personnages. " \
-                       f"Pire score : {min_score}% pour {pire_match}. Tableau lu = {tab_rectifie}"
-        current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
-                                          texte_erreur,
-                                          ErreurManager.ORIGINES.SCENE)
-
-    if len(set(tab_rectifie)) != len(tab_rectifie):
-        texte_erreur = f"une valeur a été trouvée en double dans les en-têtes de colonne du tableau des persos. " \
-                       f"Tableau lu = {tab_rectifie}"
-        current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
-                                          texte_erreur,
-                                          ErreurManager.ORIGINES.SCENE)
-
-    header_to_index = {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
+    header_to_index = header_2_index(current_intrigue, headers, noms_colonnes)
 
     def header_2_value(ligne_tableau: list[str], table_header: dict, header_value, default):
         logging.debug(f"header / table header {header_value} {table_header.get(header_value)}")
@@ -465,45 +438,97 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
     #     print("Erreur : tableau d'intrigue non standard")
 
 
-def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
-    tableau_pnjs, _ = reconstituer_tableau(texte)
-    # faire un tableau avec une ligne par PNJ
-    # print(f"tableau pnj décodé : {tableau_pnjs}")
-    for pnj in tableau_pnjs:
-        # print(f"section pnj en cours de lecture : {pnj}")
-        # print(f"taille = {len(pnj)}")
-        # print(f"pnj en cours = {pnj}")
+def header_2_index(current_intrigue, headers, noms_colonnes):
+    tab_rectifie = []
+    min_score = 100
+    pire_match = ""
+    for head in headers:
+        score = process.extractOne(head, noms_colonnes)
+        tab_rectifie.append(score[0])
+        if score[1] < min_score:
+            min_score = score[1]
+            pire_match = score[0]
+    logging.debug("lecture auto des tableaux :")
+    for i in range(len(headers)):
+        logging.debug(f"{headers[i]} > {tab_rectifie[i]}")
+    if min_score < 85:
+        texte_erreur = f"Attention, score bas de lecture des entêtes du tableau des personnages. " \
+                       f"Pire score : {min_score}% pour {pire_match}. Tableau lu = {tab_rectifie}"
+        current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
+                                          texte_erreur,
+                                          ErreurManager.ORIGINES.SCENE)
+    if len(set(tab_rectifie)) != len(tab_rectifie):
+        texte_erreur = f"une valeur a été trouvée en double dans les en-têtes de colonne du tableau des persos. " \
+                       f"Tableau lu = {tab_rectifie}"
+        current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                          texte_erreur,
+                                          ErreurManager.ORIGINES.SCENE)
+    header_to_index = {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
+    return header_to_index
 
-        # 0 Nom duPNJ et / ou fonction :
-        # 1 Intervention:(Permanente ou Temporaire)
-        # 2 Type d’implication: (Active, Passive, Info, ou Objet)
-        # 3 Résumé de l’implication
+
+def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
+    # tableau_pnjs, _ = reconstituer_tableau(texte)
+    # # faire un tableau avec une ligne par PNJ
+    # # print(f"tableau pnj décodé : {tableau_pnjs}")
+    # for pnj in tableau_pnjs:
+    #     # print(f"section pnj en cours de lecture : {pnj}")
+    #     # print(f"taille = {len(pnj)}")
+    #     # print(f"pnj en cours = {pnj}")
+    #
+    #     # 0 Nom duPNJ et / ou fonction :
+    #     # 1 Intervention:(Permanente ou Temporaire)
+    #     # 2 Type d’implication: (Active, Passive, Info, ou Objet)
+    #     # 3 Résumé de l’implication
+    #     pnj_a_ajouter = Role(current_intrigue, nom=pnj[0], description=pnj[3],
+    #                          pj=TypePerso.EST_PNJ_HORS_JEU, niveau_implication=pnj[2],
+    #                          perimetre_intervention=pnj[1])
+    #
+    #     # print("Je suis en train de regarder {0} et son implication est {1}"
+    #     # .format(pnj_a_ajouter.nom, pnj[1].strip()))
+    #
+    #     # cherche ensuite le niveau d'implication du pj
+    #     if pnj[1].lower().find('perman') > -1:
+    #         # print(pnj_a_ajouter.nom + " est permanent !!")
+    #         pnj_a_ajouter.pj = TypePerso.EST_PNJ_PERMANENT
+    #     elif pnj[1].lower().find('infiltr') > -1:
+    #         pnj_a_ajouter.pj = TypePerso.EST_PNJ_INFILTRE
+    #         # print(pnj_a_ajouter.nom + " est temporaire !!")
+    #     # elif pnj[1].strip().lower().find('temp') > -1:
+    #     #     pnj_a_ajouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
+    #     #     # print(pnj_a_ajouter.nom + " est temporaire !!")
+    #     elif len(pnj[1]) > 1:
+    #         pnj_a_ajouter.pj = TypePerso.EST_PNJ_TEMPORAIRE
+    #         # print(pnj_a_ajouter.nom + " est temporaire !!")
+    #
+    #     # sinon PNJ hors-jeu est la valeur par défaut : ne rien faire
+    #
+    #     # du coup, on peut l'ajouter aux intrigues
+    #     current_intrigue.rolesContenus[pnj_a_ajouter.nom] = pnj_a_ajouter
+    tableau_pnjs, _ = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
+    header = tableau_pnjs[0]
+
+
+
+    class NomsColonnes(Enum):
+        AFFECTATION = "Affecté à"
+        GENRE = "Genre"
+        NOM_PERSO = "Nom du PNJ et/ou fonction"
+        IMPLICATION = "Type d’implication"
+        TYPE_INTRIGUE = "Type d’intrigue"
+        DESCRIPTION = "Résumé de l’implication"
+        TYPE_PERSONNAGE = "Intervention"
+
+    noms_colonnes = [c.value for c in NomsColonnes]
+    dsfsfze
+
+    for pnj in tableau_pnjs[1:]:
         pnj_a_ajouter = Role(current_intrigue, nom=pnj[0], description=pnj[3],
                              pj=TypePerso.EST_PNJ_HORS_JEU, niveau_implication=pnj[2],
                              perimetre_intervention=pnj[1])
 
-        # print("Je suis en train de regarder {0} et son implication est {1}"
-        # .format(pnj_a_ajouter.nom, pnj[1].strip()))
-
-        # cherche ensuite le niveau d'implication du pj
-        if pnj[1].lower().find('perman') > -1:
-            # print(pnj_a_ajouter.nom + " est permanent !!")
-            pnj_a_ajouter.pj = TypePerso.EST_PNJ_PERMANENT
-        elif pnj[1].lower().find('infiltr') > -1:
-            pnj_a_ajouter.pj = TypePerso.EST_PNJ_INFILTRE
-            # print(pnj_a_ajouter.nom + " est temporaire !!")
-        # elif pnj[1].strip().lower().find('temp') > -1:
-        #     pnj_a_ajouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
-        #     # print(pnj_a_ajouter.nom + " est temporaire !!")
-        elif len(pnj[1]) > 1:
-            pnj_a_ajouter.pj = TypePerso.EST_PNJ_TEMPORAIRE
-            # print(pnj_a_ajouter.nom + " est temporaire !!")
-
-        # sinon PNJ hors-jeu est la valeur par défaut : ne rien faire
-
         # du coup, on peut l'ajouter aux intrigues
         current_intrigue.rolesContenus[pnj_a_ajouter.nom] = pnj_a_ajouter
-
 
 def intrigue_rerolls(texte: str, intrigue: Intrigue, texte_label: str):
     tab_rerolls, _ = reconstituer_tableau(texte)
