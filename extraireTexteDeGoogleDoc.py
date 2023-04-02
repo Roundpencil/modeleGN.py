@@ -261,16 +261,16 @@ def extraire_elements_de_document(document, item, dict_reference: dict, fonction
     return mon_objet
 
 
-def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, derniere_modification_par,
+def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_edit, derniere_modification_par,
                                dict_intrigues,
                                verbal=False):
     # print("texte intrigue en entrée : ")
     # print(texteIntrigue.replace('\v', '\n'))
     # texteIntrigue = texteIntrigue.replace('\v', '\n')
     # print("*****************************")
-    current_intrigue = Intrigue(nom=nomIntrigue, url=idUrl, derniere_edition_fichier=lastFileEdit)
+    current_intrigue = Intrigue(nom=nom_intrigue, url=id_url, derniere_edition_fichier=last_file_edit)
     current_intrigue.modifie_par = derniere_modification_par
-    dict_intrigues[idUrl] = current_intrigue
+    dict_intrigues[id_url] = current_intrigue
 
     # noms_persos = gn.liste_noms_pjs()
 
@@ -295,7 +295,7 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
 
     labels = [l.value for l in Labels]
 
-    indexes = lecteurGoogle.identifier_sections_fiche(labels, texteIntrigue)
+    indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_intrigue)
     # print(f"debug : indexes = {indexes}")
 
     dict_methodes = {
@@ -319,10 +319,10 @@ def extraire_intrigue_de_texte(texteIntrigue, nomIntrigue, idUrl, lastFileEdit, 
 
     for label in Labels:
         if indexes[label.value]["debut"] == -1:
-            print(f"pas de {label.value} avec l'intrigue {nomIntrigue}")
+            print(f"pas de {label.value} avec l'intrigue {nom_intrigue}")
         else:
             ma_methode = dict_methodes[label]
-            texte = texteIntrigue[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+            texte = texte_intrigue[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
             # print(f"debug : texte label {label.value} = {texte}")
             ma_methode(texte, current_intrigue, label.value)
 
@@ -369,27 +369,28 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
 
     noms_colonnes = [nc.value for nc in NomsColonnes]
     headers = tableau_pjs[0]
-    header_to_index = header_2_index(current_intrigue.error_log, headers, noms_colonnes)
+    dict_headers = header_2_index(headers, noms_colonnes, current_intrigue.error_log)
+
+    grille_types_persos = {"PJ": TypePerso.EST_PJ,
+                           "PNJ": TypePerso.EST_PNJ_HORS_JEU,
+                           "Reroll": TypePerso.EST_REROLL,
+                           "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
+                           "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
+                           "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
+                           "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
 
     for ligne in tableau_pjs[1:]:
-        nom = header_2_value(ligne, header_to_index, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
+        nom = header_2_value(ligne, dict_headers, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
         logging.debug(f"value  ={NomsColonnes.NOM_PERSO.value}, nom = {nom}")
-        description = header_2_value(ligne, header_to_index, NomsColonnes.DESCRIPTION.value, "")
-        pipi = header_2_value(ligne, header_to_index, NomsColonnes.PIP_I.value, 0)
-        pipr = header_2_value(ligne, header_to_index, NomsColonnes.PIP_R.value, 0)
-        sexe = header_2_value(ligne, header_to_index, NomsColonnes.GENRE.value, "i")
-        type_intrigue = header_2_value(ligne, header_to_index, NomsColonnes.TYPE_INTRIGUE.value, "")
-        niveau_implication = header_2_value(ligne, header_to_index, NomsColonnes.IMPLICATION.value, "")
-        pip_globaux = header_2_value(ligne, header_to_index, NomsColonnes.PIP.value, 0)
-        type_personnage_brut = header_2_value(ligne, header_to_index, NomsColonnes.TYPE_PERSONNAGE.value,
+        description = header_2_value(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
+        pipi = header_2_value(ligne, dict_headers, NomsColonnes.PIP_I.value, 0)
+        pipr = header_2_value(ligne, dict_headers, NomsColonnes.PIP_R.value, 0)
+        sexe = header_2_value(ligne, dict_headers, NomsColonnes.GENRE.value, "i")
+        type_intrigue = header_2_value(ligne, dict_headers, NomsColonnes.TYPE_INTRIGUE.value, "")
+        niveau_implication = header_2_value(ligne, dict_headers, NomsColonnes.IMPLICATION.value, "")
+        pip_globaux = header_2_value(ligne, dict_headers, NomsColonnes.PIP.value, 0)
+        type_personnage_brut = header_2_value(ligne, dict_headers, NomsColonnes.TYPE_PERSONNAGE.value,
                                               "PJ")
-        grille_types_persos = {"PJ": TypePerso.EST_PJ,
-                               "PNJ": TypePerso.EST_PNJ_HORS_JEU,
-                               "Reroll": TypePerso.EST_REROLL,
-                               "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
-                               "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
-                               "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
-                               "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
         type_personnage_brut = process.extractOne(type_personnage_brut, grille_types_persos.keys())[0]
         type_perso = grille_types_persos[type_personnage_brut]
 
@@ -397,8 +398,8 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
             pip_globaux = 0
             pipi = liste_pips[0] + pipi
             pipr = liste_pips[1] + pipr
-        affectation = header_2_value(ligne, header_to_index, NomsColonnes.AFFECTATION.value, "")
-        logging.debug(f"Tableau des headers : {header_to_index}")
+        affectation = header_2_value(ligne, dict_headers, NomsColonnes.AFFECTATION.value, "")
+        logging.debug(f"Tableau des headers : {dict_headers}")
         logging.debug(f"ligne = {ligne}")
         logging.debug(f"lecture associée : "
                       f"{[nom, description, pipi, pipr, sexe, type_intrigue, niveau_implication, pip_globaux, affectation]}")
@@ -409,7 +410,7 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
                               niveau_implication=niveau_implication,
                               pipi=pipi,
                               pipr=pipr,
-                              sexe=sexe,
+                              genre=sexe,
                               pip_globaux=pip_globaux,
                               affectation=affectation,
                               pj=type_perso
@@ -429,7 +430,7 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
     #     print("Erreur : tableau d'intrigue non standard")
 
 
-def header_2_index(erreur_manager: ErreurManager, headers, noms_colonnes):
+def header_2_index(headers, noms_colonnes, erreur_manager: ErreurManager):
     tab_rectifie = []
     min_score = 100
     pire_match = ""
@@ -519,12 +520,34 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         TYPE_PERSONNAGE = "Intervention"
 
     noms_colonnes = [c.value for c in NomsColonnes]
-    dsfsfze
+    dict_headers = header_2_index(header, noms_colonnes, current_intrigue.error_log)
+
+    grille_types_persos = {"PNJ": TypePerso.EST_PNJ_HORS_JEU,
+                           "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
+                           "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
+                           "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
+                           "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
 
     for pnj in tableau_pnjs[1:]:
-        pnj_a_ajouter = Role(current_intrigue, nom=pnj[0], description=pnj[3],
-                             pj=TypePerso.EST_PNJ_HORS_JEU, niveau_implication=pnj[2],
-                             perimetre_intervention=pnj[1])
+        affectation = header_2_value(pnj, dict_headers, NomsColonnes.AFFECTATION.value, "")
+        genre = header_2_value(pnj, dict_headers, NomsColonnes.GENRE.value, "i")
+        nom = header_2_value(pnj, dict_headers, NomsColonnes.NOM_PERSO.value, "")
+        implication = header_2_value(pnj, dict_headers, NomsColonnes.IMPLICATION.value, "")
+        description = header_2_value(pnj, dict_headers, NomsColonnes.DESCRIPTION.value, "")
+        type_personnage_brut = header_2_value(pnj, dict_headers, NomsColonnes.TYPE_PERSONNAGE.value, "PNJ Hors Jeu")
+
+        type_personnage = process.extractOne(type_personnage_brut, grille_types_persos.keys())[0]
+        type_perso = grille_types_persos[type_personnage]
+
+
+        pnj_a_ajouter = Role(current_intrigue,
+                             nom=nom,
+                             description=description,
+                             pj=type_perso,
+                             niveau_implication=implication,
+                             perimetre_intervention=type_personnage_brut,
+                             genre=genre,
+                             affectation=affectation)
 
         # du coup, on peut l'ajouter aux intrigues
         current_intrigue.rolesContenus[pnj_a_ajouter.nom] = pnj_a_ajouter
@@ -1540,6 +1563,7 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
         code_objet = match[0][:-1].strip()
     else:
         print(f"debug : pas de match de code objet pour l'objet {nom_doc}")
+        code_objet = ""
 
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")

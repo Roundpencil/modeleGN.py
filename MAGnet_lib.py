@@ -19,6 +19,8 @@ from modeleGN import *
 
 # todo : ajuster la lecture du tableau PNJ comme celle du tableau des PJs
 
+# todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
+
 # à faire - plus long
 
 # confort / logique

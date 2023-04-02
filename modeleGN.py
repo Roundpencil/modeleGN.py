@@ -282,7 +282,7 @@ class Role:
 
     def __init__(self, conteneur: ConteneurDeScene, personnage=None, nom="rôle sans nom", description="", pipi=0,
                  pipr=0,
-                 sexe="i",
+                 genre="i",
                  pj: TypePerso = TypePerso.EST_PJ,
                  type_intrigue="", niveau_implication="", perimetre_intervention="", issu_dune_faction=False,
                  pip_globaux=0, affectation=""):
@@ -308,7 +308,7 @@ class Role:
         self.pip_total = 0
         self.sommer_pip()
         self.pj = pj
-        self.sexe = sexe
+        self.sexe = genre
         self.typeIntrigue = type_intrigue
         self.niveauImplication = niveau_implication
         self.scenes = set()
