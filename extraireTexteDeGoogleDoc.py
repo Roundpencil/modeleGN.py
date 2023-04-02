@@ -469,7 +469,7 @@ def header_2_value(ligne_tableau: list[str], table_header: dict, header_value, d
     return ligne_tableau[index] if index is not None else default
 
 
-def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
+def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str, seuil_type_perso=85):
     # tableau_pnjs, _ = reconstituer_tableau(texte)
     # # faire un tableau avec une ligne par PNJ
     # # print(f"tableau pnj décodé : {tableau_pnjs}")
@@ -507,7 +507,15 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
     #
     #     # du coup, on peut l'ajouter aux intrigues
     #     current_intrigue.rolesContenus[pnj_a_ajouter.nom] = pnj_a_ajouter
-    tableau_pnjs, _ = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
+    tableau_pnjs, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
+
+    if nb_colonnes == 0:
+        texte_erreur = "le tableau des Rerolls est inexploitable"
+        current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                          texte_erreur,
+                                          ErreurManager.ORIGINES.SCENE)
+        return
+
     header = tableau_pnjs[0]
 
     class NomsColonnes(Enum):
@@ -535,10 +543,13 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         implication = header_2_value(pnj, dict_headers, NomsColonnes.IMPLICATION.value, "")
         description = header_2_value(pnj, dict_headers, NomsColonnes.DESCRIPTION.value, "")
         type_personnage_brut = header_2_value(pnj, dict_headers, NomsColonnes.TYPE_PERSONNAGE.value, "PNJ Hors Jeu")
+        score_type_perso = process.extractOne(type_personnage_brut, grille_types_persos.keys())
 
-        type_personnage = process.extractOne(type_personnage_brut, grille_types_persos.keys())[0]
-        type_perso = grille_types_persos[type_personnage]
-
+        if score_type_perso[1] < seuil_type_perso:
+            type_perso = TypePerso.EST_PNJ_HORS_JEU
+        else:
+            type_personnage = score_type_perso[0]
+            type_perso = grille_types_persos[type_personnage]
 
         pnj_a_ajouter = Role(current_intrigue,
                              nom=nom,
@@ -553,18 +564,74 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         current_intrigue.rolesContenus[pnj_a_ajouter.nom] = pnj_a_ajouter
 
 
-def intrigue_rerolls(texte: str, intrigue: Intrigue, texte_label: str):
-    tab_rerolls, _ = reconstituer_tableau(texte)
-    # faire un tableau avec une ligne par Reroll
-    for reroll in tab_rerolls:  # on enlève la première ligne qui contient les titres
-        # même pnj que les PJs
-        re_roll_a_ajouter = Role(intrigue, nom=reroll[0], description=reroll[3],
-                                 pj=TypePerso.EST_REROLL, type_intrigue=reroll[2],
-                                 niveau_implication=reroll[1])
+def intrigue_rerolls(texte: str, current_intrigue: Intrigue, texte_label: str):
+    tableau_rerolls, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
 
-        # du coup, on peut l'ajouter aux intrigues
-        intrigue.rolesContenus[re_roll_a_ajouter.nom] = re_roll_a_ajouter
+    # tab_rerolls, _ = reconstituer_tableau(texte)
+    # # faire un tableau avec une ligne par Reroll
+    # for reroll in tab_rerolls:  # on enlève la première ligne qui contient les titres
+    #     # même pnj que les PJs
+    #     re_roll_a_ajouter = Role(intrigue, nom=reroll[0], description=reroll[3],
+    #                              pj=TypePerso.EST_REROLL, type_intrigue=reroll[2],
+    #                              niveau_implication=reroll[1])
+    #
+    #     # du coup, on peut l'ajouter aux intrigues
+    #     intrigue.rolesContenus[re_roll_a_ajouter.nom] = re_roll_a_ajouter
+    if nb_colonnes == 0:
+        texte_erreur = "le tableau des Rerolls est inexploitable"
+        current_intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                          texte_erreur,
+                                          ErreurManager.ORIGINES.SCENE)
+        return
 
+    class NomsColonnes(Enum):
+        AFFECTATION = "Affecté à"
+        GENRE = "Genre"
+        NOM_PERSO = "Nom du personnage"
+        PIP_I = "Points d’intérêt intrigue"
+        PIP_R = "Points d’intérêt roleplay"
+        IMPLICATION = "Type d’implication"
+        TYPE_INTRIGUE = "Type d’intrigue"
+        PIP = "Points d’intérêt"
+        DESCRIPTION = "Résumé de l’implication"
+
+    noms_colonnes = [nc.value for nc in NomsColonnes]
+    headers = tableau_rerolls[0]
+    dict_headers = header_2_index(headers, noms_colonnes, current_intrigue.error_log)
+
+    for ligne in tableau_rerolls[1:]:
+        nom = header_2_value(ligne, dict_headers, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
+        logging.debug(f"value  ={NomsColonnes.NOM_PERSO.value}, nom = {nom}")
+        description = header_2_value(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
+        pipi = header_2_value(ligne, dict_headers, NomsColonnes.PIP_I.value, 0)
+        pipr = header_2_value(ligne, dict_headers, NomsColonnes.PIP_R.value, 0)
+        sexe = header_2_value(ligne, dict_headers, NomsColonnes.GENRE.value, "i")
+        type_intrigue = header_2_value(ligne, dict_headers, NomsColonnes.TYPE_INTRIGUE.value, "")
+        niveau_implication = header_2_value(ligne, dict_headers, NomsColonnes.IMPLICATION.value, "")
+        pip_globaux = header_2_value(ligne, dict_headers, NomsColonnes.PIP.value, 0)
+
+        if len(liste_pips := str(pip_globaux).split('/')) == 2:
+            pip_globaux = 0
+            pipi = liste_pips[0] + pipi
+            pipr = liste_pips[1] + pipr
+        affectation = header_2_value(ligne, dict_headers, NomsColonnes.AFFECTATION.value, "")
+        logging.debug(f"Tableau des headers : {dict_headers}")
+        logging.debug(f"ligne = {ligne}")
+        logging.debug(f"lecture associée : "
+                      f"{[nom, description, pipi, pipr, sexe, type_intrigue, niveau_implication, pip_globaux, affectation]}")
+        role_a_ajouter = Role(current_intrigue,
+                              nom=nom.split("http")[0],
+                              description=description,
+                              type_intrigue=type_intrigue,
+                              niveau_implication=niveau_implication,
+                              pipi=pipi,
+                              pipr=pipr,
+                              genre=sexe,
+                              pip_globaux=pip_globaux,
+                              affectation=affectation,
+                              pj=TypePerso.EST_REROLL
+                              )
+        current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
     tab_objets, nb_colonnes = reconstituer_tableau(texte)
