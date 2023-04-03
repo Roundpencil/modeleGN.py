@@ -222,6 +222,8 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
 
             except HttpError as err:
                 print(f'An error occurred: {err}')
+                m_print(f"Document en cours de lecture ({i}/{nb_items}) : pas d'info MAGnet contenue")
+
                 # return #ajouté pour débugger
 
     return [item['id'] for item in items]
@@ -455,8 +457,7 @@ def header_2_index(headers, noms_colonnes, erreur_manager: ErreurManager):
         erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                       texte_erreur,
                                       ErreurManager.ORIGINES.SCENE)
-    header_to_index = {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
-    return header_to_index
+    return {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
 
 
 def header_2_value(ligne_tableau: list[str], table_header: dict, header_value, default):
@@ -645,11 +646,13 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
         return
 
     class NomsColonnes(Enum):
-        CODE = "Code de l'objet"
+        CODE = "Code"
         DESCRIPTION = "Description"
         FX = "Effets spéciaux nécessaires (si aucun, vide)"
+        RFID = "RFID (non / oui (si pas plus clair sur ce qu’il fait)"
         START = "Où se trouve-t-il en début de jeu ?"
         FOURNI_PAR = "Fourni par ?"
+        LIEN_FICHE = "Lien vers la fiche objet (Facultatif)"
 
     noms_colonnes = [nc.value for nc in NomsColonnes]
     headers = tab_objets[0]
@@ -661,7 +664,9 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
         description = header_2_value(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
         fourni_par = header_2_value(ligne, dict_headers, NomsColonnes.FOURNI_PAR.value, "")
         emplacement_debut = header_2_value(ligne, dict_headers, NomsColonnes.START.value, "")
-        special_effect = header_2_value(ligne, dict_headers, NomsColonnes.FX.value, "")
+        special_effect_1 = header_2_value(ligne, dict_headers, NomsColonnes.FX.value, "")
+        special_effect_2 = header_2_value(ligne, dict_headers, NomsColonnes.RFID.value, "")
+        special_effect = special_effect_1 + special_effect_2
 
         mon_objet = Objet(code=code,
                           description=description,
