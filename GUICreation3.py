@@ -140,8 +140,7 @@ class GNConfigurator(tk.Tk):
 
             self.quit()
 
+
 if __name__ == '__main__':
     app = GNConfigurator()
     app.mainloop()
-
-

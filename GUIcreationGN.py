@@ -34,24 +34,42 @@ class GNConfigurator(tk.Tk):
         cancel_button = ttk.Button(mainframe, text="Annuler", command=self.quit)
         cancel_button.grid(row=self.row_boutons, column=1, sticky=tk.W)
 
+    # def create_subframe_with_entries(self, label_text, frame, entry_list, row):
+    #     subframe = ttk.Frame(frame)
+    #     subframe.grid(row=row, column=0, columnspan=2, sticky=tk.W)
+    #
+    #     label = ttk.Label(subframe, text=label_text)
+    #     label.pack(side=tk.LEFT)
+    #
+    #     add_button = ttk.Button(subframe, text="+", command=lambda: self.add_entry_with_suffix(subframe, entry_list))
+    #     add_button.pack(side=tk.RIGHT)
+    #
+    #     remove_button = ttk.Button(subframe, text="-", command=lambda: self.remove_entry(entry_list))
+    #     remove_button.pack(side=tk.RIGHT)
+    #
+    #     self.add_entry_with_suffix(subframe, entry_list)
     def create_subframe_with_entries(self, label_text, frame, entry_list, row):
         subframe = ttk.Frame(frame)
         subframe.grid(row=row, column=0, columnspan=2, sticky=tk.W)
 
         label = ttk.Label(subframe, text=label_text)
-        label.pack(side=tk.LEFT)
+        label.grid(row=0, column=0, sticky=tk.W)
 
         add_button = ttk.Button(subframe, text="+", command=lambda: self.add_entry_with_suffix(subframe, entry_list))
-        add_button.pack(side=tk.RIGHT)
+        add_button.grid(row=0, column=2, sticky=tk.E)
 
         remove_button = ttk.Button(subframe, text="-", command=lambda: self.remove_entry(entry_list))
-        remove_button.pack(side=tk.RIGHT)
+        remove_button.grid(row=0, column=1, sticky=tk.E)
 
         self.add_entry_with_suffix(subframe, entry_list)
 
     def add_entry_with_suffix(self, frame, entry_list):
+        max_row = max_row = max([slave.grid_info()["row"] for slave in frame.grid_slaves()] + [0])
+
         entry_frame = ttk.Frame(frame)
-        entry_frame.pack(side=tk.TOP, fill=tk.X, expand=True)
+        entry_frame.grid(row=max_row+1, sticky=tk.EW)
+
+        # entry_frame.pack(side=tk.TOP, fill=tk.X, expand=True)
 
         entry = ttk.Entry(entry_frame)
         entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
@@ -59,10 +77,29 @@ class GNConfigurator(tk.Tk):
         suffix_entry.pack(side=tk.LEFT)
 
         entry_list.append((entry, suffix_entry))
+    # def add_entry_with_suffix(self, frame, entry_list):
+    #     # Trouver la première ligne vide, sinon utiliser la ligne suivante après la dernière ligne
+    #     empty_rows = [slave.grid_info()["row"] for slave in frame.grid_slaves() if not slave.grid_slaves()]
+    #     if empty_rows:
+    #         next_row = min(empty_rows)
+    #     else:
+    #         next_row = max([slave.grid_info()["row"] for slave in frame.grid_slaves()] + [0]) + 1
+    #
+    #     entry_frame = ttk.Frame(frame)
+    #     entry_frame.grid(row=next_row, sticky=tk.EW)
+    #
+    #     entry = ttk.Entry(entry_frame)
+    #     entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+    #     suffix_entry = ttk.Entry(entry_frame, width=10)
+    #     suffix_entry.pack(side=tk.LEFT)
+    #
+    #     entry_list.append((entry, suffix_entry))
 
     def remove_entry(self, entry_list):
         if len(entry_list) > 1:
             entry, suffix_entry = entry_list.pop()
+            # entry.grid_forget()
+            # suffix_entry.grid_forget()
             entry.destroy()
             suffix_entry.destroy()
 
