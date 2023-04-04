@@ -946,7 +946,7 @@ class GN:
                 #   sinon, on crée un emplacement
                 # si il n'y a pas de code, on crée une fiche dédiée avec un faux code
                 if code == "":
-                    code = f"objet sans code - {intrigue.nom.split('-')[0].strip()}-{i}"
+                    code = f"objet sans code - I{intrigue.nom.split('-')[0].strip()}-{i}"
 
                 mon_objet = dict_code_objet_reference.get(code)
                 if mon_objet is None:
@@ -966,14 +966,14 @@ class GN:
                 if code == "":
                     # code = f"objet sans code - {evenement.nom.split('-')[0].strip()}-{i}"
                     pattern = r'^[A-Za-z]?\d+\s*-(\s*\d+\s*-)?'
-                    code = f"objet sans code - " \
+                    code = f"objet sans code - E" \
                            f"{re.search(pattern, evenement.nom_evenement)[0][:-1].strip()}" \
                            f"-{i}"
 
                 mon_objet = dict_code_objet_reference.get(code)
                 if mon_objet is None:
                     url = f"{code}_imported"
-                    mon_objet = ObjetDeReference(id_url=url, ajoute_via_forcage=True)
+                    mon_objet = ObjetDeReference(id_url=url, ajoute_via_forcage=True, code_objet=code)
                     dict_code_objet_reference[code] = mon_objet
                     self.objets[url] = mon_objet
 
