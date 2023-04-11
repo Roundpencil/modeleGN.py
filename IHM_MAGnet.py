@@ -298,48 +298,88 @@ class Application(tk.Frame):
             # print(f"debug : et à ce stade, on a le texte suivant : {updated_text}")
             message_label['text'] = updated_text
 
-        t_lambda_regen = lambda: lire_et_recharger_gn(mon_gn=self.gn,
-                                                      api_drive=self.apiDrive,
-                                                      api_doc=self.apiDoc,
-                                                      api_sheets=self.apiSheets,
-                                                      aides_de_jeu=aide_de_jeu_var.get(),
-                                                      liste_noms_pjs=self.dict_config.get(
-                                                          'liste_noms_pjs'),
-                                                      # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
-                                                      nom_fichier_sauvegarde=self.dict_config[
-                                                          'nom_fichier_sauvegarde'],
-                                                      fichier_erreurs_intrigues=fichier_erreurs_intrigues_var.get(),
-                                                      fichier_erreurs_evenements=fichier_erreurs_evenements_var.get(),
-                                                      generer_fichiers_pjs=generer_fichiers_pj_var.get(),
-                                                      generer_fichiers_pnjs=generer_fichiers_pnjs_var.get(),
-                                                      changelog=changelog_var.get(),
-                                                      table_intrigues=table_intrigues_var.get(),
-                                                      table_objets=table_objets_var.get(),
-                                                      table_chrono=table_chrono_var.get(),
-                                                      table_persos=table_persos_var.get(),
-                                                      table_pnjs=table_pnjs_var.get(),
-                                                      table_commentaires=table_commentaires_var.get(),
-                                                      fast_intrigues=var_fast_intrigue.get(),
-                                                      fast_persos=var_fast_fiches_pjs.get(),
-                                                      fast_pnjs=var_fast_fiches_pnjs.get(),
-                                                      fast_evenements=var_fast_evenements.get(),
-                                                      fast_objets=var_fast_objets.get(),
-                                                      sans_chargement_fichier=repartir_de_0_var.get(),
-                                                      sauver_apres_operation=sauver_apres_operation_var.get(),
-                                                      verbal=verbal_var.get(),
-                                                      table_relations=table_relations_var.get(),
-                                                      table_evenements=table_evenements_var.get(),
-                                                      visualisation=faire_evoluer_barre,
-                                                      m_print=afficher_message_statut
-                                                      )
+        def t_lancer_regeneration():
+            lire_et_recharger_gn(mon_gn=self.gn,
+                                 api_drive=self.apiDrive,
+                                 api_doc=self.apiDoc,
+                                 api_sheets=self.apiSheets,
+                                 aides_de_jeu=aide_de_jeu_var.get(),
+                                 liste_noms_pjs=self.dict_config.get(
+                                     'liste_noms_pjs'),
+                                 # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
+                                 nom_fichier_sauvegarde=self.dict_config[
+                                     'nom_fichier_sauvegarde'],
+                                 fichier_erreurs_intrigues=fichier_erreurs_intrigues_var.get(),
+                                 fichier_erreurs_evenements=fichier_erreurs_evenements_var.get(),
+                                 generer_fichiers_pjs=generer_fichiers_pj_var.get(),
+                                 generer_fichiers_pnjs=generer_fichiers_pnjs_var.get(),
+                                 changelog=changelog_var.get(),
+                                 table_intrigues=table_intrigues_var.get(),
+                                 table_objets=table_objets_var.get(),
+                                 table_chrono=table_chrono_var.get(),
+                                 table_persos=table_persos_var.get(),
+                                 table_pnjs=table_pnjs_var.get(),
+                                 table_commentaires=table_commentaires_var.get(),
+                                 fast_intrigues=var_fast_intrigue.get(),
+                                 fast_persos=var_fast_fiches_pjs.get(),
+                                 fast_pnjs=var_fast_fiches_pnjs.get(),
+                                 fast_evenements=var_fast_evenements.get(),
+                                 fast_objets=var_fast_objets.get(),
+                                 sans_chargement_fichier=repartir_de_0_var.get(),
+                                 sauver_apres_operation=sauver_apres_operation_var.get(),
+                                 verbal=verbal_var.get(),
+                                 table_relations=table_relations_var.get(),
+                                 table_evenements=table_evenements_var.get(),
+                                 visualisation=faire_evoluer_barre,
+                                 m_print=afficher_message_statut
+                                 )
+
+        # t_lambda_regen = lambda: lire_et_recharger_gn(mon_gn=self.gn,
+        #                                               api_drive=self.apiDrive,
+        #                                               api_doc=self.apiDoc,
+        #                                               api_sheets=self.apiSheets,
+        #                                               aides_de_jeu=aide_de_jeu_var.get(),
+        #                                               liste_noms_pjs=self.dict_config.get(
+        #                                                   'liste_noms_pjs'),
+        #                                               # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
+        #                                               nom_fichier_sauvegarde=self.dict_config[
+        #                                                   'nom_fichier_sauvegarde'],
+        #                                               fichier_erreurs_intrigues=fichier_erreurs_intrigues_var.get(),
+        #                                               fichier_erreurs_evenements=fichier_erreurs_evenements_var.get(),
+        #                                               generer_fichiers_pjs=generer_fichiers_pj_var.get(),
+        #                                               generer_fichiers_pnjs=generer_fichiers_pnjs_var.get(),
+        #                                               changelog=changelog_var.get(),
+        #                                               table_intrigues=table_intrigues_var.get(),
+        #                                               table_objets=table_objets_var.get(),
+        #                                               table_chrono=table_chrono_var.get(),
+        #                                               table_persos=table_persos_var.get(),
+        #                                               table_pnjs=table_pnjs_var.get(),
+        #                                               table_commentaires=table_commentaires_var.get(),
+        #                                               fast_intrigues=var_fast_intrigue.get(),
+        #                                               fast_persos=var_fast_fiches_pjs.get(),
+        #                                               fast_pnjs=var_fast_fiches_pnjs.get(),
+        #                                               fast_evenements=var_fast_evenements.get(),
+        #                                               fast_objets=var_fast_objets.get(),
+        #                                               sans_chargement_fichier=repartir_de_0_var.get(),
+        #                                               sauver_apres_operation=sauver_apres_operation_var.get(),
+        #                                               verbal=verbal_var.get(),
+        #                                               table_relations=table_relations_var.get(),
+        #                                               table_evenements=table_evenements_var.get(),
+        #                                               visualisation=faire_evoluer_barre,
+        #                                               m_print=afficher_message_statut
+        #                                               )
+
+        # ok_button = ttk.Button(generer_labelframe, text="OK",
+        #                        command=lambda: threading.Thread(target=t_lambda_regen).start()
+        #                        )
 
         ok_button = ttk.Button(generer_labelframe, text="OK",
-                               command=lambda: threading.Thread(target=t_lambda_regen).start()
+                               command=lambda: threading.Thread(target=t_lancer_regeneration).start()
                                )
 
         ok_button.grid(row=200, column=1, pady=(0, 10))
         boutons = [ok_button, forcer_update_gn_button]
-        config_button.config(command=lambda : self.change_config_file(boutons, current_file_label))
+        config_button.config(command=lambda: self.change_config_file(boutons, current_file_label))
 
         fichier_defaut = fichier_ini_defaut()
 
@@ -348,13 +388,10 @@ class Application(tk.Frame):
         else:
             self.lire_fichier_config(boutons, current_file_label)
 
-
     def updater_boutons_disponibles(self, on: bool, boutons: list):
         to_set = "normal" if on else "disabled"
         for bouton in boutons:
             bouton.config(state=to_set)
-
-
 
     def change_config_file(self, boutons: list, display_label):
         config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
@@ -364,6 +401,12 @@ class Application(tk.Frame):
     def lire_fichier_config(self, boutons: list, display_label, config_file: str = 'config.ini'):
         try:
             self.dict_config = charger_fichier_init(config_file)
+            if self.dict_config is None:
+                texte_erreur = "Erreur lors de la lecture du fichier de configuration \n" \
+                               "Merci de le vérifier avant de le recharger"
+                messagebox.showinfo(texte_erreur)
+                self.updater_boutons_disponibles(False, boutons)
+                return
             print(f"debug : dict config = {self.dict_config}")
             self.updater_boutons_disponibles(True, boutons)
             display_label.config(text=config_file)
@@ -428,7 +471,6 @@ class Application(tk.Frame):
             traceback.print_exc()
             self.dict_config = None
             self.updater_boutons_disponibles(False, boutons)
-
 
 # def main():
 #     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
