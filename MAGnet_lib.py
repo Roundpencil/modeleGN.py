@@ -17,11 +17,29 @@ from modeleGN import *
 # à faire - rapide
 #todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
-# todo : ajuster la lecture du tableau PNJ comme celle du tableau des PJs
-
 # todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
 
+# todo : corriger l'erreur sur les erreurs évènements
+# todo : ajouter un pop up quand les credentials ont expirés
+
+# todo :  Ajouter l'appel à un fichier stoqué sur la drive de MAGnet pour vérifier la version au lencement :
+#  Ajout d'une variable gloabel "version"
+#  Lecture dans le fichier de la dernière version
+#  Si différents, affichage d'un pop up
+
+# todo : Ajouter la vérification de la validité du fichier paramè-tres
+#  affichage de pop up si problme / l'information dans le texte d'info que c'est bon :
+#  Existence du fichier
+#  Bonne zon essentielle
+#  Validation des zones trouvées
+#  Existence des dossiers et fichiers indiqués (affichage du titre?)
+
 # à faire - plus long
+
+### ajout d'une interface de création / férificationd es fichier d'ini :
+# todo : Refaire la grille
+#todo :  intégrer les champs présents dans 3 vers gui creation
+#todo : reconstruire autour de switch, puis supprimer tous les fichiers intermédiaires
 
 # confort / logique
 # todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos
