@@ -2,6 +2,7 @@ import threading
 import tkinter as tk
 
 import traceback
+import webbrowser
 from tkinter import filedialog, ttk, messagebox
 from tkinter.ttk import Progressbar
 
@@ -12,7 +13,14 @@ from modeleGN import GN
 
 
 class Application(tk.Frame):
-    def __init__(self, mode_leger=True, master=None):
+    def __init__(self,
+                 api_drive,
+                 api_doc,
+                 api_sheets,
+                 maj_versions,
+                 url_derniere_version,
+                 mode_leger=True,
+                 master=None):
         super().__init__(master)
         self.master = master
         self.master.title("MAGnet, la moulinette")
@@ -21,9 +29,9 @@ class Application(tk.Frame):
         # self.create_widgets()
         self.gn = None
         self.dict_config = None
-        self.apiDrive = None
-        self.apiDoc = None
-        self.apiSheets = None
+        self.apiDrive = api_drive
+        self.apiDoc = api_doc
+        self.apiSheets = api_sheets
 
         # reprise de l'ancien code de regen
         regen_window = self.master
@@ -372,6 +380,7 @@ class Application(tk.Frame):
         # ok_button = ttk.Button(generer_labelframe, text="OK",
         #                        command=lambda: threading.Thread(target=t_lambda_regen).start()
         #                        )
+        # thread = threading.Thread(target=t_lancer_regeneration)
 
         ok_button = ttk.Button(generer_labelframe, text="OK",
                                command=lambda: threading.Thread(target=t_lancer_regeneration).start()
@@ -387,6 +396,16 @@ class Application(tk.Frame):
             self.lire_fichier_config(boutons, current_file_label, config_file=fichier_defaut)
         else:
             self.lire_fichier_config(boutons, current_file_label)
+
+        if maj_versions is not None:
+            # if not the latest version, show a popup with options to download or wait
+            response = messagebox.askquestion("Un nouvelle version est disponible !",
+                                              f"souhaitez-vous télécharger la mise à jour ? \n {maj_versions}",
+                                              icon="warning")
+            if response == "yes":
+                # if "Download" button clicked, open the latest version URL in the web browser
+                webbrowser.open_new(url_derniere_version)
+
 
     def updater_boutons_disponibles(self, on: bool, boutons: list):
         to_set = "normal" if on else "disabled"
@@ -445,8 +464,8 @@ class Application(tk.Frame):
                              id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
                              dossiers_evenements=self.dict_config.get('dossiers_evenements')
                              )
-            if self.apiDoc is None or self.apiSheets is None or self.apiDrive is None:
-                self.apiDrive, self.apiDoc, self.apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
+            # if self.apiDoc is None or self.apiSheets is None or self.apiDrive is None:
+            #     self.apiDrive, self.apiDoc, self.apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
 
         # except Exception as e:
         #     print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")

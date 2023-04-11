@@ -15,17 +15,14 @@ from modeleGN import *
 # à tester
 
 # à faire - rapide
+# todo : ajouter un message si expirationd es credentials :
+#   raise exceptions.RefreshError(
+#   google.auth.exceptions.RefreshError: ('deleted_client: The OAuth client was deleted.', {'error': 'deleted_client', 'error_description': 'The OAuth client was deleted.'})
+
+
 #todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
 # todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
-
-# todo : corriger l'erreur sur les erreurs évènements
-# todo : ajouter un pop up quand les credentials ont expirés
-
-# todo :  Ajouter l'appel à un fichier stoqué sur la drive de MAGnet pour vérifier la version au lencement :
-#  Ajout d'une variable gloabel "version"
-#  Lecture dans le fichier de la dernière version
-#  Si différents, affichage d'un pop up
 
 # todo : Ajouter la vérification de la validité du fichier paramè-tres
 #  affichage de pop up si problme / l'information dans le texte d'info que c'est bon :
@@ -49,6 +46,9 @@ from modeleGN import *
 # todo : refaire version console
 
 # todo créer un objet Paramètre qui stoque les paramètres du GN et les passer pour simplifier les créations
+
+VERSION = "1.0.20230411"
+ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 def print_progress(v: float):
     print(f"La génération a progressé de {v}%")
@@ -1564,6 +1564,33 @@ def fichier_ini_defaut():
         return os.path.abspath(ini_files[0])
     else:
         return None
+
+def verifier_derniere_version(api_doc):
+    try:
+        document = api_doc.documents().get(documentId=ID_FICHIER_VERSION).execute()
+        contenu_document = document.get('body').get('content')
+        text = lecteurGoogle.read_structural_elements(contenu_document)
+        text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
+
+        dict_versions = {}
+        ligne_version = None
+        to_return = ""
+        last_url = None
+        for ligne in text.splitlines():
+            if ligne == VERSION :
+                break
+            if ligne.startswith("https") and last_url is None:
+                last_url = ligne
+            else:
+                # print(ligne)
+                to_return += ligne + '\n'
+
+        return len(to_return) == 0, to_return, last_url
+
+    except Exception as e:
+        print(f"{e}")
+        logging.debug(f"Une erreur est survenue pendant la lecture du fichier de version {e}")
+        return True, [e], None
 
 def mettre_a_jour_champs(gn: GN):
     # #mise à jour des errors logs

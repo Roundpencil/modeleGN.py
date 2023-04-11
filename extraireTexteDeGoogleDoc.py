@@ -1,16 +1,13 @@
 from __future__ import print_function
 
-import re
 from enum import Enum
 
+import dateparser
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
 
 import lecteurGoogle
-import modeleGN
 from modeleGN import *
-
-import dateparser
 
 
 def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
@@ -1247,14 +1244,14 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
                        f"Tableau lu = {tab_rectifie}"
         current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
                                                         texte_erreur,
-                                                        ErreurManager.ORIGINES.SCENE)
+                                                        ErreurManager.ORIGINES.LECTURE_EVENEMENT)
 
     if len(set(tab_rectifie)) != len(tab_rectifie):
         texte_erreur = f"une valeur a été trouvée en double dans les lignes du premier tableau de la fiche évènement." \
                        f"Tableau lu = {tab_rectifie}"
         current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                                         texte_erreur,
-                                                        ErreurManager.ORIGINES.SCENE)
+                                                        ErreurManager.ORIGINES.LECTURE_EVENEMENT)
 
     # print(f"debug : tableau evènement après  harmonisation : {[ligne[0] for ligne in tableau_fiche]}")
 
@@ -1422,7 +1419,7 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_a
         for nom_pnj in noms_pnjs_impliques:
             score = process.extractOne(nom_pnj, noms_pnjs_dans_evenement)
             if score is None:
-                texte_erreur = f"Correspondance est None pour le nom {nom_pnj} avec la table des PNJs" \
+                texte_erreur = f"Correspondance introuvable pour le nom {nom_pnj} avec la table des PNJs" \
                                f"dans l'évènement {current_evenement.code_evenement} " \
                                f"/ {current_evenement.nom_evenement} " \
                                f"pour l'intervention {intervention.description}"
@@ -1450,7 +1447,7 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_a
         for nom_pj in noms_pj_impliques:
             score = process.extractOne(nom_pj, noms_pjs_dans_evenement)
             if score is None:
-                texte_erreur = f"Correspondance est None pour le nom {nom_pj} " \
+                texte_erreur = f"Correspondance introuvable pour le nom {nom_pj} " \
                                f"dans l'évènement {current_evenement.code_evenement} avec la table des PJs" \
                                f"/ {current_evenement.nom_evenement}" \
                                f"pour l'intervention {intervention.description}"

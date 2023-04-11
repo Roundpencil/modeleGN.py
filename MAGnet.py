@@ -1,5 +1,6 @@
 import argparse
 
+import MAGnet_lib
 from IHM_MAGnet import *
 
 
@@ -37,27 +38,11 @@ def main():
     parser.add_argument("--verbal", "-v", action="store_true", help="si on veut afficher toutes les erreurs")
     parser.add_argument("--console", "-c", action="store_true",
                         help="pour utiliser MAGnet en mode console")
-    # args = parser.parse_args()
-    #
-    # args, unknown_args = parser.parse_known_args()
 
-    # if not args.console and unknown_args:
-    #     raise Exception("-c/--console est nécessaire pour passer en mode ligne de commande")
-    #
-    # if not args.console and not unknown_args:
-    #     print("Lancement de l'IHM")
-    #     root = tk.Tk()
-    #     app = Application(master=root)
-    #     app.mainloop()
-    #
-    # if args.console:
-    #     print("Exécution de MAGnet en mode console")
+    api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
+    derniere_version, maj_versions, url_derniere_version = MAGnet_lib.verifier_derniere_version(api_doc)
 
     args = parser.parse_args()
-
-    # if args.console and len(args.__dict__) > 0:
-    #     print(f"{args.console}, {args.__dict__}")
-    #     raise Exception("-c/--console est nécessaire pour passer en mode ligne de commande")
 
     if not args.console:
         print("Lancement de l'IHM")
@@ -73,7 +58,13 @@ def main():
             style.configure("Accentbutton", foreground='white')
             style.configure("Togglebutton", foreground='white')
 
-        app = Application(mode_leger=mode_leger, master=root)
+        app = Application(mode_leger=mode_leger,
+                          api_drive=api_drive,
+                          api_doc=api_doc,
+                          api_sheets=api_sheets,
+                          maj_versions=None if derniere_version else maj_versions,
+                          url_derniere_version=url_derniere_version,
+                          master=root)
         app.mainloop()
 
     if args.console:
