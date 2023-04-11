@@ -39,10 +39,6 @@ def main():
     parser.add_argument("--console", "-c", action="store_true",
                         help="pour utiliser MAGnet en mode console")
 
-    api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
-
-    derniere_version, maj_versions, url_derniere_version = MAGnet_lib.verifier_derniere_version(api_doc)
-
     args = parser.parse_args()
 
     if not args.console:
@@ -60,11 +56,6 @@ def main():
             style.configure("Togglebutton", foreground='white')
 
         app = Application(mode_leger=mode_leger,
-                          api_drive=api_drive,
-                          api_doc=api_doc,
-                          api_sheets=api_sheets,
-                          maj_versions=None if derniere_version else maj_versions,
-                          url_derniere_version=url_derniere_version,
                           master=root)
         app.mainloop()
 

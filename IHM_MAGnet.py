@@ -14,14 +14,12 @@ from modeleGN import GN
 
 class Application(tk.Frame):
     def __init__(self,
-                 api_drive,
-                 api_doc,
-                 api_sheets,
-                 maj_versions,
-                 url_derniere_version,
                  mode_leger=True,
                  master=None):
         super().__init__(master)
+
+        self.url_derniere_version = None
+        self.derniere_version = None
         self.master = master
         self.master.title("MAGnet, la moulinette")
         # self.master.geometry("450x150")
@@ -29,9 +27,9 @@ class Application(tk.Frame):
         # self.create_widgets()
         self.gn = None
         self.dict_config = None
-        self.apiDrive = api_drive
-        self.apiDoc = api_doc
-        self.apiSheets = api_sheets
+        self.apiDrive = None
+        self.apiDoc = None
+        self.apiSheets = None
 
         # reprise de l'ancien code de regen
         regen_window = self.master
@@ -413,14 +411,6 @@ class Application(tk.Frame):
         else:
             self.lire_fichier_config(boutons, current_file_label)
 
-        if maj_versions is not None:
-            # if not the latest version, show a popup with options to download or wait
-            response = messagebox.askquestion("Un nouvelle version est disponible !",
-                                              f"souhaitez-vous télécharger la mise à jour ? \n {maj_versions}",
-                                              icon="warning")
-            if response == "yes":
-                # if "Download" button clicked, open the latest version URL in the web browser
-                webbrowser.open_new(url_derniere_version)
 
     def updater_boutons_disponibles(self, on: bool, boutons: list):
         to_set = "normal" if on else "disabled"
@@ -479,17 +469,32 @@ class Application(tk.Frame):
                              id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
                              dossiers_evenements=self.dict_config.get('dossiers_evenements')
                              )
-            # if self.apiDoc is None or self.apiSheets is None or self.apiDrive is None:
-            #     self.apiDrive, self.apiDoc, self.apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
+            if self.apiDoc is None or self.apiSheets is None or self.apiDrive is None:
+                self.apiDrive, self.apiDoc, self.apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
+
+            if not self.derniere_version:
+                self.derniere_version, self.maj_versions, self.url_derniere_version = verifier_derniere_version(self.apiDoc)
+                if not self.derniere_version :
+                    # if not the latest version, show a popup with options to download or wait
+                    response = messagebox.askquestion("Un nouvelle version est disponible !",
+                                                      f"souhaitez-vous télécharger la mise à jour ? \n "
+                                                      f"{self.maj_versions}",
+                                                      icon="warning")
+                    if response == "yes":
+                        # if "Download" button clicked, open the latest version URL in the web browser
+                        webbrowser.open_new(self.url_derniere_version)
 
         # except Exception as e:
         #     print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")
         #     traceback.print_exc()
         #     self.dict_config = None
         #     self.updater_boutons_disponibles(False, boutons)
-        except exceptions.RefreshError as e:
-            print(vars(e))
-            if e.error_description == "Token has been expired or revoked.":
+        except Exception as e:
+        # except exceptions.RefreshError as e:
+        #     print("Vars (e) : " + str(vars(e)))
+        #     print(e)
+        #     print(str(e))
+            if "Token has been expired or revoked." in str(e):
                 # if token has been expired or revoked, show a popup with a specific error message
                 messagebox.showerror("Expirations des droits",
                                      "Le fichier token.json a expiré. \n"
@@ -501,7 +506,7 @@ class Application(tk.Frame):
                                      "Pour plus d'informations sur cette erreur liée à google, consulter le manuel")
                 print(f"une erreur RefreshError est survenue pendant la lecture du fichier ini : {e}")
 
-            elif e.error_description == "The OAuth client was deleted.":
+            elif "The OAuth client was deleted." in str(e):
                 # if OAuth client was deleted, show a popup with a specific error message
                 messagebox.showerror("Cette version de MAGnet a expiré",
                                      "Cette version de MAGnet a expiré. '\n'"
