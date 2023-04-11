@@ -15,16 +15,14 @@ from modeleGN import *
 # à tester
 
 # à faire - rapide
-# todo : ajouter un message si expirationd es credentials :
-#   raise exceptions.RefreshError(
-#   google.auth.exceptions.RefreshError: ('deleted_client: The OAuth client was deleted.', {'error': 'deleted_client', 'error_description': 'The OAuth client was deleted.'})
-
+# todo : créer la table des questions... (écriture ok)
+#  et la lecture du tableau des questions :)
 
 #todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
 # todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
 
-# todo : Ajouter la vérification de la validité du fichier paramè-tres
+# todo : Ajouter la vérification de la validité du fichier paramètres
 #  affichage de pop up si problme / l'information dans le texte d'info que c'est bon :
 #  Existence du fichier
 #  Bonne zon essentielle
@@ -46,6 +44,9 @@ from modeleGN import *
 # todo : refaire version console
 
 # todo créer un objet Paramètre qui stoque les paramètres du GN et les passer pour simplifier les créations
+
+#todo : ajouter un paramètre pour définir des préfixes favoris
+
 
 VERSION = "1.0.20230411"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
@@ -157,6 +158,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
                          table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
                          table_commentaires: bool = True, table_relations: bool = True, table_evenements: bool = True,
+                         table_questionnaire: bool = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, fast_pnjs=True, fast_evenements=True,
                          fast_objets=True,
@@ -164,8 +166,8 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     visualisation(-100)
     pas_visualisation = 50 / 6.0
 
-    if api_doc is None or api_sheets is None or api_drive is None:
-        api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
+    # if api_doc is None or api_sheets is None or api_drive is None:
+    #     api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
 
     if sans_chargement_fichier:
         m_print("recréation d'un GN from scratch")
@@ -391,6 +393,11 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     if table_evenements:
         ecrire_table_evenements(mon_gn, api_drive, api_sheets)
+
+    m_print("******* table des questions pour inscription ******************")
+
+    if table_questionnaire:
+        ecrire_table_questionnaire(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
 
@@ -1558,6 +1565,28 @@ def ecrire_table_evenements(gn: GN, api_drive, api_sheets):
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tab_evenements, file_id)
 
 
+def generer_table_questionnaire(gn: GN):
+    toutes_les_questions = [["Identifiant", "Question", "Explication"]]
+    for intrigue in gn.intrigues.values():
+        id_intrigue = extraireTexteDeGoogleDoc.ref_du_doc(intrigue.nom, prefixes="I")
+        prefixes_id_questions = "I" + "{:03d}".format(id_intrigue) + "-"
+
+        for i, questions in enumerate(intrigue.questionnaire, start=1):
+            ligne = [prefixes_id_questions + str(i)] + questions
+            toutes_les_questions.append(ligne)
+    return toutes_les_questions
+
+def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets):
+    parent = gn.dossier_outputs_drive
+    tab_questionnaire = generer_table_questionnaire(gn)
+
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- table questionnaire'
+
+    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
+    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tab_questionnaire, file_id)
+
+
 def fichier_ini_defaut():
     ini_files = [f for f in os.listdir('.') if f.endswith('.ini')]
     if len(ini_files) == 1:
@@ -1660,6 +1689,8 @@ def mettre_a_jour_champs(gn: GN):
             intrigue.codes_evenements_raw = []
         if not hasattr(intrigue, 'evenements'):
             intrigue.evenements = set()
+        if isinstance(intrigue.questionnaire, str):
+            intrigue.questionnaire = []
 
     # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
     #     for role in conteneur.rolesContenus.values():

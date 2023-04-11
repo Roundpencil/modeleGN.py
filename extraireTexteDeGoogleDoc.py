@@ -730,7 +730,14 @@ def intrigue_notes(texte: str, intrigue: Intrigue, texte_label: str):
 
 
 def intrigue_questionnaire(texte: str, intrigue: Intrigue, texte_label: str):
-    intrigue.questionnaire = retirer_premiere_ligne(texte)
+    # intrigue.questionnaire = retirer_premiere_ligne(texte)
+    tab_intrigues, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=True)
+    if nb_colonnes != 2:
+        texte_erreur = "le tableau questionnaire est inexploitable"
+        intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                  texte_erreur,
+                                  ErreurManager.ORIGINES.SCENE)
+    intrigue.questionnaire = tab_intrigues
 
 
 def intrigue_relations_bi(texte: str, intrigue: Intrigue, texte_label: str):

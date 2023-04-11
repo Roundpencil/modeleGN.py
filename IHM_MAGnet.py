@@ -147,6 +147,13 @@ class Application(tk.Frame):
 
         switch_diag.grid(row=999, column=0, padx=(10, 0))
 
+        manuel_button = ttk.Button(regen_window, text="Afficher le manuel en ligne",
+                                   command=lambda: webbrowser.open_new("https://docs.google.com/document/d"
+                                                                       "/1U1D5byuXXv6_dHo13fcn9ka50pYYHzMlNGtH3gfE1Sc")
+                                   )
+
+        manuel_button.grid(row=999, column=3, pady=(0, 10))
+
         # début de la zone génération
         generer_labelframe = ttk.Labelframe(regen_window, text="Options de génération", width=700)
         generer_labelframe.grid(row=100, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
@@ -406,7 +413,6 @@ class Application(tk.Frame):
                 # if "Download" button clicked, open the latest version URL in the web browser
                 webbrowser.open_new(url_derniere_version)
 
-
     def updater_boutons_disponibles(self, on: bool, boutons: list):
         to_set = "normal" if on else "disabled"
         for bouton in boutons:
@@ -423,7 +429,7 @@ class Application(tk.Frame):
             if self.dict_config is None:
                 texte_erreur = "Erreur lors de la lecture du fichier de configuration \n" \
                                "Merci de le vérifier avant de le recharger"
-                messagebox.showinfo(texte_erreur)
+                messagebox.showinfo("Fichier de configuration non valide", texte_erreur)
                 self.updater_boutons_disponibles(False, boutons)
                 return
             print(f"debug : dict config = {self.dict_config}")
@@ -473,18 +479,38 @@ class Application(tk.Frame):
         #     self.dict_config = None
         #     self.updater_boutons_disponibles(False, boutons)
         except exceptions.RefreshError as e:
-            messagebox.showinfo("Expirations des droits",
-                                "Le fichier token.json a expiré. \n"
-                                "Pas de panique ! \n\n"
-                                "1. Supprimez-le \n"
-                                "2. Rechargez le fichier de paramètres \n"
-                                "3. Suivez les instructions sur la page web google qui s'affiche "
-                                "pour vous ré-authentifier \n\n"
-                                "Pour plus d'informations sur cette erreur liée à google, consulter le manuel")
-            print(f"une erreur RefreshError est survenue pendant la lecture du fichier ini : {e}")
+            print(vars(e))
+            if e.error_description == "Token has been expired or revoked.":
+                # if token has been expired or revoked, show a popup with a specific error message
+                messagebox.showerror("Expirations des droits",
+                                     "Le fichier token.json a expiré. \n"
+                                     "Pas de panique ! \n\n"
+                                     "1. Supprimez-le \n"
+                                     "2. Rechargez le fichier de paramètres \n"
+                                     "3. Suivez les instructions sur la page web google qui s'affiche "
+                                     "pour vous ré-authentifier \n\n"
+                                     "Pour plus d'informations sur cette erreur liée à google, consulter le manuel")
+                print(f"une erreur RefreshError est survenue pendant la lecture du fichier ini : {e}")
+
+            elif e.error_description == "The OAuth client was deleted.":
+                # if OAuth client was deleted, show a popup with a specific error message
+                messagebox.showerror("Cette version de MAGnet a expiré",
+                                     "Cette version de MAGnet a expiré. '\n'"
+                                     "pour continuer à l'utiliser, merci de télécharger la dernière version")
+
+            else:
+                # if other RefreshError is raised, show a popup with a generic error message
+                messagebox.showerror("Error", "Erreur inattendue.")
+                logging.debug(f"Erreur inattendue dans la lecture du fichier de configuration : {e}")
+
             traceback.print_exc()
             self.dict_config = None
             self.updater_boutons_disponibles(False, boutons)
+
+
+
+
+
         except Exception as e:
             print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")
             traceback.print_exc()

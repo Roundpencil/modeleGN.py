@@ -40,6 +40,7 @@ def main():
                         help="pour utiliser MAGnet en mode console")
 
     api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
+
     derniere_version, maj_versions, url_derniere_version = MAGnet_lib.verifier_derniere_version(api_doc)
 
     args = parser.parse_args()

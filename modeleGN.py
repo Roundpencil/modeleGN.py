@@ -367,7 +367,7 @@ class Role:
 class Intrigue(ConteneurDeScene):
 
     def __init__(self, url, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orga_referent="", timeline="", questionnaire="",
+                 questions_ouvertes="", notes="", resolution="", orga_referent="", timeline="", questionnaire=[],
                  last_processing=None,
                  derniere_edition_fichier=0):
         super(Intrigue, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
