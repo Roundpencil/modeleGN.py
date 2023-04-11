@@ -182,7 +182,8 @@ class Application(tk.Frame):
                     aide_de_jeu_var,
                     table_commentaires_var,
                     table_evenements_var,
-                    table_relations_var
+                    table_relations_var,
+                    fichier_questionnaire_inscription_var
                     ]
 
             for checkbox in args:
@@ -272,6 +273,13 @@ class Application(tk.Frame):
                                                            variable=fichier_erreurs_evenements_var)
         fichier_erreurs_evenements_check.grid(sticky="W", row=109, column=1)
 
+        fichier_questionnaire_inscription_var = tk.BooleanVar()
+        fichier_questionnaire_inscription_var.set(True)
+        fichier_questionnaire_inscription_check = ttk.Checkbutton(generer_labelframe,
+                                                                  text="Fichier questionnaire inscription",
+                                                                  variable=fichier_questionnaire_inscription_var)
+        fichier_questionnaire_inscription_check.grid(sticky="W", row=109, column=2)
+
         # Buttons
         cancel_button = ttk.Button(generer_labelframe, text="Quitter", command=regen_window.destroy)
         cancel_button.grid(row=200, column=0, pady=(0, 10))
@@ -345,6 +353,7 @@ class Application(tk.Frame):
                                  verbal=verbal_var.get(),
                                  table_relations=table_relations_var.get(),
                                  table_evenements=table_evenements_var.get(),
+                                 table_questionnaire=fichier_questionnaire_inscription_var.get(),
                                  visualisation=faire_evoluer_barre,
                                  m_print=afficher_message_statut
                                  )

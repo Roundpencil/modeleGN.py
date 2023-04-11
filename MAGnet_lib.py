@@ -15,8 +15,6 @@ from modeleGN import *
 # à tester
 
 # à faire - rapide
-# todo : créer la table des questions... (écriture ok)
-#  et la lecture du tableau des questions :)
 
 #todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
@@ -308,7 +306,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     # visualisation(25)
 
     m_print("****** fin de la lecture du drive *********")
-    pas_visualisation = 25.0 / 11.0
+    pas_visualisation = 25.0 / 12.0
     m_print("*******************************************")
     m_print("*******************************************")
     # prefixe_fichiers = str(datetime.date.today())
@@ -394,6 +392,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     if table_evenements:
         ecrire_table_evenements(mon_gn, api_drive, api_sheets)
 
+    visualisation(pas_visualisation)
     m_print("******* table des questions pour inscription ******************")
 
     if table_questionnaire:
