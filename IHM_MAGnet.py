@@ -2,8 +2,10 @@ import threading
 import tkinter as tk
 
 import traceback
-from tkinter import filedialog, ttk
+from tkinter import filedialog, ttk, messagebox
 from tkinter.ttk import Progressbar
+
+from google.auth import exceptions
 
 from MAGnet_lib import *
 from modeleGN import GN
@@ -339,7 +341,12 @@ class Application(tk.Frame):
         boutons = [ok_button, forcer_update_gn_button]
         config_button.config(command=lambda : self.change_config_file(boutons, current_file_label))
 
-        self.lire_fichier_config(boutons, current_file_label)
+        fichier_defaut = fichier_ini_defaut()
+
+        if fichier_defaut:
+            self.lire_fichier_config(boutons, current_file_label, config_file=fichier_defaut)
+        else:
+            self.lire_fichier_config(boutons, current_file_label)
 
 
     def updater_boutons_disponibles(self, on: bool, boutons: list):
@@ -398,12 +405,29 @@ class Application(tk.Frame):
             if self.apiDoc is None or self.apiSheets is None or self.apiDrive is None:
                 self.apiDrive, self.apiDoc, self.apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
 
+        # except Exception as e:
+        #     print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")
+        #     traceback.print_exc()
+        #     self.dict_config = None
+        #     self.updater_boutons_disponibles(False, boutons)
+        except exceptions.RefreshError as e:
+            messagebox.showinfo("Expirations des droits",
+                                "Le fichier token.json a expiré. \n"
+                                "Pas de panique ! \n\n"
+                                "1. Supprimez-le \n"
+                                "2. Rechargez le fichier de paramètres \n"
+                                "3. Suivez les instructions sur la page web google qui s'affiche "
+                                "pour vous ré-authentifier \n\n"
+                                "Pour plus d'informations sur cette erreur liée à google, consulter le manuel")
+            print(f"une erreur RefreshError est survenue pendant la lecture du fichier ini : {e}")
+            traceback.print_exc()
+            self.dict_config = None
+            self.updater_boutons_disponibles(False, boutons)
         except Exception as e:
             print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")
             traceback.print_exc()
             self.dict_config = None
             self.updater_boutons_disponibles(False, boutons)
-
 
 
 # def main():

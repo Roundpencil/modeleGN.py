@@ -1540,6 +1540,13 @@ def ecrire_table_evenements(gn: GN, api_drive, api_sheets):
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tab_evenements, file_id)
 
 
+def fichier_ini_defaut():
+    ini_files = [f for f in os.listdir('.') if f.endswith('.ini')]
+    if len(ini_files) == 1:
+        return os.path.abspath(ini_files[0])
+    else:
+        return None
+
 def mettre_a_jour_champs(gn: GN):
     # #mise à jour des errors logs
     # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
