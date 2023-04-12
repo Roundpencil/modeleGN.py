@@ -34,7 +34,8 @@ class Application(tk.Frame):
 
         # reprise de l'ancien code de regen
         regen_window = self.master
-        regen_window.geometry("665x535")  # chaque nouvelle ligne fait +25 de hauteur
+        # regen_window.geometry("665x535")  # chaque nouvelle ligne fait +25 de hauteur
+        regen_window.grid_propagate(1)
 
         # ajouter le bouton et le label ini a la première ligne
         # ajout d'un labelframe pour le fichier ini
