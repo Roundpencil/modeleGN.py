@@ -137,11 +137,11 @@ class Application(tk.Frame):
             if switch_diag_var.get():
                 # Show the diagnostic_labelframe
                 diagnostic_labelframe.grid(row=50, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
-                regen_window.geometry("675x735")
+                # regen_window.geometry("675x735")
             else:
                 # Hide the diagnostic_labelframe
                 diagnostic_labelframe.grid_forget()
-                regen_window.geometry("675x510")
+                # regen_window.geometry("675x510")
 
         switch_diag_var = tk.BooleanVar()
         switch_diag_var.set(False)
