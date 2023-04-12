@@ -46,7 +46,7 @@ from modeleGN import *
 #todo : ajouter un paramètre pour définir des préfixes favoris
 
 
-VERSION = "1.0.20230411"
+VERSION = "1.0.20230412"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 def print_progress(v: float):
