@@ -116,15 +116,6 @@ def charger_fichier_init(fichier_init: str):
             logging.debug(f"date_gn formattée = {dict_config['date_gn']}")
         logging.debug(f"pour ce GN, date_gn = {dict_config.get('date_gn', 'Pas de date lue')}")
 
-        # création des champs dérivés
-        # if dict_config['id_pjs_et_pnjs'] is not None:
-        #     sheet_id = dict_config['id_pjs_et_pnjs']
-        #     dict_config['liste_noms_pnjs'] = extraireTexteDeGoogleDoc.lire_gspread_pnj(api_sheets, sheet_id)
-        #     dict_config['liste_noms_pjs'] = extraireTexteDeGoogleDoc.lire_gspread_pj(api_sheets, sheet_id)
-        #
-        # if dict_config.get('fichier_noms_pnjs', default=None) is not None:
-        #     dict_config['liste_noms_pnjs'] = lire_fichier_pnjs(dict_config['fichier_noms_pnjs'])
-
     except configparser.Error as e:
         # Erreur lors de la lecture d'un paramètre dans le fichier de configuration
         print(f"Erreur lors de la lecture du fichier de configuration : {e}")
@@ -1595,16 +1586,15 @@ def fichier_ini_defaut():
 
 def verifier_derniere_version(api_doc):
     try:
-        document = api_doc.documents().get(documentId=ID_FICHIER_VERSION).execute()
-        contenu_document = document.get('body').get('content')
-        text = lecteurGoogle.read_structural_elements(contenu_document)
-        text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
 
-        dict_versions = {}
-        ligne_version = None
+        # document = api_doc.documents().get(documentId=ID_FICHIER_VERSION).execute()
+        # contenu_document = document.get('body').get('content')
+        # text = lecteurGoogle.read_structural_elements(contenu_document)
+        # text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
+        texte = extraireTexteDeGoogleDoc.lire_google_doc(api_doc, ID_FICHIER_VERSION)
         to_return = ""
         last_url = None
-        for ligne in text.splitlines():
+        for ligne in texte.splitlines():
             if ligne == VERSION :
                 break
             if ligne.startswith("https") and last_url is None:

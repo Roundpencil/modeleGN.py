@@ -815,6 +815,9 @@ class GN:
     def noms_pnjs(self):
         return [x.nom for x in self.personnages.values() if x.est_un_pnj()]
 
+    def noms_personnages(self):
+        return [x.nom for x in self.personnages.values()]
+
     def noms_pjpnjs(self, pj: bool):
         return self.noms_pjs() if pj else self.noms_pnjs()
         # if pj:

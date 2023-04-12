@@ -18,6 +18,7 @@ class Application(tk.Frame):
                  master=None):
         super().__init__(master)
 
+        self.maj_versions = None
         self.url_derniere_version = None
         self.derniere_version = None
         self.master = master
@@ -42,6 +43,9 @@ class Application(tk.Frame):
 
         config_button = ttk.Button(ini_labelframe, text="Changer fichier de configuration")
         config_button.grid(row=0, column=0, pady=(10, 10), padx=(10, 10))
+
+        v_config_button = ttk.Button(ini_labelframe, text="Vérifier le fichier de configuration")
+        v_config_button.grid(row=1, column=0, pady=(10, 10), padx=(10, 10))
 
         # Create the label
         current_file_label = ttk.Label(ini_labelframe, text="Fichier ini actuel : Aucun")
@@ -411,7 +415,6 @@ class Application(tk.Frame):
         else:
             self.lire_fichier_config(boutons, current_file_label)
 
-
     def updater_boutons_disponibles(self, on: bool, boutons: list):
         to_set = "normal" if on else "disabled"
         for bouton in boutons:
@@ -473,8 +476,9 @@ class Application(tk.Frame):
                 self.apiDrive, self.apiDoc, self.apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
 
             if not self.derniere_version:
-                self.derniere_version, self.maj_versions, self.url_derniere_version = verifier_derniere_version(self.apiDoc)
-                if not self.derniere_version :
+                self.derniere_version, self.maj_versions, self.url_derniere_version = \
+                    verifier_derniere_version(self.apiDoc)
+                if not self.derniere_version:
                     # if not the latest version, show a popup with options to download or wait
                     response = messagebox.askquestion("Un nouvelle version est disponible !",
                                                       f"souhaitez-vous télécharger la mise à jour ? \n "
@@ -484,16 +488,8 @@ class Application(tk.Frame):
                         # if "Download" button clicked, open the latest version URL in the web browser
                         webbrowser.open_new(self.url_derniere_version)
 
-        # except Exception as e:
-        #     print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")
-        #     traceback.print_exc()
-        #     self.dict_config = None
-        #     self.updater_boutons_disponibles(False, boutons)
+
         except Exception as e:
-        # except exceptions.RefreshError as e:
-        #     print("Vars (e) : " + str(vars(e)))
-        #     print(e)
-        #     print(str(e))
             if "Token has been expired or revoked." in str(e):
                 # if token has been expired or revoked, show a popup with a specific error message
                 messagebox.showerror("Expirations des droits",
@@ -522,23 +518,52 @@ class Application(tk.Frame):
             self.updater_boutons_disponibles(False, boutons)
 
 
-
-
-
         except Exception as e:
             print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")
             traceback.print_exc()
             self.dict_config = None
             self.updater_boutons_disponibles(False, boutons)
 
-# def main():
-#     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
-#     app = tk.Tk()
-#     app.title('MAGnet, la moulinette')
-#     # app = Application(master=root)
-#     app.iconbitmap(r'MAGnet.ico')
-#     app.mainloop()
 
+        def afficher_resultats(self, resultats, test_global_reussi):
+            root = tk.Tk()
 
-# if __name__ == '__main__':
-#     main()
+            if test_global_reussi:
+                root.title("Tests Réussis")
+                # root.iconbitmap("success_icon.ico")  # Remplacez par le chemin vers l'icône de succès
+            else:
+                root.title("Tests Échoués")
+                # root.iconbitmap("failure_icon.ico")  # Remplacez par le chemin vers l'icône d'échec
+
+            tree = ttk.Treeview(root, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
+
+            tree.heading("#0", text="")
+            tree.column("#0", width=0, minwidth=0, stretch=tk.NO)
+
+            tree.heading("Paramètre", text="Nom du paramètre")
+            tree.column("Paramètre", anchor=tk.W)
+
+            tree.heading("Nom du fichier lu", text="Nom du fichier lu")
+            tree.column("Nom du fichier lu", anchor=tk.W)
+
+            tree.heading("Résultat du test", text="Résultat du test")
+            tree.column("Résultat du test", anchor=tk.W)
+
+            for res in resultats:
+                tree.insert('', tk.END, values=(res[0], res[1], res[2]))
+
+            tree.pack(padx=10, pady=10)
+
+            root.mainloop()
+
+        def verifier_config_et_afficher_popup(self):
+            if config_dict := charger_fichier_init("config.ini"):
+                resultats, test_reussi = extraireTexteDeGoogleDoc.verifier_fichier_config(config_dict,
+                                                                                          self.apiDrive,
+                                                                                          self.apiDoc,
+                                                                                          self.apiSheets)
+                self.afficher_resultats(resultats, test_reussi)
+            else:
+                messagebox.showerror("Erreur", "Erreur lors du chargement du fichier de configuration.")
+
+            v_config_button(command=lambda: self.verifier_config_et_afficher_popup)

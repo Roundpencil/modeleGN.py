@@ -101,15 +101,17 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
         for item in items:
             try:
                 # Retrieve the documents contents from the Docs api_doc.
-                document = api_doc.documents().get(documentId=item['id']).execute()
+                item_id = item['id']
+                document = api_doc.documents().get(documentId=item_id).execute()
+                titre_doc = document.get('title')
 
-                m_print(f"Document en cours de lecture (singletest = {single_test}) : {document.get('title')}")
+                m_print(f"Document en cours de lecture (singletest = {single_test}) : {titre_doc}")
 
                 # Alors on se demande si c'est le bon doc
                 # if document.get('title')[0:3].strip() != str(single_test):  # numéro de l'intrigue
                 #     # si ce n'est pas la bonne, pas la peine d'aller plus loin
                 #     continue
-                if ref_du_doc(document.get('title'), prefixes=prefixes) != int(single_test):
+                if ref_du_doc(titre_doc, prefixes=prefixes) != int(single_test):
                     continue
 
                 m_print(f"j'ai trouvé le doc #{single_test} : {document.get('title')}")
@@ -1792,10 +1794,8 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
     # mon_gn.factions.clear()
 
     try:
-        document = api_doc.documents().get(documentId=mon_gn.id_factions).execute()
-        contenu_document = document.get('body').get('content')
-        text = lecteurGoogle.read_structural_elements(contenu_document)
-        text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
+        id_doc = mon_gn.id_factions
+        text = lire_google_doc(api_doc, id_doc)
 
     except HttpError as err:
         print(f'An error occurred: {err}')
@@ -1806,7 +1806,7 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
     # à ce stade, j'ai lu les factions et je peux dépouiller
     # print(f"clefs dictionnaire : {mon_GN.dictPJs.keys()}")
     lines = text.splitlines()
-    noms_persos = list(mon_gn.noms_pjs()) + list(mon_gn.noms_pnjs())
+    noms_persos = mon_gn.noms_personnages()
     # on crée un dictionnaire qui permettra de retrouver les id en fonction des noms
     # temp_dict_pjs = {mon_gn.dictPJs[x].nom: x for x in mon_gn.dictPJs}
     # temp_dict_pnjs = {mon_gn.dictPNJs[x].nom: x for x in mon_gn.dictPNJs}
@@ -1841,6 +1841,14 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
                 personnages_a_ajouter = mon_gn.personnages[dict_nom_id.get(score[0])]
                 current_faction.personnages.add(personnages_a_ajouter)
     return 0
+
+
+def lire_google_doc(api_doc, id_doc):
+    document = api_doc.documents().get(documentId=id_doc).execute()
+    contenu_document = document.get('body').get('content')
+    text = lecteurGoogle.read_structural_elements(contenu_document)
+    text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
+    return text
 
 
 # def inserer_squelettes_dans_drive(parent_id: str, api_doc, api_drive, text: str, nom_fichier, titre=False, prefixe=""):
@@ -2296,7 +2304,7 @@ def formatter_fichier_erreurs(api_doc, doc_id):
                         }
                     })
 
-        if len(requests) != 0:
+        if requests:
             # Envoie toutes les requêtes en une seule fois pour mettre à jour le document
             result = api_doc.documents().batchUpdate(documentId=doc_id, body={'requests': requests}).execute()
         else:
@@ -2428,3 +2436,101 @@ def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):
         to_return.append(Commentaire(texte_commentaire, auteur, destinataires))
 
     return to_return
+
+def verifier_fichier_config(config_dict, api_drive, api_doc, api_sheets):
+    resultats = []
+    test_global_reussi = True
+
+    try:
+        # Vérification de la lecture de tous les dossiers, documents et Google Sheets
+        # dossiers = config_dict.get('dossiers_intrigues', []) + \
+        #            config_dict.get('dossiers_pjs', []) + \
+        #            config_dict.get('dossiers_pnjs', []) + \
+        #            config_dict.get('dossiers_evenements', []) + \
+        #            config_dict.get('dossiers_objets', [])
+
+        dossiers = [[f"dossier_intrigue {i}", id] for i, id
+                    in enumerate(config_dict.get('dossiers_intrigues', []), start=1)] + \
+                   [[f"dossier_pjs {i}", id] for i, id
+                    in enumerate(config_dict.get('dossiers_pjs', []), start=1)] + \
+                   [[f"dossier_pnjs {i}", id] for i, id
+                    in enumerate(config_dict.get('dossiers_pnjs', []), start=1)] + \
+                   [[f"dossier_evenements {i}", id] for i, id
+                    in enumerate(config_dict.get('dossiers_evenements', []), start=1)] + \
+                   [[f"dossier_objets {i}", id] for i, id
+                    in enumerate(config_dict.get('dossiers_objets', []), start=1)]
+
+        google_docs = []
+        if config_dict.get('id_factions', None):
+            google_docs.append(["id_factions", config_dict['id_factions']])
+
+        google_sheets = []
+        if config_dict.get('id_pjs_et_pnjs', None):
+            google_sheets.append(["id_pjs_et_pnjs", config_dict['id_pjs_et_pnjs']])
+
+        for parametre, dossier_id in dossiers:
+            try:
+                # dossier = api_drive.files().get(fileId=dossier_id).execute()
+
+                folder_metadata = api_drive.files().get(fileId=dossier_id).execute()
+                # Récupérer le nom du dossier
+                folder_name = folder_metadata['name']
+
+                resultats.append([parametre, folder_name, "Test Réussi"])
+            except HttpError as error:
+                resultats.append([parametre, "", "Echec du Test"])
+                test_global_reussi = False
+
+        # Test pour les Google Docs
+        for parametre, doc_id in google_docs:
+            try:
+                doc_metadata = api_drive.files().get(fileId=doc_id).execute()
+                doc_name = doc_metadata['name']
+                resultats.append([parametre, doc_name, "Test Réussi"])
+            except HttpError as error:
+                resultats.append([parametre, "", "Echec du Test"])
+                test_global_reussi = False
+
+        # Test pour les Google Sheets
+        for parametre, sheet_id in google_sheets:
+            try:
+                sheet_metadata = api_drive.files().get(fileId=sheet_id).execute()
+                sheet_name = sheet_metadata['name']
+                resultats.append([parametre, sheet_name, "Test Réussi"])
+            except HttpError as error:
+                resultats.append([parametre, "", "Echec du Test"])
+                test_global_reussi = False
+
+        # Vérification des droits d'écriture dans le dossier de sortie
+        dossier_output_id = config_dict['dossier_output']
+        try:
+            permissions = api_drive.permissions().list(fileId=dossier_output_id).execute()
+            droit_ecriture = False
+            for permission in permissions['permissions']:
+                if permission['role'] == 'writer' or permission['role'] == 'owner':
+                    droit_ecriture = True
+                    break
+            if droit_ecriture:
+                resultats.append(["Droits en écriture", "Fichier de sortie", "Test Réussi"])
+            else:
+                resultats.append(["Droits en écriture", "Fichier de sortie", "Echec du Test"])
+                test_global_reussi = False
+        except HttpError as error:
+            resultats.append((dossier_output_id, False))
+            test_global_reussi = False
+
+    except Exception as e:
+        print(f"Erreur lors de la vérification du fichier de configuration : {e}")
+        test_global_reussi = False
+
+    return resultats, test_global_reussi
+
+# # Utilisation de la méthode
+# config_dict = charger_fichier_init("config.ini")
+# if config_dict:
+#     resultats, test_reussi = verifier_fichier_config(config_dict)
+#     for param, resultat in resultats:
+#         print(f"{param}: {'Réussi' if resultat else 'Échec'}")
+#     print(f"Test global: {'Réussi' if test_reussi else 'Échec'}")
+# else:
+#     print("Erreur lors du chargement du fichier de configuration.")
