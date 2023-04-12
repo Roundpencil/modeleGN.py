@@ -44,7 +44,12 @@ class Application(tk.Frame):
         config_button = ttk.Button(ini_labelframe, text="Changer fichier de configuration")
         config_button.grid(row=0, column=0, pady=(10, 10), padx=(10, 10))
 
-        v_config_button = ttk.Button(ini_labelframe, text="Vérifier le fichier de configuration")
+        # v_config_button = ttk.Button(ini_labelframe, text="Vérifier le fichier de configuration")
+        # v_config_button.grid(row=1, column=0, pady=(10, 10), padx=(10, 10))
+        # v_config_button(command=lambda: self.verifier_config_et_afficher_popup())
+
+        v_config_button = ttk.Button(ini_labelframe, text="Vérifier le fichier de configuration",
+                                     command=lambda: self.verifier_config_et_afficher_popup(current_file_label))
         v_config_button.grid(row=1, column=0, pady=(10, 10), padx=(10, 10))
 
         # Create the label
@@ -159,9 +164,6 @@ class Application(tk.Frame):
         # début de la zone génération
         generer_labelframe = ttk.Labelframe(regen_window, text="Options de génération", width=700)
         generer_labelframe.grid(row=100, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
-
-        # generer_label = ttk.Label(generer_labelframe, text="Générer...")
-        # generer_label.grid(row=105, column=0, columnspan=2)
 
         master_state = tk.BooleanVar()
         master_state.set(True)
@@ -309,11 +311,6 @@ class Application(tk.Frame):
             else:
                 progress['value'] += evolution
 
-            # elif progress['value'] < 100:
-            #     progress['value'] += evolution
-            # else:
-            #     print(f"Erreur : la barre atteindrait {progress['value'] + evolution}")
-
         def afficher_message_statut(message: str, end='\n'):
             # print(f"debug : on m'a demandé d'afficher {message}")
             current_text = message_label['text']
@@ -359,46 +356,6 @@ class Application(tk.Frame):
                                  visualisation=faire_evoluer_barre,
                                  m_print=afficher_message_statut
                                  )
-
-        # t_lambda_regen = lambda: lire_et_recharger_gn(mon_gn=self.gn,
-        #                                               api_drive=self.apiDrive,
-        #                                               api_doc=self.apiDoc,
-        #                                               api_sheets=self.apiSheets,
-        #                                               aides_de_jeu=aide_de_jeu_var.get(),
-        #                                               liste_noms_pjs=self.dict_config.get(
-        #                                                   'liste_noms_pjs'),
-        #                                               # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
-        #                                               nom_fichier_sauvegarde=self.dict_config[
-        #                                                   'nom_fichier_sauvegarde'],
-        #                                               fichier_erreurs_intrigues=fichier_erreurs_intrigues_var.get(),
-        #                                               fichier_erreurs_evenements=fichier_erreurs_evenements_var.get(),
-        #                                               generer_fichiers_pjs=generer_fichiers_pj_var.get(),
-        #                                               generer_fichiers_pnjs=generer_fichiers_pnjs_var.get(),
-        #                                               changelog=changelog_var.get(),
-        #                                               table_intrigues=table_intrigues_var.get(),
-        #                                               table_objets=table_objets_var.get(),
-        #                                               table_chrono=table_chrono_var.get(),
-        #                                               table_persos=table_persos_var.get(),
-        #                                               table_pnjs=table_pnjs_var.get(),
-        #                                               table_commentaires=table_commentaires_var.get(),
-        #                                               fast_intrigues=var_fast_intrigue.get(),
-        #                                               fast_persos=var_fast_fiches_pjs.get(),
-        #                                               fast_pnjs=var_fast_fiches_pnjs.get(),
-        #                                               fast_evenements=var_fast_evenements.get(),
-        #                                               fast_objets=var_fast_objets.get(),
-        #                                               sans_chargement_fichier=repartir_de_0_var.get(),
-        #                                               sauver_apres_operation=sauver_apres_operation_var.get(),
-        #                                               verbal=verbal_var.get(),
-        #                                               table_relations=table_relations_var.get(),
-        #                                               table_evenements=table_evenements_var.get(),
-        #                                               visualisation=faire_evoluer_barre,
-        #                                               m_print=afficher_message_statut
-        #                                               )
-
-        # ok_button = ttk.Button(generer_labelframe, text="OK",
-        #                        command=lambda: threading.Thread(target=t_lambda_regen).start()
-        #                        )
-        # thread = threading.Thread(target=t_lancer_regeneration)
 
         ok_button = ttk.Button(generer_labelframe, text="OK",
                                command=lambda: threading.Thread(target=t_lancer_regeneration).start()
@@ -524,46 +481,45 @@ class Application(tk.Frame):
             self.dict_config = None
             self.updater_boutons_disponibles(False, boutons)
 
+    def afficher_resultats(self, resultats, test_global_reussi):
+        root = tk.Tk()
 
-        def afficher_resultats(self, resultats, test_global_reussi):
-            root = tk.Tk()
+        if test_global_reussi:
+            root.title("Tests Réussis")
+            # root.iconbitmap("success_icon.ico")  # Remplacez par le chemin vers l'icône de succès
+        else:
+            root.title("Tests Échoués")
+            # root.iconbitmap("failure_icon.ico")  # Remplacez par le chemin vers l'icône d'échec
 
-            if test_global_reussi:
-                root.title("Tests Réussis")
-                # root.iconbitmap("success_icon.ico")  # Remplacez par le chemin vers l'icône de succès
-            else:
-                root.title("Tests Échoués")
-                # root.iconbitmap("failure_icon.ico")  # Remplacez par le chemin vers l'icône d'échec
+        tree = ttk.Treeview(root, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
 
-            tree = ttk.Treeview(root, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
+        tree.heading("#0", text="")
+        tree.column("#0", width=0, minwidth=0, stretch=tk.NO)
 
-            tree.heading("#0", text="")
-            tree.column("#0", width=0, minwidth=0, stretch=tk.NO)
+        tree.heading("Paramètre", text="Nom du paramètre")
+        tree.column("Paramètre", anchor=tk.W)
 
-            tree.heading("Paramètre", text="Nom du paramètre")
-            tree.column("Paramètre", anchor=tk.W)
+        tree.heading("Nom du fichier lu", text="Nom du fichier lu")
+        tree.column("Nom du fichier lu", anchor=tk.W)
 
-            tree.heading("Nom du fichier lu", text="Nom du fichier lu")
-            tree.column("Nom du fichier lu", anchor=tk.W)
+        tree.heading("Résultat du test", text="Résultat du test")
+        tree.column("Résultat du test", anchor=tk.W)
 
-            tree.heading("Résultat du test", text="Résultat du test")
-            tree.column("Résultat du test", anchor=tk.W)
+        for res in resultats:
+            tree.insert('', tk.END, values=(res[0], res[1], res[2]))
 
-            for res in resultats:
-                tree.insert('', tk.END, values=(res[0], res[1], res[2]))
+        tree.pack(padx=10, pady=10)
 
-            tree.pack(padx=10, pady=10)
+        root.mainloop()
 
-            root.mainloop()
-
-        def verifier_config_et_afficher_popup(self):
-            if config_dict := charger_fichier_init("config.ini"):
-                resultats, test_reussi = extraireTexteDeGoogleDoc.verifier_fichier_config(config_dict,
-                                                                                          self.apiDrive,
-                                                                                          self.apiDoc,
-                                                                                          self.apiSheets)
-                self.afficher_resultats(resultats, test_reussi)
-            else:
-                messagebox.showerror("Erreur", "Erreur lors du chargement du fichier de configuration.")
-
-            v_config_button(command=lambda: self.verifier_config_et_afficher_popup)
+    def verifier_config_et_afficher_popup(self, current_file_label):
+        if self.dict_config:
+        # if config_dict := charger_fichier_init(str(current_file_label)):
+            resultats, test_reussi = extraireTexteDeGoogleDoc.verifier_fichier_config(self.dict_config,
+                                                                                      self.apiDrive,
+                                                                                      self.apiDoc,
+                                                                                      self.apiSheets)
+            print(resultats)
+            self.afficher_resultats(resultats, test_reussi)
+        else:
+            messagebox.showerror("Erreur", "Erreur lors du chargement du fichier de configuration.")

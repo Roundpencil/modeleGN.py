@@ -2511,12 +2511,12 @@ def verifier_fichier_config(config_dict, api_drive, api_doc, api_sheets):
                     droit_ecriture = True
                     break
             if droit_ecriture:
-                resultats.append(["Droits en écriture", "Fichier de sortie", "Test Réussi"])
+                resultats.append(["Droits en écriture", "sur le fichier de sortie", "Test Réussi"])
             else:
-                resultats.append(["Droits en écriture", "Fichier de sortie", "Echec du Test"])
+                resultats.append(["Droits en écriture", "sur le fichier de sortie", "Echec du Test"])
                 test_global_reussi = False
         except HttpError as error:
-            resultats.append((dossier_output_id, False))
+            resultats.append(["Droits en écriture", "sur le fichier de sortie", "Echec du Test"])
             test_global_reussi = False
 
     except Exception as e:
