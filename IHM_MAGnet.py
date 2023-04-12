@@ -1,12 +1,9 @@
 import threading
 import tkinter as tk
-
 import traceback
 import webbrowser
 from tkinter import filedialog, ttk, messagebox
 from tkinter.ttk import Progressbar
-
-from google.auth import exceptions
 
 from MAGnet_lib import *
 from modeleGN import GN
