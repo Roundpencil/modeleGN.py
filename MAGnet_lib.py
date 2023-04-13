@@ -1603,7 +1603,7 @@ def verifier_derniere_version(api_doc):
                 # print(ligne)
                 to_return += ligne + '\n'
 
-        return len(to_return) == 0, to_return, last_url
+        return last_url is None, to_return, last_url
 
     except Exception as e:
         print(f"{e}")

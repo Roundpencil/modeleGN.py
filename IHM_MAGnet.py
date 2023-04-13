@@ -47,7 +47,7 @@ class Application(tk.Frame):
         # v_config_button(command=lambda: self.verifier_config_et_afficher_popup())
 
         v_config_button = ttk.Button(ini_labelframe, text="Vérifier le fichier de configuration",
-                                     command=lambda: self.verifier_config_et_afficher_popup(current_file_label))
+                                     command=lambda: self.verifier_config_et_afficher_popup())
         v_config_button.grid(row=1, column=0, pady=(10, 10), padx=(10, 10))
 
         # Create the label
@@ -510,7 +510,7 @@ class Application(tk.Frame):
 
         root.mainloop()
 
-    def verifier_config_et_afficher_popup(self, current_file_label):
+    def verifier_config_et_afficher_popup(self):
         if self.dict_config:
         # if config_dict := charger_fichier_init(str(current_file_label)):
             resultats, test_reussi = extraireTexteDeGoogleDoc.verifier_fichier_config(self.dict_config,
