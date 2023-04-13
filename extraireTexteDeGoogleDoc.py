@@ -949,76 +949,122 @@ def lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs):
         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
-def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
-    # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de référence des noms dans l'intrigue
-    noms_roles = conteneur.get_noms_roles()
-    # print(f"pour {currentIntrigue.nom}, noms_roles =  {noms_roles}")
+# def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
+#     # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de référence des noms dans l'intrigue
+#     noms_roles = conteneur.get_noms_roles()
+#     # print(f"pour {currentIntrigue.nom}, noms_roles =  {noms_roles}")
+#
+#     # print(f"Texte section scène : {texteScenes}")
+#     scenes = texte_scenes.split("###")
+#     for scene in scenes:
+#         # print("taille de la scène : " + str(len(scene)))
+#         if len(scene) < 10:
+#             continue
+#
+#         titre_scene = scene.splitlines()[0].strip()
+#         scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
+#         scene_a_ajouter.modifie_par = conteneur.modifie_par
+#         # print("titre de la scène ajoutée : " + scene_a_ajouter.titre)
+#         # print(f"Pour sandrine : extraction des balises pour l'intrigue {conteneur.nom}")
+#         balises = re.findall(r'##.*', scene)
+#         for balise in balises:
+#             # print("balise : " + balise)
+#             if balise[:9].lower() == '## quand?':
+#                 extraire_date_scene(balise[10:], scene_a_ajouter)
+#             elif balise[:10].lower() == '## quand ?':
+#                 extraire_date_scene(balise[11:], scene_a_ajouter)
+#                 # scene_a_ajouter.date = balise[11:].strip()
+#                 # # print("date de la scène : " + scene_a_ajouter.date)
+#             elif balise[:9].lower() == '## il y a':
+#                 extraire_il_y_a_scene(balise[10:], scene_a_ajouter)
+#             elif balise[:9].lower() == '## date :':
+#                 extraire_date_absolue(balise[10:], scene_a_ajouter)
+#             elif balise[:8].lower() == '## date:':
+#                 extraire_date_absolue(balise[9:], scene_a_ajouter)
+#             elif balise[:8].lower() == '## date?':
+#                 extraire_date_absolue(balise[9:], scene_a_ajouter)
+#             elif balise[:7].lower() == '## qui?':
+#                 extraire_qui_scene(balise[8:], conteneur, noms_roles, scene_a_ajouter,
+#                                    avec_tableau_des_persos=tableau_roles_existant)
+#
+#             elif balise[:8].lower() == '## qui ?':
+#                 extraire_qui_scene(balise[9:], conteneur, noms_roles, scene_a_ajouter,
+#                                    avec_tableau_des_persos=tableau_roles_existant)
+#
+#             elif balise[:11].lower() == '## niveau :':
+#                 scene_a_ajouter.niveau = balise[12:].strip()
+#
+#             elif balise[:11].lower() == '## résumé :':
+#                 scene_a_ajouter.resume = balise[12:].strip()
+#
+#             elif balise[:10].lower() == '## résumé:':
+#                 scene_a_ajouter.resume = balise[11:].strip()
+#
+#             elif balise[:13].lower() == '## factions :':
+#                 extraire_factions_scene(balise[14:], scene_a_ajouter)
+#
+#             elif balise[:12].lower() == '## faction :':
+#                 extraire_factions_scene(balise[13:], scene_a_ajouter)
+#
+#             elif balise[:12].lower() == '## factions:':
+#                 # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
+#                 extraire_factions_scene(balise[13:], scene_a_ajouter)
+#             elif balise[:11].lower() == '## faction:':
+#                 # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
+#                 extraire_factions_scene(balise[12:], scene_a_ajouter)
+#             elif balise[:9].lower() == '## info :':
+#                 extraire_infos_scene(balise[10:], scene_a_ajouter)
+#                 # scene_a_ajouter.infos.add(tuple([f.strip() for f in .split(',')]))
+#             elif balise[:8].lower() == '## info:':
+#                 # scene_a_ajouter.infos.add([f.strip() for f in balise[9:].split(',')])
+#                 extraire_infos_scene(balise[9:], scene_a_ajouter)
+#             else:
+#                 texte_erreur = f"balise inconnue : {balise} dans le conteneur {nom_conteneur}"
+#                 print(texte_erreur)
+#                 scene_a_ajouter.description += balise
+#                 conteneur.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+#                                                    texte_erreur,
+#                                                    ErreurManager.ORIGINES.SCENE)
+#
+#         scene_a_ajouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
+#         # print("texte de la scene apres insertion : " + scene_a_ajouter.description)
+def extraire_balise(balise, scene_a_ajouter, conteneur, noms_roles, tableau_roles_existant=True):
+    balise_lower = balise.lower()
+    if balise_lower.startswith('## quand?') or balise_lower.startswith('## quand ?'):
+        extraire_date_scene(balise.split("?", 1)[1], scene_a_ajouter)
+    elif balise_lower.startswith('## il y a'):
+        extraire_il_y_a_scene(balise[9:], scene_a_ajouter)
+    elif balise_lower.startswith('## date :') or balise_lower.startswith('## date:') or balise_lower.startswith('## date?'):
+        extraire_date_absolue(balise.split(":", 1)[1], scene_a_ajouter)
+    elif balise_lower.startswith('## qui?') or balise_lower.startswith('## qui ?'):
+        extraire_qui_scene(balise.split("?", 1)[1], conteneur, noms_roles, scene_a_ajouter, avec_tableau_des_persos=tableau_roles_existant)
+    elif balise_lower.startswith('## niveau :'):
+        scene_a_ajouter.niveau = balise[11:].strip()
+    elif balise_lower.startswith('## résumé :') or balise_lower.startswith('## résumé:'):
+        scene_a_ajouter.resume = balise.split(":", 1)[1].strip()
+    elif balise_lower.startswith('## factions :') or balise_lower.startswith('## factions:') or balise_lower.startswith('## faction :') or balise_lower.startswith('## faction:'):
+        extraire_factions_scene(balise.split(":", 1)[1], scene_a_ajouter)
+    elif balise_lower.startswith('## info :') or balise_lower.startswith('## info:'):
+        extraire_infos_scene(balise.split(":", 1)[1], scene_a_ajouter)
+    else:
+        return False
+    return True
 
-    # print(f"Texte section scène : {texteScenes}")
+def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
+    noms_roles = conteneur.get_noms_roles()
     scenes = texte_scenes.split("###")
+
     for scene in scenes:
-        # print("taille de la scène : " + str(len(scene)))
         if len(scene) < 10:
             continue
 
         titre_scene = scene.splitlines()[0].strip()
         scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
         scene_a_ajouter.modifie_par = conteneur.modifie_par
-        # print("titre de la scène ajoutée : " + scene_a_ajouter.titre)
-        # print(f"Pour sandrine : extraction des balises pour l'intrigue {conteneur.nom}")
+
         balises = re.findall(r'##.*', scene)
         for balise in balises:
-            # print("balise : " + balise)
-            if balise[:9].lower() == '## quand?':
-                extraire_date_scene(balise[10:], scene_a_ajouter)
-            elif balise[:10].lower() == '## quand ?':
-                extraire_date_scene(balise[11:], scene_a_ajouter)
-                # scene_a_ajouter.date = balise[11:].strip()
-                # # print("date de la scène : " + scene_a_ajouter.date)
-            elif balise[:9].lower() == '## il y a':
-                extraire_il_y_a_scene(balise[10:], scene_a_ajouter)
-            elif balise[:9].lower() == '## date :':
-                extraire_date_absolue(balise[10:], scene_a_ajouter)
-            elif balise[:8].lower() == '## date:':
-                extraire_date_absolue(balise[9:], scene_a_ajouter)
-            elif balise[:8].lower() == '## date?':
-                extraire_date_absolue(balise[9:], scene_a_ajouter)
-            elif balise[:7].lower() == '## qui?':
-                extraire_qui_scene(balise[8:], conteneur, noms_roles, scene_a_ajouter,
-                                   avec_tableau_des_persos=tableau_roles_existant)
-
-            elif balise[:8].lower() == '## qui ?':
-                extraire_qui_scene(balise[9:], conteneur, noms_roles, scene_a_ajouter,
-                                   avec_tableau_des_persos=tableau_roles_existant)
-
-            elif balise[:11].lower() == '## niveau :':
-                scene_a_ajouter.niveau = balise[12:].strip()
-
-            elif balise[:11].lower() == '## résumé :':
-                scene_a_ajouter.resume = balise[12:].strip()
-
-            elif balise[:10].lower() == '## résumé:':
-                scene_a_ajouter.resume = balise[11:].strip()
-
-            elif balise[:13].lower() == '## factions :':
-                extraire_factions_scene(balise[14:], scene_a_ajouter)
-
-            elif balise[:12].lower() == '## faction :':
-                extraire_factions_scene(balise[13:], scene_a_ajouter)
-
-            elif balise[:12].lower() == '## factions:':
-                # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
-                extraire_factions_scene(balise[13:], scene_a_ajouter)
-            elif balise[:11].lower() == '## faction:':
-                # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
-                extraire_factions_scene(balise[12:], scene_a_ajouter)
-            elif balise[:9].lower() == '## info :':
-                extraire_infos_scene(balise[10:], scene_a_ajouter)
-                # scene_a_ajouter.infos.add(tuple([f.strip() for f in .split(',')]))
-            elif balise[:8].lower() == '## info:':
-                # scene_a_ajouter.infos.add([f.strip() for f in balise[9:].split(',')])
-                extraire_infos_scene(balise[9:], scene_a_ajouter)
-            else:
+            if not extraire_balise(balise, scene_a_ajouter, conteneur, noms_roles, tableau_roles_existant):
                 texte_erreur = f"balise inconnue : {balise} dans le conteneur {nom_conteneur}"
                 print(texte_erreur)
                 scene_a_ajouter.description += balise
@@ -1027,7 +1073,6 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, table
                                                    ErreurManager.ORIGINES.SCENE)
 
         scene_a_ajouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
-        # print("texte de la scene apres insertion : " + scene_a_ajouter.description)
 
 
 def extraire_factions_scene(texte_lu: str, scene: Scene):
@@ -1475,73 +1520,118 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
         evenement_extraire_ligne_chrono(current_evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj)
 
 
+# def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj):
+#     # print(f"debug : 0 = {ligne[0]} {ligne[0] == ''}, 1 = {ligne[1]} {ligne[1] == ''}, 2 = {ligne[2]} {ligne[2] == ''}")
+#     intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
+#                                 heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
+#                                 description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
+#                                 evenement=current_evenement
+#                                 )
+#     noms_pnjs_impliques = [nom.strip() for nom in ligne[2].split(',')]
+#     noms_pnjs_dans_evenement = current_evenement.get_noms_pnjs()
+#     # print(f"debug : {len(current_evenement.interventions)} interventions "
+#     #       f"dans l'evènement {current_evenement.id_url}")
+#     current_evenement.interventions.append(intervention)
+#     # print(f"debug : apres ajout de l'intervention {intervention.description} dans l'évènement "
+#     #       f"{current_evenement.nom_evenement} / {current_evenement.code_evenement}, "
+#     #       f"celui ci contient {len(current_evenement.interventions)} interventions")
+#     if noms_pnjs_impliques == ['']:
+#         intervention.liste_intervenants.extend(current_evenement.intervenants_evenement.values())
+#     else:
+#         for nom_pnj in noms_pnjs_impliques:
+#             score = process.extractOne(nom_pnj, noms_pnjs_dans_evenement)
+#             if score is None:
+#                 texte_erreur = f"Correspondance introuvable pour le nom {nom_pnj} avec la table des PNJs" \
+#                                f"dans l'évènement {current_evenement.code_evenement} " \
+#                                f"/ {current_evenement.nom_evenement} " \
+#                                f"pour l'intervention {intervention.description}"
+#                 current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+#                                                                 texte_erreur,
+#                                                                 ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+#                 # print(f"debug : {texte_erreur}")
+#                 continue
+#
+#             if score[1] < seuil_alerte_pnj:
+#                 texte_erreur = f"Le nom du pnj {nom_pnj} trouvé dans la chronologie de l'évènement " \
+#                                f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
+#                 current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+#                                                                 texte_erreur,
+#                                                                 ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+#             intervenant = current_evenement.intervenants_evenement[score[0]]
+#             intervention.liste_intervenants.append(intervenant)
+#     for intervenant in intervention.liste_intervenants:
+#         intervenant.interventions.add(intervention)
+#     noms_pj_impliques = [nom.strip() for nom in ligne[3].split(',')]
+#     noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
+#     if noms_pj_impliques == ['']:
+#         intervention.liste_pjs_concernes.extend(current_evenement.pjs_concernes_evenement.values())
+#     else:
+#         for nom_pj in noms_pj_impliques:
+#             score = process.extractOne(nom_pj, noms_pjs_dans_evenement)
+#             if score is None:
+#                 texte_erreur = f"Correspondance introuvable pour le nom {nom_pj} " \
+#                                f"dans l'évènement {current_evenement.code_evenement} avec la table des PJs" \
+#                                f"/ {current_evenement.nom_evenement}" \
+#                                f"pour l'intervention {intervention.description}"
+#                 current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+#                                                                 texte_erreur,
+#                                                                 ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+#                 # print(f"debug : {texte_erreur}")
+#                 continue
+#
+#             if score[1] < seuil_alerte_pj:
+#                 texte_erreur = f"Le nom du pj {nom_pj} trouvé dans la chronologie de l'évènement " \
+#                                f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
+#                 current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+#                                                                 texte_erreur,
+#                                                                 ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+#             pj_concerne = current_evenement.pjs_concernes_evenement[score[0]]
+#             intervention.liste_pjs_concernes.append(pj_concerne)
+def ajouter_intervenants(noms, intervenants_dans_evenement, seuil_alerte, intervention, erreur_manager):
+    for nom in noms:
+        score = process.extractOne(nom, intervenants_dans_evenement)
+        if score is None:
+            texte_erreur = f"Correspondance introuvable pour le nom {nom} avec la table des intervenants"
+            erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR, texte_erreur,
+                                          ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+            continue
+
+        if score[1] < seuil_alerte:
+            texte_erreur = f"Le nom {nom} trouvé dans la chronologie a été associé à {score[0]} à seulement {score[1]}% de confiance"
+            erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING, texte_erreur,
+                                          ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+
+        intervenant = intervenants_dans_evenement[score[0]]
+        intervention.liste_intervenants.append(intervenant)
+
+
 def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj):
-    # print(f"debug : 0 = {ligne[0]} {ligne[0] == ''}, 1 = {ligne[1]} {ligne[1] == ''}, 2 = {ligne[2]} {ligne[2] == ''}")
     intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
                                 heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
                                 description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
                                 evenement=current_evenement
                                 )
+    current_evenement.interventions.append(intervention)
+
     noms_pnjs_impliques = [nom.strip() for nom in ligne[2].split(',')]
     noms_pnjs_dans_evenement = current_evenement.get_noms_pnjs()
-    # print(f"debug : {len(current_evenement.interventions)} interventions "
-    #       f"dans l'evènement {current_evenement.id_url}")
-    current_evenement.interventions.append(intervention)
-    # print(f"debug : apres ajout de l'intervention {intervention.description} dans l'évènement "
-    #       f"{current_evenement.nom_evenement} / {current_evenement.code_evenement}, "
-    #       f"celui ci contient {len(current_evenement.interventions)} interventions")
+    noms_pj_impliques = [nom.strip() for nom in ligne[3].split(',')]
+    noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
+
     if noms_pnjs_impliques == ['']:
         intervention.liste_intervenants.extend(current_evenement.intervenants_evenement.values())
     else:
-        for nom_pnj in noms_pnjs_impliques:
-            score = process.extractOne(nom_pnj, noms_pnjs_dans_evenement)
-            if score is None:
-                texte_erreur = f"Correspondance introuvable pour le nom {nom_pnj} avec la table des PNJs" \
-                               f"dans l'évènement {current_evenement.code_evenement} " \
-                               f"/ {current_evenement.nom_evenement} " \
-                               f"pour l'intervention {intervention.description}"
-                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
-                                                                texte_erreur,
-                                                                ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-                # print(f"debug : {texte_erreur}")
-                continue
+        ajouter_intervenants(noms_pnjs_impliques, noms_pnjs_dans_evenement, seuil_alerte_pnj, intervention,
+                             current_evenement.erreur_manager)
 
-            if score[1] < seuil_alerte_pnj:
-                texte_erreur = f"Le nom du pnj {nom_pnj} trouvé dans la chronologie de l'évènement " \
-                               f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
-                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
-                                                                texte_erreur,
-                                                                ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-            intervenant = current_evenement.intervenants_evenement[score[0]]
-            intervention.liste_intervenants.append(intervenant)
-    for intervenant in intervention.liste_intervenants:
-        intervenant.interventions.add(intervention)
-    noms_pj_impliques = [nom.strip() for nom in ligne[3].split(',')]
-    noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
     if noms_pj_impliques == ['']:
         intervention.liste_pjs_concernes.extend(current_evenement.pjs_concernes_evenement.values())
     else:
-        for nom_pj in noms_pj_impliques:
-            score = process.extractOne(nom_pj, noms_pjs_dans_evenement)
-            if score is None:
-                texte_erreur = f"Correspondance introuvable pour le nom {nom_pj} " \
-                               f"dans l'évènement {current_evenement.code_evenement} avec la table des PJs" \
-                               f"/ {current_evenement.nom_evenement}" \
-                               f"pour l'intervention {intervention.description}"
-                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
-                                                                texte_erreur,
-                                                                ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-                # print(f"debug : {texte_erreur}")
-                continue
+        ajouter_intervenants(noms_pj_impliques, noms_pjs_dans_evenement, seuil_alerte_pj, intervention,
+                             current_evenement.erreur_manager)
 
-            if score[1] < seuil_alerte_pj:
-                texte_erreur = f"Le nom du pj {nom_pj} trouvé dans la chronologie de l'évènement " \
-                               f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
-                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
-                                                                texte_erreur,
-                                                                ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-            pj_concerne = current_evenement.pjs_concernes_evenement[score[0]]
-            intervention.liste_pjs_concernes.append(pj_concerne)
+    for intervenant in intervention.liste_intervenants:
+        intervenant.interventions.add(intervention)
 
 
 def evenement_lire_autres(texte: str, current_evenement: Evenement, texte_label: str):
@@ -1737,8 +1827,7 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
 
     # extraction du code objet qui peut être au format X123-4 - Nom ou X456 - Nom
     pattern = r'^[A-Za-z]?\d+\s*-(\s*\d+\s*-)?'
-    match = re.search(pattern, nom_doc)
-    if match:
+    if match := re.search(pattern, nom_doc):
         # on prend tout le prefixe, sauf le "-" qui est à la fin, et on strip
         code_objet = match[0][:-1].strip()
     else:
@@ -2125,7 +2214,7 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
 
         for orga in dict_orgas_persos:
             if orga in dict_orgas:
-                nom_persos = ", ".join([perso for perso in dict_orgas[orga]])
+                nom_persos = ", ".join(list(dict_orgas[orga]))
                 row.append(nom_persos)
             else:
                 row.append("")
@@ -2148,7 +2237,7 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
         # persos = []
         # for orga_set in dict_orgas_persos.values():
         #     persos.extend(orga_set)
-        persos = [p for p in dict_orgas_persos[orga]]
+        persos = list(dict_orgas_persos[orga])
         values = [["nom_scene", "date", "qui", "document"] + persos]
         if verbal:
             print(f"en-tetes = {values}")
@@ -2378,7 +2467,7 @@ def formatter_fichier_erreurs(api_doc, doc_id):
         else:
             return None
 
-    except:
+    except Exception:
         result = None
 
     return result
@@ -2408,7 +2497,7 @@ def reconstituer_tableau(texte_lu: str, sans_la_premiere_ligne=True):
     # logging.debug(f"a partir de la chaine {repr(texte_lu)} "
     #               f"j'ai reconstitué le tableau \n {to_return}"
     #               )
-    return to_return if to_return else [], (len(to_return[0]) if to_return else 0)
+    return to_return or [], len(to_return[0]) if to_return else 0
 
 
 def lire_gspread_pnj(api_sheets, sheet_id):

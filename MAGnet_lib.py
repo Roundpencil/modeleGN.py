@@ -11,8 +11,11 @@ from modeleGN import *
 # communication :
 
 # bugs
+#todo lecture champs persos qui deviennent des colonnes
 
 # à tester
+#todo evenement_extraire_ligne_chrono
+#todo : texte2scene
 
 # à faire - rapide
 
