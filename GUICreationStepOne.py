@@ -46,6 +46,7 @@ def display_panel():
     creation_fichiers_label = tk.Label(root, text="Création fichiers:")
     creation_fichiers_label.grid(column=0, row=20, sticky=tk.W, pady=(10,3))
     creation_fichiers_var = tk.StringVar()
+    creation_fichiers_var.set(0)
     creation_fichiers_options = [("Créer automatiquement les fichiers", 0), ("Saisir des IDs existants", 1)]
     for text, value in creation_fichiers_options:
         tk.Radiobutton(root, text=text, variable=creation_fichiers_var, value=value).grid(column=0 + value, row=30,
