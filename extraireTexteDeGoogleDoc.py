@@ -1226,7 +1226,7 @@ def calculer_jours_il_y_a(balise_date):
 
         # travailler ce qu'on a trouvé comme valeurs
 
-        ans = 0 if not ans else ans = ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
+        ans = 0 if not ans else ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
         mois = 0 if not mois else mois.group(0)[:-1]
         semaines = 0 if not semaines else semaines.group(0)[:-1]
         jours = 0 if not jours else jours.group(0)[:-1]
@@ -1520,118 +1520,118 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
         evenement_extraire_ligne_chrono(current_evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj)
 
 
-# def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj):
-#     # print(f"debug : 0 = {ligne[0]} {ligne[0] == ''}, 1 = {ligne[1]} {ligne[1] == ''}, 2 = {ligne[2]} {ligne[2] == ''}")
-#     intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
-#                                 heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
-#                                 description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
-#                                 evenement=current_evenement
-#                                 )
-#     noms_pnjs_impliques = [nom.strip() for nom in ligne[2].split(',')]
-#     noms_pnjs_dans_evenement = current_evenement.get_noms_pnjs()
-#     # print(f"debug : {len(current_evenement.interventions)} interventions "
-#     #       f"dans l'evènement {current_evenement.id_url}")
-#     current_evenement.interventions.append(intervention)
-#     # print(f"debug : apres ajout de l'intervention {intervention.description} dans l'évènement "
-#     #       f"{current_evenement.nom_evenement} / {current_evenement.code_evenement}, "
-#     #       f"celui ci contient {len(current_evenement.interventions)} interventions")
-#     if noms_pnjs_impliques == ['']:
-#         intervention.liste_intervenants.extend(current_evenement.intervenants_evenement.values())
-#     else:
-#         for nom_pnj in noms_pnjs_impliques:
-#             score = process.extractOne(nom_pnj, noms_pnjs_dans_evenement)
-#             if score is None:
-#                 texte_erreur = f"Correspondance introuvable pour le nom {nom_pnj} avec la table des PNJs" \
-#                                f"dans l'évènement {current_evenement.code_evenement} " \
-#                                f"/ {current_evenement.nom_evenement} " \
-#                                f"pour l'intervention {intervention.description}"
-#                 current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
-#                                                                 texte_erreur,
-#                                                                 ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-#                 # print(f"debug : {texte_erreur}")
-#                 continue
-#
-#             if score[1] < seuil_alerte_pnj:
-#                 texte_erreur = f"Le nom du pnj {nom_pnj} trouvé dans la chronologie de l'évènement " \
-#                                f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
-#                 current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
-#                                                                 texte_erreur,
-#                                                                 ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-#             intervenant = current_evenement.intervenants_evenement[score[0]]
-#             intervention.liste_intervenants.append(intervenant)
-#     for intervenant in intervention.liste_intervenants:
-#         intervenant.interventions.add(intervention)
-#     noms_pj_impliques = [nom.strip() for nom in ligne[3].split(',')]
-#     noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
-#     if noms_pj_impliques == ['']:
-#         intervention.liste_pjs_concernes.extend(current_evenement.pjs_concernes_evenement.values())
-#     else:
-#         for nom_pj in noms_pj_impliques:
-#             score = process.extractOne(nom_pj, noms_pjs_dans_evenement)
-#             if score is None:
-#                 texte_erreur = f"Correspondance introuvable pour le nom {nom_pj} " \
-#                                f"dans l'évènement {current_evenement.code_evenement} avec la table des PJs" \
-#                                f"/ {current_evenement.nom_evenement}" \
-#                                f"pour l'intervention {intervention.description}"
-#                 current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
-#                                                                 texte_erreur,
-#                                                                 ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-#                 # print(f"debug : {texte_erreur}")
-#                 continue
-#
-#             if score[1] < seuil_alerte_pj:
-#                 texte_erreur = f"Le nom du pj {nom_pj} trouvé dans la chronologie de l'évènement " \
-#                                f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
-#                 current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
-#                                                                 texte_erreur,
-#                                                                 ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-#             pj_concerne = current_evenement.pjs_concernes_evenement[score[0]]
-#             intervention.liste_pjs_concernes.append(pj_concerne)
-def ajouter_intervenants(noms, intervenants_dans_evenement, seuil_alerte, intervention, erreur_manager):
-    for nom in noms:
-        score = process.extractOne(nom, intervenants_dans_evenement)
-        if score is None:
-            texte_erreur = f"Correspondance introuvable pour le nom {nom} avec la table des intervenants"
-            erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR, texte_erreur,
-                                          ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-            continue
-
-        if score[1] < seuil_alerte:
-            texte_erreur = f"Le nom {nom} trouvé dans la chronologie a été associé à {score[0]} à seulement {score[1]}% de confiance"
-            erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING, texte_erreur,
-                                          ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-
-        intervenant = intervenants_dans_evenement[score[0]]
-        intervention.liste_intervenants.append(intervenant)
-
-
 def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj):
+    # print(f"debug : 0 = {ligne[0]} {ligne[0] == ''}, 1 = {ligne[1]} {ligne[1] == ''}, 2 = {ligne[2]} {ligne[2] == ''}")
     intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
                                 heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
                                 description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
                                 evenement=current_evenement
                                 )
-    current_evenement.interventions.append(intervention)
-
     noms_pnjs_impliques = [nom.strip() for nom in ligne[2].split(',')]
     noms_pnjs_dans_evenement = current_evenement.get_noms_pnjs()
-    noms_pj_impliques = [nom.strip() for nom in ligne[3].split(',')]
-    noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
-
+    # print(f"debug : {len(current_evenement.interventions)} interventions "
+    #       f"dans l'evènement {current_evenement.id_url}")
+    current_evenement.interventions.append(intervention)
+    # print(f"debug : apres ajout de l'intervention {intervention.description} dans l'évènement "
+    #       f"{current_evenement.nom_evenement} / {current_evenement.code_evenement}, "
+    #       f"celui ci contient {len(current_evenement.interventions)} interventions")
     if noms_pnjs_impliques == ['']:
         intervention.liste_intervenants.extend(current_evenement.intervenants_evenement.values())
     else:
-        ajouter_intervenants(noms_pnjs_impliques, noms_pnjs_dans_evenement, seuil_alerte_pnj, intervention,
-                             current_evenement.erreur_manager)
+        for nom_pnj in noms_pnjs_impliques:
+            score = process.extractOne(nom_pnj, noms_pnjs_dans_evenement)
+            if score is None:
+                texte_erreur = f"Correspondance introuvable pour le nom {nom_pnj} avec la table des PNJs" \
+                               f"dans l'évènement {current_evenement.code_evenement} " \
+                               f"/ {current_evenement.nom_evenement} " \
+                               f"pour l'intervention {intervention.description}"
+                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                                texte_erreur,
+                                                                ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+                # print(f"debug : {texte_erreur}")
+                continue
 
+            if score[1] < seuil_alerte_pnj:
+                texte_erreur = f"Le nom du pnj {nom_pnj} trouvé dans la chronologie de l'évènement " \
+                               f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
+                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                                texte_erreur,
+                                                                ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+            intervenant = current_evenement.intervenants_evenement[score[0]]
+            intervention.liste_intervenants.append(intervenant)
+    for intervenant in intervention.liste_intervenants:
+        intervenant.interventions.add(intervention)
+    noms_pj_impliques = [nom.strip() for nom in ligne[3].split(',')]
+    noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
     if noms_pj_impliques == ['']:
         intervention.liste_pjs_concernes.extend(current_evenement.pjs_concernes_evenement.values())
     else:
-        ajouter_intervenants(noms_pj_impliques, noms_pjs_dans_evenement, seuil_alerte_pj, intervention,
-                             current_evenement.erreur_manager)
+        for nom_pj in noms_pj_impliques:
+            score = process.extractOne(nom_pj, noms_pjs_dans_evenement)
+            if score is None:
+                texte_erreur = f"Correspondance introuvable pour le nom {nom_pj} " \
+                               f"dans l'évènement {current_evenement.code_evenement} avec la table des PJs" \
+                               f"/ {current_evenement.nom_evenement}" \
+                               f"pour l'intervention {intervention.description}"
+                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                                texte_erreur,
+                                                                ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+                # print(f"debug : {texte_erreur}")
+                continue
 
-    for intervenant in intervention.liste_intervenants:
-        intervenant.interventions.add(intervention)
+            if score[1] < seuil_alerte_pj:
+                texte_erreur = f"Le nom du pj {nom_pj} trouvé dans la chronologie de l'évènement " \
+                               f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
+                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                                texte_erreur,
+                                                                ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+            pj_concerne = current_evenement.pjs_concernes_evenement[score[0]]
+            intervention.liste_pjs_concernes.append(pj_concerne)
+# def ajouter_intervenants(noms, intervenants_dans_evenement, seuil_alerte, intervention, erreur_manager):
+#     for nom in noms:
+#         score = process.extractOne(nom, intervenants_dans_evenement)
+#         if score is None:
+#             texte_erreur = f"Correspondance introuvable pour le nom {nom} avec la table des intervenants"
+#             erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR, texte_erreur,
+#                                           ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+#             continue
+#
+#         if score[1] < seuil_alerte:
+#             texte_erreur = f"Le nom {nom} trouvé dans la chronologie a été associé à {score[0]} à seulement {score[1]}% de confiance"
+#             erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING, texte_erreur,
+#                                           ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+#
+#         intervenant = intervenants_dans_evenement[score[0]]
+#         intervention.liste_intervenants.append(intervenant)
+#
+#
+# def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj):
+#     intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
+#                                 heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
+#                                 description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
+#                                 evenement=current_evenement
+#                                 )
+#     current_evenement.interventions.append(intervention)
+#
+#     noms_pnjs_impliques = [nom.strip() for nom in ligne[2].split(',')]
+#     noms_pnjs_dans_evenement = current_evenement.get_noms_pnjs()
+#     noms_pj_impliques = [nom.strip() for nom in ligne[3].split(',')]
+#     noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
+#
+#     if noms_pnjs_impliques == ['']:
+#         intervention.liste_intervenants.extend(current_evenement.intervenants_evenement.values())
+#     else:
+#         ajouter_intervenants(noms_pnjs_impliques, noms_pnjs_dans_evenement, seuil_alerte_pnj, intervention,
+#                              current_evenement.erreur_manager)
+#
+#     if noms_pj_impliques == ['']:
+#         intervention.liste_pjs_concernes.extend(current_evenement.pjs_concernes_evenement.values())
+#     else:
+#         ajouter_intervenants(noms_pj_impliques, noms_pjs_dans_evenement, seuil_alerte_pj, intervention,
+#                              current_evenement.erreur_manager)
+#
+#     for intervenant in intervention.liste_intervenants:
+#         intervenant.interventions.add(intervention)
 
 
 def evenement_lire_autres(texte: str, current_evenement: Evenement, texte_label: str):
