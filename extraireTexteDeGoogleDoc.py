@@ -1180,24 +1180,25 @@ def calculer_jours_il_y_a(balise_date):
         # print(f"{balise_date} =  {ans} ans/ {jours} jours/ {mois} mois/ {semaines} semaines")
 
         # travailler ce qu'on a trouvé comme valeurs
-        if ans is None:
-            ans = 0
-        else:
-            ans = ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
 
-        if mois is None:
-            mois = 0
-        else:
-            mois = mois.group(0)[:-1]
+        ans = 0 if not ans else ans = ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
+        mois = 0 if not mois else mois.group(0)[:-1]
+        semaines = 0 if not semaines else semaines.group(0)[:-1]
+        jours = 0 if not jours else jours.group(0)[:-1]
 
-        if semaines is None:
-            semaines = 0
-        else:
-            semaines = semaines.group(0)[:-1]
-        if jours is None:
-            jours = 0
-        else:
-            jours = jours.group(0)[:-1]
+        # if mois is None:
+        #     mois = 0
+        # else:
+        #     mois = mois.group(0)[:-1]
+        #
+        # if semaines is None:
+        #     semaines = 0
+        # else:
+        #     semaines = semaines.group(0)[:-1]
+        # if jours is None:
+        #     jours = 0
+        # else:
+        #     jours = jours.group(0)[:-1]
 
         # print(f"{ma_date} > ans/jours/mois = {ans}/{mois}/{jours}")
 
