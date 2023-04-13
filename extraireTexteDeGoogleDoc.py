@@ -85,147 +85,214 @@ def extraire_objets(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=Fal
                                         taille_visualisation=taille_visualisation)
 
 
+# def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_ids: dict, folder_array,
+#                                  single_test="-01", verbal=False, fast=True, prefixes="", m_print=print,
+#                                  visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
+#                                  taille_visualisation=100.0):
+#     items = lecteurGoogle.generer_liste_items(api_drive=api_drive, nom_fichier=folder_array)
+#     # print(f"folder = {folder_array}  items = {items}")
+#
+#     if not items:
+#         print('No files found.')
+#         return
+#
+#     # print(f"single_test : {type(single_test)} = {single_test}")
+#     if int(single_test) > 0:
+#         for item in items:
+#             try:
+#                 # Retrieve the documents contents from the Docs api_doc.
+#                 item_id = item['id']
+#                 document = api_doc.documents().get(documentId=item_id).execute()
+#                 titre_doc = document.get('title')
+#
+#                 m_print(f"Document en cours de lecture (singletest = {single_test}) : {titre_doc}")
+#
+#                 # Alors on se demande si c'est le bon doc
+#                 # if document.get('title')[0:3].strip() != str(single_test):  # numéro de l'intrigue
+#                 #     # si ce n'est pas la bonne, pas la peine d'aller plus loin
+#                 #     continue
+#                 if ref_du_doc(titre_doc, prefixes=prefixes) != int(single_test):
+#                     continue
+#
+#                 m_print(f"j'ai trouvé le doc #{single_test} : {document.get('title')}")
+#                 # if item['id'] in gn.intrigues.keys():
+#                 #     gn.intrigues[item['id']].clear()
+#                 #     del gn.intrigues[item['id']]
+#
+#                 objet_de_reference = None
+#                 if item['id'] in dict_ids:
+#                     # dict_ids[item['id']].clear()
+#                     objet_de_reference = dict_ids.pop(item['id'])
+#
+#                 nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction,
+#                                                              save_last_change=False, verbal=verbal)
+#                 # et on ajoute les commentaires :
+#                 commentaires = extraire_commentaires_de_document_drive(api_drive, item['id'])
+#                 if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
+#                     nouvel_objet.ajouter_commentaires(commentaires)
+#
+#                 if objet_de_reference is not None:
+#                     if isinstance(nouvel_objet, ConteneurDeScene):
+#                         nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
+#                     objet_de_reference.clear()
+#
+#                 break
+#                 # on a trouvé le bon doc, on arrête de chercher
+#             except HttpError as err:
+#                 print(f'An error occurred: {err}')
+#                 # return #ajouté pour débugger
+#
+#     else:
+#         # dans ce cas, on lit tout, jusqu'à ce qu'on tombe sur une entrée qui n'a pas été modifiée
+#         nb_items = len(items)
+#         pas_visualisation = taille_visualisation / nb_items
+#         # print(f"debug : taille visualisation / pas de visuations : {taille_visualisation} / {pas_visualisation}")
+#         for i, item in enumerate(items, start=1):
+#             try:
+#                 visualisation(pas_visualisation)
+#                 # Retrieve the documents contents from the Docs api_doc.
+#                 document = api_doc.documents().get(documentId=item['id']).execute()
+#
+#                 m_print(f"Document en cours de lecture ({i}/{nb_items}) : {document.get('title')}")
+#
+#                 # print(f"débug : ref du doc = {ref_du_doc(document.get('title'))}")
+#
+#                 # si la ref du doc est -1 ou 0 il ne nous interesse pas
+#                 titre_doc = document.get('title')
+#                 if ref_du_doc(titre_doc, prefixes=prefixes) in [-1, 0]:
+#                     logging.debug(f"Le nom du document {titre_doc} n'est pas un fichier à prendre en compte")
+#                     continue
+#
+#                 # print("... est une intrigue !")
+#
+#                 objet_de_reference = None
+#
+#                 # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
+#                 #   SI l'intrigue existe dans le GN ?
+#                 # if item['id'] in gn.intrigues .keys():
+#                 if item['id'] in dict_ids:
+#                     # print(f"debug : {item['id']} est dans dict_id")
+#
+#                     #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
+#                     # print("l'intrigue fait déjà partie du GN ! ")
+#                     # print(f"Variable / type : gn.intrigues[item['id']].lastChange /
+#                     # {type(gn.intrigues[item['id']].lastChange)} / {gn.intrigues[item['id']].lastChange}")
+#                     # print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} /
+#                     # {item['modifiedTime']}")
+#
+#                     # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
+#                     if fast and \
+#                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
+#                         item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
+#
+#                         m_print(
+#                             f"et il n'a pas changé (dernier changement : "
+#                             f"{datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')}) "
+#                             f"depuis le dernier passage ({dict_ids[item['id']].lastProcessing})")
+#
+#                         visualisation(pas_visualisation * (nb_items - i))
+#                         # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
+#                         # si c'était la plus vieille du GN, pas la peine de continuer
+#
+#                         break
+#                         # on a trouvé une intrigue qui n'a pas bougé :
+#                         # toutes les suivantes qu'il nous remontera seront plus anciennes
+#                         # donc on arrête de parcourir
+#                     else:
+#                         # print("elle a changé depuis mon dernier passage : supprimons-la !")
+#                         # dans ce cas, il faut la supprimer, car on va tout réécrire
+#                         # gn.intrigues[item['id']].clear()
+#                         # del gn.intrigues[item['id']]
+#
+#                         objet_de_reference = dict_ids.pop(item['id'])
+#
+#                 # puis, dans tous les cas, on la crée
+#                 # print("debug : extraction objet")
+#                 nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction,
+#                                                              verbal=verbal)
+#                 commentaires = extraire_commentaires_de_document_drive(api_drive, item['id'])
+#                 if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
+#                     nouvel_objet.ajouter_commentaires(commentaires)
+#
+#                 if objet_de_reference is not None:
+#                     if isinstance(nouvel_objet, ConteneurDeScene):
+#                         nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
+#                     objet_de_reference.clear()
+#
+#             except HttpError as err:
+#                 print(f'An error occurred: {err}')
+#                 m_print(f"Document en cours de lecture ({i}/{nb_items}) : pas d'info MAGnet contenue")
+#
+#                 # return #ajouté pour débugger
+#
+#     return [item['id'] for item in items]
+
 def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_ids: dict, folder_array,
                                  single_test="-01", verbal=False, fast=True, prefixes="", m_print=print,
                                  visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
                                  taille_visualisation=100.0):
     items = lecteurGoogle.generer_liste_items(api_drive=api_drive, nom_fichier=folder_array)
-    # print(f"folder = {folder_array}  items = {items}")
 
     if not items:
         print('No files found.')
         return
 
-    # print(f"single_test : {type(single_test)} = {single_test}")
-    if int(single_test) > 0:
-        for item in items:
-            try:
-                # Retrieve the documents contents from the Docs api_doc.
-                item_id = item['id']
-                document = api_doc.documents().get(documentId=item_id).execute()
-                titre_doc = document.get('title')
+    is_single_test = int(single_test) > 0
+    nb_items = len(items)
+    pas_visualisation = taille_visualisation / nb_items
 
-                m_print(f"Document en cours de lecture (singletest = {single_test}) : {titre_doc}")
+    for i, item in enumerate(items, start=1):
+        try:
+            visualisation(pas_visualisation)
+            item_id = item['id']
+            document = api_doc.documents().get(documentId=item_id).execute()
+            titre_doc = document.get('title')
+            ref_doc = ref_du_doc(titre_doc, prefixes=prefixes)
 
-                # Alors on se demande si c'est le bon doc
-                # if document.get('title')[0:3].strip() != str(single_test):  # numéro de l'intrigue
-                #     # si ce n'est pas la bonne, pas la peine d'aller plus loin
-                #     continue
-                if ref_du_doc(titre_doc, prefixes=prefixes) != int(single_test):
+            if is_single_test:
+                if ref_doc != int(single_test):
                     continue
-
-                m_print(f"j'ai trouvé le doc #{single_test} : {document.get('title')}")
-                # if item['id'] in gn.intrigues.keys():
-                #     gn.intrigues[item['id']].clear()
-                #     del gn.intrigues[item['id']]
-
-                objet_de_reference = None
-                if item['id'] in dict_ids:
-                    # dict_ids[item['id']].clear()
-                    objet_de_reference = dict_ids.pop(item['id'])
-
-                nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction,
-                                                             save_last_change=False, verbal=verbal)
-                # et on ajoute les commentaires :
-                commentaires = extraire_commentaires_de_document_drive(api_drive, item['id'])
-                if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
-                    nouvel_objet.ajouter_commentaires(commentaires)
-
-                if objet_de_reference is not None:
-                    if isinstance(nouvel_objet, ConteneurDeScene):
-                        nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
-                    objet_de_reference.clear()
-
-                break
-                # on a trouvé le bon doc, on arrête de chercher
-            except HttpError as err:
-                print(f'An error occurred: {err}')
-                # return #ajouté pour débugger
-
-    else:
-        # dans ce cas, on lit tout, jusqu'à ce qu'on tombe sur une entrée qui n'a pas été modifiée
-        nb_items = len(items)
-        pas_visualisation = taille_visualisation / nb_items
-        # print(f"debug : taille visualisation / pas de visuations : {taille_visualisation} / {pas_visualisation}")
-        for i, item in enumerate(items, start=1):
-            try:
-                visualisation(pas_visualisation)
-                # Retrieve the documents contents from the Docs api_doc.
-                document = api_doc.documents().get(documentId=item['id']).execute()
-
-                m_print(f"Document en cours de lecture ({i}/{nb_items}) : {document.get('title')}")
-
-                # print(f"débug : ref du doc = {ref_du_doc(document.get('title'))}")
-
-                # si la ref du doc est -1 ou 0 il ne nous interesse pas
-                titre_doc = document.get('title')
-                if ref_du_doc(titre_doc, prefixes=prefixes) in [-1, 0]:
+                m_print(f"j'ai trouvé le doc #{single_test} : {titre_doc}")
+            else:
+                if ref_doc in [-1, 0]:
                     logging.debug(f"Le nom du document {titre_doc} n'est pas un fichier à prendre en compte")
                     continue
 
-                # print("... est une intrigue !")
+                if fast and is_item_not_modified(item, dict_ids):
+                    visualisation(pas_visualisation * (nb_items - i))
+                    break
 
-                objet_de_reference = None
+            objet_de_reference = dict_ids.pop(item_id, None)
+            nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction, verbal=verbal)
+            commentaires = extraire_commentaires_de_document_drive(api_drive, item_id)
+            ajouter_commentaires_si_possible(nouvel_objet, commentaires)
+            update_scenes_dates_if_needed(objet_de_reference, nouvel_objet)
 
-                # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
-                #   SI l'intrigue existe dans le GN ?
-                # if item['id'] in gn.intrigues .keys():
-                if item['id'] in dict_ids:
-                    # print(f"debug : {item['id']} est dans dict_id")
-
-                    #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
-                    # print("l'intrigue fait déjà partie du GN ! ")
-                    # print(f"Variable / type : gn.intrigues[item['id']].lastChange /
-                    # {type(gn.intrigues[item['id']].lastChange)} / {gn.intrigues[item['id']].lastChange}")
-                    # print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} /
-                    # {item['modifiedTime']}")
-
-                    # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
-                    if fast and \
-                            dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
-                        item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
-
-                        m_print(
-                            f"et il n'a pas changé (dernier changement : "
-                            f"{datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')}) "
-                            f"depuis le dernier passage ({dict_ids[item['id']].lastProcessing})")
-
-                        visualisation(pas_visualisation * (nb_items - i))
-                        # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
-                        # si c'était la plus vieille du GN, pas la peine de continuer
-
-                        break
-                        # on a trouvé une intrigue qui n'a pas bougé :
-                        # toutes les suivantes qu'il nous remontera seront plus anciennes
-                        # donc on arrête de parcourir
-                    else:
-                        # print("elle a changé depuis mon dernier passage : supprimons-la !")
-                        # dans ce cas, il faut la supprimer, car on va tout réécrire
-                        # gn.intrigues[item['id']].clear()
-                        # del gn.intrigues[item['id']]
-
-                        objet_de_reference = dict_ids.pop(item['id'])
-
-                # puis, dans tous les cas, on la crée
-                # print("debug : extraction objet")
-                nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction,
-                                                             verbal=verbal)
-                commentaires = extraire_commentaires_de_document_drive(api_drive, item['id'])
-                if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
-                    nouvel_objet.ajouter_commentaires(commentaires)
-
-                if objet_de_reference is not None:
-                    if isinstance(nouvel_objet, ConteneurDeScene):
-                        nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
-                    objet_de_reference.clear()
-
-            except HttpError as err:
-                print(f'An error occurred: {err}')
-                m_print(f"Document en cours de lecture ({i}/{nb_items}) : pas d'info MAGnet contenue")
-
-                # return #ajouté pour débugger
+        except HttpError as err:
+            print(f'An error occurred: {err}')
+            m_print(f"Document en cours de lecture ({i}/{nb_items}) : pas d'info MAGnet contenue")
 
     return [item['id'] for item in items]
+
+
+def is_item_not_modified(item, dict_ids):
+    if item['id'] not in dict_ids:
+        return False
+
+    last_processed_time = dict_ids[item['id']].lastProcessing
+    item_modified_time = datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')
+    return last_processed_time >= item_modified_time
+
+
+def ajouter_commentaires_si_possible(objet, commentaires):
+    if callable(getattr(objet, 'ajouter_commentaires', None)):
+        objet.ajouter_commentaires(commentaires)
+
+
+def update_scenes_dates_if_needed(objet_de_reference, nouvel_objet):
+    if objet_de_reference is not None and isinstance(nouvel_objet, ConteneurDeScene):
+        nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
+        objet_de_reference.clear()
 
 
 def extraire_elements_de_document(document, item, dict_reference: dict, fonction_extraction, save_last_change=True,
@@ -2362,11 +2429,7 @@ def lire_gspread_pj_pnjs(api_sheets, sheet_id, sheet_name):
         logging.debug(f"result =  {values}")
 
         noms_pjs = values[0][1:]
-        if len(values) > 1:
-            orgas_referents = values[1][1:]
-        else:
-            orgas_referents = None
-
+        orgas_referents = values[1][1:] if len(values) > 1 else None
         return noms_pjs, orgas_referents
     except HttpError as error:
         print(f"An error occurred: {error}")
