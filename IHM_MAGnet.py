@@ -15,24 +15,30 @@ class Application(tk.Frame):
                  master=None):
         super().__init__(master)
 
+        # variables pour gérer l'apparition ou non du popup versions
         self.maj_versions = None
         self.url_derniere_version = None
         self.derniere_version = None
-        self.master = master
-        self.master.title("MAGnet, la moulinette")
-        # self.master.geometry("450x150")
-        # self.grid()
-        # self.create_widgets()
+
+
+        # objets liés au jeu en cours
         self.gn = None
         self.dict_config = None
+
+        #variables pour avoir des lecteurs à disposition
         self.apiDrive = None
         self.apiDoc = None
         self.apiSheets = None
 
+        # self.master.geometry("450x150")
+        # self.grid()
+        # self.create_widgets()
+
         # reprise de l'ancien code de regen
         regen_window = self.master
+        regen_window.winfo_toplevel().title("MAGnet, la moulinette")
         # regen_window.geometry("665x535")  # chaque nouvelle ligne fait +25 de hauteur
-        regen_window.grid_propagate(1)
+        regen_window.grid_propagate(True)
 
         # ajouter le bouton et le label ini a la première ligne
         # ajout d'un labelframe pour le fichier ini

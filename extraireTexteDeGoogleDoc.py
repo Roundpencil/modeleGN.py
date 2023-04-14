@@ -247,6 +247,8 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
             item_id = item['id']
             document = api_doc.documents().get(documentId=item_id).execute()
             titre_doc = document.get('title')
+            m_print(f"Document en cours de lecture ({i} / {nb_items}) : {titre_doc}")
+
             ref_doc = ref_du_doc(titre_doc, prefixes=prefixes)
 
             if is_single_test:

@@ -1698,6 +1698,8 @@ def mettre_a_jour_champs(gn: GN):
             intrigue.codes_evenements_raw = []
         if not hasattr(intrigue, 'evenements'):
             intrigue.evenements = set()
+        if not hasattr(intrigue, 'questionnaire'):
+            intrigue.questionnaire = []
         if isinstance(intrigue.questionnaire, str):
             intrigue.questionnaire = []
 

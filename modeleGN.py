@@ -213,7 +213,7 @@ class Personnage(ConteneurDeScene):
     #     return "nom personnage : " + self.nom
 
     def get_type_from_roles(self):
-        tous_les_types = [role.pj for role in self.roles]
+        tous_les_types = [role.pj for role in self.roles] + [TypePerso.EST_PNJ_HORS_JEU]
         if len(self.intervient_comme) + len(self.informations_evenements) > 0:
             tous_les_types.append(TypePerso.EST_PNJ_TEMPORAIRE)
         return max(tous_les_types)
