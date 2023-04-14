@@ -11,13 +11,18 @@ from modeleGN import *
 # communication :
 
 # bugs
-#todo lecture champs persos qui deviennent des colonnes
 
 # à tester
-#todo evenement_extraire_ligne_chrono
-#todo : texte2scene
 
 # à faire - rapide
+# todo : refaire la gestiond des fichiers de paramètre dans la GUI :
+#  1/ lire le fichier ini
+#  2/ tenter de le charger > Si erreur, afficher le diag
+#  3/ indépeddamment permettre ed faire tourner le diag sur le fichier en lui-même
+#  >> remttre les bons parmaètres dans le diag 4/
+
+
+
 
 #todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
