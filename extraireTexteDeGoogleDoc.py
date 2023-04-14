@@ -85,147 +85,214 @@ def extraire_objets(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=Fal
                                         taille_visualisation=taille_visualisation)
 
 
+# def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_ids: dict, folder_array,
+#                                  single_test="-01", verbal=False, fast=True, prefixes="", m_print=print,
+#                                  visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
+#                                  taille_visualisation=100.0):
+#     items = lecteurGoogle.generer_liste_items(api_drive=api_drive, nom_fichier=folder_array)
+#     # print(f"folder = {folder_array}  items = {items}")
+#
+#     if not items:
+#         print('No files found.')
+#         return
+#
+#     # print(f"single_test : {type(single_test)} = {single_test}")
+#     if int(single_test) > 0:
+#         for item in items:
+#             try:
+#                 # Retrieve the documents contents from the Docs api_doc.
+#                 item_id = item['id']
+#                 document = api_doc.documents().get(documentId=item_id).execute()
+#                 titre_doc = document.get('title')
+#
+#                 m_print(f"Document en cours de lecture (singletest = {single_test}) : {titre_doc}")
+#
+#                 # Alors on se demande si c'est le bon doc
+#                 # if document.get('title')[0:3].strip() != str(single_test):  # numéro de l'intrigue
+#                 #     # si ce n'est pas la bonne, pas la peine d'aller plus loin
+#                 #     continue
+#                 if ref_du_doc(titre_doc, prefixes=prefixes) != int(single_test):
+#                     continue
+#
+#                 m_print(f"j'ai trouvé le doc #{single_test} : {document.get('title')}")
+#                 # if item['id'] in gn.intrigues.keys():
+#                 #     gn.intrigues[item['id']].clear()
+#                 #     del gn.intrigues[item['id']]
+#
+#                 objet_de_reference = None
+#                 if item['id'] in dict_ids:
+#                     # dict_ids[item['id']].clear()
+#                     objet_de_reference = dict_ids.pop(item['id'])
+#
+#                 nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction,
+#                                                              save_last_change=False, verbal=verbal)
+#                 # et on ajoute les commentaires :
+#                 commentaires = extraire_commentaires_de_document_drive(api_drive, item['id'])
+#                 if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
+#                     nouvel_objet.ajouter_commentaires(commentaires)
+#
+#                 if objet_de_reference is not None:
+#                     if isinstance(nouvel_objet, ConteneurDeScene):
+#                         nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
+#                     objet_de_reference.clear()
+#
+#                 break
+#                 # on a trouvé le bon doc, on arrête de chercher
+#             except HttpError as err:
+#                 print(f'An error occurred: {err}')
+#                 # return #ajouté pour débugger
+#
+#     else:
+#         # dans ce cas, on lit tout, jusqu'à ce qu'on tombe sur une entrée qui n'a pas été modifiée
+#         nb_items = len(items)
+#         pas_visualisation = taille_visualisation / nb_items
+#         # print(f"debug : taille visualisation / pas de visuations : {taille_visualisation} / {pas_visualisation}")
+#         for i, item in enumerate(items, start=1):
+#             try:
+#                 visualisation(pas_visualisation)
+#                 # Retrieve the documents contents from the Docs api_doc.
+#                 document = api_doc.documents().get(documentId=item['id']).execute()
+#
+#                 m_print(f"Document en cours de lecture ({i}/{nb_items}) : {document.get('title')}")
+#
+#                 # print(f"débug : ref du doc = {ref_du_doc(document.get('title'))}")
+#
+#                 # si la ref du doc est -1 ou 0 il ne nous interesse pas
+#                 titre_doc = document.get('title')
+#                 if ref_du_doc(titre_doc, prefixes=prefixes) in [-1, 0]:
+#                     logging.debug(f"Le nom du document {titre_doc} n'est pas un fichier à prendre en compte")
+#                     continue
+#
+#                 # print("... est une intrigue !")
+#
+#                 objet_de_reference = None
+#
+#                 # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
+#                 #   SI l'intrigue existe dans le GN ?
+#                 # if item['id'] in gn.intrigues .keys():
+#                 if item['id'] in dict_ids:
+#                     # print(f"debug : {item['id']} est dans dict_id")
+#
+#                     #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
+#                     # print("l'intrigue fait déjà partie du GN ! ")
+#                     # print(f"Variable / type : gn.intrigues[item['id']].lastChange /
+#                     # {type(gn.intrigues[item['id']].lastChange)} / {gn.intrigues[item['id']].lastChange}")
+#                     # print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} /
+#                     # {item['modifiedTime']}")
+#
+#                     # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
+#                     if fast and \
+#                             dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
+#                         item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
+#
+#                         m_print(
+#                             f"et il n'a pas changé (dernier changement : "
+#                             f"{datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')}) "
+#                             f"depuis le dernier passage ({dict_ids[item['id']].lastProcessing})")
+#
+#                         visualisation(pas_visualisation * (nb_items - i))
+#                         # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
+#                         # si c'était la plus vieille du GN, pas la peine de continuer
+#
+#                         break
+#                         # on a trouvé une intrigue qui n'a pas bougé :
+#                         # toutes les suivantes qu'il nous remontera seront plus anciennes
+#                         # donc on arrête de parcourir
+#                     else:
+#                         # print("elle a changé depuis mon dernier passage : supprimons-la !")
+#                         # dans ce cas, il faut la supprimer, car on va tout réécrire
+#                         # gn.intrigues[item['id']].clear()
+#                         # del gn.intrigues[item['id']]
+#
+#                         objet_de_reference = dict_ids.pop(item['id'])
+#
+#                 # puis, dans tous les cas, on la crée
+#                 # print("debug : extraction objet")
+#                 nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction,
+#                                                              verbal=verbal)
+#                 commentaires = extraire_commentaires_de_document_drive(api_drive, item['id'])
+#                 if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
+#                     nouvel_objet.ajouter_commentaires(commentaires)
+#
+#                 if objet_de_reference is not None:
+#                     if isinstance(nouvel_objet, ConteneurDeScene):
+#                         nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
+#                     objet_de_reference.clear()
+#
+#             except HttpError as err:
+#                 print(f'An error occurred: {err}')
+#                 m_print(f"Document en cours de lecture ({i}/{nb_items}) : pas d'info MAGnet contenue")
+#
+#                 # return #ajouté pour débugger
+#
+#     return [item['id'] for item in items]
+
 def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_ids: dict, folder_array,
                                  single_test="-01", verbal=False, fast=True, prefixes="", m_print=print,
                                  visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
                                  taille_visualisation=100.0):
     items = lecteurGoogle.generer_liste_items(api_drive=api_drive, nom_fichier=folder_array)
-    # print(f"folder = {folder_array}  items = {items}")
 
     if not items:
         print('No files found.')
         return
 
-    # print(f"single_test : {type(single_test)} = {single_test}")
-    if int(single_test) > 0:
-        for item in items:
-            try:
-                # Retrieve the documents contents from the Docs api_doc.
-                item_id = item['id']
-                document = api_doc.documents().get(documentId=item_id).execute()
-                titre_doc = document.get('title')
+    is_single_test = int(single_test) > 0
+    nb_items = len(items)
+    pas_visualisation = taille_visualisation / nb_items
 
-                m_print(f"Document en cours de lecture (singletest = {single_test}) : {titre_doc}")
+    for i, item in enumerate(items, start=1):
+        try:
+            visualisation(pas_visualisation)
+            item_id = item['id']
+            document = api_doc.documents().get(documentId=item_id).execute()
+            titre_doc = document.get('title')
+            ref_doc = ref_du_doc(titre_doc, prefixes=prefixes)
 
-                # Alors on se demande si c'est le bon doc
-                # if document.get('title')[0:3].strip() != str(single_test):  # numéro de l'intrigue
-                #     # si ce n'est pas la bonne, pas la peine d'aller plus loin
-                #     continue
-                if ref_du_doc(titre_doc, prefixes=prefixes) != int(single_test):
+            if is_single_test:
+                if ref_doc != int(single_test):
                     continue
-
-                m_print(f"j'ai trouvé le doc #{single_test} : {document.get('title')}")
-                # if item['id'] in gn.intrigues.keys():
-                #     gn.intrigues[item['id']].clear()
-                #     del gn.intrigues[item['id']]
-
-                objet_de_reference = None
-                if item['id'] in dict_ids:
-                    # dict_ids[item['id']].clear()
-                    objet_de_reference = dict_ids.pop(item['id'])
-
-                nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction,
-                                                             save_last_change=False, verbal=verbal)
-                # et on ajoute les commentaires :
-                commentaires = extraire_commentaires_de_document_drive(api_drive, item['id'])
-                if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
-                    nouvel_objet.ajouter_commentaires(commentaires)
-
-                if objet_de_reference is not None:
-                    if isinstance(nouvel_objet, ConteneurDeScene):
-                        nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
-                    objet_de_reference.clear()
-
-                break
-                # on a trouvé le bon doc, on arrête de chercher
-            except HttpError as err:
-                print(f'An error occurred: {err}')
-                # return #ajouté pour débugger
-
-    else:
-        # dans ce cas, on lit tout, jusqu'à ce qu'on tombe sur une entrée qui n'a pas été modifiée
-        nb_items = len(items)
-        pas_visualisation = taille_visualisation / nb_items
-        # print(f"debug : taille visualisation / pas de visuations : {taille_visualisation} / {pas_visualisation}")
-        for i, item in enumerate(items, start=1):
-            try:
-                visualisation(pas_visualisation)
-                # Retrieve the documents contents from the Docs api_doc.
-                document = api_doc.documents().get(documentId=item['id']).execute()
-
-                m_print(f"Document en cours de lecture ({i}/{nb_items}) : {document.get('title')}")
-
-                # print(f"débug : ref du doc = {ref_du_doc(document.get('title'))}")
-
-                # si la ref du doc est -1 ou 0 il ne nous interesse pas
-                titre_doc = document.get('title')
-                if ref_du_doc(titre_doc, prefixes=prefixes) in [-1, 0]:
+                m_print(f"j'ai trouvé le doc #{single_test} : {titre_doc}")
+            else:
+                if ref_doc in [-1, 0]:
                     logging.debug(f"Le nom du document {titre_doc} n'est pas un fichier à prendre en compte")
                     continue
 
-                # print("... est une intrigue !")
+                if fast and is_item_not_modified(item, dict_ids):
+                    visualisation(pas_visualisation * (nb_items - i))
+                    break
 
-                objet_de_reference = None
+            objet_de_reference = dict_ids.pop(item_id, None)
+            nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction, verbal=verbal)
+            commentaires = extraire_commentaires_de_document_drive(api_drive, item_id)
+            ajouter_commentaires_si_possible(nouvel_objet, commentaires)
+            update_scenes_dates_if_needed(objet_de_reference, nouvel_objet)
 
-                # on vérifie d'abord s'il est nécessaire de traiter (dernière maj intrigue > derniere maj objet) :
-                #   SI l'intrigue existe dans le GN ?
-                # if item['id'] in gn.intrigues .keys():
-                if item['id'] in dict_ids:
-                    # print(f"debug : {item['id']} est dans dict_id")
-
-                    #       SI la date de mise à jour du fichier n'est pas postérieure à la date de MAJ de l'intrigue
-                    # print("l'intrigue fait déjà partie du GN ! ")
-                    # print(f"Variable / type : gn.intrigues[item['id']].lastChange /
-                    # {type(gn.intrigues[item['id']].lastChange)} / {gn.intrigues[item['id']].lastChange}")
-                    # print(f"Variable / type : item['modifiedTime'] / {type(item['modifiedTime'])} /
-                    # {item['modifiedTime']}")
-
-                    # on enlève les 5 derniers chars qui sont un point, les millisecondes et Z, pour formatter
-                    if fast and \
-                            dict_ids[item['id']].lastProcessing >= datetime.datetime.strptime(
-                        item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S'):
-
-                        m_print(
-                            f"et il n'a pas changé (dernier changement : "
-                            f"{datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')}) "
-                            f"depuis le dernier passage ({dict_ids[item['id']].lastProcessing})")
-
-                        visualisation(pas_visualisation * (nb_items - i))
-                        # ALORS : Si c'est la même que la plus vielle mise à jour : on arrête
-                        # si c'était la plus vieille du GN, pas la peine de continuer
-
-                        break
-                        # on a trouvé une intrigue qui n'a pas bougé :
-                        # toutes les suivantes qu'il nous remontera seront plus anciennes
-                        # donc on arrête de parcourir
-                    else:
-                        # print("elle a changé depuis mon dernier passage : supprimons-la !")
-                        # dans ce cas, il faut la supprimer, car on va tout réécrire
-                        # gn.intrigues[item['id']].clear()
-                        # del gn.intrigues[item['id']]
-
-                        objet_de_reference = dict_ids.pop(item['id'])
-
-                # puis, dans tous les cas, on la crée
-                # print("debug : extraction objet")
-                nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction,
-                                                             verbal=verbal)
-                commentaires = extraire_commentaires_de_document_drive(api_drive, item['id'])
-                if callable(getattr(nouvel_objet, 'ajouter_commentaires', None)):
-                    nouvel_objet.ajouter_commentaires(commentaires)
-
-                if objet_de_reference is not None:
-                    if isinstance(nouvel_objet, ConteneurDeScene):
-                        nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
-                    objet_de_reference.clear()
-
-            except HttpError as err:
-                print(f'An error occurred: {err}')
-                m_print(f"Document en cours de lecture ({i}/{nb_items}) : pas d'info MAGnet contenue")
-
-                # return #ajouté pour débugger
+        except HttpError as err:
+            print(f'An error occurred: {err}')
+            m_print(f"Document en cours de lecture ({i}/{nb_items}) : pas d'info MAGnet contenue")
 
     return [item['id'] for item in items]
+
+
+def is_item_not_modified(item, dict_ids):
+    if item['id'] not in dict_ids:
+        return False
+
+    last_processed_time = dict_ids[item['id']].lastProcessing
+    item_modified_time = datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')
+    return last_processed_time >= item_modified_time
+
+
+def ajouter_commentaires_si_possible(objet, commentaires):
+    if callable(getattr(objet, 'ajouter_commentaires', None)):
+        objet.ajouter_commentaires(commentaires)
+
+
+def update_scenes_dates_if_needed(objet_de_reference, nouvel_objet):
+    if objet_de_reference is not None and isinstance(nouvel_objet, ConteneurDeScene):
+        nouvel_objet.updater_dates_maj_scenes(objet_de_reference)
+        objet_de_reference.clear()
 
 
 def extraire_elements_de_document(document, item, dict_reference: dict, fonction_extraction, save_last_change=True,
@@ -882,76 +949,122 @@ def lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs):
         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
-def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
-    # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de référence des noms dans l'intrigue
-    noms_roles = conteneur.get_noms_roles()
-    # print(f"pour {currentIntrigue.nom}, noms_roles =  {noms_roles}")
+# def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
+#     # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de référence des noms dans l'intrigue
+#     noms_roles = conteneur.get_noms_roles()
+#     # print(f"pour {currentIntrigue.nom}, noms_roles =  {noms_roles}")
+#
+#     # print(f"Texte section scène : {texteScenes}")
+#     scenes = texte_scenes.split("###")
+#     for scene in scenes:
+#         # print("taille de la scène : " + str(len(scene)))
+#         if len(scene) < 10:
+#             continue
+#
+#         titre_scene = scene.splitlines()[0].strip()
+#         scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
+#         scene_a_ajouter.modifie_par = conteneur.modifie_par
+#         # print("titre de la scène ajoutée : " + scene_a_ajouter.titre)
+#         # print(f"Pour sandrine : extraction des balises pour l'intrigue {conteneur.nom}")
+#         balises = re.findall(r'##.*', scene)
+#         for balise in balises:
+#             # print("balise : " + balise)
+#             if balise[:9].lower() == '## quand?':
+#                 extraire_date_scene(balise[10:], scene_a_ajouter)
+#             elif balise[:10].lower() == '## quand ?':
+#                 extraire_date_scene(balise[11:], scene_a_ajouter)
+#                 # scene_a_ajouter.date = balise[11:].strip()
+#                 # # print("date de la scène : " + scene_a_ajouter.date)
+#             elif balise[:9].lower() == '## il y a':
+#                 extraire_il_y_a_scene(balise[10:], scene_a_ajouter)
+#             elif balise[:9].lower() == '## date :':
+#                 extraire_date_absolue(balise[10:], scene_a_ajouter)
+#             elif balise[:8].lower() == '## date:':
+#                 extraire_date_absolue(balise[9:], scene_a_ajouter)
+#             elif balise[:8].lower() == '## date?':
+#                 extraire_date_absolue(balise[9:], scene_a_ajouter)
+#             elif balise[:7].lower() == '## qui?':
+#                 extraire_qui_scene(balise[8:], conteneur, noms_roles, scene_a_ajouter,
+#                                    avec_tableau_des_persos=tableau_roles_existant)
+#
+#             elif balise[:8].lower() == '## qui ?':
+#                 extraire_qui_scene(balise[9:], conteneur, noms_roles, scene_a_ajouter,
+#                                    avec_tableau_des_persos=tableau_roles_existant)
+#
+#             elif balise[:11].lower() == '## niveau :':
+#                 scene_a_ajouter.niveau = balise[12:].strip()
+#
+#             elif balise[:11].lower() == '## résumé :':
+#                 scene_a_ajouter.resume = balise[12:].strip()
+#
+#             elif balise[:10].lower() == '## résumé:':
+#                 scene_a_ajouter.resume = balise[11:].strip()
+#
+#             elif balise[:13].lower() == '## factions :':
+#                 extraire_factions_scene(balise[14:], scene_a_ajouter)
+#
+#             elif balise[:12].lower() == '## faction :':
+#                 extraire_factions_scene(balise[13:], scene_a_ajouter)
+#
+#             elif balise[:12].lower() == '## factions:':
+#                 # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
+#                 extraire_factions_scene(balise[13:], scene_a_ajouter)
+#             elif balise[:11].lower() == '## faction:':
+#                 # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
+#                 extraire_factions_scene(balise[12:], scene_a_ajouter)
+#             elif balise[:9].lower() == '## info :':
+#                 extraire_infos_scene(balise[10:], scene_a_ajouter)
+#                 # scene_a_ajouter.infos.add(tuple([f.strip() for f in .split(',')]))
+#             elif balise[:8].lower() == '## info:':
+#                 # scene_a_ajouter.infos.add([f.strip() for f in balise[9:].split(',')])
+#                 extraire_infos_scene(balise[9:], scene_a_ajouter)
+#             else:
+#                 texte_erreur = f"balise inconnue : {balise} dans le conteneur {nom_conteneur}"
+#                 print(texte_erreur)
+#                 scene_a_ajouter.description += balise
+#                 conteneur.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+#                                                    texte_erreur,
+#                                                    ErreurManager.ORIGINES.SCENE)
+#
+#         scene_a_ajouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
+#         # print("texte de la scene apres insertion : " + scene_a_ajouter.description)
+def extraire_balise(balise, scene_a_ajouter, conteneur, noms_roles, tableau_roles_existant=True):
+    balise_lower = balise.lower()
+    if balise_lower.startswith('## quand?') or balise_lower.startswith('## quand ?'):
+        extraire_date_scene(balise.split("?", 1)[1], scene_a_ajouter)
+    elif balise_lower.startswith('## il y a'):
+        extraire_il_y_a_scene(balise[9:], scene_a_ajouter)
+    elif balise_lower.startswith('## date :') or balise_lower.startswith('## date:') or balise_lower.startswith('## date?'):
+        extraire_date_absolue(balise.split(":", 1)[1], scene_a_ajouter)
+    elif balise_lower.startswith('## qui?') or balise_lower.startswith('## qui ?'):
+        extraire_qui_scene(balise.split("?", 1)[1], conteneur, noms_roles, scene_a_ajouter, avec_tableau_des_persos=tableau_roles_existant)
+    elif balise_lower.startswith('## niveau :'):
+        scene_a_ajouter.niveau = balise[11:].strip()
+    elif balise_lower.startswith('## résumé :') or balise_lower.startswith('## résumé:'):
+        scene_a_ajouter.resume = balise.split(":", 1)[1].strip()
+    elif balise_lower.startswith('## factions :') or balise_lower.startswith('## factions:') or balise_lower.startswith('## faction :') or balise_lower.startswith('## faction:'):
+        extraire_factions_scene(balise.split(":", 1)[1], scene_a_ajouter)
+    elif balise_lower.startswith('## info :') or balise_lower.startswith('## info:'):
+        extraire_infos_scene(balise.split(":", 1)[1], scene_a_ajouter)
+    else:
+        return False
+    return True
 
-    # print(f"Texte section scène : {texteScenes}")
+def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
+    noms_roles = conteneur.get_noms_roles()
     scenes = texte_scenes.split("###")
+
     for scene in scenes:
-        # print("taille de la scène : " + str(len(scene)))
         if len(scene) < 10:
             continue
 
         titre_scene = scene.splitlines()[0].strip()
         scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
         scene_a_ajouter.modifie_par = conteneur.modifie_par
-        # print("titre de la scène ajoutée : " + scene_a_ajouter.titre)
-        # print(f"Pour sandrine : extraction des balises pour l'intrigue {conteneur.nom}")
+
         balises = re.findall(r'##.*', scene)
         for balise in balises:
-            # print("balise : " + balise)
-            if balise[:9].lower() == '## quand?':
-                extraire_date_scene(balise[10:], scene_a_ajouter)
-            elif balise[:10].lower() == '## quand ?':
-                extraire_date_scene(balise[11:], scene_a_ajouter)
-                # scene_a_ajouter.date = balise[11:].strip()
-                # # print("date de la scène : " + scene_a_ajouter.date)
-            elif balise[:9].lower() == '## il y a':
-                extraire_il_y_a_scene(balise[10:], scene_a_ajouter)
-            elif balise[:9].lower() == '## date :':
-                extraire_date_absolue(balise[10:], scene_a_ajouter)
-            elif balise[:8].lower() == '## date:':
-                extraire_date_absolue(balise[9:], scene_a_ajouter)
-            elif balise[:8].lower() == '## date?':
-                extraire_date_absolue(balise[9:], scene_a_ajouter)
-            elif balise[:7].lower() == '## qui?':
-                extraire_qui_scene(balise[8:], conteneur, noms_roles, scene_a_ajouter,
-                                   avec_tableau_des_persos=tableau_roles_existant)
-
-            elif balise[:8].lower() == '## qui ?':
-                extraire_qui_scene(balise[9:], conteneur, noms_roles, scene_a_ajouter,
-                                   avec_tableau_des_persos=tableau_roles_existant)
-
-            elif balise[:11].lower() == '## niveau :':
-                scene_a_ajouter.niveau = balise[12:].strip()
-
-            elif balise[:11].lower() == '## résumé :':
-                scene_a_ajouter.resume = balise[12:].strip()
-
-            elif balise[:10].lower() == '## résumé:':
-                scene_a_ajouter.resume = balise[11:].strip()
-
-            elif balise[:13].lower() == '## factions :':
-                extraire_factions_scene(balise[14:], scene_a_ajouter)
-
-            elif balise[:12].lower() == '## faction :':
-                extraire_factions_scene(balise[13:], scene_a_ajouter)
-
-            elif balise[:12].lower() == '## factions:':
-                # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
-                extraire_factions_scene(balise[13:], scene_a_ajouter)
-            elif balise[:11].lower() == '## faction:':
-                # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
-                extraire_factions_scene(balise[12:], scene_a_ajouter)
-            elif balise[:9].lower() == '## info :':
-                extraire_infos_scene(balise[10:], scene_a_ajouter)
-                # scene_a_ajouter.infos.add(tuple([f.strip() for f in .split(',')]))
-            elif balise[:8].lower() == '## info:':
-                # scene_a_ajouter.infos.add([f.strip() for f in balise[9:].split(',')])
-                extraire_infos_scene(balise[9:], scene_a_ajouter)
-            else:
+            if not extraire_balise(balise, scene_a_ajouter, conteneur, noms_roles, tableau_roles_existant):
                 texte_erreur = f"balise inconnue : {balise} dans le conteneur {nom_conteneur}"
                 print(texte_erreur)
                 scene_a_ajouter.description += balise
@@ -960,7 +1073,6 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, table
                                                    ErreurManager.ORIGINES.SCENE)
 
         scene_a_ajouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
-        # print("texte de la scene apres insertion : " + scene_a_ajouter.description)
 
 
 def extraire_factions_scene(texte_lu: str, scene: Scene):
@@ -1113,24 +1225,25 @@ def calculer_jours_il_y_a(balise_date):
         # print(f"{balise_date} =  {ans} ans/ {jours} jours/ {mois} mois/ {semaines} semaines")
 
         # travailler ce qu'on a trouvé comme valeurs
-        if ans is None:
-            ans = 0
-        else:
-            ans = ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
 
-        if mois is None:
-            mois = 0
-        else:
-            mois = mois.group(0)[:-1]
+        ans = 0 if not ans else ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
+        mois = 0 if not mois else mois.group(0)[:-1]
+        semaines = 0 if not semaines else semaines.group(0)[:-1]
+        jours = 0 if not jours else jours.group(0)[:-1]
 
-        if semaines is None:
-            semaines = 0
-        else:
-            semaines = semaines.group(0)[:-1]
-        if jours is None:
-            jours = 0
-        else:
-            jours = jours.group(0)[:-1]
+        # if mois is None:
+        #     mois = 0
+        # else:
+        #     mois = mois.group(0)[:-1]
+        #
+        # if semaines is None:
+        #     semaines = 0
+        # else:
+        #     semaines = semaines.group(0)[:-1]
+        # if jours is None:
+        #     jours = 0
+        # else:
+        #     jours = jours.group(0)[:-1]
 
         # print(f"{ma_date} > ans/jours/mois = {ans}/{mois}/{jours}")
 
@@ -1474,6 +1587,51 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_a
                                                                 ErreurManager.ORIGINES.CHRONO_EVENEMENT)
             pj_concerne = current_evenement.pjs_concernes_evenement[score[0]]
             intervention.liste_pjs_concernes.append(pj_concerne)
+# def ajouter_intervenants(noms, intervenants_dans_evenement, seuil_alerte, intervention, erreur_manager):
+#     for nom in noms:
+#         score = process.extractOne(nom, intervenants_dans_evenement)
+#         if score is None:
+#             texte_erreur = f"Correspondance introuvable pour le nom {nom} avec la table des intervenants"
+#             erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR, texte_erreur,
+#                                           ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+#             continue
+#
+#         if score[1] < seuil_alerte:
+#             texte_erreur = f"Le nom {nom} trouvé dans la chronologie a été associé à {score[0]} à seulement {score[1]}% de confiance"
+#             erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING, texte_erreur,
+#                                           ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+#
+#         intervenant = intervenants_dans_evenement[score[0]]
+#         intervention.liste_intervenants.append(intervenant)
+#
+#
+# def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj):
+#     intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
+#                                 heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
+#                                 description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
+#                                 evenement=current_evenement
+#                                 )
+#     current_evenement.interventions.append(intervention)
+#
+#     noms_pnjs_impliques = [nom.strip() for nom in ligne[2].split(',')]
+#     noms_pnjs_dans_evenement = current_evenement.get_noms_pnjs()
+#     noms_pj_impliques = [nom.strip() for nom in ligne[3].split(',')]
+#     noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
+#
+#     if noms_pnjs_impliques == ['']:
+#         intervention.liste_intervenants.extend(current_evenement.intervenants_evenement.values())
+#     else:
+#         ajouter_intervenants(noms_pnjs_impliques, noms_pnjs_dans_evenement, seuil_alerte_pnj, intervention,
+#                              current_evenement.erreur_manager)
+#
+#     if noms_pj_impliques == ['']:
+#         intervention.liste_pjs_concernes.extend(current_evenement.pjs_concernes_evenement.values())
+#     else:
+#         ajouter_intervenants(noms_pj_impliques, noms_pjs_dans_evenement, seuil_alerte_pj, intervention,
+#                              current_evenement.erreur_manager)
+#
+#     for intervenant in intervention.liste_intervenants:
+#         intervenant.interventions.add(intervention)
 
 
 def evenement_lire_autres(texte: str, current_evenement: Evenement, texte_label: str):
@@ -1669,8 +1827,7 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
 
     # extraction du code objet qui peut être au format X123-4 - Nom ou X456 - Nom
     pattern = r'^[A-Za-z]?\d+\s*-(\s*\d+\s*-)?'
-    match = re.search(pattern, nom_doc)
-    if match:
+    if match := re.search(pattern, nom_doc):
         # on prend tout le prefixe, sauf le "-" qui est à la fin, et on strip
         code_objet = match[0][:-1].strip()
     else:
@@ -2057,7 +2214,7 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
 
         for orga in dict_orgas_persos:
             if orga in dict_orgas:
-                nom_persos = ", ".join([perso for perso in dict_orgas[orga]])
+                nom_persos = ", ".join(list(dict_orgas[orga]))
                 row.append(nom_persos)
             else:
                 row.append("")
@@ -2080,7 +2237,7 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
         # persos = []
         # for orga_set in dict_orgas_persos.values():
         #     persos.extend(orga_set)
-        persos = [p for p in dict_orgas_persos[orga]]
+        persos = list(dict_orgas_persos[orga])
         values = [["nom_scene", "date", "qui", "document"] + persos]
         if verbal:
             print(f"en-tetes = {values}")
@@ -2310,7 +2467,7 @@ def formatter_fichier_erreurs(api_doc, doc_id):
         else:
             return None
 
-    except:
+    except Exception:
         result = None
 
     return result
@@ -2340,7 +2497,7 @@ def reconstituer_tableau(texte_lu: str, sans_la_premiere_ligne=True):
     # logging.debug(f"a partir de la chaine {repr(texte_lu)} "
     #               f"j'ai reconstitué le tableau \n {to_return}"
     #               )
-    return to_return if to_return else [], (len(to_return[0]) if to_return else 0)
+    return to_return or [], len(to_return[0]) if to_return else 0
 
 
 def lire_gspread_pnj(api_sheets, sheet_id):
@@ -2362,11 +2519,7 @@ def lire_gspread_pj_pnjs(api_sheets, sheet_id, sheet_name):
         logging.debug(f"result =  {values}")
 
         noms_pjs = values[0][1:]
-        if len(values) > 1:
-            orgas_referents = values[1][1:]
-        else:
-            orgas_referents = None
-
+        orgas_referents = values[1][1:] if len(values) > 1 else None
         return noms_pjs, orgas_referents
     except HttpError as error:
         print(f"An error occurred: {error}")
