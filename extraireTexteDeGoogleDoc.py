@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import configparser
 from enum import Enum
 
 import dateparser
@@ -2597,28 +2598,43 @@ def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):
     return to_return
 
 
-def verifier_fichier_config(config_dict: dict, api_drive, api_doc, api_sheets):
+def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
     resultats = []
     test_global_reussi = True
+    fichier_output = {}
 
-    try:
+    #création du fichier d'entrée
+    # init configuration
+    config = configparser.ConfigParser()
+    config.read(fichier_init)
+
+    #ajouter les paramètres essentiels
+    dict_essentiels = {clef: config.get("Essentiels", clef) for clef in config.options("Essentiels")}
+    dict_optionnels = {clef: config.get("Optionnels", clef) for clef in config.options("Optionnels")}
+    fichier_input = dict_essentiels | dict_optionnels
+
+
+
         # vérification que tous les paramètres Essentiels sont présents
+        fichier_output['dossiers_intrigues'] = [config.get("Essentiels", key)
+                                             for key in config.options("Essentiels")
+                                             if key.startswith("id_dossier_intrigues")]
 
-        if len(config_dict.get('dossiers_intrigues', [])) == 0:
+        if len(fichier_output.get('dossiers_intrigues', [])) == 0:
             resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de dossier intrigue"])
             test_global_reussi = False
-        if "dossier_output" not in config_dict:
+        if "dossier_output" not in fichier_output:
             resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de dossier output"])
             test_global_reussi = False
-        if "mode_association" not in config_dict:
+        if "mode_association" not in fichier_output:
             resultats.append(
                 ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de mode association trouvé"])
             test_global_reussi = False
-        elif config_dict["mode_association"] not in [0, 1]:
+        elif fichier_output["mode_association"] not in [0, 1]:
             resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Mode association invalide"])
             test_global_reussi = False
 
-        if "nom_fichier_sauvegarde" not in config_dict:
+        if "nom_fichier_sauvegarde" not in fichier_output:
             resultats.append(
                 ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de fichier de sauvegarde"])
             test_global_reussi = False
@@ -2630,23 +2646,23 @@ def verifier_fichier_config(config_dict: dict, api_drive, api_doc, api_sheets):
 
         # vérification de la validité des liens
         dossiers = [[f"dossier_intrigue {i}", id] for i, id
-                    in enumerate(config_dict.get('dossiers_intrigues', []), start=1)] + \
+                    in enumerate(fichier_output.get('dossiers_intrigues', []), start=1)] + \
                    [[f"dossier_pjs {i}", id] for i, id
-                    in enumerate(config_dict.get('dossiers_pjs', []), start=1)] + \
+                    in enumerate(fichier_output.get('dossiers_pjs', []), start=1)] + \
                    [[f"dossier_pnjs {i}", id] for i, id
-                    in enumerate(config_dict.get('dossiers_pnjs', []), start=1)] + \
+                    in enumerate(fichier_output.get('dossiers_pnjs', []), start=1)] + \
                    [[f"dossier_evenements {i}", id] for i, id
-                    in enumerate(config_dict.get('dossiers_evenements', []), start=1)] + \
+                    in enumerate(fichier_output.get('dossiers_evenements', []), start=1)] + \
                    [[f"dossier_objets {i}", id] for i, id
-                    in enumerate(config_dict.get('dossiers_objets', []), start=1)]
+                    in enumerate(fichier_output.get('dossiers_objets', []), start=1)]
 
         google_docs = []
-        if config_dict.get('id_factions', None):
-            google_docs.append(["id_factions", config_dict['id_factions']])
+        if fichier_output.get('id_factions', None):
+            google_docs.append(["id_factions", fichier_output['id_factions']])
 
         google_sheets = []
-        if config_dict.get('id_pjs_et_pnjs', None):
-            google_sheets.append(["id_pjs_et_pnjs", config_dict['id_pjs_et_pnjs']])
+        if fichier_output.get('id_pjs_et_pnjs', None):
+            google_sheets.append(["id_pjs_et_pnjs", fichier_output['id_pjs_et_pnjs']])
 
         for parametre, dossier_id in dossiers:
             try:
@@ -2682,7 +2698,7 @@ def verifier_fichier_config(config_dict: dict, api_drive, api_doc, api_sheets):
                 test_global_reussi = False
 
         # Vérification des droits d'écriture dans le dossier de sortie
-        dossier_output_id = config_dict['dossier_output']
+        dossier_output_id = fichier_output['dossier_output']
         try:
             permissions = api_drive.permissions().list(fileId=dossier_output_id).execute()
             droit_ecriture = any(

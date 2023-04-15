@@ -61,6 +61,7 @@ def print_progress(v: float):
     print(f"La génération a progressé de {v}%")
 
 
+
 def charger_fichier_init(fichier_init: str):
     # init configuration
     config = configparser.ConfigParser()
@@ -71,9 +72,7 @@ def charger_fichier_init(fichier_init: str):
         # lecture des informations essentielles
         # dict_config['dossier_intrigues'] = [x.strip() for x in config.get('Essentiels', 'intrigues').split(',')]
         #
-        dict_config['dossiers_intrigues'] = [config.get("Essentiels", key)
-                                             for key in config.options("Essentiels")
-                                             if key.startswith("id_dossier_intrigues")]
+
 
         dict_config['dossier_output'] = config.get('Essentiels', 'dossier_output_squelettes_pjs')
 
