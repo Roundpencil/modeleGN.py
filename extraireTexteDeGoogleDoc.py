@@ -262,7 +262,11 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
 
                 if fast and is_item_not_modified(item, dict_ids):
                     visualisation(pas_visualisation * (nb_items - i))
+                    m_print(f"et il n'a pas changé (dernier changement : "
+                            f"{datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')}) "
+                            f"depuis le dernier passage ({dict_ids[item['id']].lastProcessing})")
                     break
+
 
             objet_de_reference = dict_ids.pop(item_id, None)
             nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction, verbal=verbal)
