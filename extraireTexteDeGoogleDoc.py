@@ -2603,23 +2603,23 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
     test_global_reussi = True
     fichier_output = {}
 
-    #création du fichier d'entrée
+    # #création du fichier d'entrée
     # init configuration
     config = configparser.ConfigParser()
     config.read(fichier_init)
+    #
+    # #ajouter les paramètres essentiels
+    # dict_essentiels = {clef: config.get("Essentiels", clef) for clef in config.options("Essentiels")}
+    # dict_optionnels = {clef: config.get("Optionnels", clef) for clef in config.options("Optionnels")}
+    # fichier_input = dict_essentiels | dict_optionnels
 
-    #ajouter les paramètres essentiels
-    dict_essentiels = {clef: config.get("Essentiels", clef) for clef in config.options("Essentiels")}
-    dict_optionnels = {clef: config.get("Optionnels", clef) for clef in config.options("Optionnels")}
-    fichier_input = dict_essentiels | dict_optionnels
 
 
-
-        # vérification que tous les paramètres Essentiels sont présents
-        fichier_output['dossiers_intrigues'] = [config.get("Essentiels", key)
-                                             for key in config.options("Essentiels")
-                                             if key.startswith("id_dossier_intrigues")]
-
+    # vérification que tous les paramètres Essentiels sont présents
+    fichier_output['dossiers_intrigues'] = [config.get("Essentiels", key)
+                                         for key in config.options("Essentiels")
+                                         if key.startswith("id_dossier_intrigues")]
+    try:
         if len(fichier_output.get('dossiers_intrigues', [])) == 0:
             resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de dossier intrigue"])
             test_global_reussi = False

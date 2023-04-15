@@ -63,19 +63,6 @@ def print_progress(v: float):
 
 
 def charger_fichier_init(fichier_init: str):
-    # init configuration
-    config = configparser.ConfigParser()
-    config.read(fichier_init)
-
-    dict_config = {}
-    try:
-        # lecture des informations essentielles
-        # dict_config['dossier_intrigues'] = [x.strip() for x in config.get('Essentiels', 'intrigues').split(',')]
-        #
-
-
-        dict_config['dossier_output'] = config.get('Essentiels', 'dossier_output_squelettes_pjs')
-
         mode_association = config.get('Essentiels', 'mode_association')
 
         dict_association = {mode.value: mode for mode in GN.ModeAssociation}
