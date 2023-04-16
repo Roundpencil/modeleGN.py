@@ -42,10 +42,36 @@ def main():
     args = parser.parse_args()
 
     # on crée les lecteurs
-    # todo : ajouter errreurs sur expiration du token ici
-    api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
-    derniere_version, maj_versions, url_derniere_version = verifier_derniere_version(api_doc)
+    # todo : ajouter erreurs sur expiration du token ici
+    message = (None, None)
+    derniere_version = True
 
+    try:
+        api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
+        derniere_version, maj_versions, url_derniere_version = verifier_derniere_version(api_doc)
+    except Exception as e:
+        if "Token has been expired or revoked." in str(e):
+            # if token has been expired or revoked, show a popup with a specific error message
+            message = ("Expirations des droits",
+                       "Le fichier token.json a expiré. \n"
+                       "Pas de panique ! \n\n"
+                       "1. Supprimez-le \n"
+                       "2. Rechargez le fichier de paramètres \n"
+                       "3. Suivez les instructions sur la page web google qui s'affiche "
+                       "pour vous ré-authentifier \n\n"
+                       "Pour plus d'informations sur cette erreur liée à google, consulter le manuel")
+            print(f"une erreur RefreshError est survenue pendant la lecture du fichier ini : {e}")
+
+        elif "The OAuth client was deleted." in str(e):
+            # if OAuth client was deleted, show a popup with a specific error message
+            message = ("Cette version de MAGnet a expiré",
+                       "Cette version de MAGnet a expiré. '\n'"
+                       "pour continuer à l'utiliser, merci de télécharger la dernière version")
+
+        else:
+            # if other RefreshError is raised, show a popup with a generic error message
+            message = ("Error", f"Erreur inattendue : {e}")
+            logging.debug(f"Erreur inattendue dans la lecture du fichier de configuration : {e}")
 
     if not args.console:
         print("Lancement de l'IHM")
@@ -53,6 +79,9 @@ def main():
         root.iconbitmap(r'coin-MAGNet.ico')
         style = ttk.Style(root)
         # root.tk.call('source', 'azure dark/azure dark.tcl')
+
+        if message[0]:
+            messagebox.showerror(message[0], message[1])
 
         if not derniere_version:
             response = messagebox.askquestion("Un nouvelle version est disponible !",
@@ -71,9 +100,9 @@ def main():
             style.configure("Togglebutton", foreground='white')
 
         app = Application(mode_leger=mode_leger,
-                          api_drive = api_drive,
-                          api_doc = api_doc,
-                          api_sheets = api_sheets,
+                          api_drive=api_drive,
+                          api_doc=api_doc,
+                          api_sheets=api_sheets,
                           master=root)
         app.mainloop()
 

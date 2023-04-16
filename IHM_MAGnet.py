@@ -417,68 +417,68 @@ class Application(tk.Frame):
     #     self.lire_fichier_config(boutons, display_label, config_file)
 
     def lire_gn_et_injecter_config(self, boutons: list):
+        # try:
         try:
-            try:
-                self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'])
-                self.gn.injecter_config(dossiers_evenements=self.dict_config['dossiers_evenements'],
-                                        dossiers_intrigues=self.dict_config['dossiers_intrigues'],
-                                        dossier_output=self.dict_config['dossier_output'],
-                                        mode_association=self.dict_config['mode_association'],
-                                        dossiers_pj=self.dict_config.get('dossiers_pjs'),
-                                        dossiers_pnj=self.dict_config.get('dossiers_pnjs'),
-                                        id_factions=self.dict_config.get('id_factions'),
-                                        dossiers_objets=self.dict_config.get('dossiers_objets'),
-                                        date_gn=self.dict_config.get('date_gn'),
-                                        id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
-                                        fichier_pnjs=self.dict_config.get('fichier_noms_pnjs')
-                                        )
-                # print(f"après injection, nous avons : "
-                #       f"dossiers_intrigues={self.dict_config['dossiers_intrigues'],}"
-                #       f"dossier_output= {self.dict_config['dossier_output']},"
-                #       f"association_auto= {self.dict_config['association_auto']},"
-                #       f"dossiers_pj= {self.dict_config.get('dossiers_pjs')},"
-                #       f"dossiers_pnj= {self.dict_config.get('dossiers_pnjs')},"
-                #       f"id_factions= {self.dict_config.get('id_factions')}")
+            self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'])
+            self.gn.injecter_config(dossiers_evenements=self.dict_config['dossiers_evenements'],
+                                    dossiers_intrigues=self.dict_config['dossiers_intrigues'],
+                                    dossier_output=self.dict_config['dossier_output'],
+                                    mode_association=self.dict_config['mode_association'],
+                                    dossiers_pj=self.dict_config.get('dossiers_pjs'),
+                                    dossiers_pnj=self.dict_config.get('dossiers_pnjs'),
+                                    id_factions=self.dict_config.get('id_factions'),
+                                    dossiers_objets=self.dict_config.get('dossiers_objets'),
+                                    date_gn=self.dict_config.get('date_gn'),
+                                    id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
+                                    fichier_pnjs=self.dict_config.get('fichier_noms_pnjs')
+                                    )
+            # print(f"après injection, nous avons : "
+            #       f"dossiers_intrigues={self.dict_config['dossiers_intrigues'],}"
+            #       f"dossier_output= {self.dict_config['dossier_output']},"
+            #       f"association_auto= {self.dict_config['association_auto']},"
+            #       f"dossiers_pj= {self.dict_config.get('dossiers_pjs')},"
+            #       f"dossiers_pnj= {self.dict_config.get('dossiers_pnjs')},"
+            #       f"id_factions= {self.dict_config.get('id_factions')}")
 
-            except Exception as f:
-                print(traceback.format_exc())
-                print(f"une erreur est survenue qui a conduit à re-créer un self : {f}")
-                print(f"le self {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
-                self.gn = GN(dossiers_intrigues=self.dict_config['dossiers_intrigues'],
-                             dossier_output=self.dict_config['dossier_output'],
-                             mode_association=self.dict_config['mode_association'],
-                             dossiers_pj=self.dict_config.get('dossiers_pjs'),
-                             dossiers_pnj=self.dict_config.get('dossiers_pjs'),
-                             id_factions=self.dict_config.get('id_factions'),
-                             id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
-                             dossiers_evenements=self.dict_config.get('dossiers_evenements')
-                             )
-
+        except Exception as f:
+            print(traceback.format_exc())
+            print(f"une erreur est survenue qui a conduit à re-créer un self : {f}")
+            print(f"le self {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
+            self.gn = GN(dossiers_intrigues=self.dict_config['dossiers_intrigues'],
+                         dossier_output=self.dict_config['dossier_output'],
+                         mode_association=self.dict_config['mode_association'],
+                         dossiers_pj=self.dict_config.get('dossiers_pjs'),
+                         dossiers_pnj=self.dict_config.get('dossiers_pjs'),
+                         id_factions=self.dict_config.get('id_factions'),
+                         id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
+                         dossiers_evenements=self.dict_config.get('dossiers_evenements')
+                         )
 
 
-        except Exception as e:
-            if "Token has been expired or revoked." in str(e):
-                # if token has been expired or revoked, show a popup with a specific error message
-                messagebox.showerror("Expirations des droits",
-                                     "Le fichier token.json a expiré. \n"
-                                     "Pas de panique ! \n\n"
-                                     "1. Supprimez-le \n"
-                                     "2. Rechargez le fichier de paramètres \n"
-                                     "3. Suivez les instructions sur la page web google qui s'affiche "
-                                     "pour vous ré-authentifier \n\n"
-                                     "Pour plus d'informations sur cette erreur liée à google, consulter le manuel")
-                print(f"une erreur RefreshError est survenue pendant la lecture du fichier ini : {e}")
 
-            elif "The OAuth client was deleted." in str(e):
-                # if OAuth client was deleted, show a popup with a specific error message
-                messagebox.showerror("Cette version de MAGnet a expiré",
-                                     "Cette version de MAGnet a expiré. '\n'"
-                                     "pour continuer à l'utiliser, merci de télécharger la dernière version")
-
-            else:
-                # if other RefreshError is raised, show a popup with a generic error message
-                messagebox.showerror("Error", f"Erreur inattendue : {e}")
-                logging.debug(f"Erreur inattendue dans la lecture du fichier de configuration : {e}")
+        # except Exception as e:
+        #     if "Token has been expired or revoked." in str(e):
+        #         # if token has been expired or revoked, show a popup with a specific error message
+        #         messagebox.showerror("Expirations des droits",
+        #                              "Le fichier token.json a expiré. \n"
+        #                              "Pas de panique ! \n\n"
+        #                              "1. Supprimez-le \n"
+        #                              "2. Rechargez le fichier de paramètres \n"
+        #                              "3. Suivez les instructions sur la page web google qui s'affiche "
+        #                              "pour vous ré-authentifier \n\n"
+        #                              "Pour plus d'informations sur cette erreur liée à google, consulter le manuel")
+        #         print(f"une erreur RefreshError est survenue pendant la lecture du fichier ini : {e}")
+        #
+        #     elif "The OAuth client was deleted." in str(e):
+        #         # if OAuth client was deleted, show a popup with a specific error message
+        #         messagebox.showerror("Cette version de MAGnet a expiré",
+        #                              "Cette version de MAGnet a expiré. '\n'"
+        #                              "pour continuer à l'utiliser, merci de télécharger la dernière version")
+        #
+        #     else:
+        #         # if other RefreshError is raised, show a popup with a generic error message
+        #         messagebox.showerror("Error", f"Erreur inattendue : {e}")
+        #         logging.debug(f"Erreur inattendue dans la lecture du fichier de configuration : {e}")
 
             traceback.print_exc()
             self.dict_config = None

@@ -1354,6 +1354,7 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
         LIEU = "Lieu"
         JOUR = 'Jour, au format “J1”, “J2”, etc.'
         HEURE = "Heure de démarrage"
+        HEURE_FIN = "Heure de fin"
         DECLENCHEUR = "Déclencheur"
         CONSEQUENCES = "Conséquences Évènement"
 
@@ -1413,6 +1414,7 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
     current_evenement.lieu = dict_fiche.get(NomsLignes.LIEU.value, "").strip()
     current_evenement.date = dict_fiche.get(NomsLignes.JOUR.value, "").strip()
     current_evenement.heure_de_demarrage = dict_fiche.get(NomsLignes.HEURE.value, "").strip()
+    current_evenement.heure_de_fin = dict_fiche.get(NomsLignes.HEURE_FIN.value, "").strip()
     current_evenement.declencheur = dict_fiche.get(NomsLignes.DECLENCHEUR.value, "").strip()
     current_evenement.consequences_evenement = dict_fiche.get(NomsLignes.CONSEQUENCES.value, "").strip()
 

@@ -9,38 +9,8 @@ from modeleGN import *
 #todo : VErson :
 # Correction d'un bug qui empêchait dans certains cas l'assocaition automatique de se produire
 # il FAUT un orga de référence pour chaque PJ dans le tabnleau de PJs
-
-#tester
-
-# bugs
-
-# todo reprendre message d'erreor sur l'expiration du token
-# todo : vérifier que si plusieurs fichers tous sont pris en compte dans la lecture (cf. 4/4 dans buffy)
-#  >> est-ce qu'il n'y a pas une erreur sur la boucle ou il s'arrete a la fin du premier fichier?
-
-# todo : dans l'identification des documents, ajouter le fait que le nom doit COMMENCER par le préfixe
-
-# à tester
-
-# à faire - rapide
-
-#todo : remettere l'ouverture d'un fichier par défaut
-
-# todo Prefixes configurables
-
-# todo version dans objet GN pour lancer update
-
-
-# todo Fin des evenemenst
-
-# todo : version dans objet sGN pour lancer update
-
-# todo : changer tous les paramètres du GN en un dictionnaire qu'im remplace plutot que des masses de varaiables
-#  >>utiliser des focntions get_ pour remplacer tous les appels en dur par une lecture du dictionnaire sur appel
-
-#todo : ajouter les évènements dans les talbeaux récaps des PNJs
-
-# todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
+# gestion automatique de la mise à jour des fichiers d'un GN après mise à jour de version
+# ajoyt d'une fin des evenements dans les fiches évènements
 
 # todo : Ajouter la vérification de la validité du fichier paramètres
 #  affichage de pop up si problme / l'information dans le texte d'info que c'est bon :
@@ -48,6 +18,37 @@ from modeleGN import *
 #  Bonne zon essentielle
 #  Validation des zones trouvées
 #  Existence des dossiers et fichiers indiqués (affichage du titre?)
+
+#tester
+#todo : # ajoyt d'une fin des evenements dans les fiches évènements
+# todo reprendre message d'error sur l'expiration du token
+
+
+
+# bugs
+# todo : vérifier que si plusieurs fichers tous sont pris en compte dans la lecture (cf. 4/4 dans buffy)
+#  >> est-ce qu'il n'y a pas une erreur sur la boucle ou il s'arrete a la fin du premier fichier?
+
+
+# à tester
+
+# à faire - rapide
+
+# todo Prefixes configurables
+
+# todo : vérifier la version du GN et actuelle au moment de lancer le chargement
+#  si plus récente :
+#       recharger
+#       mettre à jour version GN >> à la fin de l'update
+#  sinon : rien
+
+# todo : changer tous les paramètres du GN en un dictionnaire qu'im remplace plutot que des masses de varaiables
+#  >>utiliser des focntions get_ pour remplacer tous les appels en dur par une lecture du dictionnaire sur appel
+
+# todo : ajouter les évènements dans les talbeaux récaps des PNJs
+
+# todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
+
 
 # à faire - plus long
 
@@ -1608,6 +1609,8 @@ def mettre_a_jour_champs(gn: GN):
         gn.personnages = gn.dictPJs | gn.dictPNJs
         delattr(gn, 'dictPJs')
         delattr(gn, 'dictPNJs')
+    if not hasattr(gn, 'version'):
+        gn.version = VERSION
 
     for scene in gn.lister_toutes_les_scenes():
         if not hasattr(scene, 'date_absolue'):
@@ -1643,6 +1646,7 @@ def mettre_a_jour_champs(gn: GN):
             intrigue.questionnaire = []
         if isinstance(intrigue.questionnaire, str):
             intrigue.questionnaire = []
+
 
     # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
     #     for role in conteneur.rolesContenus.values():
@@ -1701,6 +1705,9 @@ def mettre_a_jour_champs(gn: GN):
 
         if not hasattr(evenement, 'objets'):
             evenement.objets = set()
+        if not hasattr(evenement, 'heure_de_fin'):
+            evenement.heure_de_fin = ""
+
 
     # for pj in gn.dictPJs:
     #     if pj in gn.dictPNJs:
@@ -1723,3 +1730,5 @@ def mettre_a_jour_champs(gn: GN):
 
         if not hasattr(objet_de_reference, 'objets_dans_evenements'):
             objet_de_reference.objets_dans_evenements = set()
+
+    gn.version = VERSION

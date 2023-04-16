@@ -8,6 +8,8 @@ import re
 from fuzzywuzzy import process
 import sys
 
+import MAGnet_lib
+
 
 class TypePerso(IntEnum):
     EST_PNJ_HORS_JEU = 1
@@ -41,7 +43,7 @@ def string_type_pj(type_pj: TypePerso):
     return grille_pj.get(type_pj, f"Type de PJ inconnu ({type_pj})")
 
 
-# une superclasse qui représente un fichier qui content des scènes, avec es rtôles associés
+# une superclasse qui représente un fichier qui content des scènes, avec les rôles associés
 # donc y compris les propriétés du fichier où elle se trouve (notamment date de changement)
 # Attention, personnage hérite de cette classe, et contient donc deu types de rôles :
 # ceux qui sont liés aux personnes (roles)
@@ -368,7 +370,7 @@ class Role:
 class Intrigue(ConteneurDeScene):
 
     def __init__(self, url, nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orga_referent="", timeline="", questionnaire=[],
+                 questions_ouvertes="", notes="", resolution="", orga_referent="", timeline="", questionnaire=None,
                  last_processing=None,
                  derniere_edition_fichier=0):
         super(Intrigue, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
@@ -376,7 +378,7 @@ class Intrigue(ConteneurDeScene):
         self.description = description
         self.pitch = pitch
         self.questions_ouvertes = questions_ouvertes
-        self.questionnaire = questionnaire
+        self.questionnaire = questionnaire or []
         self.notes = notes
         self.resolution = resolution
         self.orgaReferent = orga_referent
@@ -657,7 +659,7 @@ class GN:
                  dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None,
                  dossiers_objets=None,
                  id_factions=None, date_gn=None,
-                 id_pjs_et_pnjs=None, fichier_pnjs=None):
+                 id_pjs_et_pnjs=None, fichier_pnjs=None, version="0.0.0"):
 
         # création des objets nécessaires
         self.dictPJs = {}  # idgoogle, personnage
@@ -687,6 +689,7 @@ class GN:
         # self.liste_noms_pjs = None
         # self.liste_noms_pnjs = None
         self.mode_association = None
+        self.version = version
 
         self.injecter_config(dossiers_intrigues, dossier_output, mode_association, dossiers_pj=dossiers_pj,
                              dossiers_evenements=dossiers_evenements, dossiers_objets=dossiers_objets,
@@ -1369,6 +1372,7 @@ class Evenement:
             lieu="",
             date="",
             heure_de_demarrage="",
+            heure_de_fin = "",
             declencheur="",
             consequences_evenement="",
             synopsis="",
@@ -1386,6 +1390,7 @@ class Evenement:
         self.lieu = lieu
         self.date = date
         self.heure_de_demarrage = heure_de_demarrage
+        self.heure_de_fin = heure_de_fin
         self.declencheur = declencheur
         self.consequences_evenement = consequences_evenement
         self.synopsis = synopsis
