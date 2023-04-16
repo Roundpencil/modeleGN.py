@@ -31,7 +31,7 @@ from modeleGN import *
 # à tester
 
 # à faire - rapide
-# todo : changer tous les paramètres du GN en un dictionnaire qu'im remplace plutot que des masses de varaiables
+# todo : changer tous les paramètres du GN en un dictionnaire qu'il remplace plutot que des masses de varaiables
 #  >>utiliser des focntions get_ pour remplacer tous les appels en dur par une lecture du dictionnaire sur appel
 
 # todo Prefixes configurables
