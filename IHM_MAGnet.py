@@ -59,9 +59,14 @@ class Application(tk.Frame):
         v_config_button = ttk.Button(ini_labelframe, text="Vérifier le fichier de configuration")
         v_config_button.grid(row=1, column=0, pady=(10, 10), padx=(10, 10))
 
+
         # Create the label
         current_file_label = ttk.Label(ini_labelframe, text="Fichier ini actuel : Aucun")
         current_file_label.grid(row=0, column=1, columnspan=3, sticky='w')
+
+        v_config_label = ttk.Label(ini_labelframe, text="Fichier de configuration non vérifié")
+        v_config_label.grid(row=1, column=1, columnspan=3, sticky='w')
+
 
         # ajout d'un labelframe pour les fonctions du mode diagnostic
         diagnostic_labelframe = ttk.Labelframe(regen_window, text="Outils diagnostic", width=700)
@@ -370,14 +375,15 @@ class Application(tk.Frame):
 
         ok_button.grid(row=200, column=1, pady=(0, 10))
         boutons = [ok_button, forcer_update_gn_button]
-        config_button.config(command=lambda: self.change_config_file(boutons, current_file_label))
+        config_button.config(command=lambda: self.change_config_file(boutons, current_file_label, v_config_label))
         v_config_button.config(command=lambda: self.lire_verifier_config_updater_gui(boutons,
                                                                                      current_file_label,
+                                                                                     v_config_label,
                                                                                      afficher=True))
 
         fichier_defaut = fichier_ini_defaut()
         current_file_label['text'] = fichier_defaut
-        self.lire_verifier_config_updater_gui(boutons, current_file_label, False)
+        self.lire_verifier_config_updater_gui(boutons, current_file_label, v_config_label, False)
 
         # if fichier_defaut:
         #     # self.lire_fichier_config(boutons, current_file_label, config_file=fichier_defaut)
@@ -390,13 +396,13 @@ class Application(tk.Frame):
         for bouton in boutons:
             bouton.config(state=to_set)
 
-    def change_config_file(self, boutons: list, display_label):
+    def change_config_file(self, boutons: list, display_label, v_config_label):
         config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
                                                  filetypes=(("ini files", "*.ini"), ("all files", "*.*")))
         display_label.config(text=config_file)
-        self.lire_verifier_config_updater_gui(boutons, display_label)
+        self.lire_verifier_config_updater_gui(boutons, display_label, v_config_label)
 
-    def lire_verifier_config_updater_gui(self, boutons:list, display_label, afficher = False):
+    def lire_verifier_config_updater_gui(self, boutons:list, display_label, v_config_label, afficher=False):
         config_file = display_label['text']
         param_gn, resultats = extraireTexteDeGoogleDoc.charger_et_verifier_fichier_config(config_file, self.api_drive)
         if afficher:
@@ -404,10 +410,12 @@ class Application(tk.Frame):
         if param_gn:
             # dans ce cas on a réussi à charger et les tests sont ok
             # todo : charger le GN et préparer la régénération
+            v_config_label['text'] = "Vérification fichier de configuration ok"
             self.dict_config = param_gn
             self.lire_gn_et_injecter_config(boutons)
             self.updater_boutons_disponibles(True, boutons)
         else:
+            v_config_label['text'] = "Verifications fichier de configuration ko : corrigez les et re-vérifiez"
             self.updater_boutons_disponibles(False, boutons)
             self.afficher_resultats(resultats, False)
 

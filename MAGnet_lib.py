@@ -4,6 +4,7 @@ import os
 
 import extraireTexteDeGoogleDoc
 from modeleGN import *
+from packaging import version
 
 # communication :
 #todo : VErson :
@@ -18,6 +19,10 @@ from modeleGN import *
 #  Bonne zon essentielle
 #  Validation des zones trouvées
 #  Existence des dossiers et fichiers indiqués (affichage du titre?)
+# todo : vérifier la version du GN et actuelle au moment de lancer le chargement
+#  si plus récente :
+#       lancer un update
+#  sinon : rien
 
 #tester
 #todo : # ajoyt d'une fin des evenements dans les fiches évènements
@@ -40,10 +45,7 @@ from modeleGN import *
 #  ajouter les données dans le dictionnaire
 #  prendre en compte les paramètres dans les lecture de fichies
 
-# todo : vérifier la version du GN et actuelle au moment de lancer le chargement
-#  si plus récente :
-#       lancer un update
-#  sinon : rien
+
 
 # todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
@@ -69,7 +71,7 @@ from modeleGN import *
 #todo : ajouter un paramètre pour définir des préfixes favoris
 
 
-VERSION = "1.0.20230412"
+VERSION = "1.0.20230416"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 def print_progress(v: float):
@@ -109,6 +111,9 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     # if api_doc is None or api_sheets is None or api_drive is None:
     #     api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
+
+    if not hasattr(mon_gn, "version") or version.parse(mon_gn.version) < version.parse(VERSION):
+        mettre_a_jour_champs(mon_gn)
 
     if sans_chargement_fichier:
         m_print("recréation d'un GN from scratch")
