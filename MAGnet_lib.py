@@ -23,8 +23,6 @@ from modeleGN import *
 #todo : # ajoyt d'une fin des evenements dans les fiches évènements
 # todo reprendre message d'error sur l'expiration du token
 
-
-
 # bugs
 # todo : vérifier que si plusieurs fichers tous sont pris en compte dans la lecture (cf. 4/4 dans buffy)
 #  >> est-ce qu'il n'y a pas une erreur sur la boucle ou il s'arrete a la fin du premier fichier?
@@ -33,6 +31,8 @@ from modeleGN import *
 # à tester
 
 # à faire - rapide
+# todo : changer tous les paramètres du GN en un dictionnaire qu'im remplace plutot que des masses de varaiables
+#  >>utiliser des focntions get_ pour remplacer tous les appels en dur par une lecture du dictionnaire sur appel
 
 # todo Prefixes configurables
 #  cf. exemples dans fichiers
@@ -45,9 +45,6 @@ from modeleGN import *
 #       recharger
 #       mettre à jour version GN >> à la fin de l'update
 #  sinon : rien
-
-# todo : changer tous les paramètres du GN en un dictionnaire qu'im remplace plutot que des masses de varaiables
-#  >>utiliser des focntions get_ pour remplacer tous les appels en dur par une lecture du dictionnaire sur appel
 
 # todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
