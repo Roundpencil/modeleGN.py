@@ -5,14 +5,15 @@ import os
 import extraireTexteDeGoogleDoc
 from modeleGN import *
 
+
 # communication :
 
 # documentation
 # todo il FAUT un orga de référence pour chaque PJ dans le tabnleau de PJs
 
 
-#tester
-#todo : # ajoyt d'une fin des evenements dans les fiches évènements
+# tester
+# todo : # ajoyt d'une fin des evenements dans les fiches évènements
 # todo reprendre message d'error sur l'expiration du token
 
 # bugs
@@ -33,7 +34,6 @@ from modeleGN import *
 #  prendre en compte les paramètres dans les lecture de fichies
 
 
-
 # todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
 # todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
@@ -43,8 +43,8 @@ from modeleGN import *
 
 ### ajout d'une interface de création / férificationd es fichier d'ini :
 # todo : Refaire la grille
-#todo :  intégrer les champs présents dans 3 vers gui creation
-#todo : reconstruire autour de switch, puis supprimer tous les fichiers intermédiaires
+# todo :  intégrer les champs présents dans 3 vers gui creation
+# todo : reconstruire autour de switch, puis supprimer tous les fichiers intermédiaires
 
 # confort / logique
 # todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos
@@ -55,10 +55,11 @@ from modeleGN import *
 
 # todo créer un objet Paramètre qui stoque les paramètres du GN et les passer pour simplifier les créations
 
-#todo : ajouter un paramètre pour définir des préfixes favoris
+# todo : ajouter un paramètre pour définir des préfixes favoris
 
 def print_progress(v: float):
     print(f"La génération a progressé de {v}%")
+
 
 def lire_fichier_pnjs(nom_fichier: str):
     to_return = []
@@ -612,14 +613,14 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
     nb_persos_source = len(d)
     pas_visualisation = taille_visualisation / nb_persos_source
     for index, nom_perso in enumerate(d, start=1):
-        prefixe = (f"Écriture des fichiers des {pj_pnj} dans drive ({index}/{nb_persos_source})")
+        prefixe = f"Écriture des fichiers des {pj_pnj} dans drive ({index}/{nb_persos_source})"
 
         # créer le fichier et récupérer l'ID
         nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
         texte = d[nom_perso]
 
-        # extraireTexteDeGoogleDoc.inserer_squelettes_dans_drive(nouveau_dossier, api_doc, api_drive, texte, nom_fichier,
-        #                                                        prefixe)
+        # extraireTexteDeGoogleDoc.inserer_squelettes_dans_drive(nouveau_dossier,
+        # api_doc, api_drive, texte, nom_fichier,prefixe)
 
         m_print(f'{prefixe} : {nom_perso}')
         visualisation(pas_visualisation)
@@ -915,7 +916,8 @@ def generer_table_objets_uniques(mon_gn):
             nom = list(objet_ref.objets_dans_evenements)[0].description
         liste_noms_intrigues = [o.intrigue.nom for o in objet_ref.objets_dans_intrigues if o.intrigue is not None]
         intrigues = '\n'.join(liste_noms_intrigues)
-        liste_noms_evenements = [o.evenement.nom_evenement for o in objet_ref.objets_dans_evenements if o.evenement is not None]
+        liste_noms_evenements = [o.evenement.nom_evenement for o in objet_ref.objets_dans_evenements if
+                                 o.evenement is not None]
         evenements = '\n'.join(liste_noms_evenements)
         fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
         to_return.append([f"{code if len(code) > 1 else 'Pas de code'}",
@@ -938,6 +940,7 @@ def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets):
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_detaillee, mon_id, "lus dans les fiches")
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_condensee, mon_id, "objets uniques")
     extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, mon_id)
+
 
 def generer_table_chrono_condensee_raw(gn: GN):
     # pour chaque personnage, construire un tableau contenant, dans l'ordre chronologique,
@@ -1513,6 +1516,7 @@ def generer_table_questionnaire(gn: GN):
             toutes_les_questions.append(ligne)
     return toutes_les_questions
 
+
 def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets):
     parent = gn.dossier_outputs_drive
     tab_questionnaire = generer_table_questionnaire(gn)
@@ -1526,10 +1530,8 @@ def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets):
 
 def fichier_ini_defaut():
     ini_files = [f for f in os.listdir('.') if f.endswith('.ini')]
-    if len(ini_files) == 1:
-        return os.path.abspath(ini_files[0])
-    else:
-        return "config.ini"
+    return os.path.abspath(ini_files[0]) if len(ini_files) == 1 else "config.ini"
+
 
 def verifier_derniere_version(api_doc):
     try:
@@ -1542,7 +1544,7 @@ def verifier_derniere_version(api_doc):
         to_return = ""
         last_url = None
         for ligne in texte.splitlines():
-            if ligne == VERSION :
+            if ligne == VERSION:
                 break
             if ligne.startswith("https") and last_url is None:
                 last_url = ligne
@@ -1556,6 +1558,7 @@ def verifier_derniere_version(api_doc):
         print(f"{e}")
         logging.debug(f"Une erreur est survenue pendant la lecture du fichier de version {e}")
         return True, [e], None
+
 
 def mettre_a_jour_champs(gn: GN):
     # #mise à jour des errors logs
@@ -1632,7 +1635,6 @@ def mettre_a_jour_champs(gn: GN):
         if isinstance(intrigue.questionnaire, str):
             intrigue.questionnaire = []
 
-
     # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
     #     for role in conteneur.rolesContenus.values():
     for role in gn.lister_tous_les_roles():
@@ -1692,7 +1694,6 @@ def mettre_a_jour_champs(gn: GN):
             evenement.objets = set()
         if not hasattr(evenement, 'heure_de_fin'):
             evenement.heure_de_fin = ""
-
 
     # for pj in gn.dictPJs:
     #     if pj in gn.dictPNJs:

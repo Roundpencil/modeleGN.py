@@ -661,7 +661,7 @@ class GN:
                  dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None,
                  dossiers_objets=None,
                  id_factions=None, date_gn=None,
-                 id_pjs_et_pnjs=None, fichier_pnjs=None, version="0.0.0"):
+                 id_pjs_et_pnjs=None, fichier_pnjs=None, ma_version="0.0.0"):
 
         # création des objets nécessaires
         self.dictPJs = {}  # idgoogle, personnage
@@ -691,7 +691,7 @@ class GN:
         # self.liste_noms_pjs = None
         # self.liste_noms_pnjs = None
         self.mode_association = None
-        self.version = version
+        self.version = ma_version
 
         self.injecter_config(dossiers_intrigues, dossier_output, mode_association, dossiers_pj=dossiers_pj,
                              dossiers_evenements=dossiers_evenements, dossiers_objets=dossiers_objets,
@@ -779,17 +779,6 @@ class GN:
             if self.personnages[key_personnage].forced:
                 perso = self.personnages.pop(key_personnage)
                 perso.clear()
-
-        # for key_personnage in list(self.dictPJs.keys()):
-        #     # print(f"personnage = {self.dictPJs[key_personnage].nom}, forced = {self.dictPJs[key_personnage].forced}")
-        #     if self.dictPJs[key_personnage].forced:
-        #         perso = self.dictPJs.pop(key_personnage)
-        #         perso.clear()
-        # for key_personnage in list(self.dictPNJs.keys()):
-        #     # print(f"personnage = {self.dictPJs[key_personnage].nom}, forced = {self.dictPJs[key_personnage].forced}")
-        #     if self.dictPNJs[key_personnage].forced:
-        #         perso = self.dictPNJs.pop(key_personnage)
-        #         perso.clear()
 
     # permet de mettre à jour la date d'intrigue la plus ancienne
     # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
@@ -1232,7 +1221,9 @@ class GN:
 
         objets = list(self.objets.values())
         for objet_de_reference in objets:
-            # print(f"debug : objref : {objet_de_reference} / {objet_de_reference.ajoute_via_forcage} / {objet_de_reference.id_url}")
+            # print(f"debug : objref : {objet_de_reference} /"
+            #       f" {objet_de_reference.ajoute_via_forcage} /"
+            #       f" {objet_de_reference.id_url}")
             if objet_de_reference.ajoute_via_forcage:
                 objet_de_reference.clear()
                 self.objets.pop(objet_de_reference.id_url)
@@ -1295,8 +1286,6 @@ class GN:
 
     def mettre_a_jour_champs(self):
         # mise à jour des formats de date et des factions
-        if not hasattr(self, 'date_self'):
-            self.date_self = None
         if not hasattr(self, 'factions'):
             self.factions = {}
         if not hasattr(self, 'id_factions'):
@@ -1327,6 +1316,8 @@ class GN:
             delattr(self, 'dictPNJs')
         if not hasattr(self, 'version'):
             self.version = VERSION
+        if hasattr(self, 'date_self'):
+            delattr(self, 'date_self')
 
         for scene in self.lister_toutes_les_scenes():
             if not hasattr(scene, 'date_absolue'):

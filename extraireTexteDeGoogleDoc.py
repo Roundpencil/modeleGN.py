@@ -1193,11 +1193,11 @@ def extraire_date_scene(balise_date, scene_a_ajouter):
     # print("date de la scène : " + scene_a_ajouter.date)
 
 
-def extraire_il_y_a_scene(baliseDate, scene_a_ajouter):
+def extraire_il_y_a_scene(balise_date, scene_a_ajouter):
     # print("balise date : " + balise_date)
     # print(f" pour sandrine : nom_scene avec il y a  : {scene_a_ajouter.titre}")
     # trouver s'il y a un nombre a[ns]
-    date_en_jours = calculer_jours_il_y_a(baliseDate)
+    date_en_jours = calculer_jours_il_y_a(balise_date)
     # print(f"dans extraire il y a scene : {date_en_jours} avant de mettre à jour")
 
     scene_a_ajouter.date = date_en_jours
