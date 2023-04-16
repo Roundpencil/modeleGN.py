@@ -35,6 +35,10 @@ from modeleGN import *
 # à faire - rapide
 
 # todo Prefixes configurables
+#  cf. exemples dans fichiers
+#  ajouter lecture dans les fichiers de paramètres
+#  ajouter les données dans le dictionnaire
+#  prendre en compte les paramètres dans les lecture de fichies
 
 # todo : vérifier la version du GN et actuelle au moment de lancer le chargement
 #  si plus récente :
