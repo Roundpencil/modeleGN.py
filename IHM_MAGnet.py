@@ -5,12 +5,16 @@ import webbrowser
 from tkinter import filedialog, ttk, messagebox
 from tkinter.ttk import Progressbar
 
+import extraireTexteDeGoogleDoc
 from MAGnet_lib import *
 from modeleGN import GN
 
 
 class Application(tk.Frame):
     def __init__(self,
+                 api_drive,
+                 api_doc,
+                 api_sheets,
                  mode_leger=True,
                  master=None):
         super().__init__(master)
@@ -26,9 +30,9 @@ class Application(tk.Frame):
         self.dict_config = None
 
         #variables pour avoir des lecteurs à disposition
-        self.apiDrive = None
-        self.apiDoc = None
-        self.apiSheets = None
+        self.api_drive = api_drive
+        self.api_doc = api_doc
+        self.api_sheets = api_sheets
 
         # self.master.geometry("450x150")
         # self.grid()
@@ -326,9 +330,9 @@ class Application(tk.Frame):
 
         def t_lancer_regeneration():
             lire_et_recharger_gn(mon_gn=self.gn,
-                                 api_drive=self.apiDrive,
-                                 api_doc=self.apiDoc,
-                                 api_sheets=self.apiSheets,
+                                 api_drive=self.api_drive,
+                                 api_doc=self.api_doc,
+                                 api_sheets=self.api_sheets,
                                  aides_de_jeu=aide_de_jeu_var.get(),
                                  liste_noms_pjs=self.dict_config.get(
                                      'liste_noms_pjs'),
@@ -372,9 +376,10 @@ class Application(tk.Frame):
         fichier_defaut = fichier_ini_defaut()
 
         if fichier_defaut:
-            self.lire_fichier_config(boutons, current_file_label, config_file=fichier_defaut)
+            # self.lire_fichier_config(boutons, current_file_label, config_file=fichier_defaut)
+            self.lire_verifier_config_updater_gui(boutons, fichier_defaut, current_file_label)
         else:
-            self.lire_fichier_config(boutons, current_file_label)
+            self.updater_boutons_disponibles(False, boutons)
 
     def updater_boutons_disponibles(self, on: bool, boutons: list):
         to_set = "normal" if on else "disabled"
@@ -384,20 +389,26 @@ class Application(tk.Frame):
     def change_config_file(self, boutons: list, display_label):
         config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
                                                  filetypes=(("ini files", "*.ini"), ("all files", "*.*")))
-        self.lire_fichier_config(boutons, display_label, config_file)
+        self.lire_verifier_config_updater_gui(boutons, config_file, display_label)
+
+    def lire_verifier_config_updater_gui(self, boutons:list, config_file:str, display_label):
+        display_label.config(text=config_file)
+        param_gn, resultats = extraireTexteDeGoogleDoc.charger_et_verifier_fichier_config(config_file, self.api_drive)
+        if param_gn:
+            # dans ce cas on a réussi à charger et les tests sont ok
+            # todo : charger le GN et préparer la régénération
+            self.updater_boutons_disponibles(True, boutons)
+        else:
+            self.updater_boutons_disponibles(False, boutons)
+            self.afficher_resultats(resultats, False)
+
+    # def change_config_file(self, boutons: list, display_label):
+    #     config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
+    #                                              filetypes=(("ini files", "*.ini"), ("all files", "*.*")))
+    #     self.lire_fichier_config(boutons, display_label, config_file)
 
     def lire_fichier_config(self, boutons: list, display_label, config_file: str = 'config.ini'):
         try:
-            self.dict_config = charger_fichier_init(config_file)
-            if self.dict_config is None:
-                texte_erreur = "Erreur lors de la lecture du fichier de configuration \n" \
-                               "Merci de le vérifier avant de le recharger"
-                messagebox.showinfo("Fichier de configuration non valide", texte_erreur)
-                self.updater_boutons_disponibles(False, boutons)
-                return
-            print(f"debug : dict config = {self.dict_config}")
-            self.updater_boutons_disponibles(True, boutons)
-            display_label.config(text=config_file)
             try:
                 self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'])
                 self.gn.injecter_config(dossiers_evenements=self.dict_config['dossiers_evenements'],
@@ -433,21 +444,7 @@ class Application(tk.Frame):
                              id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
                              dossiers_evenements=self.dict_config.get('dossiers_evenements')
                              )
-            if self.apiDoc is None or self.apiSheets is None or self.apiDrive is None:
-                self.apiDrive, self.apiDoc, self.apiSheets = lecteurGoogle.creer_lecteurs_google_apis()
 
-            if not self.derniere_version:
-                self.derniere_version, self.maj_versions, self.url_derniere_version = \
-                    verifier_derniere_version(self.apiDoc)
-                if not self.derniere_version:
-                    # if not the latest version, show a popup with options to download or wait
-                    response = messagebox.askquestion("Un nouvelle version est disponible !",
-                                                      f"souhaitez-vous télécharger la mise à jour ? \n "
-                                                      f"{self.maj_versions}",
-                                                      icon="warning")
-                    if response == "yes":
-                        # if "Download" button clicked, open the latest version URL in the web browser
-                        webbrowser.open_new(self.url_derniere_version)
 
 
         except Exception as e:
@@ -471,7 +468,7 @@ class Application(tk.Frame):
 
             else:
                 # if other RefreshError is raised, show a popup with a generic error message
-                messagebox.showerror("Error", "Erreur inattendue.")
+                messagebox.showerror("Error", f"Erreur inattendue : {e}")
                 logging.debug(f"Erreur inattendue dans la lecture du fichier de configuration : {e}")
 
             traceback.print_exc()
@@ -520,9 +517,9 @@ class Application(tk.Frame):
         if self.dict_config:
         # if config_dict := charger_fichier_init(str(current_file_label)):
             resultats, test_reussi = extraireTexteDeGoogleDoc.verifier_fichier_config(self.dict_config,
-                                                                                      self.apiDrive,
-                                                                                      self.apiDoc,
-                                                                                      self.apiSheets)
+                                                                                      self.api_drive,
+                                                                                      self.api_doc,
+                                                                                      self.api_sheets)
             print(resultats)
             self.afficher_resultats(resultats, test_reussi)
         else:

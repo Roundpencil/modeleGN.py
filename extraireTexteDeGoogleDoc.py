@@ -269,7 +269,6 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
                             f"depuis le dernier passage ({dict_ids[item['id']].lastProcessing})")
                     break
 
-
             objet_de_reference = dict_ids.pop(item_id, None)
             nouvel_objet = extraire_elements_de_document(document, item, dict_ids, fonction_extraction, verbal=verbal)
             commentaires = extraire_commentaires_de_document_drive(api_drive, item_id)
@@ -1042,21 +1041,25 @@ def extraire_balise(balise, scene_a_ajouter, conteneur, noms_roles, tableau_role
         extraire_date_scene(balise.split("?", 1)[1], scene_a_ajouter)
     elif balise_lower.startswith('## il y a'):
         extraire_il_y_a_scene(balise[9:], scene_a_ajouter)
-    elif balise_lower.startswith('## date :') or balise_lower.startswith('## date:') or balise_lower.startswith('## date?'):
+    elif balise_lower.startswith('## date :') or balise_lower.startswith('## date:') or balise_lower.startswith(
+            '## date?'):
         extraire_date_absolue(balise.split(":", 1)[1], scene_a_ajouter)
     elif balise_lower.startswith('## qui?') or balise_lower.startswith('## qui ?'):
-        extraire_qui_scene(balise.split("?", 1)[1], conteneur, noms_roles, scene_a_ajouter, avec_tableau_des_persos=tableau_roles_existant)
+        extraire_qui_scene(balise.split("?", 1)[1], conteneur, noms_roles, scene_a_ajouter,
+                           avec_tableau_des_persos=tableau_roles_existant)
     elif balise_lower.startswith('## niveau :'):
         scene_a_ajouter.niveau = balise[11:].strip()
     elif balise_lower.startswith('## résumé :') or balise_lower.startswith('## résumé:'):
         scene_a_ajouter.resume = balise.split(":", 1)[1].strip()
-    elif balise_lower.startswith('## factions :') or balise_lower.startswith('## factions:') or balise_lower.startswith('## faction :') or balise_lower.startswith('## faction:'):
+    elif balise_lower.startswith('## factions :') or balise_lower.startswith('## factions:') or balise_lower.startswith(
+            '## faction :') or balise_lower.startswith('## faction:'):
         extraire_factions_scene(balise.split(":", 1)[1], scene_a_ajouter)
     elif balise_lower.startswith('## info :') or balise_lower.startswith('## info:'):
         extraire_infos_scene(balise.split(":", 1)[1], scene_a_ajouter)
     else:
         return False
     return True
+
 
 def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
     noms_roles = conteneur.get_noms_roles()
@@ -1595,6 +1598,8 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_a
                                                                 ErreurManager.ORIGINES.CHRONO_EVENEMENT)
             pj_concerne = current_evenement.pjs_concernes_evenement[score[0]]
             intervention.liste_pjs_concernes.append(pj_concerne)
+
+
 # def ajouter_intervenants(noms, intervenants_dans_evenement, seuil_alerte, intervention, erreur_manager):
 #     for nom in noms:
 #         score = process.extractOne(nom, intervenants_dans_evenement)
@@ -2624,10 +2629,17 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
     #            [[f"dossier_objets {i}", id] for i, id
     #             in enumerate(fichier_output.get('dossiers_objets', []), start=1)]
 
-
     # *** vérification que tous les paramètres Essentiels sont présents
+    # intégration du fichier de sortie
 
-    #intégration des dossier ingrigues et vérifications
+    try:
+        fichier_output['dossier_output'] = config.get('Essentiels', 'dossier_output_squelettes_pjs')
+    except configparser.NoOptionError:
+        resultats.append(
+            ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de dossier de sortie trouvé"])
+        test_global_reussi = False
+
+    # intégration des dossiers ingrigues et vérifications
     fichier_output['dossiers_intrigues'] = []
     clefs_pjs = [key for key in config.options("Essentiels") if key.startswith("id_dossier_intrigues")]
     for clef in clefs_pjs:
@@ -2638,9 +2650,9 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
         resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de dossier intrigue"])
         test_global_reussi = False
 
-    #intégration du mode association et vérifications
+    # intégration du mode association et vérifications
     try:
-        mode_association_value = int(config.get('Essentiels', 'mode_association'))
+        mode_association_value = int(config.get('Essentiels', 'mode_association', fallback=9)[0])
         if mode_association_value in [0, 1]:
             fichier_output['mode_association'] = GN.ModeAssociation(mode_association_value)
         else:
@@ -2651,19 +2663,19 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
             ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de mode association trouvé"])
         test_global_reussi = False
 
-    #intégration du fichier de sauvegarde
+    # intégration du fichier de sauvegarde
     try:
         fichier_output['nom_fichier_sauvegarde'] = config.get('Essentiels', 'nom_fichier_sauvegarde')
     except configparser.NoOptionError:
         resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de fichier de sauvegarde"])
         test_global_reussi = False
 
-    #intégration d'une ligne de bilan des tests essentiels
+    # intégration d'une ligne de bilan des tests essentiels
     if test_global_reussi:
         resultats.append(["Paramètre Essentiels", "Présence des champs", "Test Réussi"])
 
     # *** intégration des fichiers optionnels
-    #intégration des dossiers PJs
+    # intégration des dossiers PJs
     fichier_output['dossiers_pjs'] = []
     clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_pjs")]
     for clef in clefs_pjs:
@@ -2671,7 +2683,7 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
         dossiers_a_verifier.append([clef, valeur])
         fichier_output['dossiers_pjs'].append(valeur)
 
-    #intégration des dossiers PNJs
+    # intégration des dossiers PNJs
     fichier_output['dossiers_pnjs'] = []
     clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_pnjs")]
     for clef in clefs_pjs:
@@ -2679,7 +2691,7 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
         dossiers_a_verifier.append([clef, valeur])
         fichier_output['dossiers_pnjs'].append(valeur)
 
-    #intégration des dossiers Evenements
+    # intégration des dossiers Evenements
     fichier_output['dossiers_evenements'] = []
     clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_evenements")]
     for clef in clefs_pjs:
@@ -2687,7 +2699,7 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
         dossiers_a_verifier.append([clef, valeur])
         fichier_output['dossiers_evenements'].append(valeur)
 
-    #intégration des dossiers objets
+    # intégration des dossiers objets
     fichier_output['dossiers_objets'] = []
     clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_objets")]
     for clef in clefs_pjs:
@@ -2710,10 +2722,10 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
         logging.debug("Je suis en train de lire le fichier de config et je n'ai pas trouvé d'id pjpnj en ligne")
         fichier_output['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs', fallback=None)
         fichier_output['liste_noms_pjs'] = [nom_p.strip()
-                                         for nom_p in
-                                         config.get('Optionnels', 'noms_persos', fallback=None).split(',')]
+                                            for nom_p in
+                                            config.get('Optionnels', 'noms_persos', fallback=None).split(',')]
 
-    #ajout de la date du GN
+    # ajout de la date du GN
     texte_date_gn = config.get('Optionnels', 'date_gn', fallback=None)
     if texte_date_gn:
         fichier_output['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
@@ -2763,8 +2775,8 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
             test_global_reussi = False
 
     # Vérification des droits d'écriture dans le dossier de sortie
-    dossier_output_id = fichier_output['dossier_output']
     try:
+        dossier_output_id = fichier_output['dossier_output']
         permissions = api_drive.permissions().list(fileId=dossier_output_id).execute()
         droit_ecriture = any(
             permission['role'] in ['writer', 'owner']
@@ -2779,8 +2791,12 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
         resultats.append(["Droits en écriture", "sur le fichier de sortie", "Echec du Test"])
         logging.debug(f"Erreur durant la vérification des droits en écriture sur {dossier_output_id} : {error}")
         test_global_reussi = False
+    except KeyError as error:
+        resultats.append(["Droits en écriture", "sur le fichier de sortie", "Echec du Test"])
+        logging.debug(f"Pas de dossier d'écriture : {error}")
+        test_global_reussi = False
 
-
+    print(f"{fichier_output if test_global_reussi else None}, {resultats}")
     return fichier_output if test_global_reussi else None, resultats
 
 # # Utilisation de la méthode

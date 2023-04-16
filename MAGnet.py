@@ -1,6 +1,6 @@
 import argparse
 
-import MAGnet_lib
+import lecteurGoogle
 from IHM_MAGnet import *
 
 
@@ -41,12 +41,26 @@ def main():
 
     args = parser.parse_args()
 
+    # on crée les lecteurs
+    api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
+    derniere_version, maj_versions, url_derniere_version = verifier_derniere_version(api_doc)
+
+
     if not args.console:
         print("Lancement de l'IHM")
         root = tk.Tk()
         root.iconbitmap(r'coin-MAGNet.ico')
         style = ttk.Style(root)
         # root.tk.call('source', 'azure dark/azure dark.tcl')
+
+        if not derniere_version:
+            response = messagebox.askquestion("Un nouvelle version est disponible !",
+                                              f"souhaitez-vous télécharger la mise à jour ? \n "
+                                              f"{maj_versions}",
+                                              icon="warning")
+            if response == "yes":
+                # if "Download" button clicked, open the latest version URL in the web browser
+                webbrowser.open_new(url_derniere_version)
 
         mode_leger = True
         if not mode_leger:
@@ -56,6 +70,9 @@ def main():
             style.configure("Togglebutton", foreground='white')
 
         app = Application(mode_leger=mode_leger,
+                          api_drive = api_drive,
+                          api_doc = api_doc,
+                          api_sheets = api_sheets,
                           master=root)
         app.mainloop()
 

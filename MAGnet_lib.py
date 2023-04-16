@@ -2,25 +2,34 @@ import configparser
 import csv
 import os
 
-import dateparser
-
 import extraireTexteDeGoogleDoc
-import lecteurGoogle
 from modeleGN import *
 
 # communication :
 
 # bugs
+# todo : si pas de perso affecté, plantage dans la généraiton
+#  lors de l'appel de la focntion d'associtation qui renvoie None
+#  >> corriger en ignorant plutot que planter
+
+# todo : dans l'identification des documents, ajouter le fait que le nom doit COMMENCER par le préfixe
+
+
 
 # à tester
 
 # à faire - rapide
+# todo : finir la refaction du chargement des fichiers
+#  (bouton vérifier, chagement du gn, lancement de regen, boucle dans carnet)
+
 # todo : refaire la gestiond des fichiers de paramètre dans la GUI :
 #  1/ lire le fichier ini
 #  2/ tenter de le charger > Si erreur, afficher le diag
 #  3/ indépeddamment permettre ed faire tourner le diag sur le fichier en lui-même
 #  >> remttre les bons parmaètres dans le diag 4/
 
+# todo : changer tous les paramètres du GN en un dictionnaire qu'im remplace plutot que des masses de varaiables
+#  >>utiliser des focntions get_ pour remplacer tous les appels en dur par une lecture du dictionnaire sur appel
 
 
 
@@ -946,9 +955,7 @@ def generer_table_chrono_condensee_raw(gn: GN):
     for perso in list(gn.personnages.values()):
         mes_scenes = []
         for role in perso.roles:
-            for scene in role.scenes:
-                # print(f"{scene.titre} trouvée")
-                mes_scenes.append(scene)
+            mes_scenes.extend(iter(role.scenes))
         mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=gn.date_gn)
 
         # créer des lignes [date][évènement]
