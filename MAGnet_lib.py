@@ -42,8 +42,7 @@ from modeleGN import *
 
 # todo : vérifier la version du GN et actuelle au moment de lancer le chargement
 #  si plus récente :
-#       recharger
-#       mettre à jour version GN >> à la fin de l'update
+#       lancer un update
 #  sinon : rien
 
 # todo : ajouter les évènements dans les talbeaux récaps des PNJs
