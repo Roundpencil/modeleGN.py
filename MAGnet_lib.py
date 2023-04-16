@@ -6,6 +6,11 @@ import extraireTexteDeGoogleDoc
 from modeleGN import *
 
 # communication :
+#todo : VErson :
+# Corectioin mzx
+# Prefixes cinfugrab
+# Fin des evenemenst
+# version dans objet sGN pour lancer update
 
 # bugs
 # todo : si pas de perso affecté, plantage dans la généraiton
@@ -14,7 +19,7 @@ from modeleGN import *
 
 # todo : dans l'identification des documents, ajouter le fait que le nom doit COMMENCER par le préfixe
 
-
+# todo : version dans objet sGN pour lancer update
 
 # à tester
 
