@@ -213,7 +213,8 @@ class Personnage(ConteneurDeScene):
     #     return "nom personnage : " + self.nom
 
     def get_type_from_roles(self):
-        tous_les_types = [role.pj for role in self.roles] + [TypePerso.EST_PNJ_HORS_JEU]
+        tous_les_types = [role.pj for role in self.roles] + \
+                         [TypePerso.EST_PNJ_HORS_JEU] if self.est_un_pnj() else [TypePerso.EST_PJ]
         if len(self.intervient_comme) + len(self.informations_evenements) > 0:
             tous_les_types.append(TypePerso.EST_PNJ_TEMPORAIRE)
         return max(tous_les_types)
@@ -868,9 +869,9 @@ class GN:
             for role in intrigue.rolesContenus.values():
                 # on cherche les persos qui correspondent au critère,
                 # mais aussi qui ne viennent pas d'une faction : ceux-ci arrivent déjà associés
-                if critere(role.pj) and not role.issu_dune_faction and nom_association(role) is not None:
+                if critere(role.pj) and not role.issu_dune_faction and len(nom_association(role)) > 1:
                     # print(f"nom du role testé = {role.nom}")
-                    # print(f"debug : nom assocaition = {nom_association(role)} pour {role.nom}")
+                    print(f"debug : nom assocaition = {repr(nom_association(role))} pour {repr(role.nom)}")
                     # print(f"debug : nom assoce / noms = {nom_association(role)} / {noms_persos}")
                     score = process.extractOne(nom_association(role), noms_persos)
                     if verbal:

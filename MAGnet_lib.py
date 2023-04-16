@@ -7,36 +7,36 @@ from modeleGN import *
 
 # communication :
 #todo : VErson :
-# Corectioin mzx
-# Prefixes cinfugrab
-# Fin des evenemenst
-# version dans objet sGN pour lancer update
+# Correction d'un bug qui empêchait dans certains cas l'assocaition automatique de se produire
+# il FAUT un orga de référence pour chaque PJ dans le tabnleau de PJs
+
+#tester
 
 # bugs
-# todo : si pas de perso affecté, plantage dans la généraiton
-#  lors de l'appel de la focntion d'associtation qui renvoie None
-#  >> corriger en ignorant plutot que planter
+
+# todo reprendre message d'erreor sur l'expiration du token
+# todo : vérifier que si plusieurs fichers tous sont pris en compte dans la lecture (cf. 4/4 dans buffy)
+#  >> est-ce qu'il n'y a pas une erreur sur la boucle ou il s'arrete a la fin du premier fichier?
 
 # todo : dans l'identification des documents, ajouter le fait que le nom doit COMMENCER par le préfixe
-
-# todo : version dans objet sGN pour lancer update
 
 # à tester
 
 # à faire - rapide
-# todo : finir la refaction du chargement des fichiers
-#  (bouton vérifier, chagement du gn, lancement de regen, boucle dans carnet)
 
-# todo : refaire la gestiond des fichiers de paramètre dans la GUI :
-#  1/ lire le fichier ini
-#  2/ tenter de le charger > Si erreur, afficher le diag
-#  3/ indépeddamment permettre ed faire tourner le diag sur le fichier en lui-même
-#  >> remttre les bons parmaètres dans le diag 4/
+#todo : remettere l'ouverture d'un fichier par défaut
+
+# todo Prefixes configurables
+
+# todo version dans objet GN pour lancer update
+
+
+# todo Fin des evenemenst
+
+# todo : version dans objet sGN pour lancer update
 
 # todo : changer tous les paramètres du GN en un dictionnaire qu'im remplace plutot que des masses de varaiables
 #  >>utiliser des focntions get_ pour remplacer tous les appels en dur par une lecture du dictionnaire sur appel
-
-
 
 #todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
@@ -1543,7 +1543,7 @@ def fichier_ini_defaut():
     if len(ini_files) == 1:
         return os.path.abspath(ini_files[0])
     else:
-        return None
+        return "config.ini"
 
 def verifier_derniere_version(api_doc):
     try:

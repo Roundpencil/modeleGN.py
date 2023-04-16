@@ -376,12 +376,14 @@ class Application(tk.Frame):
                                                                                      afficher=True))
 
         fichier_defaut = fichier_ini_defaut()
+        current_file_label['text'] = fichier_defaut
+        self.lire_verifier_config_updater_gui(boutons, current_file_label, False)
 
-        if fichier_defaut:
-            # self.lire_fichier_config(boutons, current_file_label, config_file=fichier_defaut)
-            self.lire_verifier_config_updater_gui(boutons, fichier_defaut, current_file_label)
-        else:
-            self.updater_boutons_disponibles(False, boutons)
+        # if fichier_defaut:
+        #     # self.lire_fichier_config(boutons, current_file_label, config_file=fichier_defaut)
+        #     self.lire_verifier_config_updater_gui(boutons, fichier_defaut, current_file_label)
+        # else:
+        #     self.updater_boutons_disponibles(False, boutons)
 
     def updater_boutons_disponibles(self, on: bool, boutons: list):
         to_set = "normal" if on else "disabled"
@@ -402,6 +404,8 @@ class Application(tk.Frame):
         if param_gn:
             # dans ce cas on a réussi à charger et les tests sont ok
             # todo : charger le GN et préparer la régénération
+            self.dict_config = param_gn
+            self.lire_gn_et_injecter_config(boutons)
             self.updater_boutons_disponibles(True, boutons)
         else:
             self.updater_boutons_disponibles(False, boutons)
@@ -412,7 +416,7 @@ class Application(tk.Frame):
     #                                              filetypes=(("ini files", "*.ini"), ("all files", "*.*")))
     #     self.lire_fichier_config(boutons, display_label, config_file)
 
-    def lire_fichier_config(self, boutons: list, display_label, config_file: str = 'config.ini'):
+    def lire_gn_et_injecter_config(self, boutons: list):
         try:
             try:
                 self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'])

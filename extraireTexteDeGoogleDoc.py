@@ -2743,12 +2743,17 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
             # dossier = api_drive.files().get(fileId=dossier_id).execute()
 
             folder_metadata = api_drive.files().get(fileId=dossier_id).execute()
+            print(f"debug : dossier ID {dossier_id}")
             # Récupérer le nom du dossier
             folder_name = folder_metadata['name']
 
             resultats.append([parametre, folder_name, "Test Réussi"])
         except HttpError as error:
             resultats.append([parametre, "", "Echec du Test"])
+            logging.debug(f"Erreur durant la vérification du dossier {dossier_id} : {error}")
+            test_global_reussi = False
+        except KeyError as error :
+            resultats.append([parametre, "impossible de lire le paramètre", "Echec du Test"])
             logging.debug(f"Erreur durant la vérification du dossier {dossier_id} : {error}")
             test_global_reussi = False
 

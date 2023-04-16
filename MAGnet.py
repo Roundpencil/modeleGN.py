@@ -42,6 +42,7 @@ def main():
     args = parser.parse_args()
 
     # on crée les lecteurs
+    # todo : ajouter errreurs sur expiration du token ici
     api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
     derniere_version, maj_versions, url_derniere_version = verifier_derniere_version(api_doc)
 
