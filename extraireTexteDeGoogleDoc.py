@@ -2611,10 +2611,14 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
     test_global_reussi = True
     fichier_output = {}
 
-    # #création du fichier d'entrée
-    # init configuration
-    config = configparser.ConfigParser()
-    config.read(fichier_init)
+    try:
+        # #création du fichier d'entrée
+        # init configuration
+        config = configparser.ConfigParser()
+        config.read(fichier_init)
+    except Exception as e:
+        logging.debug(f"Une erreur est survenue en lisant le fichier config : {e}")
+        return None, [["Fichier configuration", "Erreur dans la structure du fichier", "Echec du test"]]
 
     dossiers_a_verifier = []
     google_docs_a_verifier = []

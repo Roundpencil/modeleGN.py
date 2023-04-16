@@ -8,8 +8,6 @@ import re
 from fuzzywuzzy import process
 import sys
 
-import MAGnet_lib
-
 
 class TypePerso(IntEnum):
     EST_PNJ_HORS_JEU = 1
