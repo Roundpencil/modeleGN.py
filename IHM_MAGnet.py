@@ -389,10 +389,11 @@ class Application(tk.Frame):
     def change_config_file(self, boutons: list, display_label):
         config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
                                                  filetypes=(("ini files", "*.ini"), ("all files", "*.*")))
-        self.lire_verifier_config_updater_gui(boutons, config_file, display_label)
-
-    def lire_verifier_config_updater_gui(self, boutons:list, config_file:str, display_label):
         display_label.config(text=config_file)
+        self.lire_verifier_config_updater_gui(boutons, display_label)
+
+    def lire_verifier_config_updater_gui(self, boutons:list, display_label):
+        config_file = display_label['text']
         param_gn, resultats = extraireTexteDeGoogleDoc.charger_et_verifier_fichier_config(config_file, self.api_drive)
         if param_gn:
             # dans ce cas on a réussi à charger et les tests sont ok
