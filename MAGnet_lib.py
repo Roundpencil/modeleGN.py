@@ -60,63 +60,6 @@ ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 def print_progress(v: float):
     print(f"La génération a progressé de {v}%")
 
-
-
-def charger_fichier_init(fichier_init: str):
-        mode_association = config.get('Essentiels', 'mode_association')
-
-        dict_association = {mode.value: mode for mode in GN.ModeAssociation}
-        # print(f"debug : dict assoce {dict_association}")
-
-        dict_config['mode_association'] = dict_association[int(mode_association[0])]
-        # print(f"debug : mode association = {mode_association} // {dict_config['mode_association']}")
-
-
-        dict_config['nom_fichier_sauvegarde'] = config.get('Essentiels', 'nom_fichier_sauvegarde')
-
-        # lecture des informations optionnelles
-        dict_config['dossiers_pjs'] = [config.get("Optionnels", key)
-                                       for key in config.options("Optionnels")
-                                       if key.startswith("id_dossier_pjs")]
-
-        dict_config['dossiers_pnjs'] = [config.get("Optionnels", key)
-                                        for key in config.options("Optionnels")
-                                        if key.startswith("id_dossier_pnjs")]
-
-        dict_config['dossiers_evenements'] = [config.get("Optionnels", key)
-                                              for key in config.options("Optionnels")
-                                              if key.startswith("id_dossier_evenements")]
-
-        dict_config['dossiers_objets'] = [config.get("Optionnels", key)
-                                          for key in config.options("Optionnels")
-                                          if key.startswith("id_dossier_objets")]
-
-        dict_config['id_factions'] = config.get('Optionnels', 'id_factions', fallback=None)
-
-        dict_config['id_pjs_et_pnjs'] = config.get('Optionnels', 'id_pjs_et_pnjs', fallback=None)
-
-        if dict_config['id_pjs_et_pnjs'] is None:
-            logging.debug("Je suis en train de lire le fichier de config et je n'ai pas trouvé d'id pjpnj en ligne")
-            dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs', fallback=None)
-            dict_config['liste_noms_pjs'] = [nom_p.strip()
-                                             for nom_p in
-                                             config.get('Optionnels', 'noms_persos', fallback=None).split(',')]
-
-        texte_date_gn = config.get('Optionnels', 'date_gn', fallback=None)
-        if texte_date_gn is not None:
-            texte_date_gn = texte_date_gn.strip()
-            logging.debug(f"texte_date_gn = {texte_date_gn} / {type(texte_date_gn)}")
-            dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
-            logging.debug(f"date_gn formattée = {dict_config['date_gn']}")
-        logging.debug(f"pour ce GN, date_gn = {dict_config.get('date_gn', 'Pas de date lue')}")
-
-    except configparser.Error as e:
-        # Erreur lors de la lecture d'un paramètre dans le fichier de configuration
-        print(f"Erreur lors de la lecture du fichier de configuration : {e}")
-        return None
-    return dict_config
-
-
 def lire_fichier_pnjs(nom_fichier: str):
     to_return = []
     try:
