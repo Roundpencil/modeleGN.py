@@ -56,8 +56,7 @@ class Application(tk.Frame):
         # v_config_button.grid(row=1, column=0, pady=(10, 10), padx=(10, 10))
         # v_config_button(command=lambda: self.verifier_config_et_afficher_popup())
 
-        v_config_button = ttk.Button(ini_labelframe, text="Vérifier le fichier de configuration",
-                                     command=lambda: self.verifier_config_et_afficher_popup())
+        v_config_button = ttk.Button(ini_labelframe, text="Vérifier le fichier de configuration")
         v_config_button.grid(row=1, column=0, pady=(10, 10), padx=(10, 10))
 
         # Create the label
@@ -372,6 +371,9 @@ class Application(tk.Frame):
         ok_button.grid(row=200, column=1, pady=(0, 10))
         boutons = [ok_button, forcer_update_gn_button]
         config_button.config(command=lambda: self.change_config_file(boutons, current_file_label))
+        v_config_button.config(command=lambda: self.lire_verifier_config_updater_gui(boutons,
+                                                                                     current_file_label,
+                                                                                     afficher=True))
 
         fichier_defaut = fichier_ini_defaut()
 
@@ -392,9 +394,11 @@ class Application(tk.Frame):
         display_label.config(text=config_file)
         self.lire_verifier_config_updater_gui(boutons, display_label)
 
-    def lire_verifier_config_updater_gui(self, boutons:list, display_label):
+    def lire_verifier_config_updater_gui(self, boutons:list, display_label, afficher = False):
         config_file = display_label['text']
         param_gn, resultats = extraireTexteDeGoogleDoc.charger_et_verifier_fichier_config(config_file, self.api_drive)
+        if afficher:
+            self.afficher_resultats(resultats, param_gn)
         if param_gn:
             # dans ce cas on a réussi à charger et les tests sont ok
             # todo : charger le GN et préparer la régénération
@@ -513,15 +517,3 @@ class Application(tk.Frame):
         tree.pack(padx=10, pady=10)
 
         root.mainloop()
-
-    def verifier_config_et_afficher_popup(self):
-        if self.dict_config:
-        # if config_dict := charger_fichier_init(str(current_file_label)):
-            resultats, test_reussi = extraireTexteDeGoogleDoc.verifier_fichier_config(self.dict_config,
-                                                                                      self.api_drive,
-                                                                                      self.api_doc,
-                                                                                      self.api_sheets)
-            print(resultats)
-            self.afficher_resultats(resultats, test_reussi)
-        else:
-            messagebox.showerror("Erreur", "Erreur lors du chargement du fichier de configuration.")
