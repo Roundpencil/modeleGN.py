@@ -64,7 +64,7 @@ class Application(tk.Frame):
         current_file_label = ttk.Label(ini_labelframe, text="Fichier ini actuel : Aucun")
         current_file_label.grid(row=0, column=1, columnspan=3, sticky='w')
 
-        v_config_label = ttk.Label(ini_labelframe, text="Fichier de configuration non vérifié")
+        v_config_label = tk.Label(ini_labelframe, text="Fichier de configuration non vérifié")
         v_config_label.grid(row=1, column=1, columnspan=3, sticky='w')
 
 
@@ -405,19 +405,23 @@ class Application(tk.Frame):
     def lire_verifier_config_updater_gui(self, boutons:list, display_label, v_config_label, afficher=False):
         config_file = display_label['text']
         param_gn, resultats = extraireTexteDeGoogleDoc.charger_et_verifier_fichier_config(config_file, self.api_drive)
-        if afficher:
-            self.afficher_resultats(resultats, param_gn)
-        if param_gn:
+
+        # print(f"repr des champs : {repr(display_label)} - {display_label}, {repr(v_config_label)} - {v_config_label}")
+
+        # print(f"param GN = {param_gn}")
+        if param_gn is not None:
+            if afficher:
+                self.afficher_resultats(resultats, param_gn)
             # dans ce cas on a réussi à charger et les tests sont ok
-            # todo : charger le GN et préparer la régénération
-            v_config_label['text'] = "Vérification fichier de configuration ok"
+            v_config_label.config(text="Vérification fichier de configuration ok")
             self.dict_config = param_gn
             self.lire_gn_et_injecter_config(boutons)
             self.updater_boutons_disponibles(True, boutons)
         else:
-            v_config_label['text'] = "Verifications fichier de configuration ko : corrigez les et re-vérifiez"
-            self.updater_boutons_disponibles(False, boutons)
             self.afficher_resultats(resultats, False)
+            v_config_label.config(text="Verifications fichier de configuration ko : corrigez les et re-vérifiez")
+            self.updater_boutons_disponibles(False, boutons)
+
 
     # def change_config_file(self, boutons: list, display_label):
     #     config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
@@ -499,17 +503,52 @@ class Application(tk.Frame):
             self.dict_config = None
             self.updater_boutons_disponibles(False, boutons)
 
+    # def afficher_resultats(self, resultats, test_global_reussi):
+    #     root = tk.Tk()
+    #
+    #     if test_global_reussi:
+    #         root.title("Tests Réussis")
+    #         # root.iconbitmap("success_icon.ico")  # Remplacez par le chemin vers l'icône de succès
+    #     else:
+    #         root.title("Tests Échoués")
+    #         # root.iconbitmap("failure_icon.ico")  # Remplacez par le chemin vers l'icône d'échec
+    #
+    #     tree = ttk.Treeview(root, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
+    #
+    #     tree.heading("#0", text="")
+    #     tree.column("#0", width=0, minwidth=0, stretch=tk.NO)
+    #
+    #     tree.heading("Paramètre", text="Nom du paramètre")
+    #     tree.column("Paramètre", anchor=tk.W)
+    #
+    #     tree.heading("Nom du fichier lu", text="Nom du fichier lu")
+    #     tree.column("Nom du fichier lu", anchor=tk.W)
+    #
+    #     tree.heading("Résultat du test", text="Résultat du test")
+    #     tree.column("Résultat du test", anchor=tk.W)
+    #
+    #     for res in resultats:
+    #         tree.insert('', tk.END, values=(res[0], res[1], res[2]))
+    #
+    #     tree.pack(padx=10, pady=10)
+    #
+    #     root.mainloop()
+
+
     def afficher_resultats(self, resultats, test_global_reussi):
-        root = tk.Tk()
+        def close_popup():
+            popup.destroy()
+
+        popup = tk.Toplevel(self.master)
 
         if test_global_reussi:
-            root.title("Tests Réussis")
-            # root.iconbitmap("success_icon.ico")  # Remplacez par le chemin vers l'icône de succès
+            popup.title("Tests Réussis")
+            # popup.iconbitmap("success_icon.ico")  # Replace with the path to the success icon
         else:
-            root.title("Tests Échoués")
-            # root.iconbitmap("failure_icon.ico")  # Remplacez par le chemin vers l'icône d'échec
+            popup.title("Tests Échoués")
+            # popup.iconbitmap("failure_icon.ico")  # Replace with the path to the failure icon
 
-        tree = ttk.Treeview(root, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
+        tree = ttk.Treeview(popup, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
 
         tree.heading("#0", text="")
         tree.column("#0", width=0, minwidth=0, stretch=tk.NO)
@@ -528,4 +567,10 @@ class Application(tk.Frame):
 
         tree.pack(padx=10, pady=10)
 
-        root.mainloop()
+        # Create an "OK" button to close the popup
+        ok_button = tk.Button(popup, text="OK", command=close_popup)
+        ok_button.pack(pady=10)
+
+        popup.transient(self.master)
+        popup.grab_set()
+        self.master.wait_window(popup)
