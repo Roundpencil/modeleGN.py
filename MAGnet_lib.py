@@ -7,34 +7,36 @@ from modeleGN import *
 
 
 # communication :
-
-# documentation
-
-# tester
-# todo : # ajoyt d'une fin des evenements dans les fiches évènements
-# todo reprendre message d'error sur l'expiration du token
-
-# bugs
-# todo : vérifier que si plusieurs fichers tous sont pris en compte dans la lecture (cf. 4/4 dans buffy)
-#  >> est-ce qu'il n'y a pas une erreur sur la boucle ou il s'arrete a la fin du premier fichier?
-
-
-# à tester
-
-# à faire - rapide
-# todo : changer tous les paramètres du GN en un dictionnaire qu'il remplace plutot que des masses de varaiables
-#  >>utiliser des focntions get_ pour remplacer tous les appels en dur par une lecture du dictionnaire sur appel
-
 # todo Prefixes configurables
 #  cf. exemples dans fichiers
 #  ajouter lecture dans les fichiers de paramètres
 #  ajouter les données dans le dictionnaire
-#  prendre en compte les paramètres dans les lecture de fichies
+#  prendre en compte les paramètres dans les lecture de fiches
+# todo : ajouter un paramètre pour définir des préfixes favoris
 
+# documentation
+# todo Prefixes configurables
+#  cf. exemples dans fichiers
+#  ajouter lecture dans les fichiers de paramètres
+#  ajouter les données dans le dictionnaire
+#  prendre en compte les paramètres dans les lecture de fiches
+# todo : ajouter un paramètre pour définir des préfixes favoris
+
+# tester
+# todo : # ajoyt d'une fin des evenements dans les fiches évènements
+# todo reprendre message d'error sur l'expiration du token
+# todo : changer tous les paramètres du GN en un dictionnaire qu'il remplace plutot que des masses de varaiables
+#  >>utiliser des focntions get_ pour remplacer tous les appels en dur par une lecture du dictionnaire sur appel
+
+# bugs
+#todo : comprendre ce qu'il se passe avec les fiches des PJs et PNJs qui lisent tout qu'oi qu'il arrive
+#  >> est-ce qu'il n'y a pas une erreur sur la boucle ou il s'arrete a la fin du premier fichier?
+
+# à tester
+
+# à faire - rapide
 
 # todo : ajouter les évènements dans les talbeaux récaps des PNJs
-
-# todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
 
 
 # à faire - plus long
@@ -51,9 +53,9 @@ from modeleGN import *
 
 # todo : refaire version console
 
-# todo créer un objet Paramètre qui stoque les paramètres du GN et les passer pour simplifier les créations
-
-# todo : ajouter un paramètre pour définir des préfixes favoris
+# utilité du code
+# todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
+#todo : regarder s'il faut virer  les last modfied dans le GN
 
 def print_progress(v: float):
     print(f"La génération a progressé de {v}%")

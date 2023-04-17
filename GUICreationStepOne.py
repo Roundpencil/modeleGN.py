@@ -89,7 +89,7 @@ def display_panel():
     ok_button = tk.Button(root, text="OK", command=on_ok_click)
     ok_button.grid(column=0, row=100, pady=10)
     annuler_button = tk.Button(root, text="Annuler", command=on_annuler_click)
-    annuler_button.grid(column=0, row=100, pady=10)
+    annuler_button.grid(column=1, row=100, pady=10)
 
     root.mainloop()
 

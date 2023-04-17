@@ -748,6 +748,21 @@ class GN:
     def get_fichier_pnjs(self):
         return self.dict_config.get('fichier_pnjs', None)
 
+    def get_prefixe_intrigues(self):
+        return self.dict_config['prefixe_intrigues']
+
+    def get_prefixe_evenements(self):
+        return self.dict_config['prefixe_evenements']
+
+    def get_prefixe_PJs(self):
+        return self.dict_config['prefixe_PJs']
+
+    def get_prefixe_PNJs(self):
+        return self.dict_config['prefixe_PNJs']
+
+    def get_prefixe_objets(self):
+        return self.dict_config['prefixe_objets']
+
     class ModeAssociation(IntEnum):
         AUTO = 0
         MANUEL_VIA_FICHES = 1

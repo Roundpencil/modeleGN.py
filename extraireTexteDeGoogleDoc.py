@@ -17,7 +17,8 @@ def extraire_intrigues(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=
     print("Début de la lecture des intrigues")
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_intrigue_de_texte, mon_gn.intrigues,
                                         mon_gn.get_dossiers_intrigues(),
-                                        singletest, verbal=verbal, fast=fast, prefixes="i", m_print=m_print,
+                                        singletest, verbal=verbal, fast=fast, prefixes=mon_gn.get_prefixe_intrigues(),
+                                        m_print=m_print,
                                         visualisation=visualisation,
                                         taille_visualisation=taille_visualisation
                                         )
@@ -31,7 +32,7 @@ def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False,
         api_drive, api_doc, extraire_persos_de_texte, mon_gn.personnages, mon_gn.get_dossiers_pjs(),
         # api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
         singletest,
-        verbal=verbal, fast=fast, prefixes="p", m_print=m_print,
+        verbal=verbal, fast=fast, prefixes=mon_gn.get_prefixe_PJs(), m_print=m_print,
         visualisation=visualisation,
         taille_visualisation=taille_visualisation)
 
@@ -52,7 +53,7 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_pnj_de_texte, mon_gn.personnages,
                                         mon_gn.get_dossiers_pnjs(),
                                         singletest,
-                                        verbal=verbal, fast=fast, prefixes="p", m_print=m_print,
+                                        verbal=verbal, fast=fast, prefixes=mon_gn.get_prefixe_PNJs(), m_print=m_print,
                                         visualisation=visualisation,
                                         taille_visualisation=taille_visualisation)
 
@@ -67,7 +68,8 @@ def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_evenement_de_texte, mon_gn.evenements,
                                         mon_gn.get_dossiers_evenements(),
                                         singletest,
-                                        verbal=verbal, fast=fast, prefixes="e", m_print=m_print,
+                                        verbal=verbal, fast=fast, prefixes=mon_gn.get_prefixe_evenements(),
+                                        m_print=m_print,
                                         visualisation=visualisation,
                                         taille_visualisation=taille_visualisation)
 
@@ -82,7 +84,7 @@ def extraire_objets(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=Fal
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_objets_de_texte, mon_gn.objets,
                                         mon_gn.get_dossiers_objets(),
                                         singletest,
-                                        verbal=verbal, fast=fast, prefixes="ao", m_print=m_print,
+                                        verbal=verbal, fast=fast, prefixes=mon_gn.get_prefixe_objets(), m_print=m_print,
                                         visualisation=visualisation,
                                         taille_visualisation=taille_visualisation)
 
@@ -2738,6 +2740,14 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
         logging.debug(f"date_gn formattée = {fichier_output['date_gn']}")
     else:
         logging.debug("pour ce GN, date_gn = Pas de date lue")
+
+    fichier_output['prefixe_intrigues'] = config.get('Optionnels', 'prefixe_intrigues', fallback="I")
+    fichier_output['prefixe_evenements'] = config.get('Optionnels', 'prefixe_evenements', fallback="E")
+    fichier_output['prefixe_PJs'] = config.get('Optionnels', 'prefixe_PJs', fallback="P")
+    fichier_output['prefixe_PNJs'] = config.get('Optionnels', 'prefixe_PNJs', fallback="N")
+    fichier_output['prefixe_objets'] = config.get('Optionnels', 'prefixe_objets', fallback="O")
+
+
 
     # a ce stade là on a :
     # 1. intégré tous les paramètres au fichier de sortie
