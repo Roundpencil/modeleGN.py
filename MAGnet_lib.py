@@ -1543,12 +1543,21 @@ def verifier_derniere_version(api_doc):
         texte = extraireTexteDeGoogleDoc.lire_google_doc(api_doc, ID_FICHIER_VERSION)
         to_return = ""
         last_url = None
+        start_include = False
+        ma_version = version.parse(VERSION)
+
         for ligne in texte.splitlines():
-            if ligne == VERSION:
-                break
+            try:
+                if version.parse(ligne) == ma_version:
+                    break
+                #du coup si pas d'exception, c'est qu'on avait un numéro de version, mais pas l'actuel, on lit !
+                start_include = True
+            except packaging.version.InvalidVersion:
+                pass
+
             if ligne.startswith("https") and last_url is None:
                 last_url = ligne
-            else:
+            elif start_include:
                 # print(ligne)
                 to_return += ligne + '\n'
 
