@@ -2,6 +2,7 @@ import configparser
 import csv
 import os
 
+
 import extraireTexteDeGoogleDoc
 from modeleGN import *
 
@@ -1546,23 +1547,27 @@ def verifier_derniere_version(api_doc):
         last_url = None
         start_include = False
         ma_version = version.parse(VERSION)
+        last_version = None
 
         for ligne in texte.splitlines():
             try:
-                if version.parse(ligne) == ma_version:
+                version_lue = version.parse(ligne)
+                if last_version is None:
+                    last_version = version_lue
+                if version_lue == ma_version:
                     break
-                #du coup si pas d'exception, c'est qu'on avait un numéro de version, mais pas l'actuel, on lit !
-                start_include = True
-            except packaging.version.InvalidVersion:
+            except version.InvalidVersion:
                 pass
 
-            if ligne.startswith("https") and last_url is None:
-                last_url = ligne
-            elif start_include:
-                # print(ligne)
+            if ligne.startswith("https"):
+                if last_url is None:
+                    last_url = ligne
+            else:
                 to_return += ligne + '\n'
 
-        return last_url is None, to_return, last_url
+        # print(f"last version / ma version = {last_version} / {ma_version} / {ma_version > last_version}")
+        return last_version <= ma_version, to_return, last_url
+        # return last_url is None, to_return, last_url
 
     except Exception as e:
         print(f"{e}")

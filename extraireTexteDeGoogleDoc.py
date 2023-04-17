@@ -2747,6 +2747,7 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
     fichier_output['prefixe_PNJs'] = config.get('Optionnels', 'prefixe_PNJs', fallback="N")
     fichier_output['prefixe_objets'] = config.get('Optionnels', 'prefixe_objets', fallback="O")
 
+    fichier_output['liste_noms_pjs'] = config.get('Optionnels', 'noms_persos', fallback=None)
 
 
     # a ce stade là on a :

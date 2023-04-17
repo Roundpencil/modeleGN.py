@@ -49,6 +49,7 @@ def main():
     try:
         api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
         derniere_version, maj_versions, url_derniere_version = verifier_derniere_version(api_doc)
+        # print(f"derniere version = {derniere_version}")
     except Exception as e:
         if "Token has been expired or revoked." in str(e):
             # if token has been expired or revoked, show a popup with a specific error message

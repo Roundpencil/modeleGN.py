@@ -407,7 +407,7 @@ class Application(tk.Frame):
         param_gn, resultats = extraireTexteDeGoogleDoc.charger_et_verifier_fichier_config(config_file, self.api_drive)
 
         # print(f"repr des champs : {repr(display_label)} - {display_label}, {repr(v_config_label)} - {v_config_label}")
-
+        print(f"pgr = {(param_gn, resultats)}")
         # print(f"param GN = {param_gn}")
         if param_gn is not None:
             if afficher:
@@ -453,18 +453,19 @@ class Application(tk.Frame):
             #       f"id_factions= {self.dict_config.get('id_factions')}")
 
         except Exception as f:
-            print(traceback.format_exc())
+            # print(traceback.format_exc())
             print(f"une erreur est survenue qui a conduit à re-créer un self : {f}")
-            print(f"le self {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
-            self.gn = GN(dossiers_intrigues=self.dict_config['dossiers_intrigues'],
-                         dossier_output=self.dict_config['dossier_output'],
-                         mode_association=self.dict_config['mode_association'],
-                         dossiers_pj=self.dict_config.get('dossiers_pjs'),
-                         dossiers_pnj=self.dict_config.get('dossiers_pjs'),
-                         id_factions=self.dict_config.get('id_factions'),
-                         id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
-                         dossiers_evenements=self.dict_config.get('dossiers_evenements')
-                         )
+            print(f"le fichier de sauvegarde {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
+            # self.gn = GN(dossiers_intrigues=self.dict_config['dossiers_intrigues'],
+            #              dossier_output=self.dict_config['dossier_output'],
+            #              mode_association=self.dict_config['mode_association'],
+            #              dossiers_pj=self.dict_config.get('dossiers_pjs'),
+            #              dossiers_pnj=self.dict_config.get('dossiers_pjs'),
+            #              id_factions=self.dict_config.get('id_factions'),
+            #              id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
+            #              dossiers_evenements=self.dict_config.get('dossiers_evenements')
+            #              )
+            self.gn = GN(dict_config=self.dict_config, ma_version=VERSION)
 
 
 
