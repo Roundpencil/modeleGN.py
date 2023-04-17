@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 import configparser
-import logging
 from enum import Enum
 
 import dateparser
@@ -12,11 +11,12 @@ import lecteurGoogle
 from modeleGN import *
 
 
-def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
+def extraire_intrigues(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
                        visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
                        taille_visualisation=100.0):
+    print("Début de la lecture des intrigues")
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_intrigue_de_texte, mon_gn.intrigues,
-                                        mon_gn.dossiers_intrigues,
+                                        mon_gn.get_dossiers_intrigues(),
                                         singletest, verbal=verbal, fast=fast, prefixes="i", m_print=m_print,
                                         visualisation=visualisation,
                                         taille_visualisation=taille_visualisation
@@ -26,9 +26,9 @@ def extraire_intrigues(mon_gn, api_drive, api_doc, singletest="-01", verbal=Fals
 def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
                  visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
                  taille_visualisation=100.0):
-    # print(f"je m'apprête à extraire les PJs depuis {gn.dossiers_pjs}")
+    print(f"je m'apprête à extraire les PJs depuis {mon_gn.get_dossiers_pjs()}")
     return extraire_texte_de_google_doc(
-        api_drive, api_doc, extraire_persos_de_texte, mon_gn.personnages, mon_gn.dossiers_pjs,
+        api_drive, api_doc, extraire_persos_de_texte, mon_gn.personnages, mon_gn.get_dossiers_pjs(),
         # api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
         singletest,
         verbal=verbal, fast=fast, prefixes="p", m_print=m_print,
@@ -39,8 +39,8 @@ def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False,
 def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
                   visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
                   taille_visualisation=100.0):
-    # print(f"je m'apprête à extraire les PNJs depuis {gn.dossiers_pnjs}")
-    if mon_gn.dossiers_pnjs is None or len(mon_gn.dossiers_pnjs) == 0:
+    print(f"je m'apprête à extraire les PNJs depuis {mon_gn.get_dossiers_pnjs()}")
+    if mon_gn.get_dossiers_pnjs() is None or len(mon_gn.get_dossiers_pnjs()) == 0:
         logging.debug("pas de dossier pnj trouvé dans le gn")
         return
     # return extraire_texte_de_google_doc(
@@ -50,7 +50,7 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
     #                                     verbal=verbal, fast=fast, prefixes="p")
 
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_pnj_de_texte, mon_gn.personnages,
-                                        mon_gn.dossiers_pnjs,
+                                        mon_gn.get_dossiers_pnjs(),
                                         singletest,
                                         verbal=verbal, fast=fast, prefixes="p", m_print=m_print,
                                         visualisation=visualisation,
@@ -60,12 +60,12 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
 def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
                         visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
                         taille_visualisation=100.0):
-    # print(f"je m'apprete à extraire les évènements depuis {mon_gn.dossiers_evenements}")
-    if mon_gn.dossiers_evenements is None or len(mon_gn.dossiers_evenements) == 0:
+    print(f"je m'apprete à extraire les évènements depuis {mon_gn.get_dossiers_evenements()}")
+    if mon_gn.get_dossiers_evenements() is None or len(mon_gn.get_dossiers_evenements()) == 0:
         logging.debug("pas de dossier évènement trouvé dans le gn")
         return
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_evenement_de_texte, mon_gn.evenements,
-                                        mon_gn.dossiers_evenements,
+                                        mon_gn.get_dossiers_evenements(),
                                         singletest,
                                         verbal=verbal, fast=fast, prefixes="e", m_print=m_print,
                                         visualisation=visualisation,
@@ -75,12 +75,12 @@ def extraire_evenements(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal
 def extraire_objets(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
                     visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
                     taille_visualisation=100.0):
-    print(f"je m'apprete à extraire les objets depuis {mon_gn.dossiers_objets}")
-    if mon_gn.dossiers_objets is None or len(mon_gn.dossiers_objets) == 0:
+    print(f"je m'apprete à extraire les objets depuis {mon_gn.get_dossiers_objets()}")
+    if mon_gn.get_dossiers_objets() is None or len(mon_gn.get_dossiers_objets()) == 0:
         logging.debug("pas de dossier objets trouvé dans le gn")
         return
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_objets_de_texte, mon_gn.objets,
-                                        mon_gn.dossiers_objets,
+                                        mon_gn.get_dossiers_objets(),
                                         singletest,
                                         verbal=verbal, fast=fast, prefixes="ao", m_print=m_print,
                                         visualisation=visualisation,
@@ -368,7 +368,7 @@ def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_e
         RELATIONS_BI = "relations bilatérales induites par cette intrigue"
         RELATIONS_MULTI = "relations multilatérales induites par cette intrigue"
 
-    labels = [l.value for l in Labels]
+    labels = [lab.value for lab in Labels]
 
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_intrigue)
     # print(f"debug : indexes = {indexes}")
@@ -1952,7 +1952,7 @@ def ref_du_doc(s: str, prefixes=""):
 
 
 def extraire_factions(mon_gn: GN, api_doc, verbal=True):
-    if mon_gn.id_factions is None:
+    if mon_gn.get_id_factions() is None:
         logging.info('id faction était None')
         return -1
 
@@ -1966,7 +1966,7 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
     # mon_gn.factions.clear()
 
     try:
-        id_doc = mon_gn.id_factions
+        id_doc = mon_gn.get_id_factions()
         text = lire_google_doc(api_doc, id_doc)
 
     except HttpError as err:
@@ -2758,7 +2758,7 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
             resultats.append([parametre, "", "Echec du Test"])
             logging.debug(f"Erreur durant la vérification du dossier {dossier_id} : {error}")
             test_global_reussi = False
-        except KeyError as error :
+        except KeyError as error:
             resultats.append([parametre, "impossible de lire le paramètre", "Echec du Test"])
             logging.debug(f"Erreur durant la vérification du dossier {dossier_id} : {error}")
             test_global_reussi = False
@@ -2786,8 +2786,8 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
             test_global_reussi = False
 
     # Vérification des droits d'écriture dans le dossier de sortie
+    dossier_output_id = fichier_output['dossier_output']
     try:
-        dossier_output_id = fichier_output['dossier_output']
         permissions = api_drive.permissions().list(fileId=dossier_output_id).execute()
         droit_ecriture = any(
             permission['role'] in ['writer', 'owner']

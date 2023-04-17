@@ -9,7 +9,7 @@ from fuzzywuzzy import process
 import sys
 from packaging import version
 
-VERSION = "1.0.20230417"
+VERSION = "1.0.20230418"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -656,12 +656,13 @@ class Faction:
 
 
 class GN:
-    def __init__(self,
-                 dossiers_intrigues, dossier_output: str, mode_association=None,
-                 dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None,
-                 dossiers_objets=None,
-                 id_factions=None, date_gn=None,
-                 id_pjs_et_pnjs=None, fichier_pnjs=None, ma_version="0.0.0"):
+    def __init__(self, dict_config, ma_version="0.0.0"):
+        # def __init__(self,
+        #              dossiers_intrigues, dossier_output: str, mode_association=None,
+        #              dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None,
+        #              dossiers_objets=None,
+        #              id_factions=None, date_gn=None,
+        #              id_pjs_et_pnjs=None, fichier_pnjs=None, ma_version="0.0.0"):
 
         # création des objets nécessaires
         self.dictPJs = {}  # idgoogle, personnage
@@ -671,86 +672,132 @@ class GN:
         self.intrigues = {}  # clef : id google
         self.evenements = {}  # clef : id google
         self.objets = {}  # clef : id google
+
+        # todo : est-ce que ces variables servent à quelque chose?
         self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatePJ = None  # contient al dernière date d'update d'une intrigue dans le GN
         self.oldestUpdatedIntrigue = ""  # contient l'id de la dernière intrigue updatée dans le GN
         self.oldestUpdatedPJ = ""  # contient l'id du dernier PJ updaté dans le GN
 
         # injection des paramètres du fichier de config
-        self.association_auto = None  # Ne pas utiliser, paramètres à supprimer
-        self.id_factions = None
-        self.dossiers_pnjs = None
-        self.dossiers_pjs = None
-        self.dossier_outputs_drive = None
-        self.dossiers_intrigues = None
-        self.dossiers_objets = None
-        self.dossiers_evenements = None
-        self.date_gn = None
-        self.id_pjs_et_pnjs = None
-        self.fichier_pnjs = None
-        # self.liste_noms_pjs = None
-        # self.liste_noms_pnjs = None
-        self.mode_association = None
+        # self.association_auto = None  # Ne pas utiliser, paramètres à supprimer
+        # self.id_factions = None
+        # self.dossiers_pnjs = None
+        # self.dossiers_pjs = None
+        # self.dossier_outputs_drive = None
+        # self.dossiers_intrigues = None
+        # self.dossiers_objets = None
+        # self.dossiers_evenements = None
+        # self.date_gn = None
+        # self.id_pjs_et_pnjs = None
+        # self.fichier_pnjs = None
+        # # self.liste_noms_pjs = None
+        # # self.liste_noms_pnjs = None
+        # self.mode_association = None
         self.version = ma_version
 
-        self.injecter_config(dossiers_intrigues, dossier_output, mode_association, dossiers_pj=dossiers_pj,
-                             dossiers_evenements=dossiers_evenements, dossiers_objets=dossiers_objets,
-                             dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn,
-                             id_pjs_et_pnjs=id_pjs_et_pnjs, fichier_pnjs=fichier_pnjs)
+        self.dict_config = dict_config or {}
+
+        # corriger et ajuster le dictionnaire de config
+        self.dict_config['mode_association'] = self.dict_config.get('mode_association', self.ModeAssociation.AUTO)
+
+        for dossier in ['dossiers_intrigues',
+                        'dossiers_pjs',
+                        'dossiers_pnjs',
+                        'dossiers_evenements',
+                        'dossiers_objets']:
+            if not isinstance(self.dict_config.get(dossier, []), list):
+                self.dict_config[dossier] = [self.dict_config[dossier]]
+
+        # self.injecter_config(dossiers_intrigues, dossier_output, mode_association, dossiers_pj=dossiers_pj,
+        #                      dossiers_evenements=dossiers_evenements, dossiers_objets=dossiers_objets,
+        #                      dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn,
+        #                      id_pjs_et_pnjs=id_pjs_et_pnjs, fichier_pnjs=fichier_pnjs)
+
+    def get_dossier_outputs_drive(self):
+        return self.dict_config['dossier_output']
+
+    def get_date_gn(self):
+        return self.dict_config.get('date_gn', None)
+
+    def get_id_factions(self):
+        return self.dict_config.get('id_factions', None)
+
+
+    def get_dossiers_pnjs(self):
+        return self.dict_config.get('dossiers_pnjs', None)
+
+    def get_dossiers_pjs(self):
+        return self.dict_config.get('dossiers_pjs', None)
+
+    def get_dossiers_intrigues(self):
+        return self.dict_config.get('dossiers_intrigues', None)
+
+    def get_dossiers_objets(self):
+        return self.dict_config.get('dossiers_objets', None)
+
+    def get_dossiers_evenements(self):
+        return self.dict_config.get('dossiers_evenements', None)
+
+    def get_id_pjs_et_pnjs(self):
+        return self.dict_config.get('id_pjs_et_pnjs', None)
+
+    def get_mode_association(self):
+        return self.dict_config['mode_association']
 
     class ModeAssociation(IntEnum):
         AUTO = 0
         MANUEL_VIA_FICHES = 1
 
-    def injecter_config(self,
-                        dossiers_intrigues, dossier_output, mode_association=None,
-                        dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None, dossiers_objets=None,
-                        id_factions=None,
-                        date_gn=None, id_pjs_et_pnjs=None, fichier_pnjs=None):
-
-        mode_association = mode_association if mode_association is not None else self.ModeAssociation.AUTO
-        self.mode_association = mode_association
-        self.id_pjs_et_pnjs = id_pjs_et_pnjs
-        self.fichier_pnjs = fichier_pnjs
-        # # self.liste_noms_pjs = liste_noms_pjs
-        # self.liste_noms_pnjs = noms_pnjs
-        if isinstance(dossiers_intrigues, list):
-            self.dossiers_intrigues = dossiers_intrigues
-        else:
-            self.dossiers_intrigues = [dossiers_intrigues]
-
-        if dossiers_pj is None:
-            self.dossiers_pjs = None
-        elif isinstance(dossiers_pj, list):
-            self.dossiers_pjs = dossiers_pj
-        else:
-            self.dossiers_pjs = [dossiers_pj]
-
-        if dossiers_pnj is None:
-            self.dossiers_pnjs = None
-        elif isinstance(dossiers_pnj, list):
-            self.dossiers_pnjs = dossiers_pnj
-        else:
-            self.dossiers_pnjs = [dossiers_pnj]
-
-        if dossiers_evenements is None:
-            self.dossiers_evenements = None
-        elif isinstance(dossiers_evenements, list):
-            self.dossiers_evenements = dossiers_evenements
-        else:
-            self.dossiers_evenements = [dossiers_evenements]
-
-        if dossiers_objets is None:
-            self.dossiers_objets = None
-        elif isinstance(dossiers_objets, list):
-            self.dossiers_objets = dossiers_objets
-        else:
-            self.dossiers_objets = [dossiers_objets]
-
-        self.id_factions = id_factions
-        self.dossier_outputs_drive = dossier_output
-
-        self.date_gn = date_gn
+    # def injecter_config(self,
+    #                     dossiers_intrigues, dossier_output, mode_association=None,
+    #                     dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None, dossiers_objets=None,
+    #                     id_factions=None,
+    #                     date_gn=None, id_pjs_et_pnjs=None, fichier_pnjs=None):
+    #
+    #     mode_association = mode_association if mode_association is not None else self.ModeAssociation.AUTO
+    #     self.mode_association = mode_association
+    #     self.id_pjs_et_pnjs = id_pjs_et_pnjs
+    #     self.fichier_pnjs = fichier_pnjs
+    #     # # self.liste_noms_pjs = liste_noms_pjs
+    #     # self.liste_noms_pnjs = noms_pnjs
+    #     if isinstance(dossiers_intrigues, list):
+    #         self.dossiers_intrigues = dossiers_intrigues
+    #     else:
+    #         self.dossiers_intrigues = [dossiers_intrigues]
+    #
+    #     if dossiers_pj is None:
+    #         self.dossiers_pjs = None
+    #     elif isinstance(dossiers_pj, list):
+    #         self.dossiers_pjs = dossiers_pj
+    #     else:
+    #         self.dossiers_pjs = [dossiers_pj]
+    #
+    #     if dossiers_pnj is None:
+    #         self.dossiers_pnjs = None
+    #     elif isinstance(dossiers_pnj, list):
+    #         self.dossiers_pnjs = dossiers_pnj
+    #     else:
+    #         self.dossiers_pnjs = [dossiers_pnj]
+    #
+    #     if dossiers_evenements is None:
+    #         self.dossiers_evenements = None
+    #     elif isinstance(dossiers_evenements, list):
+    #         self.dossiers_evenements = dossiers_evenements
+    #     else:
+    #         self.dossiers_evenements = [dossiers_evenements]
+    #
+    #     if dossiers_objets is None:
+    #         self.dossiers_objets = None
+    #     elif isinstance(dossiers_objets, list):
+    #         self.dossiers_objets = dossiers_objets
+    #     else:
+    #         self.dossiers_objets = [dossiers_objets]
+    #
+    #     self.id_factions = id_factions
+    #     self.dossier_outputs_drive = dossier_output
+    #
+    #     self.date_gn = date_gn
 
     def get_dict_pj(self):
         return {key: self.personnages[key] for key in self.personnages if self.personnages[key].est_un_pj()}
@@ -865,7 +912,7 @@ class GN:
                 # mais aussi qui ne viennent pas d'une faction : ceux-ci arrivent déjà associés
                 if critere(role.pj) and not role.issu_dune_faction and len(nom_association(role)) > 1:
                     # print(f"nom du role testé = {role.nom}")
-                    print(f"debug : nom assocaition = {repr(nom_association(role))} pour {repr(role.nom)}")
+                    # print(f"debug : nom assocaition = {repr(nom_association(role))} pour {repr(role.nom)}")
                     # print(f"debug : nom assoce / noms = {nom_association(role)} / {noms_persos}")
                     score = process.extractOne(nom_association(role), noms_persos)
                     if verbal:
@@ -911,14 +958,20 @@ class GN:
                         print(texte_erreur)
 
     @staticmethod
-    def load(filename, update_version: bool = True):
+    def load(filename, dict_config: dict = None, update_version: bool = True):
         mon_fichier = open(filename, 'rb')
         gn = pickle.load(mon_fichier)
+        # on vérifie si la version du Gn est différente de celle du GN, et on update si nécessaire
         if update_version and (
-            not hasattr(gn, "version")
-            or version.parse(gn.version) < version.parse(VERSION)
+                not hasattr(gn, "version")
+                or version.parse(gn.version) < version.parse(VERSION)
         ):
             gn.mettre_a_jour_champs()
+
+        # on met à jour le dictionnaire de configuration s'il est fourni
+        if dict_config:
+            gn.dict_config = dict_config
+
         return gn
 
     # apres une importation recrée
@@ -1288,28 +1341,28 @@ class GN:
         # mise à jour des formats de date et des factions
         if not hasattr(self, 'factions'):
             self.factions = {}
-        if not hasattr(self, 'id_factions'):
-            self.id_factions = None
+        # if not hasattr(self, 'id_factions'):
+        #     self.id_factions = None
         if hasattr(self, 'liste_noms_pjs'):
             delattr(self, 'liste_noms_pjs')
         if hasattr(self, 'liste_noms_pnjs'):
             delattr(self, 'liste_noms_pnjs')
-        if not hasattr(self, 'id_pjs_et_pnjs'):
-            self.id_pjs_et_pnjs = None
+        # if not hasattr(self, 'id_pjs_et_pnjs'):
+        #     self.id_pjs_et_pnjs = None
         if not hasattr(self, 'fichier_pnjs'):
             self.fichier_pnjs = None
         if not hasattr(self, 'evenements'):
             self.evenements = {}
-        if not hasattr(self, 'dossiers_evenements'):
-            self.dossiers_evenements = []
-        if hasattr(self, 'dossier_evenements'):
-            delattr(self, 'dossier_evenements')
+        # if not hasattr(self, 'dossiers_evenements'):
+        #     self.dossiers_evenements = []
+        # if hasattr(self, 'dossier_evenements'):
+        #     delattr(self, 'dossier_evenements')
         if not hasattr(self, 'objets'):
             self.objets = {}
         if hasattr(self, 'association_auto'):
             delattr(self, 'association_auto')
-        if not hasattr(self, 'mode_association'):
-            self.mode_association = self.ModeAssociation.AUTO
+        # if not hasattr(self, 'mode_association'):
+        #     self.mode_association = self.ModeAssociation.AUTO
         if hasattr(self, 'dictPJs') and hasattr(self, 'dictPNJs'):
             self.personnages = self.dictPJs | self.dictPNJs
             delattr(self, 'dictPJs')
@@ -1318,6 +1371,31 @@ class GN:
             self.version = VERSION
         if hasattr(self, 'date_self'):
             delattr(self, 'date_self')
+        if hasattr(self, 'association_auto'):
+            delattr(self, 'association_auto')
+        if hasattr(self, 'id_factions'):
+            delattr(self, 'id_factions')
+        if hasattr(self, 'dossiers_pnjs'):
+            delattr(self, 'dossiers_pnjs')
+        if hasattr(self, 'dossiers_pjs'):
+            delattr(self, 'dossiers_pjs')
+        if hasattr(self, 'dossier_outputs_drive'):
+            delattr(self, 'dossier_outputs_drive')
+        if hasattr(self, 'dossiers_intrigues'):
+            delattr(self, 'dossiers_intrigues')
+        if hasattr(self, 'dossiers_objets'):
+            delattr(self, 'dossiers_objets')
+        if hasattr(self, 'dossiers_evenements'):
+            delattr(self, 'dossiers_evenements')
+        if hasattr(self, 'date_gn'):
+            delattr(self, 'date_gn')
+        if hasattr(self, 'id_pjs_et_pnjs'):
+            delattr(self, 'id_pjs_et_pnjs')
+        if hasattr(self, 'fichier_pnjs'):
+            delattr(self, 'fichier_pnjs')
+        if hasattr(self, 'mode_association'):
+            delattr(self, 'mode_association')
+
 
         for scene in self.lister_toutes_les_scenes():
             if not hasattr(scene, 'date_absolue'):

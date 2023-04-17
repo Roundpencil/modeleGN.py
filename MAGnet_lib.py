@@ -9,8 +9,6 @@ from modeleGN import *
 # communication :
 
 # documentation
-# todo il FAUT un orga de référence pour chaque PJ dans le tabnleau de PJs
-
 
 # tester
 # todo : # ajoyt d'une fin des evenements dans les fiches évènements
@@ -98,17 +96,18 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     if sans_chargement_fichier:
         m_print("recréation d'un GN from scratch")
-        new_gn = GN(
-            dossiers_intrigues=mon_gn.dossiers_intrigues,
-            dossier_output=mon_gn.dossier_outputs_drive,
-            mode_association=mon_gn.mode_association,
-            dossiers_pj=mon_gn.dossiers_pjs,
-            dossiers_pnj=mon_gn.dossiers_pnjs,
-            id_factions=mon_gn.id_factions,
-            fichier_pnjs=mon_gn.fichier_pnjs,
-            id_pjs_et_pnjs=mon_gn.id_pjs_et_pnjs,
-            dossiers_evenements=mon_gn.dossiers_evenements
-        )
+        new_gn = GN(dict_config=mon_gn.dict_config, ma_version=mon_gn.version)
+        # new_gn = GN(
+        #     dossiers_intrigues=mon_gn.dossiers_intrigues,
+        #     dossier_output=mon_gn.dossier_outputs_drive,
+        #     mode_association=mon_gn.mode_association,
+        #     dossiers_pj=mon_gn.dossiers_pjs,
+        #     dossiers_pnj=mon_gn.dossiers_pnjs,
+        #     id_factions=mon_gn.id_factions,
+        #     fichier_pnjs=mon_gn.fichier_pnjs,
+        #     id_pjs_et_pnjs=mon_gn.id_pjs_et_pnjs,
+        #     dossiers_evenements=mon_gn.dossiers_evenements
+        # )
         mon_gn = new_gn
     else:
         mon_gn.effacer_personnages_forces()
@@ -242,14 +241,14 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     m_print("* génération du fichier des erreurs intrigues * ")
     if fichier_erreurs_intrigues:
         # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
-        ecrire_erreurs_intrigues_dans_drive(mon_gn, api_doc, api_drive, mon_gn.dossier_outputs_drive)
+        ecrire_erreurs_intrigues_dans_drive(mon_gn, api_doc, api_drive, mon_gn.get_dossier_outputs_drive())
 
     visualisation(pas_visualisation)
 
     m_print("* génération du fichier des erreurs évènements * ")
     if fichier_erreurs_evenements:
         # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
-        ecrire_erreurs_evenements_dans_drive(mon_gn, api_doc, api_drive, mon_gn.dossier_outputs_drive)
+        ecrire_erreurs_evenements_dans_drive(mon_gn, api_doc, api_drive, mon_gn.get_dossier_outputs_drive())
 
     visualisation(pas_visualisation)
 
@@ -572,7 +571,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
         tableau_scene_orgas.append([dict_scene, dict_orgas])
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Changelog'
-    dossier_output = mon_gn.dossier_outputs_drive
+    dossier_output = mon_gn.get_dossier_outputs_drive()
     mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_output)
     extraireTexteDeGoogleDoc.exporter_changelog(tableau_scene_orgas, mon_id, dict_orgas_persos, api_sheets)
     extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, mon_id)
@@ -596,7 +595,7 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
         for intrigue in mon_gn.intrigues.values()
     )
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Etat des intrigues'
-    dossier_export = mon_gn.dossier_outputs_drive
+    dossier_export = mon_gn.get_dossier_outputs_drive()
     mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_export)
     # extraire_texte_de_google_doc.exporter_table_intrigue(api_doc, nom_fichier, dossier_export, df)
     # extraire_texte_de_google_doc.ecrire_table_google_sheets(api_sheets, df, mon_id)
@@ -605,7 +604,7 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
 
 def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_print=print,
                                   visualisation=print_progress, taille_visualisation=100.0):
-    parent = mon_gn.dossier_outputs_drive
+    parent = mon_gn.get_dossier_outputs_drive()
     pj_pnj = "PJ" if pj else "PNJ"
     nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes {pj_pnj}'
     nouveau_dossier = extraireTexteDeGoogleDoc.creer_dossier(api_drive, parent, nom_dossier)
@@ -693,10 +692,10 @@ def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
         mes_scenes = []
         for role in perso.roles:
             mes_scenes.extend(iter(role.scenes))
-        mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=mon_gn.date_gn)
+        mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=mon_gn.get_date_gn())
         for scene in mes_scenes:
             # print(scene)
-            texte_perso += scene.str_pour_squelette(mon_gn.date_gn) + '\n'
+            texte_perso += scene.str_pour_squelette(mon_gn.get_date_gn()) + '\n'
         texte_perso += '****************************************************** \n'
         squelettes_persos[perso.nom] = texte_perso
 
@@ -931,7 +930,7 @@ def generer_table_objets_uniques(mon_gn):
 
 
 def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets):
-    parent = mon_gn.dossier_outputs_drive
+    parent = mon_gn.get_dossier_outputs_drive()
     table_detaillee = generer_table_objets_from_intrigues_et_evenements(mon_gn)
     table_condensee = generer_table_objets_uniques(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
@@ -950,7 +949,7 @@ def generer_table_chrono_condensee_raw(gn: GN):
         mes_scenes = []
         for role in perso.roles:
             mes_scenes.extend(iter(role.scenes))
-        mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=gn.date_gn)
+        mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=gn.get_date_gn())
 
         # créer des lignes [date][évènement]
         # ma_ligne = [personnage.nom] + [[s.get_formatted_date(date_gn=gn.date_gn), s.titre] for s in mes_scenes]
@@ -1088,7 +1087,7 @@ def generer_table_chrono_scenes(mon_gn: GN):
 
     for scene in toutes_scenes:
         to_return.append([
-            scene.get_formatted_date(mon_gn.date_gn),
+            scene.get_formatted_date(mon_gn.get_date_gn()),
             scene.conteneur.nom,
             scene.titre,
             # ', '.join([role.personnage.nom for role in scene.roles if role is not None and role.est_un_pj()]),
@@ -1101,10 +1100,10 @@ def generer_table_chrono_scenes(mon_gn: GN):
 
 
 def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets):
-    parent = mon_gn.dossier_outputs_drive
+    parent = mon_gn.get_dossier_outputs_drive()
     table_raw = generer_table_chrono_condensee_raw(mon_gn)
-    table_simple = generer_table_chrono_condensee(table_raw, mon_gn.date_gn)
-    table_complete = generer_table_chrono_complete(table_raw, mon_gn.date_gn)
+    table_simple = generer_table_chrono_condensee(table_raw, mon_gn.get_date_gn())
+    table_complete = generer_table_chrono_complete(table_raw, mon_gn.get_date_gn())
     table_chrono_scenes = generer_table_chrono_scenes(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- synthèse chrono'
@@ -1132,7 +1131,7 @@ def generer_tableau_recap_persos(gn: GN):
 
 
 def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
-    parent = mon_gn.dossier_outputs_drive
+    parent = mon_gn.get_dossier_outputs_drive()
     table = generer_tableau_recap_persos(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- synthèse des intrigues par personnage'
@@ -1205,7 +1204,7 @@ def generer_table_pnjs_simple(gn: GN, verbal=False):
 
 
 def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets):
-    parent = mon_gn.dossier_outputs_drive
+    parent = mon_gn.get_dossier_outputs_drive()
     table_etendue = generer_table_pnjs_etendue(mon_gn)
     table_simple = generer_table_pnjs_simple(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
@@ -1259,7 +1258,7 @@ def generer_textes_infos(gn: GN):
 
 
 def ecrire_texte_info(mon_gn: GN, api_doc, api_drive):
-    parent = mon_gn.dossier_outputs_drive
+    parent = mon_gn.get_dossier_outputs_drive()
 
     texte = generer_textes_infos(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
@@ -1346,7 +1345,7 @@ def generer_texte_commentaires(dict_auteur_intrigues):
 
 
 def ecrire_table_commentaires(gn: GN, api_drive, api_doc, api_sheets):
-    parent = gn.dossier_outputs_drive
+    parent = gn.get_dossier_outputs_drive()
     dict_auteurs_tableaux, dict_auteur_intrigues, tableau_global = generer_table_commentaires(gn)
     texte = generer_texte_commentaires(dict_auteur_intrigues)
 
@@ -1431,7 +1430,7 @@ def generer_table_relations_personnages(gn):
 
 
 def ecrire_table_relation(gn: GN, api_drive, api_sheets):
-    parent = gn.dossier_outputs_drive
+    parent = gn.get_dossier_outputs_drive()
     tab_relations = generer_table_relations_personnages(gn)
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
@@ -1495,7 +1494,7 @@ def generer_table_evenements(gn: GN):
 
 
 def ecrire_table_evenements(gn: GN, api_drive, api_sheets):
-    parent = gn.dossier_outputs_drive
+    parent = gn.get_dossier_outputs_drive()
     tab_evenements = generer_table_evenements(gn)
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
@@ -1518,7 +1517,7 @@ def generer_table_questionnaire(gn: GN):
 
 
 def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets):
-    parent = gn.dossier_outputs_drive
+    parent = gn.get_dossier_outputs_drive()
     tab_questionnaire = generer_table_questionnaire(gn)
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
