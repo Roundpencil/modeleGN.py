@@ -1395,6 +1395,8 @@ class GN:
             delattr(self, 'fichier_pnjs')
         if hasattr(self, 'mode_association'):
             delattr(self, 'mode_association')
+        if not hasattr(self, 'dict_config'):
+            self.dict_config = None
 
 
         for scene in self.lister_toutes_les_scenes():
