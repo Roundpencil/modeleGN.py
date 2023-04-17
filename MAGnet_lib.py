@@ -191,13 +191,13 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     liste_orgas = None
     liste_noms_pnjs = None
-    logging.debug(f"mon_gn.id_pjs_et_pnjs = {mon_gn.id_pjs_et_pnjs}")
-    logging.debug(f"nom fichier pnj = {mon_gn.fichier_pnjs}")
+    logging.debug(f"mon_gn.id_pjs_et_pnjs = {mon_gn.get_id_pjs_et_pnjs()}")
+    logging.debug(f"nom fichier pnj = {mon_gn.get_fichier_pnjs()}")
 
-    if (sheet_id := mon_gn.id_pjs_et_pnjs) is not None:
+    if (sheet_id := mon_gn.get_id_pjs_et_pnjs()) is not None:
         # dans ce cas on a un tableau global avec toutes les données > on le lit
         # on met à jour les données pour les PNJs pour
-        logging.debug(f"sheet_id = {sheet_id}, mon_gn.id_pjs_et_pnjs = {mon_gn.id_pjs_et_pnjs}")
+        logging.debug(f"sheet_id = {sheet_id}, mon_gn.id_pjs_et_pnjs = {mon_gn.get_id_pjs_et_pnjs()}")
         liste_noms_pnjs = extraireTexteDeGoogleDoc.lire_gspread_pnj(api_sheets, sheet_id)
         liste_noms_pjs, liste_orgas = extraireTexteDeGoogleDoc.lire_gspread_pj(api_sheets, sheet_id)
         logging.debug(f"liste_noms_pnjs = {liste_noms_pnjs}")
@@ -1212,7 +1212,7 @@ def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets):
     file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="En synthèse")
     extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_etendue, file_id, feuille="Vision détaillée")
-    if mon_gn.mode_association == GN.ModeAssociation.AUTO:
+    if mon_gn.get_mode_association() == GN.ModeAssociation.AUTO:
         table_pnj_dedup = generer_table_pnj_dedupliquee(mon_gn)
         extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_pnj_dedup, file_id,
                                                             feuille="Suggestion liste dedupliquée")

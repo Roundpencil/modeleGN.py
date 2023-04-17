@@ -745,6 +745,9 @@ class GN:
     def get_mode_association(self):
         return self.dict_config['mode_association']
 
+    def get_fichier_pnjs(self):
+        return self.dict_config.get('fichier_pnjs', None)
+
     class ModeAssociation(IntEnum):
         AUTO = 0
         MANUEL_VIA_FICHES = 1
@@ -890,9 +893,9 @@ class GN:
         # faire l'association dans les intrigues à partir du nom de l'intrigue
         # on crée une focntion pour choisir sur quelle valeur on fera les associations
         def nom_association(role: Role):
-            if self.mode_association == GN.ModeAssociation.AUTO:
+            if self.get_mode_association() == GN.ModeAssociation.AUTO:
                 return role.nom
-            if self.mode_association == GN.ModeAssociation.MANUEL_VIA_FICHES:
+            if self.get_mode_association() == GN.ModeAssociation.MANUEL_VIA_FICHES:
                 return role.affectation
             print("Erreur de mode association")
             return -1
