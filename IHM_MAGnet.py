@@ -333,6 +333,7 @@ class Application(tk.Frame):
             message_label['text'] = updated_text
 
         def t_lancer_regeneration():
+            print(f"fict config ay début de la régénération : {self.dict_config} / {type(self)}")
             lire_et_recharger_gn(mon_gn=self.gn,
                                  api_drive=self.api_drive,
                                  api_doc=self.api_doc,
@@ -429,6 +430,7 @@ class Application(tk.Frame):
     #     self.lire_fichier_config(boutons, display_label, config_file)
 
     def lire_gn_et_injecter_config(self, boutons: list):
+        print(f"dict config au début de la créaation = {self.dict_config}")
         # try:
         try:
             self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'], dict_config=self.dict_config)
@@ -454,7 +456,7 @@ class Application(tk.Frame):
 
         except Exception as f:
             # print(traceback.format_exc())
-            print(f"une erreur est survenue qui a conduit à re-créer un self : {f}")
+            print(f"une erreur est survenue qui a conduit à re-créer un fichier de sauvegarde : {f}")
             print(f"le fichier de sauvegarde {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
             # self.gn = GN(dossiers_intrigues=self.dict_config['dossiers_intrigues'],
             #              dossier_output=self.dict_config['dossier_output'],
@@ -493,9 +495,9 @@ class Application(tk.Frame):
         #         messagebox.showerror("Error", f"Erreur inattendue : {e}")
         #         logging.debug(f"Erreur inattendue dans la lecture du fichier de configuration : {e}")
 
-            traceback.print_exc()
-            self.dict_config = None
-            self.updater_boutons_disponibles(False, boutons)
+            # traceback.print_exc()
+            # self.dict_config = None
+            # self.updater_boutons_disponibles(False, boutons)
 
 
         except Exception as e:
