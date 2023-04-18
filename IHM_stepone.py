@@ -1,0 +1,122 @@
+import tkinter as tk
+from tkinter import ttk
+
+
+def on_ok_click():
+    # Collect values from the widgets and create a dictionary
+    params = {
+        "mode_association": mode_association_var.get(),
+        "nom_fichier_sauvegarde": nom_fichier_sauvegarde_entry.get(),
+        "creation_fichiers": creation_fichiers_var.get(),
+        "mode_saisie_personnages": mode_saisie_personnages_var.get(),
+        "utilisation_dossier_evenements": utilisation_dossier_evenements_var.get(),
+        "utilisation_fichier_factions": utilisation_fichier_factions_var.get(),
+        "date_gn": date_gn_entry.get()
+    }
+    print(params)
+    # Generate file based on the params dictionary
+    # ...
+    root.destroy()
+
+
+def on_annuler_click():
+    root.destroy()
+
+
+def display_panel():
+    global root, mode_association_var, nom_fichier_sauvegarde_entry, creation_fichiers_var, mode_saisie_personnages_var, utilisation_dossier_evenements_var, utilisation_fichier_factions_var, date_gn_entry
+
+    root = tk.Tk()
+    root.title("Paramètres")
+    root.geometry("665x535")
+
+    # (previous widget definitions remain the same)
+    # Mode association
+    mode_association_label = tk.Label(root, text="Mode association:")
+    mode_association_label.grid(column=0, row=0, sticky=tk.W)
+    mode_association_var = tk.StringVar()
+    mode_association_var.set("0 - Automatique")
+    mode_association_options = ["0 - Automatique", "1 - Manuel via fiches"]
+    mode_association_dropdown = ttk.Combobox(root, textvariable=mode_association_var,
+                                             values=mode_association_options, state="readonly")
+    mode_association_dropdown.grid(column=1, row=0)
+
+    # Nom fichier de sauvegarde
+    nom_fichier_sauvegarde_label = tk.Label(root, text="Nom fichier de sauvegarde :")
+    nom_fichier_sauvegarde_label.grid(column=0, row=10, sticky=tk.W)
+    nom_fichier_sauvegarde_entry = tk.Entry(root, width=50)
+    nom_fichier_sauvegarde_entry.grid(column=0, row=11, columnspan=3)
+
+    # Création fichiers
+    creation_fichiers_label = tk.Label(root, text="Création fichiers:")
+    creation_fichiers_label.grid(column=0, row=20, sticky=tk.W, pady=(10, 3))
+    creation_fichiers_var = tk.StringVar()
+    creation_fichiers_var.set(0)
+    creation_fichiers_options = [("Créer automatiquement les fichiers", 0), ("Saisir des IDs existants", 1)]
+    for text, value in creation_fichiers_options:
+        tk.Radiobutton(root, text=text, variable=creation_fichiers_var, value=value).grid(column=0 + value, row=30,
+                                                                                          sticky=tk.W)
+
+    # Mode de saisie des personnages
+    mode_saisie_personnages_label = tk.Label(root, text="Mode de saisie des personnages:")
+    mode_saisie_personnages_label.grid(column=0, row=40, sticky=tk.W, pady=(10, 3))
+    mode_saisie_personnages_var = tk.StringVar()
+    mode_saisie_personnages_var.set(2)
+    mode_saisie_personnages_options = [("Via fiches Persos", 0), ("Via liste des PJs et PNJs", 1), ("Les deux", 2)]
+    for text, value in mode_saisie_personnages_options:
+        tk.Radiobutton(root, text=text, variable=mode_saisie_personnages_var, value=value).grid(column=0 + value,
+                                                                                                row=50,
+                                                                                                sticky=tk.W)
+
+    # Nombre de dossiers Evenements
+    nombre_dossiers_evenements_label = tk.Label(root, text="Nombre de dossiers Evenements:")
+    nombre_dossiers_evenements_label.grid(column=0, row=70, sticky=tk.W, pady=(10, 3))
+    nombre_dossiers_evenements_spinbox = tk.Spinbox(root, from_=0, to=100, width=5)
+    nombre_dossiers_evenements_spinbox.grid(column=1, row=70, pady=(10, 3))
+
+    # Nombre de dossiers Objet
+    nombre_dossiers_objet_label = tk.Label(root, text="Nombre de dossiers Objet:")
+    nombre_dossiers_objet_label.grid(column=0, row=80, sticky=tk.W, pady=(10, 3))
+    nombre_dossiers_objet_spinbox = tk.Spinbox(root, from_=0, to=100, width=5)
+    nombre_dossiers_objet_spinbox.grid(column=1, row=80, pady=(10, 3))
+
+    # Nombre de dossiers PJs
+    nombre_dossiers_pjs_label = tk.Label(root, text="Nombre de dossiers PJs:")
+    nombre_dossiers_pjs_label.grid(column=0, row=90, sticky=tk.W, pady=(10, 3))
+    nombre_dossiers_pjs_spinbox = tk.Spinbox(root, from_=0, to=100, width=5)
+    nombre_dossiers_pjs_spinbox.grid(column=1, row=90, pady=(10, 3))
+
+    # Nombre de dossiers PNJs
+    nombre_dossiers_pnjs_label = tk.Label(root, text="Nombre de dossiers PNJs:")
+    nombre_dossiers_pnjs_label.grid(column=0, row=100, sticky=tk.W, pady=(10, 3))
+    nombre_dossiers_pnjs_spinbox = tk.Spinbox(root, from_=0, to=100, width=5)
+    nombre_dossiers_pnjs_spinbox.grid(column=1, row=100, pady=(10, 3))
+
+    # Date GN en Français (vide si non utilisée) with checkbox
+    date_gn_checkbox_var = tk.BooleanVar(value=False)
+
+    def toggle_date_gn_entry():
+        if date_gn_checkbox_var.get():
+            date_gn_entry.delete(0, 'end')
+            date_gn_entry.config(state ='disabled')
+        else:
+            date_gn_entry.config(state='normal')
+
+    date_gn_checkbox = tk.Checkbutton(root, text="Date GN en Français (vide si non utilisée):",
+                                      variable=date_gn_checkbox_var, command=toggle_date_gn_entry)
+    date_gn_checkbox.grid(column=0, row=110, sticky=tk.W, pady=(10, 3))
+    date_gn_entry = tk.Entry(root)
+    date_gn_entry.grid(column=1, row=110, pady=(10, 3))
+
+    # OK and Annuler buttons
+    ok_button = tk.Button(root, text="OK", command=on_ok_click)
+    ok_button.grid(column=0, row=120, pady=10)
+    annuler_button = tk.Button(root, text="Annuler", command=on_annuler_click)
+    annuler_button.grid(column=1, row=120, pady=10)
+
+    root.mainloop()
+
+
+
+if __name__ == "__main__":
+    display_panel()
