@@ -7,8 +7,10 @@ class NotebookFrame(ttk.Frame):
     def __init__(self, master, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
 
+        self.mes_panneaux = set()
+
         self.root = root
-        self.root.title("Configuration File Editor")
+        self.root.title("Editeur de fichier configuration")
 
         # Top frame for file selection
         self.top_frame = tk.Frame(self.root)
@@ -22,25 +24,40 @@ class NotebookFrame(ttk.Frame):
         self.pack()
 
     class ParamsMultiples(Enum):
-        INTRIGUES = "id_dossier_intrigue_"
+        INTRIGUES = "id_dossier_intrigues_"
         PJS = "id_dossier_pjs_"
         PNJS = "id_dossier_pnjs_"
         EVENEMENTS = "id_dossier_evenements_"
         OBJETS = "id_dossier_objets_"
 
     def create_tabs(self):
+        premier_panneau = ttk.Frame(self)
+
+        essentiels = ttk.Labelframe(premier_panneau, text="Paramètres essentiels")
+        essentiels.grid(sticky=tk.NSEW)
+
+        label_nom_fichier = ttk.Label(essentiels, text="Nom du fichier de sauvegarde")
+        nom_fichier_var = tk.StringVar(essentiels)
+        entree_nom_fichier = ttk.Entry(essentiels, textvariable=nom_fichier_var)
+        label_nom_fichier.grid(row=0, column=0)
+        entree_nom_fichier.grid(row=0, column=1)
+
+        self.notebook.add(premier_panneau, text="Paramètres du GN")
+
         for param in self.ParamsMultiples:
             v_parametre = param.value
             nom_tab = v_parametre[11:-1]
             panneau = PanneauParametresMultiples(self.notebook, v_parametre)
+            self.mes_panneaux.add(panneau)
             self.notebook.add(panneau, text=nom_tab)
-        # tab1 = ttk.Frame(self.notebook)
-        # self.notebook.add(tab1, text="Tab 1")
-        #
-        # tab2 = ttk.Frame(self.notebook)
-        # self.notebook.add(tab2, text="Tab 2")
 
-class PanneauParametresMultiples(tk.Frame):
+    def get_all_parametres(self):
+        to_return = []
+        for panneau in self.mes_panneaux:
+            to_return.extend(panneau.get_tuples_parametres())
+        return to_return
+
+class PanneauParametresMultiples(ttk.Frame):
     def __init__(self,parent,  prefixe_parametre):
         super().__init__(parent)
 
