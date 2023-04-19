@@ -2626,17 +2626,6 @@ def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
     google_docs_a_verifier = []
     google_sheets_a_verifier = []
 
-    # [[f"dossier_intrigue {i}", id] for i, id
-    #             in enumerate(fichier_output.get('dossiers_intrigues', []), start=1)] + \
-    #            [[f"dossier_pjs {i}", id] for i, id
-    #             in enumerate(fichier_output.get('dossiers_pjs', []), start=1)] + \
-    #            [[f"dossier_pnjs {i}", id] for i, id
-    #             in enumerate(fichier_output.get('dossiers_pnjs', []), start=1)] + \
-    #            [[f"dossier_evenements {i}", id] for i, id
-    #             in enumerate(fichier_output.get('dossiers_evenements', []), start=1)] + \
-    #            [[f"dossier_objets {i}", id] for i, id
-    #             in enumerate(fichier_output.get('dossiers_objets', []), start=1)]
-
     # *** vérification que tous les paramètres Essentiels sont présents
     # intégration du fichier de sortie
 

@@ -24,7 +24,6 @@ class NotebookFrame(ttk.Frame):
         self.create_tabs()
         self.pack()
 
-
     class ParamsMultiples(Enum):
         INTRIGUES = "id_dossier_intrigues_"
         PJS = "id_dossier_pjs_"
@@ -64,12 +63,17 @@ class NotebookFrame(ttk.Frame):
         tuples_objets = self.mes_panneaux[self.ParamsMultiples.OBJETS.value].get_tuples_parametres()
 
         dict_optionnel = dict_optionnel | \
-                         dict(tuples_pjs) |\
+                         dict(tuples_pjs) | \
                          dict(tuples_pnjs) | \
                          dict(tuples_evenements) | \
                          dict(tuples_objets)
         print(f"dict_optionnel : {dict_optionnel}")
 
+        dict_essentiel = self.retirer_clefs_vides(dict_essentiel)
+        dict_optionnel = self.retirer_clefs_vides(dict_optionnel)
+
+    def retirer_clefs_vides(self, d:dict):
+        return {key: value for key, value in d.items() if value != ''}
 
 class PremierPanneau(ttk.Frame):
     def __init__(self, parent=None, *args, **kwargs):
@@ -125,10 +129,6 @@ class PremierPanneau(ttk.Frame):
             entry.grid(column=1, row=index, padx=10, pady=5, sticky="ew")
 
         self.optionals_frame.columnconfigure(1, weight=1)
-
-        # Add a button to display parameter tuples
-        display_button = ttk.Button(self, text="Display Parameters", command=self.generer_dictionnaires_parametres)
-        display_button.pack(pady=10)
 
     def generer_dictionnaires_parametres(self):
         # tuples = []
