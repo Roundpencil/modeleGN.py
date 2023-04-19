@@ -4,13 +4,22 @@ import tkinter as tk
 
 
 class NotebookFrame(ttk.Frame):
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+    def __init__(self, master, *args, **kwargs):
+        super().__init__(master, *args, **kwargs)
+
+        self.root = root
+        self.root.title("Configuration File Editor")
+
+        # Top frame for file selection
+        self.top_frame = tk.Frame(self.root)
+        self.top_frame.pack(pady=10)
+
 
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(expand=True, fill=tk.BOTH)
 
         self.create_tabs()
+        self.pack()
 
     class ParamsMultiples(Enum):
         INTRIGUES = "id_dossier_intrigue_"
@@ -20,19 +29,18 @@ class NotebookFrame(ttk.Frame):
         OBJETS = "id_dossier_objets_"
 
     def create_tabs(self):
-        # for param in self.ParamsMultiples:
-        #     v_parametre = param.value
-        #     nom_Tab = v_parametre[11:-1]
-        #     panneau = PanneauParametresMultiples(self.notebook, v_parametre)
-        #     self.notebook.add(panneau, text=nom_Tab)
+        for param in self.ParamsMultiples:
+            v_parametre = param.value
+            nom_tab = v_parametre[11:-1]
+            panneau = PanneauParametresMultiples(self.notebook, v_parametre)
+            self.notebook.add(panneau, text=nom_tab)
+        # tab1 = ttk.Frame(self.notebook)
+        # self.notebook.add(tab1, text="Tab 1")
+        #
+        # tab2 = ttk.Frame(self.notebook)
+        # self.notebook.add(tab2, text="Tab 2")
 
-        tab1 = ttk.Frame(self.notebook)
-        self.notebook.add(tab1, text="Tab 1")
-
-        tab2 = ttk.Frame(self.notebook)
-        self.notebook.add(tab2, text="Tab 2")
-
-class PanneauParametresMultiples(tk.Tk):
+class PanneauParametresMultiples(tk.Frame):
     def __init__(self,parent,  prefixe_parametre):
         super().__init__(parent)
 
@@ -40,9 +48,10 @@ class PanneauParametresMultiples(tk.Tk):
         self.prefixe_parametre = prefixe_parametre
 
         # self.row = 0
-        self.title("Editeur de fichier de configuration")
-        self.geometry("600x400")
+        # self.title("Editeur de fichier de configuration")
+        # self.geometry("600x400")
         # self.columnconfigure(0, weight=1)
+        self.grid()
 
         self.notebook = ttk.Notebook(self)
         self.notebook.grid(row=1, column=0, sticky="nsew")
@@ -102,6 +111,7 @@ class widget_entree(tk.Frame):
         return self.prefixe_parametre + self.nom_parametre_var.get(), self.valeur_parametre_var.get()
 
 if __name__ == "__main__":
-    app = NotebookFrame(parent=None)
+    root = tk.Tk()
+    app = NotebookFrame(master=root)
     # app = PanneauParametresMultiples("Parameter_de_demo")
     app.mainloop()
