@@ -24,12 +24,11 @@ class Application(tk.Frame):
         self.url_derniere_version = None
         self.derniere_version = None
 
-
         # objets liés au jeu en cours
         self.gn = None
         self.dict_config = None
 
-        #variables pour avoir des lecteurs à disposition
+        # variables pour avoir des lecteurs à disposition
         self.api_drive = api_drive
         self.api_doc = api_doc
         self.api_sheets = api_sheets
@@ -59,14 +58,12 @@ class Application(tk.Frame):
         v_config_button = ttk.Button(ini_labelframe, text="Vérifier le fichier de configuration")
         v_config_button.grid(row=1, column=0, pady=(10, 10), padx=(10, 10))
 
-
         # Create the label
         current_file_label = ttk.Label(ini_labelframe, text="Fichier ini actuel : Aucun")
         current_file_label.grid(row=0, column=1, columnspan=3, sticky='w')
 
         v_config_label = tk.Label(ini_labelframe, text="Fichier de configuration non vérifié")
         v_config_label.grid(row=1, column=1, columnspan=3, sticky='w')
-
 
         # ajout d'un labelframe pour les fonctions du mode diagnostic
         diagnostic_labelframe = ttk.Labelframe(regen_window, text="Outils diagnostic", width=700)
@@ -403,7 +400,7 @@ class Application(tk.Frame):
         display_label.config(text=config_file)
         self.lire_verifier_config_updater_gui(boutons, display_label, v_config_label)
 
-    def lire_verifier_config_updater_gui(self, boutons:list, display_label, v_config_label, afficher=False):
+    def lire_verifier_config_updater_gui(self, boutons: list, display_label, v_config_label, afficher=False):
         config_file = display_label['text']
         param_gn, resultats = extraireTexteDeGoogleDoc.charger_et_verifier_fichier_config(config_file, self.api_drive)
 
@@ -422,7 +419,6 @@ class Application(tk.Frame):
             self.afficher_resultats(resultats, False)
             v_config_label.config(text="Verifications fichier de configuration ko : corrigez les et re-vérifiez")
             self.updater_boutons_disponibles(False, boutons)
-
 
     # def change_config_file(self, boutons: list, display_label):
     #     config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
@@ -457,7 +453,8 @@ class Application(tk.Frame):
         except Exception as f:
             # print(traceback.format_exc())
             print(f"une erreur est survenue qui a conduit à re-créer un fichier de sauvegarde : {f}")
-            print(f"le fichier de sauvegarde {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
+            print(
+                f"le fichier de sauvegarde {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
             # self.gn = GN(dossiers_intrigues=self.dict_config['dossiers_intrigues'],
             #              dossier_output=self.dict_config['dossier_output'],
             #              mode_association=self.dict_config['mode_association'],
@@ -495,10 +492,9 @@ class Application(tk.Frame):
         #         messagebox.showerror("Error", f"Erreur inattendue : {e}")
         #         logging.debug(f"Erreur inattendue dans la lecture du fichier de configuration : {e}")
 
-            # traceback.print_exc()
-            # self.dict_config = None
-            # self.updater_boutons_disponibles(False, boutons)
-
+        # traceback.print_exc()
+        # self.dict_config = None
+        # self.updater_boutons_disponibles(False, boutons)
 
         except Exception as e:
             print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")
@@ -537,43 +533,36 @@ class Application(tk.Frame):
     #
     #     root.mainloop()
 
-
     def afficher_resultats(self, resultats, test_global_reussi):
-        def close_popup():
-            popup.destroy()
+        afficher_resultats_test_config(self.master, resultats, test_global_reussi)
 
-        popup = tk.Toplevel(self.master)
 
-        if test_global_reussi:
-            popup.title("Tests Réussis")
-            # popup.iconbitmap("success_icon.ico")  # Replace with the path to the success icon
-        else:
-            popup.title("Tests Échoués")
-            # popup.iconbitmap("failure_icon.ico")  # Replace with the path to the failure icon
+def afficher_resultats_test_config(master, resultats, test_global_reussi):
+    def close_popup():
+        popup.destroy()
 
-        tree = ttk.Treeview(popup, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
-
-        tree.heading("#0", text="")
-        tree.column("#0", width=0, minwidth=0, stretch=tk.NO)
-
-        tree.heading("Paramètre", text="Nom du paramètre")
-        tree.column("Paramètre", anchor=tk.W)
-
-        tree.heading("Nom du fichier lu", text="Nom du fichier lu")
-        tree.column("Nom du fichier lu", anchor=tk.W)
-
-        tree.heading("Résultat du test", text="Résultat du test")
-        tree.column("Résultat du test", anchor=tk.W)
-
-        for res in resultats:
-            tree.insert('', tk.END, values=(res[0], res[1], res[2]))
-
-        tree.pack(padx=10, pady=10)
-
-        # Create an "OK" button to close the popup
-        ok_button = tk.Button(popup, text="OK", command=close_popup)
-        ok_button.pack(pady=10)
-
-        popup.transient(self.master)
-        popup.grab_set()
-        self.master.wait_window(popup)
+    popup = tk.Toplevel(master)
+    if test_global_reussi:
+        popup.title("Tests Réussis")
+        # popup.iconbitmap("success_icon.ico")  # Replace with the path to the success icon
+    else:
+        popup.title("Tests Échoués")
+        # popup.iconbitmap("failure_icon.ico")  # Replace with the path to the failure icon
+    tree = ttk.Treeview(popup, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
+    tree.heading("#0", text="")
+    tree.column("#0", width=0, minwidth=0, stretch=tk.NO)
+    tree.heading("Paramètre", text="Nom du paramètre")
+    tree.column("Paramètre", anchor=tk.W)
+    tree.heading("Nom du fichier lu", text="Nom du fichier lu")
+    tree.column("Nom du fichier lu", anchor=tk.W)
+    tree.heading("Résultat du test", text="Résultat du test")
+    tree.column("Résultat du test", anchor=tk.W)
+    for res in resultats:
+        tree.insert('', tk.END, values=(res[0], res[1], res[2]))
+    tree.pack(padx=10, pady=10)
+    # Create an "OK" button to close the popup
+    ok_button = tk.Button(popup, text="OK", command=close_popup)
+    ok_button.pack(pady=10)
+    popup.transient(master)
+    popup.grab_set()
+    master.wait_window(popup)

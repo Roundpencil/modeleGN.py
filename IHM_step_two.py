@@ -3,11 +3,16 @@ from enum import Enum
 from tkinter import ttk
 import tkinter as tk
 
+import IHM_MAGnet
+import extraireTexteDeGoogleDoc
+import lecteurGoogle
+
 
 class NotebookFrame(ttk.Frame):
-    def __init__(self, master, *args, **kwargs):
+    def __init__(self, master, api_drive, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
 
+        self.api_drive = api_drive
         self.mes_panneaux = {}
 
         self.root = root
@@ -18,10 +23,17 @@ class NotebookFrame(ttk.Frame):
         self.top_frame.pack(pady=10)
 
         self.notebook = ttk.Notebook(self)
-        self.notebook.pack(expand=True, fill=tk.BOTH)
+        # self.notebook.pack(expand=True, fill=tk.BOTH)
+        self.notebook.grid(row=0, column=0, columnspan=2)
+
+        self.bouton_verif = ttk.Button(self, text="Vérifier validité paramètres", command=self.verifier_config_parser)
+        # self.bouton_go.pack(expand=True, fill=tk.BOTH)
+        self.bouton_verif.grid(row=1, column=0, padx=(5,5), pady=(5,5))
 
         self.bouton_go = ttk.Button(self, text="Générer fichier ini", command=self.generer_fichier_ini)
-        self.bouton_go.pack(expand=True, fill=tk.BOTH)
+        # self.bouton_go.pack(expand=True, fill=tk.BOTH)
+        self.bouton_go.grid(row=1, column=1, padx=(5,5), pady=(5,5))
+
         self.create_tabs()
         self.pack()
 
@@ -53,40 +65,43 @@ class NotebookFrame(ttk.Frame):
         return to_return
 
     def generer_fichier_ini(self):
-        dict_essentiel, dict_optionnel = self.mes_panneaux['premier panneau'].generer_dictionnaires_parametres()
+        config = self.generer_configparser()
 
+        with open('config_text.ini', 'w') as configfile:
+            config.write(configfile)
+
+    def verifier_config_parser(self):
+        config = self.generer_configparser()
+        param, resultat = extraireTexteDeGoogleDoc.verifier_config_parser(self.api_drive, config)
+        IHM_MAGnet.afficher_resultats_test_config(self.master, resultat, param is None)
+
+    def generer_configparser(self):
+        dict_essentiel, dict_optionnel = self.mes_panneaux['premier panneau'].generer_dictionnaires_parametres()
         tuples_intrigues = self.mes_panneaux[self.ParamsMultiples.INTRIGUES.value].get_tuples_parametres()
         # print(f"tuples = {tuples_intrigues}")
         dict_essentiel = dict_essentiel | dict(tuples_intrigues)
         # print(f"dict_essentiel : {dict_essentiel}")
-
         tuples_pjs = self.mes_panneaux[self.ParamsMultiples.PJS.value].get_tuples_parametres()
         tuples_pnjs = self.mes_panneaux[self.ParamsMultiples.PNJS.value].get_tuples_parametres()
         tuples_evenements = self.mes_panneaux[self.ParamsMultiples.EVENEMENTS.value].get_tuples_parametres()
         tuples_objets = self.mes_panneaux[self.ParamsMultiples.OBJETS.value].get_tuples_parametres()
-
         dict_optionnel = dict_optionnel | \
                          dict(tuples_pjs) | \
                          dict(tuples_pnjs) | \
                          dict(tuples_evenements) | \
                          dict(tuples_objets)
         # print(f"dict_optionnel : {dict_optionnel}")
-
         # dict_essentiel = self.retirer_clefs_vides(dict_essentiel)
         # dict_optionnel = self.retirer_clefs_vides(dict_optionnel)
-
         # fabrication d'un config parser
         config = configparser.ConfigParser()
         config.add_section('Essentiels')
         for param in dict_essentiel:
             config.set("Essentiels", param, dict_essentiel[param])
-
         config.add_section('Optionnels')
         for param in dict_optionnel:
             config.set("Optionnels", param, dict_optionnel[param])
-
-        with open('config_text.ini', 'w') as configfile:
-            config.write(configfile)
+        return config
 
     def retirer_clefs_vides(self, d:dict):
         return {key: value for key, value in d.items() if value != ''}
@@ -333,6 +348,7 @@ class widget_entree(ttk.Frame):
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = NotebookFrame(master=root)
+    api_drive, _, _ = lecteurGoogle.creer_lecteurs_google_apis()
+    app = NotebookFrame(master=root, api_drive=api_drive)
     # app = PanneauParametresMultiples("Parameter_de_demo")
     app.mainloop()
