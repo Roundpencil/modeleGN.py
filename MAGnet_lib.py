@@ -43,8 +43,7 @@ from modeleGN import *
 # à faire - plus long
 
 ### ajout d'une interface de création / férificationd es fichier d'ini :
-# todo : Refaire la grille
-# todo :  intégrer les champs présents dans 3 vers gui creation
+# todo : ajouter un menu avec trois entrées : créer GN... / modifier fichier ini... / régénérer
 # todo : reconstruire autour de switch, puis supprimer tous les fichiers intermédiaires
 
 # confort / logique
@@ -840,24 +839,24 @@ def generer_changelog(mon_gn, prefixe, nb_jours=1, verbal=False):
     return texte
 
 
-def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
-    config = configparser.ConfigParser()
-
-    # Create the sections
-    config['dossiers'] = {'intrigues': ",".join(dict_config['dossier_intrigues']),
-                          'id_factions': dict_config['id_factions'],
-                          'dossier_output_squelettes_pjs': dict_config['dossier_output']}
-
-    for nb_fichiers_persos, perso in enumerate(dict_config['dossiers_pjs'], start=1):
-        config['dossiers'][f'base_persos_{str(nb_fichiers_persos)}'] = perso
-
-    config['globaux'] = {'association_auto': dict_config['association_auto'],
-                         'type_fiche': dict_config['type_fiche']}
-
-    config['sauvegarde'] = {'nom_fichier_sauvegarde': dict_config['nom_fichier_sauvegarde']}
-
-    config['pjs_a_importer'] = {'noms_persos': ",".join(dict_config['noms_persos']),
-                                'nom_fichier_pnjs': dict_config['fichier_noms_pnjs']}
+# def ecrire_fichier_config(dict_config: dict, nom_fichier: str):
+#     config = configparser.ConfigParser()
+#
+#     # Create the sections
+#     config['dossiers'] = {'intrigues': ",".join(dict_config['dossier_intrigues']),
+#                           'id_factions': dict_config['id_factions'],
+#                           'dossier_output_squelettes_pjs': dict_config['dossier_output']}
+#
+#     for nb_fichiers_persos, perso in enumerate(dict_config['dossiers_pjs'], start=1):
+#         config['dossiers'][f'base_persos_{str(nb_fichiers_persos)}'] = perso
+#
+#     config['globaux'] = {'association_auto': dict_config['association_auto'],
+#                          'type_fiche': dict_config['type_fiche']}
+#
+#     config['sauvegarde'] = {'nom_fichier_sauvegarde': dict_config['nom_fichier_sauvegarde']}
+#
+#     config['pjs_a_importer'] = {'noms_persos': ",".join(dict_config['noms_persos']),
+#                                 'nom_fichier_pnjs': dict_config['fichier_noms_pnjs']}
 
     # Write the config file
     with open(nom_fichier, 'w') as configfile:

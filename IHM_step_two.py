@@ -9,7 +9,7 @@ import lecteurGoogle
 
 
 class NotebookFrame(ttk.Frame):
-    def __init__(self, master, api_drive, *args, **kwargs):
+    def __init__(self, master, api_drive, config_parser=None, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
 
         self.api_drive = api_drive
@@ -34,25 +34,25 @@ class NotebookFrame(ttk.Frame):
         # self.bouton_go.pack(expand=True, fill=tk.BOTH)
         self.bouton_go.grid(row=1, column=1, padx=(5,5), pady=(5,5))
 
-        self.create_tabs()
+        self.create_tabs(config_parser)
         self.pack()
 
     class ParamsMultiples(Enum):
-        INTRIGUES = "id_dossier_intrigues_"
-        PJS = "id_dossier_pjs_"
-        PNJS = "id_dossier_pnjs_"
-        EVENEMENTS = "id_dossier_evenements_"
-        OBJETS = "id_dossier_objets_"
+        INTRIGUES = "id_dossier_intrigues"
+        PJS = "id_dossier_pjs"
+        PNJS = "id_dossier_pnjs"
+        EVENEMENTS = "id_dossier_evenements"
+        OBJETS = "id_dossier_objets"
 
-    def create_tabs(self):
-        premier_panneau = PremierPanneau(parent=self)
+    def create_tabs(self, config_parser=None):
+        premier_panneau = PremierPanneau(parent=self, config_parser=config_parser)
         self.notebook.add(premier_panneau, text="Paramètres du GN")
         self.mes_panneaux['premier panneau'] = premier_panneau
 
         for param in self.ParamsMultiples:
             v_parametre = param.value
             nom_tab = v_parametre[11:-1]
-            panneau = PanneauParametresMultiples(self.notebook, v_parametre)
+            panneau = PanneauParametresMultiples(self.notebook, v_parametre, config_parser=config_parser)
             self.mes_panneaux[v_parametre] = panneau
             self.notebook.add(panneau, text=nom_tab)
 
@@ -107,7 +107,7 @@ class NotebookFrame(ttk.Frame):
         return {key: value for key, value in d.items() if value != ''}
 
 class PremierPanneau(ttk.Frame):
-    def __init__(self, parent=None, *args, **kwargs):
+    def __init__(self, parent=None, config_parser=configparser.ConfigParser(), *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.mes_widgets_essentiels = {}
         self.mes_widgets_optionnels = {}
@@ -128,14 +128,14 @@ class PremierPanneau(ttk.Frame):
             "date_gn": "Date GN",
             "prefixe_intrigues": "Prefixe Intrigues",
             "prefixe_evenements": "Prefixe Evenements",
-            "prefixe_PJs": "Prefixe PJs",
-            "prefixe_PNJs": "Prefixe PNJs",
+            "prefixe_PJ": "Prefixe PJs",
+            "prefixe_PNJ": "Prefixe PNJs",
             "prefixe_objets": "Prefixe Objets",
         }
 
-        self.create_param_entries()
+        self.create_param_entries(config_parser)
 
-    def create_param_entries(self):
+    def create_param_entries(self, config_parser=configparser.ConfigParser()):
         # Create essential parameters LabelFrame
         self.essentials_frame = ttk.LabelFrame(self, text="Essentiels")
         self.essentials_frame.pack(pady=10, padx=10, fill="x")
@@ -146,6 +146,8 @@ class PremierPanneau(ttk.Frame):
 
             entry = ttk.Entry(self.essentials_frame, name=f'{key}_entry')
             entry.grid(column=1, row=index, padx=10, pady=5, sticky="ew")
+            entry.insert(0,config_parser.get("Essentiels", key, fallback=""))
+
             # mon_widget = WidgetPremierPanneau(self.essentials_frame, label_text, key, False)
             # mon_widget.grid(column=0, row=index, padx=10, pady=5, sticky="w")
             # self.mes_widgets_essentiels[key] = mon_widget
@@ -157,15 +159,10 @@ class PremierPanneau(ttk.Frame):
         self.optionals_frame.pack(pady=10, padx=10, fill="x")
 
         for index, (key, label_text) in enumerate(self.optional_params.items()):
-            #     label = ttk.Label(self.optionals_frame, text=label_text)
-            #     label.grid(column=0, row=index, padx=10, pady=5, sticky="w")
-            #
-            #     entry = ttk.Entry(self.optionals_frame, name=f'{key}_entry')
-            #     entry.grid(column=1, row=index, padx=10, pady=5, sticky="ew")
-            #
-            # self.optionals_frame.columnconfigure(1, weight=1)
-            var = tk.BooleanVar(value=True)
+            valeur_par_defaut = config_parser.get("Optionnels", key, fallback='')
+            var = tk.BooleanVar(value=valeur_par_defaut == '')
             entry = ttk.Entry(self.optionals_frame, name=f'{key}_entry')
+            entry.insert(0, valeur_par_defaut)
 
             chk = ttk.Checkbutton(self.optionals_frame, variable=var,
                                   command=lambda e=self.optionals_frame.nametowidget(f'{key}_entry'),
@@ -255,7 +252,7 @@ class PremierPanneau(ttk.Frame):
 
 
 class PanneauParametresMultiples(ttk.Frame):
-    def __init__(self, parent, prefixe_parametre, entrees_min = 0):
+    def __init__(self, parent, prefixe_parametre, entrees_min = 0, config_parser=None):
         super().__init__(parent)
 
 
@@ -263,7 +260,6 @@ class PanneauParametresMultiples(ttk.Frame):
         self.prefixe_parametre = prefixe_parametre
 
         self.entree_min = entrees_min
-        self.set_entrees_min(entrees_min)
 
         # self.row = 0
         # self.title("Editeur de fichier de configuration")
@@ -286,12 +282,32 @@ class PanneauParametresMultiples(ttk.Frame):
         self.add_button = ttk.Button(self, text="+", command=self.add_button_click)
         self.add_button.grid(row=0, column=3)
 
+
+        if config_parser is not None:
+            valeurs_a_ajouter = []
+            # on trouve tous les couples suffixes / valeurs dans le fichier de paramètres
+            for section in config_parser.sections():
+                for key in config_parser[section]:
+                    if self.prefixe_parametre in key:
+                        valeurs_a_ajouter.append([key[len(self.prefixe_parametre):],
+                                                  config_parser[section][key]
+                                                  ])
+
+            #on ajoute le bon nombre de champs
+            for couple in valeurs_a_ajouter:
+                self.add_widget_entree(couple[0], couple[1])
+
+        self.set_entrees_min(entrees_min)
+
+
     def get_tuples_parametres(self):
         return [widget.get_tuple_champ_entree() for widget in self.mes_widgets]
 
-    def add_widget_entree(self):
+    def add_widget_entree(self, suffixe="", valeur=""):
         widget_a_rajouter = widget_entree(self, self.retirer_widget_entree,
-                                          prefixe_parametre=self.prefixe_parametre
+                                          prefixe_parametre=self.prefixe_parametre,
+                                          nom_param=suffixe,
+                                          valeur_param=valeur
                                           )
         no_ligne = len(self.mes_widgets) + 1
         widget_a_rajouter.grid(row=no_ligne, column=0, columnspan=4)
@@ -347,8 +363,13 @@ class widget_entree(ttk.Frame):
 
 
 if __name__ == "__main__":
+    config = configparser.ConfigParser()
+
+    # Lisez le fichier "config.ini"
+    config.read('Test Factions.ini')
+
     root = tk.Tk()
     api_drive, _, _ = lecteurGoogle.creer_lecteurs_google_apis()
-    app = NotebookFrame(master=root, api_drive=api_drive)
+    app = NotebookFrame(master=root, api_drive=api_drive, config_parser=config)
     # app = PanneauParametresMultiples("Parameter_de_demo")
     app.mainloop()
