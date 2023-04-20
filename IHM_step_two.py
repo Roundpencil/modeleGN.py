@@ -1,6 +1,6 @@
 import configparser
 from enum import Enum
-from tkinter import ttk
+from tkinter import ttk, filedialog
 import tkinter as tk
 
 import IHM_MAGnet
@@ -9,11 +9,12 @@ import lecteurGoogle
 
 
 class NotebookFrame(ttk.Frame):
-    def __init__(self, master, api_drive, config_parser=None, *args, **kwargs):
+    def __init__(self, master, api_drive, config_parser=None, nom_fichier_ini=None, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
 
         self.api_drive = api_drive
         self.mes_panneaux = {}
+        self.nom_fichier_ini = nom_fichier_ini
 
         self.root = root
         self.root.title("Editeur de fichier configuration")
@@ -24,15 +25,22 @@ class NotebookFrame(ttk.Frame):
 
         self.notebook = ttk.Notebook(self)
         # self.notebook.pack(expand=True, fill=tk.BOTH)
-        self.notebook.grid(row=0, column=0, columnspan=2)
+        self.notebook.grid(row=0, column=0, columnspan=3)
 
         self.bouton_verif = ttk.Button(self, text="Vérifier validité paramètres", command=self.verifier_config_parser)
-        # self.bouton_go.pack(expand=True, fill=tk.BOTH)
+        # self.bouton_save.pack(expand=True, fill=tk.BOTH)
         self.bouton_verif.grid(row=1, column=0, padx=(5,5), pady=(5,5))
 
-        self.bouton_go = ttk.Button(self, text="Générer fichier ini", command=self.generer_fichier_ini)
-        # self.bouton_go.pack(expand=True, fill=tk.BOTH)
-        self.bouton_go.grid(row=1, column=1, padx=(5,5), pady=(5,5))
+        self.bouton_save = ttk.Button(self, text="Enregistrer les changements", command=self.enregistrer_ini)
+        # self.bouton_save.pack(expand=True, fill=tk.BOTH)
+        self.bouton_save.grid(row=1, column=1, padx=(5, 5), pady=(5, 5))
+        if self.nom_fichier_ini is None:
+            self.bouton_save['state']= 'disabled'
+
+        self.bouton_save_as = ttk.Button(self, text="Enregistrer sous...", command=self.enregistrer_sous_ini)
+        # self.bouton_save.pack(expand=True, fill=tk.BOTH)
+        self.bouton_save_as.grid(row=1, column=2, padx=(5,5), pady=(5,5))
+
 
         self.create_tabs(config_parser)
         self.pack()
@@ -64,11 +72,28 @@ class NotebookFrame(ttk.Frame):
             to_return.extend(panneau.get_tuples_parametres())
         return to_return
 
-    def generer_fichier_ini(self):
-        config = self.generer_configparser()
+    def enregistrer_ini(self):
+        # config = self.generer_configparser()
+        #
+        # with open('config_text.ini', 'w') as configfile:
+        #     config.write(configfile)
+        config_parser = self.generer_configparser()
+        with open(self.nom_fichier_ini, "w") as config_file:
+            config_parser.write(config_file)
 
-        with open('config_text.ini', 'w') as configfile:
-            config.write(configfile)
+    def enregistrer_sous_ini(self):
+        # root = tk.Tk()
+        # root.withdraw()  # cache la fenêtre principale
+        root = self
+
+        if file_path := filedialog.asksaveasfilename(
+            defaultextension=".ini",
+            filetypes=[("INI files", "*.ini"), ("All files", "*.*")],
+            title="Choisissez un fichier pour enregistrer la configuration",
+        ):
+            self.nom_fichier_ini = file_path
+            self.enregistrer_ini()
+            self.bouton_save['state'] = 'normal'
 
     def verifier_config_parser(self):
         config = self.generer_configparser()
