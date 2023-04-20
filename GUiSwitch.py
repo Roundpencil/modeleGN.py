@@ -4,6 +4,7 @@ from tkinter import ttk, messagebox, filedialog
 
 import IHM_MAGnet
 import IHM_step_two
+import lecteurGoogle
 
 
 class MAGnetMainGUI(ttk.Frame):
@@ -21,7 +22,6 @@ class MAGnetMainGUI(ttk.Frame):
         self.api_doc = api_drive
         self.api_sheets = api_sheets
 
-
         view_menu = tk.Menu(menu)
         menu.add_cascade(label="Vues", menu=view_menu)
         # view_menu.add_command(label="Nouveau GN...", command=self.show_first_window)
@@ -30,7 +30,6 @@ class MAGnetMainGUI(ttk.Frame):
         view_menu.add_command(label="Mouliner ", command=self.mouliner)
 
         # self.mouliner()
-
 
     def editer_config(self):
         file_path = filedialog.askopenfilename(filetypes=[("Fichiers INI", "*.ini")])
@@ -54,6 +53,31 @@ class MAGnetMainGUI(ttk.Frame):
         future_fenetre = IHM_step_two.FenetreEditionConfig(self, self.api_drive)
         self.change_window(future_fenetre)
 
+
+    # def editer_config(self):
+    #     file_path = filedialog.askopenfilename(filetypes=[("Fichiers INI", "*.ini")])
+    #
+    #     if not file_path:
+    #         messagebox.showerror("Erreur", "Aucun fichier sélectionné")
+    #         return
+    #
+    #     config_parser = ConfigParser()
+    #
+    #     try:
+    #         config_parser.read(file_path)
+    #     except ParsingError as e:
+    #         messagebox.showerror("Erreur", f"Erreur lors de l'ouverture du fichier .ini :\n{e}")
+    #         return
+    #
+    #     future_fenetre = IHM_step_two.FenetreEditionConfig(self, self.api_drive, config_parser, file_path)
+    #     future_fenetre.grid(row=0, column=0)
+    #     self.current_window = future_fenetre
+    #
+    # def nouvelle_config(self):
+    #     future_fenetre = IHM_step_two.FenetreEditionConfig(self, self.api_drive)
+    #     future_fenetre.grid(row=0, column=0)
+    #     self.current_window = future_fenetre
+
     def mouliner(self):
         future_fenetre = IHM_MAGnet.Application(api_drive=self.api_drive,
                                                 api_doc=self.api_doc,
@@ -61,15 +85,21 @@ class MAGnetMainGUI(ttk.Frame):
                                                 master=self)
         self.change_window(future_fenetre)
 
-
     def change_window(self, new_window):
         if self.current_window:
-            self.current_window.pack_forget()
+            # self.current_window.pack_forget()
+            self.current_window.grid_forget()
 
-        new_window.pack(fill=tk.BOTH, expand=True)
+        # new_window.pack(fill=tk.BOTH, expand=True)
+        new_window.grid(row=0, column=0)
+        # new_window.grid()
         self.current_window = new_window
 
 
 if __name__ == "__main__":
-    app = MAGnetMainGUI()
+
+    root = tk.Tk()
+    api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
+    app = MAGnetMainGUI(master=root, api_drive=api_drive, api_doc=api_doc, api_sheets=api_sheets)
+
     app.mainloop()

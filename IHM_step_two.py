@@ -7,7 +7,6 @@ import IHM_MAGnet
 import extraireTexteDeGoogleDoc
 import lecteurGoogle
 
-
 class FenetreEditionConfig(ttk.Frame):
     def __init__(self, master, api_drive, config_parser=configparser.ConfigParser(), nom_fichier_ini=None, *args,
                  **kwargs):
@@ -22,28 +21,90 @@ class FenetreEditionConfig(ttk.Frame):
 
         # Top frame for file selection
         self.top_frame = tk.Frame(self.root)
-        self.top_frame.pack(pady=10)
+        self.top_frame.grid(row=0, column=0, pady=10)
 
         self.notebook = ttk.Notebook(self)
-        # self.notebook.pack(expand=True, fill=tk.BOTH)
-        self.notebook.grid(row=0, column=0, columnspan=3)
+        self.notebook.grid(row=1, column=0, columnspan=3, sticky="nsew")
 
         self.bouton_verif = ttk.Button(self, text="Vérifier validité paramètres", command=self.verifier_config_parser)
-        # self.bouton_save.pack(expand=True, fill=tk.BOTH)
-        self.bouton_verif.grid(row=1, column=0, padx=(5, 5), pady=(5, 5))
+        self.bouton_verif.grid(row=2, column=0, padx=(5, 5), pady=(5, 5))
 
         self.bouton_save = ttk.Button(self, text="Enregistrer les changements", command=self.enregistrer_ini)
-        # self.bouton_save.pack(expand=True, fill=tk.BOTH)
-        self.bouton_save.grid(row=1, column=1, padx=(5, 5), pady=(5, 5))
+        self.bouton_save.grid(row=2, column=1, padx=(5, 5), pady=(5, 5))
         if self.nom_fichier_ini is None:
             self.bouton_save['state'] = 'disabled'
 
         self.bouton_save_as = ttk.Button(self, text="Enregistrer sous...", command=self.enregistrer_sous_ini)
-        # self.bouton_save.pack(expand=True, fill=tk.BOTH)
-        self.bouton_save_as.grid(row=1, column=2, padx=(5, 5), pady=(5, 5))
+        self.bouton_save_as.grid(row=2, column=2, padx=(5, 5), pady=(5, 5))
 
         self.create_tabs(config_parser)
-        self.pack()
+        self.grid()
+
+    # class FenetreEditionConfig(ttk.Frame):
+    #     def __init__(self, master, api_drive, config_parser=configparser.ConfigParser(), nom_fichier_ini=None, *args,
+    #                  **kwargs):
+    #         super().__init__(master, *args, **kwargs)
+    #
+    #         self.api_drive = api_drive
+    #         self.mes_panneaux = {}
+    #         self.nom_fichier_ini = nom_fichier_ini
+    #
+    #         self.root = master.master
+    #         self.winfo_toplevel().title("Editeur de fichier configuration")
+    #
+    #         # Top frame for file selection
+    #         self.top_frame = tk.Frame(self.root)
+    #         self.top_frame.pack(pady=10)
+    #
+    #         self.notebook = ttk.Notebook(self)
+    #         # self.notebook.pack(expand=True, fill=tk.BOTH)
+    #         self.notebook.grid(row=0, column=0, columnspan=3)
+    #
+    #         self.bouton_verif = ttk.Button(self, text="Vérifier validité paramètres", command=self.verifier_config_parser)
+    #         # self.bouton_save.pack(expand=True, fill=tk.BOTH)
+    #         self.bouton_verif.grid(row=1, column=0, padx=(5, 5), pady=(5, 5))
+    #
+    #         self.bouton_save = ttk.Button(self, text="Enregistrer les changements", command=self.enregistrer_ini)
+    #         # self.bouton_save.pack(expand=True, fill=tk.BOTH)
+    #         self.bouton_save.grid(row=1, column=1, padx=(5, 5), pady=(5, 5))
+    #         if self.nom_fichier_ini is None:
+    #             self.bouton_save['state'] = 'disabled'
+    #
+    #         self.bouton_save_as = ttk.Button(self, text="Enregistrer sous...", command=self.enregistrer_sous_ini)
+    #         # self.bouton_save.pack(expand=True, fill=tk.BOTH)
+    #         self.bouton_save_as.grid(row=1, column=2, padx=(5, 5), pady=(5, 5))
+    #
+    #         self.create_tabs(config_parser)
+    #         self.pack()
+    #         # self.grid()
+
+    def create_tabs(self, config_parser):
+        # create tabs and add them to the notebook
+        for panneau in self.api_drive.get_liste_panneaux():
+            tab = ttk.Frame(self.notebook)
+            self.notebook.add(tab, text=panneau)
+            self.mes_panneaux[panneau] = {}
+
+            # create and place widgets in each tab
+            label = tk.Label(tab, text="Nom:")
+            label.grid(row=0, column=0, padx=(5, 5), pady=(5, 5))
+            nom_entree = tk.Entry(tab)
+            nom_entree.grid(row=0, column=1, padx=(5, 5), pady=(5, 5))
+            self.mes_panneaux[panneau]["nom"] = nom_entree
+
+            label = tk.Label(tab, text="Type:")
+            label.grid(row=1, column=0, padx=(5, 5), pady=(5, 5))
+            type_entree = tk.Entry(tab)
+            type_entree.grid(row=1, column=1, padx=(5, 5), pady=(5, 5))
+            self.mes_panneaux[panneau]["type"] = type_entree
+
+            label = tk.Label(tab, text="Valeur:")
+            label.grid(row=2, column=0, padx=(5, 5), pady=(5, 5))
+            valeur_entree = tk.Entry(tab)
+            valeur_entree.grid(row=2, column=1, padx=(5, 5), pady=(5, 5))
+            self.mes_panneaux[panneau]["valeur"] = valeur_entree
+
+
 
     class ParamsMultiples(Enum):
         INTRIGUES = "id_dossier_intrigues"
