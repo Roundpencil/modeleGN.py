@@ -8,16 +8,17 @@ import extraireTexteDeGoogleDoc
 import lecteurGoogle
 
 
-class NotebookFrame(ttk.Frame):
-    def __init__(self, master, api_drive, config_parser=None, nom_fichier_ini=None, *args, **kwargs):
+class FenetreEditionConfig(ttk.Frame):
+    def __init__(self, master, api_drive, config_parser=configparser.ConfigParser(), nom_fichier_ini=None, *args,
+                 **kwargs):
         super().__init__(master, *args, **kwargs)
 
         self.api_drive = api_drive
         self.mes_panneaux = {}
         self.nom_fichier_ini = nom_fichier_ini
 
-        self.root = root
-        self.root.title("Editeur de fichier configuration")
+        self.root = master.master
+        self.winfo_toplevel().title("Editeur de fichier configuration")
 
         # Top frame for file selection
         self.top_frame = tk.Frame(self.root)
@@ -29,18 +30,17 @@ class NotebookFrame(ttk.Frame):
 
         self.bouton_verif = ttk.Button(self, text="Vérifier validité paramètres", command=self.verifier_config_parser)
         # self.bouton_save.pack(expand=True, fill=tk.BOTH)
-        self.bouton_verif.grid(row=1, column=0, padx=(5,5), pady=(5,5))
+        self.bouton_verif.grid(row=1, column=0, padx=(5, 5), pady=(5, 5))
 
         self.bouton_save = ttk.Button(self, text="Enregistrer les changements", command=self.enregistrer_ini)
         # self.bouton_save.pack(expand=True, fill=tk.BOTH)
         self.bouton_save.grid(row=1, column=1, padx=(5, 5), pady=(5, 5))
         if self.nom_fichier_ini is None:
-            self.bouton_save['state']= 'disabled'
+            self.bouton_save['state'] = 'disabled'
 
         self.bouton_save_as = ttk.Button(self, text="Enregistrer sous...", command=self.enregistrer_sous_ini)
         # self.bouton_save.pack(expand=True, fill=tk.BOTH)
-        self.bouton_save_as.grid(row=1, column=2, padx=(5,5), pady=(5,5))
-
+        self.bouton_save_as.grid(row=1, column=2, padx=(5, 5), pady=(5, 5))
 
         self.create_tabs(config_parser)
         self.pack()
@@ -52,7 +52,7 @@ class NotebookFrame(ttk.Frame):
         EVENEMENTS = "id_dossier_evenements"
         OBJETS = "id_dossier_objets"
 
-    def create_tabs(self, config_parser=None):
+    def create_tabs(self, config_parser):
         premier_panneau = PremierPanneau(parent=self, config_parser=config_parser)
         self.notebook.add(premier_panneau, text="Paramètres du GN")
         self.mes_panneaux['premier panneau'] = premier_panneau
@@ -87,9 +87,9 @@ class NotebookFrame(ttk.Frame):
         root = self
 
         if file_path := filedialog.asksaveasfilename(
-            defaultextension=".ini",
-            filetypes=[("INI files", "*.ini"), ("All files", "*.*")],
-            title="Choisissez un fichier pour enregistrer la configuration",
+                defaultextension=".ini",
+                filetypes=[("INI files", "*.ini"), ("All files", "*.*")],
+                title="Choisissez un fichier pour enregistrer la configuration",
         ):
             self.nom_fichier_ini = file_path
             self.enregistrer_ini()
@@ -128,8 +128,9 @@ class NotebookFrame(ttk.Frame):
             config.set("Optionnels", param, dict_optionnel[param])
         return config
 
-    def retirer_clefs_vides(self, d:dict):
+    def retirer_clefs_vides(self, d: dict):
         return {key: value for key, value in d.items() if value != ''}
+
 
 class PremierPanneau(ttk.Frame):
     def __init__(self, parent=None, config_parser=configparser.ConfigParser(), *args, **kwargs):
@@ -160,7 +161,7 @@ class PremierPanneau(ttk.Frame):
 
         self.create_param_entries(config_parser)
 
-    def create_param_entries(self, config_parser=configparser.ConfigParser()):
+    def create_param_entries(self, config_parser):
         # Create essential parameters LabelFrame
         self.essentials_frame = ttk.LabelFrame(self, text="Essentiels")
         self.essentials_frame.pack(pady=10, padx=10, fill="x")
@@ -171,7 +172,7 @@ class PremierPanneau(ttk.Frame):
 
             entry = ttk.Entry(self.essentials_frame, name=f'{key}_entry')
             entry.grid(column=1, row=index, padx=10, pady=5, sticky="ew")
-            entry.insert(0,config_parser.get("Essentiels", key, fallback=""))
+            entry.insert(0, config_parser.get("Essentiels", key, fallback=""))
 
             # mon_widget = WidgetPremierPanneau(self.essentials_frame, label_text, key, False)
             # mon_widget.grid(column=0, row=index, padx=10, pady=5, sticky="w")
@@ -277,9 +278,8 @@ class PremierPanneau(ttk.Frame):
 
 
 class PanneauParametresMultiples(ttk.Frame):
-    def __init__(self, parent, prefixe_parametre, entrees_min = 0, config_parser=None):
+    def __init__(self, parent, prefixe_parametre, entrees_min=0, config_parser=None):
         super().__init__(parent)
-
 
         self.mes_widgets = set()
         self.prefixe_parametre = prefixe_parametre
@@ -307,7 +307,6 @@ class PanneauParametresMultiples(ttk.Frame):
         self.add_button = ttk.Button(self, text="+", command=self.add_button_click)
         self.add_button.grid(row=0, column=3)
 
-
         if config_parser is not None:
             valeurs_a_ajouter = []
             # on trouve tous les couples suffixes / valeurs dans le fichier de paramètres
@@ -318,12 +317,11 @@ class PanneauParametresMultiples(ttk.Frame):
                                                   config_parser[section][key]
                                                   ])
 
-            #on ajoute le bon nombre de champs
+            # on ajoute le bon nombre de champs
             for couple in valeurs_a_ajouter:
                 self.add_widget_entree(couple[0], couple[1])
 
         self.set_entrees_min(entrees_min)
-
 
     def get_tuples_parametres(self):
         return [widget.get_tuple_champ_entree() for widget in self.mes_widgets]
@@ -395,6 +393,6 @@ if __name__ == "__main__":
 
     root = tk.Tk()
     api_drive, _, _ = lecteurGoogle.creer_lecteurs_google_apis()
-    app = NotebookFrame(master=root, api_drive=api_drive, config_parser=config)
+    app = FenetreEditionConfig(master=root, api_drive=api_drive, config_parser=config)
     # app = PanneauParametresMultiples("Parameter_de_demo")
     app.mainloop()

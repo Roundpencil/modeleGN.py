@@ -1,5 +1,6 @@
 import argparse
 
+import GUiSwitch
 import lecteurGoogle
 from IHM_MAGnet import *
 
@@ -100,11 +101,11 @@ def main():
             style.configure("Accentbutton", foreground='white')
             style.configure("Togglebutton", foreground='white')
 
-        app = Application(mode_leger=mode_leger,
-                          api_drive=api_drive,
-                          api_doc=api_doc,
-                          api_sheets=api_sheets,
-                          master=root)
+        app = GUiSwitch.MAGnetMainGUI(mode_leger=mode_leger,
+                                      api_drive=api_drive,
+                                      api_doc=api_doc,
+                                      api_sheets=api_sheets,
+                                      master=root)
         app.mainloop()
 
     if args.console:
