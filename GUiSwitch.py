@@ -29,7 +29,7 @@ class MAGnetMainGUI(ttk.Frame):
         view_menu.add_command(label="Editer fichier de configuration...", command=self.editer_config)
         view_menu.add_command(label="Mouliner ", command=self.mouliner)
 
-        # self.mouliner()
+        self.mouliner()
 
     def editer_config(self):
         file_path = filedialog.askopenfilename(filetypes=[("Fichiers INI", "*.ini")])
@@ -88,12 +88,14 @@ class MAGnetMainGUI(ttk.Frame):
     def change_window(self, new_window):
         if self.current_window:
             # self.current_window.pack_forget()
-            self.current_window.grid_forget()
+            # self.current_window.grid_forget()
+            self.current_window.destroy()
 
         # new_window.pack(fill=tk.BOTH, expand=True)
-        new_window.grid(row=0, column=0)
+        new_window.grid(row=0, column=0, sticky=tk.NSEW)
         # new_window.grid()
         self.current_window = new_window
+
 
 
 if __name__ == "__main__":
