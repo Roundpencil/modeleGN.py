@@ -135,20 +135,21 @@ class WizzardGN(ttk.Frame):
             self.date_gn_entry.config(state='disabled')
 
     def on_ok_click(self):
-        creer_fichier = self.creation_fichiers_var.get()
+        creer_fichier = self.creation_fichiers_var.get() == 1
         nom_parent = self.creation_fichiers_entry.get()
-        nom_parent = extraireTexteDeGoogleDoc.extraire_id_google_si_possible(nom_parent)
-        if not nom_parent:
-            messagebox.showerror("Erreur", "Le nom du dossier spécifié pour créer les fichiers n'est pas valide")
-            return
+
+        if creer_fichier:
+            if not (nom_parent := extraireTexteDeGoogleDoc.extraire_id_google_si_possible(nom_parent)):
+                messagebox.showerror("Erreur", "Le nom du dossier spécifié pour créer les fichiers n'est pas valide")
+                return
 
         # si création d'un fichier, vérifier que le dossier parent existe,
         # sinon pop up d'erreur et on quitte
 
-        ok, erreur = extraireTexteDeGoogleDoc.verifier_acces_fichier(self.api_drive, nom_parent)
-        if not ok:
-            messagebox.showerror("Erreur", f"Impossible de créer les fichiers \n {erreur}")
-            return
+            ok, erreur = extraireTexteDeGoogleDoc.verifier_acces_fichier(self.api_drive, nom_parent)
+            if not ok:
+                messagebox.showerror("Erreur", f"Impossible de créer les fichiers \n {erreur}")
+                return
 
         def nom_dossier(nom):
             return self.get_folder(creer_fichier, nom_parent, nom)
@@ -164,19 +165,19 @@ class WizzardGN(ttk.Frame):
         dict_essentiels['nom_fichier_sauvegarde'] = self.nom_fichier_sauvegarde_entry.get()
 
         nb_evenements = int(self.nombre_dossiers_evenements_spinbox.get())
-        for i in range(1, nb_evenements):
+        for i in range(1, nb_evenements+1):
             dict_optionnels[f"id_dossier_evenements_{i}"] = nom_dossier(f"Evenements {i}")
 
         nb_objets = int(self.nombre_dossiers_objet_spinbox.get())
-        for i in range(1, nb_objets):
+        for i in range(1, nb_objets+1):
             dict_optionnels[f"id_dossier_objets_{i}"] = nom_dossier(f"Objets {i}")
 
         nb_pjs = int(self.nombre_dossiers_pjs_spinbox.get())
-        for i in range(1, nb_pjs):
+        for i in range(1, nb_pjs+1):
             dict_optionnels[f"id_dossier_pjs_{i}"] = nom_dossier(f"PJs {i}")
 
         nb_pnjs = int(self.nombre_dossiers_pnjs_spinbox.get())
-        for i in range(1, nb_pnjs):
+        for i in range(1, nb_pnjs+1):
             dict_optionnels[f"id_dossier_pnjs_{i}"] = nom_dossier(f"PNJs {i}")
         # todo : copier/coller un fichier Id factions dans le GN si demande de création si selectionné
         # todo : copier/coller un fichier des PJs et PNJs dans le GN si demande de création si selectionné
