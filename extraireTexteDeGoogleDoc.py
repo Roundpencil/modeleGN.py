@@ -2609,8 +2609,6 @@ def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):
 
 
 def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
-
-
     try:
         # #création du fichier d'entrée
         # init configuration
@@ -2800,6 +2798,7 @@ def verifier_config_parser(api_drive, config):
     print(f"{fichier_output if test_global_reussi else None}, {resultats}")
     return fichier_output if test_global_reussi else None, resultats
 
+
 # # Utilisation de la méthode
 # config_dict = charger_fichier_init("config.ini")
 # if config_dict:
@@ -2809,3 +2808,58 @@ def verifier_config_parser(api_drive, config):
 #     print(f"Test global: {'Réussi' if test_reussi else 'Échec'}")
 # else:
 #     print("Erreur lors du chargement du fichier de configuration.")
+
+def verifier_acces_fichier(api_drive, folder_id):
+    try:
+        # Get the metadata of the folder using its ID
+        folder = api_drive.files().get(fileId=folder_id, fields="capabilities").execute()
+
+        # Check if the folder is writable
+        can_write = folder['capabilities']['canEdit']
+
+        if can_write:
+            return True, "The folder exists and you have write access"
+        else:
+            return False, "Le fichier existe mais vous n'avez pas les droits en écriture"
+
+    except HttpError as error:
+        return False, "Le dossier n'existe pas ou vous n'avez pas le droit d'y accéder"
+
+
+def copier_fichier_vers_dossier(api_drive, file_id, destination_folder_id):
+    try:
+        # Get the metadata of the file
+        file_metadata = api_drive.files().get(fileId=file_id, fields="name").execute()
+
+        # Set the destination folder ID in the 'parents' field
+        file_metadata['parents'] = [destination_folder_id]
+
+        # Copy the file to the destination folder
+        copied_file = api_drive.files().copy(fileId=file_id, body=file_metadata).execute()
+
+        # Return the ID of the copied file
+        return copied_file['id']
+
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+        return None
+
+
+def extraire_id_google_si_possible(user_text):
+    # Regular expression pattern for Google Drive, Sheets, and Docs URLs
+    pattern = r'https?://(?:drive|docs)\.google\.com/(?:drive/folders/|spreadsheets/d/|document/d/)([a-zA-Z0-9_-]+)'
+
+    # Search for the pattern in the user text
+    match = re.search(pattern, user_text)
+
+    # If a match is found, return the resource ID from the match
+    if match:
+        return match.group(1)
+
+    # If no match is found, check if the user_text looks like an ID
+    elif re.fullmatch(r'[a-zA-Z0-9_-]+', user_text):
+        return user_text
+
+    # If neither a URL nor an ID, return None
+    else:
+        return None

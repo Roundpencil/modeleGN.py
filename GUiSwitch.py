@@ -3,6 +3,7 @@ from configparser import ConfigParser, ParsingError
 from tkinter import ttk, messagebox, filedialog
 
 import IHM_MAGnet
+import IHM_step_one
 import IHM_step_two
 import lecteurGoogle
 
@@ -24,7 +25,7 @@ class MAGnetMainGUI(ttk.Frame):
 
         view_menu = tk.Menu(menu)
         menu.add_cascade(label="Menu", menu=view_menu)
-        # view_menu.add_command(label="Nouveau GN...", command=self.show_first_window)
+        view_menu.add_command(label="Nouveau GN...", command=self.nouveau_gn)
         view_menu.add_command(label="Nouveau fichier de configuration", command=self.nouvelle_config)
         view_menu.add_command(label="Editer fichier de configuration...", command=self.editer_config)
         view_menu.add_command(label="Mouliner ", command=self.mouliner)
@@ -55,6 +56,9 @@ class MAGnetMainGUI(ttk.Frame):
         future_fenetre = IHM_step_two.FenetreEditionConfig(self.winfo_toplevel(), self.api_drive)
         self.change_window(future_fenetre)
 
+    def nouveau_gn(self):
+        future_fenetre = IHM_step_one.WizzardGN(self.winfo_toplevel())
+        self.change_window(future_fenetre)
 
     def mouliner(self):
         future_fenetre = IHM_MAGnet.Application(self.winfo_toplevel(),
@@ -76,8 +80,8 @@ class MAGnetMainGUI(ttk.Frame):
 
 
 if __name__ == "__main__":
-    fenetre_wizard = tk.Tk()
+    root = tk.Tk()
     api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
-    app = MAGnetMainGUI(master=fenetre_wizard, api_drive=api_drive, api_doc=api_doc, api_sheets=api_sheets)
+    app = MAGnetMainGUI(master=root, api_drive=api_drive, api_doc=api_doc, api_sheets=api_sheets)
 
     app.mainloop()
