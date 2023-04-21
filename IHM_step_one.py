@@ -116,10 +116,10 @@ class WizzardGN(ttk.Frame):
         self.date_gn_entry['state'] = 'disabled'
 
         # OK and Annuler buttons
-        ok_button = tk.Button(self, text="OK", command=self.on_ok_click)
+        ok_button = tk.Button(self, text="Suivant >", command=self.on_ok_click)
         ok_button.grid(column=0, row=120, pady=10)
-        annuler_button = tk.Button(self, text="Annuler", command=self.on_annuler_click)
-        annuler_button.grid(column=1, row=120, pady=10)
+        # annuler_button = tk.Button(self, text="Annuler", command=self.on_annuler_click)
+        # annuler_button.grid(column=1, row=120, pady=10)
 
     def toggle_creation_fichiers_entry(self):
         if self.creation_fichiers_var.get() == "0":
