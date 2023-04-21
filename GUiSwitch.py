@@ -57,16 +57,17 @@ class MAGnetMainGUI(ttk.Frame):
 
 
     def mouliner(self):
-        future_fenetre = IHM_MAGnet.Application(api_drive=self.api_drive,
+        future_fenetre = IHM_MAGnet.Application(self.winfo_toplevel(),
+                                                api_drive=self.api_drive,
                                                 api_doc=self.api_doc,
                                                 api_sheets=self.api_sheets,
-                                                master=self.winfo_toplevel())
+                                                )
         self.change_window(future_fenetre)
 
     def change_window(self, new_window):
         if self.current_window:
-            # self.current_window.grid_forget()
-            self.current_window.destroy()
+            self.current_window.grid_forget()
+            # self.current_window.destroy()
 
         # new_window.pack(fill=tk.BOTH, expand=True)
         new_window.grid(row=0, column=0, sticky=tk.NSEW)

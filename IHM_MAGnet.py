@@ -10,13 +10,13 @@ from MAGnet_lib import *
 from modeleGN import GN
 
 
-class Application(tk.Frame):
+class Application(ttk.Frame):
     def __init__(self,
+                 master,
                  api_drive,
                  api_doc,
                  api_sheets,
-                 mode_leger=True,
-                 master=None):
+                 mode_leger=True):
         super().__init__(master)
 
         # variables pour gérer l'apparition ou non du popup versions
@@ -38,7 +38,8 @@ class Application(tk.Frame):
         # self.create_widgets()
 
         # reprise de l'ancien code de regen
-        regen_window = self.master
+        # regen_window = self.master
+        regen_window = self
         regen_window.winfo_toplevel().title("MAGnet, la moulinette")
         # regen_window.geometry("665x535")  # chaque nouvelle ligne fait +25 de hauteur
         regen_window.grid_propagate(True)

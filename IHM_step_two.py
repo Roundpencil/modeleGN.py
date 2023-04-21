@@ -8,15 +8,15 @@ import extraireTexteDeGoogleDoc
 import lecteurGoogle
 
 class FenetreEditionConfig(ttk.Frame):
-    def __init__(self, master, api_drive, config_parser=configparser.ConfigParser(), nom_fichier_ini=None, *args,
-                 **kwargs):
-        super().__init__(master, *args, **kwargs)
+    def __init__(self, master, api_drive, config_parser=configparser.ConfigParser(), nom_fichier_ini=None):
+        super().__init__(master)
 
         self.api_drive = api_drive
         self.mes_panneaux = {}
         self.nom_fichier_ini = nom_fichier_ini
 
-        self.root = master.master
+        self.root = self.winfo_toplevel()
+        # self.root = master.master
         self.winfo_toplevel().title("Editeur de fichier configuration")
 
         # Top frame for file selection
