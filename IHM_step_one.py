@@ -181,7 +181,7 @@ class WizzardGN(ttk.Frame):
             dict_optionnels[f"id_dossier_pnjs_{i}"] = nom_dossier(f"PNJs {i}")
         # todo : copier/coller un fichier Id factions dans le GN si demande de création si selectionné
         # todo : copier/coller un fichier des PJs et PNJs dans le GN si demande de création si selectionné
-        # todo : ajouter la date du GN si la boite est selectionnées
+        # todo : copier/coller des fichiers exemples dans les dossiers créés
 
         #créer un configparser et mettre les dictionnaires dedans
         config = configparser.ConfigParser()
@@ -191,6 +191,9 @@ class WizzardGN(ttk.Frame):
         config.add_section('Optionnels')
         for param in dict_optionnels:
             config.set("Optionnels", param, dict_optionnels[param])
+
+        if self.date_gn_checkbox_var.get():
+            config.set("Optionnels", "date_gn", self.date_gn_entry.get())
 
         # ungrid me et mettre à la place un step two, chargé à partir du configparser créé
         self.grid_forget()
