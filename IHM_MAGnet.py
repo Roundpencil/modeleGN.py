@@ -504,16 +504,16 @@ class Application(ttk.Frame):
             self.updater_boutons_disponibles(False, boutons)
 
     # def afficher_resultats(self, resultats, test_global_reussi):
-    #     root = tk.Tk()
+    #     fenetre_wizard = tk.Tk()
     #
     #     if test_global_reussi:
-    #         root.title("Tests Réussis")
-    #         # root.iconbitmap("success_icon.ico")  # Remplacez par le chemin vers l'icône de succès
+    #         fenetre_wizard.title("Tests Réussis")
+    #         # fenetre_wizard.iconbitmap("success_icon.ico")  # Remplacez par le chemin vers l'icône de succès
     #     else:
-    #         root.title("Tests Échoués")
-    #         # root.iconbitmap("failure_icon.ico")  # Remplacez par le chemin vers l'icône d'échec
+    #         fenetre_wizard.title("Tests Échoués")
+    #         # fenetre_wizard.iconbitmap("failure_icon.ico")  # Remplacez par le chemin vers l'icône d'échec
     #
-    #     tree = ttk.Treeview(root, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
+    #     tree = ttk.Treeview(fenetre_wizard, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
     #
     #     tree.heading("#0", text="")
     #     tree.column("#0", width=0, minwidth=0, stretch=tk.NO)
@@ -532,7 +532,7 @@ class Application(ttk.Frame):
     #
     #     tree.pack(padx=10, pady=10)
     #
-    #     root.mainloop()
+    #     fenetre_wizard.mainloop()
 
     def afficher_resultats(self, resultats, test_global_reussi):
         afficher_resultats_test_config(self.master, resultats, test_global_reussi)

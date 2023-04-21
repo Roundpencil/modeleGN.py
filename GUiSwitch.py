@@ -76,8 +76,8 @@ class MAGnetMainGUI(ttk.Frame):
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
+    fenetre_wizard = tk.Tk()
     api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
-    app = MAGnetMainGUI(master=root, api_drive=api_drive, api_doc=api_doc, api_sheets=api_sheets)
+    app = MAGnetMainGUI(master=fenetre_wizard, api_drive=api_drive, api_doc=api_doc, api_sheets=api_sheets)
 
     app.mainloop()

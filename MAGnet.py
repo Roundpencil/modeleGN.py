@@ -80,7 +80,7 @@ def main():
         root = tk.Tk()
         root.iconbitmap(r'coin-MAGNet.ico')
         style = ttk.Style(root)
-        # root.tk.call('source', 'azure dark/azure dark.tcl')
+        # fenetre_wizard.tk.call('source', 'azure dark/azure dark.tcl')
 
         if message[0]:
             messagebox.showerror(message[0], message[1])

@@ -16,7 +16,7 @@ class FenetreEditionConfig(ttk.Frame):
         self.nom_fichier_ini = nom_fichier_ini
 
         self.root = self.winfo_toplevel()
-        # self.root = master.master
+        # self.fenetre_wizard = master.master
         self.winfo_toplevel().title("Editeur de fichier configuration")
 
         # Top frame for file selection
@@ -49,11 +49,11 @@ class FenetreEditionConfig(ttk.Frame):
     #         self.mes_panneaux = {}
     #         self.nom_fichier_ini = nom_fichier_ini
     #
-    #         self.root = master.master
+    #         self.fenetre_wizard = master.master
     #         self.winfo_toplevel().title("Editeur de fichier configuration")
     #
     #         # Top frame for file selection
-    #         self.top_frame = tk.Frame(self.root)
+    #         self.top_frame = tk.Frame(self.fenetre_wizard)
     #         self.top_frame.pack(pady=10)
     #
     #         self.notebook = ttk.Notebook(self)
@@ -143,8 +143,8 @@ class FenetreEditionConfig(ttk.Frame):
             config_parser.write(config_file)
 
     def enregistrer_sous_ini(self):
-        # root = tk.Tk()
-        # root.withdraw()  # cache la fenêtre principale
+        # fenetre_wizard = tk.Tk()
+        # fenetre_wizard.withdraw()  # cache la fenêtre principale
         root = self
 
         if file_path := filedialog.asksaveasfilename(
