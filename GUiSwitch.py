@@ -20,7 +20,7 @@ class MAGnetMainGUI(ttk.Frame):
         self.current_window = None
 
         self.api_drive = api_drive
-        self.api_doc = api_drive
+        self.api_doc = api_doc
         self.api_sheets = api_sheets
 
         view_menu = tk.Menu(menu)
@@ -31,7 +31,7 @@ class MAGnetMainGUI(ttk.Frame):
         view_menu.add_command(label="Mouliner ", command=self.mouliner)
         # view_menu.add_command(label="Première fenêtre", command=self.show_first_window)
 
-        # self.mouliner()
+        self.mouliner()
 
     def editer_config(self):
         file_path = filedialog.askopenfilename(filetypes=[("Fichiers INI", "*.ini")])

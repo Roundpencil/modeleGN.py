@@ -331,6 +331,11 @@ class Application(ttk.Frame):
             message_label['text'] = updated_text
 
         def t_lancer_regeneration():
+            if self.dict_config is None:
+                continuer = self.lire_verifier_config_updater_gui(boutons, current_file_label, v_config_label, False)
+                if not continuer:
+                    return
+
             print(f"fict config ay début de la régénération : {self.dict_config} / {type(self)}")
             lire_et_recharger_gn(mon_gn=self.gn,
                                  api_drive=self.api_drive,
@@ -382,7 +387,8 @@ class Application(ttk.Frame):
 
         fichier_defaut = fichier_ini_defaut()
         current_file_label['text'] = fichier_defaut
-        self.lire_verifier_config_updater_gui(boutons, current_file_label, v_config_label, False)
+
+        # self.lire_verifier_config_updater_gui(boutons, current_file_label, v_config_label, False)
 
         # if fichier_defaut:
         #     # self.lire_fichier_config(boutons, current_file_label, config_file=fichier_defaut)
@@ -416,10 +422,12 @@ class Application(ttk.Frame):
             self.dict_config = param_gn
             self.lire_gn_et_injecter_config(boutons)
             self.updater_boutons_disponibles(True, boutons)
+            return True
         else:
             self.afficher_resultats(resultats, False)
             v_config_label.config(text="Verifications fichier de configuration ko : corrigez les et re-vérifiez")
             self.updater_boutons_disponibles(False, boutons)
+            return  False
 
     # def change_config_file(self, boutons: list, display_label):
     #     config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
