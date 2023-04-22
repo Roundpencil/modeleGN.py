@@ -12,7 +12,9 @@ addresse_fiche_intrigue = "https://docs.google.com/document/d/1TeZ6FQafiHyRAJb61
 addresse_fiche_perso = "https://docs.google.com/document/d/1ZfbzOmGkbVEPzn_u1h6M6JZBZyMcYKgMcqL55k996uw"
 addresse_fiche_evenement = "https://docs.google.com/document/d/1EkEhr6ZwqbpQIZFJxwYC3nt3QA1Fu3L3OezzgMPgMxg/edit"
 addresse_fiche_objet = "https://docs.google.com/document/d/1zUwBTLSwDDt4Pu5T-_JikkzrUVPj9Cdx5O2_iKPNrnM"
-
+addresse_fichier_pj_pnj = "https://docs.google.com/spreadsheets/d/1eMcP6yyQOX6RmFzkzFB-9BuOOB7ClnjYDwpnZFX5jpU"
+addresse_fichier_factions = \
+    "https://docs.google.com/document/d/1Y4LjLqmdyyZF7KzOLzufHsj4Ufl2npd-UW5cb_EWwhk/edit?usp=sharing"
 
 class WizzardGN(ttk.Frame):
     def __init__(self, parent, api_drive):
@@ -210,7 +212,7 @@ class WizzardGN(ttk.Frame):
         if self.utilisation_fichier_factions_var.get():
             id_factions = ""
             if creer_fichier:
-                id_factions = g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fichier_faction, nom_parent)
+                id_factions = g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fichier_factions, nom_parent)
             dict_optionnels["id_factions"] = id_factions
 
         if self.utilisation_fichier_pjs_pnjs_var.get():
