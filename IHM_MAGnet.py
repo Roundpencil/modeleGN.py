@@ -295,8 +295,8 @@ class Application(ttk.Frame):
         fichier_questionnaire_inscription_check.grid(sticky="W", row=109, column=2)
 
         # Buttons
-        cancel_button = ttk.Button(generer_labelframe, text="Quitter", command=regen_window.destroy)
-        cancel_button.grid(row=200, column=0, pady=(0, 10))
+        # cancel_button = ttk.Button(generer_labelframe, text="Quitter", command=regen_window.destroy)
+        # cancel_button.grid(row=200, column=0, pady=(0, 10))
 
         # ajout des méthodes nécessaires pour gérer le thread
         progression_labelframe = ttk.Labelframe(regen_window, text="Progression de la génération")

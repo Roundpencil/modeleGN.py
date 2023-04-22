@@ -14,6 +14,9 @@ from modeleGN import *
 #  ajouter les données dans le dictionnaire
 #  prendre en compte les paramètres dans les lecture de fiches
 # todo : ajouter un paramètre pour définir des préfixes favoris
+### ajout d'une interface de création / férificationd es fichier d'ini :
+# todo : ajouter un menu avec trois entrées : créer GN... / modifier fichier ini... / régénérer
+# todo : reconstruire autour de switch, puis supprimer tous les fichiers intermédiaires
 
 # documentation
 # todo Prefixes configurables
@@ -36,15 +39,15 @@ from modeleGN import *
 # à tester
 
 # à faire - rapide
+# todo : utiliser la fonction de lecture des addresses drive dans tous les champs du lecteur de config
+# todo : mettre propagate 1 au bon niveau pour qua l fenetre change tout le temps de taille
 
 # todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
 
 # à faire - plus long
 
-### ajout d'une interface de création / férificationd es fichier d'ini :
-# todo : ajouter un menu avec trois entrées : créer GN... / modifier fichier ini... / régénérer
-# todo : reconstruire autour de switch, puis supprimer tous les fichiers intermédiaires
+
 
 # confort / logique
 # todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos

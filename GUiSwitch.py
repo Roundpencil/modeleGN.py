@@ -29,9 +29,12 @@ class MAGnetMainGUI(ttk.Frame):
         view_menu.add_command(label="Nouveau fichier de configuration", command=self.nouvelle_config)
         view_menu.add_command(label="Editer fichier de configuration...", command=self.editer_config)
         view_menu.add_command(label="Mouliner ", command=self.mouliner)
-        # view_menu.add_command(label="Première fenêtre", command=self.show_first_window)
+        view_menu.add_command(label="Quitter ", command=self.quitter)
 
         self.mouliner()
+
+    def quitter(self):
+        self.winfo_toplevel().destroy()
 
     def editer_config(self):
         file_path = filedialog.askopenfilename(filetypes=[("Fichiers INI", "*.ini")])

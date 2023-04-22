@@ -1,11 +1,11 @@
 import configparser
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 import tkinter as tk
 from tkinter import ttk
 
 import IHM_step_two
-import extraireTexteDeGoogleDoc
+import extraireTexteDeGoogleDoc as g_io
 import lecteurGoogle
 
 addresse_fiche_intrigue = "https://docs.google.com/document/d/1TeZ6FQafiHyRAJb61wSI6NKTAXHioSI5RmKkgxkqU10"
@@ -134,67 +134,96 @@ class WizzardGN(ttk.Frame):
 
     def on_ok_click(self):
         creer_fichier = self.creation_fichiers_var.get() == '1'
-
         nom_parent = self.creation_fichiers_entry.get()
 
         if creer_fichier:
-            if not (nom_parent := extraireTexteDeGoogleDoc.extraire_id_google_si_possible(nom_parent)):
+            if not (nom_parent := g_io.extraire_id_google_si_possible(nom_parent)):
                 messagebox.showerror("Erreur", "Le nom du dossier spécifié pour créer les fichiers n'est pas valide")
+                return
+
+            # vérifier qu'il y a un fichier de sauvegarde >> popup sinon
+            if len(self.nom_fichier_sauvegarde_entry['text']) == 0:
+                messagebox.showerror("Erreur", "Vous avez demandé à ce que tout soit céé automatiquement "
+                                               "mais aucun nom de fichier de sauvegarde n'a été fourni")
                 return
 
             # si création d'un fichier, vérifier que le dossier parent existe,
             # sinon pop up d'erreur et on quitte
 
-            ok, erreur = extraireTexteDeGoogleDoc.verifier_acces_fichier(self.api_drive, nom_parent)
+            ok, erreur = g_io.verifier_acces_fichier(self.api_drive, nom_parent)
             if not ok:
                 messagebox.showerror("Erreur", f"Impossible de créer les fichiers \n {erreur}")
                 return
-
-        def nom_dossier(nom):
-            return self.get_folder(creer_fichier, nom_parent, nom)
 
         dict_essentiels = {}
         dict_optionnels = {}
 
         nb_intrigues = int(self.nombre_dossiers_intrigues_spinbox.get())
-        print(f"nib i = {nb_intrigues}")
+        # print(f"nib i = {nb_intrigues}")
         for i in range(nb_intrigues):
-            dict_essentiels[f"id_dossier_intrigues_{i+1}"] = nom_dossier(f"Intrigues {i+1}")
-        dict_essentiels['dossier_output_squelettes_pjs'] = nom_dossier("Output")
+            if creer_fichier:
+                current_dossier = g_io.creer_dossier(self.api_drive, nom_parent, f"Intrigues {i + 1}")
+                dict_essentiels[f"id_dossier_intrigues_{i + 1}"] = current_dossier
+                g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_intrigue, current_dossier)
+            else:
+                dict_essentiels[f"id_dossier_intrigues_{i + 1}"] = ""
+
+        if creer_fichier:
+            dict_essentiels['dossier_output_squelettes_pjs'] = g_io.creer_dossier(self.api_drive, nom_parent, "Output")
+        else:
+            dict_essentiels['dossier_output_squelettes_pjs'] = ""
         dict_essentiels['mode_association'] = self.mode_association_var.get()
         dict_essentiels['nom_fichier_sauvegarde'] = self.nom_fichier_sauvegarde_entry.get()
 
         nb_evenements = int(self.nombre_dossiers_evenements_spinbox.get())
-        for i in range(1, nb_evenements + 1):
-            dict_optionnels[f"id_dossier_evenements_{i}"] = nom_dossier(f"Evenements {i}")
+        for i in range(nb_evenements):
+            current_dossier = ""
+            if creer_fichier:
+                current_dossier = g_io.creer_dossier(self.api_drive, nom_parent, f"Evènements {i + 1}")
+                g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_evenement, current_dossier)
+            dict_optionnels[f"id_dossier_evenements_{i + 1}"] = current_dossier
 
         nb_objets = int(self.nombre_dossiers_objet_spinbox.get())
-        for i in range(1, nb_objets + 1):
-            dict_optionnels[f"id_dossier_objets_{i}"] = nom_dossier(f"Objets {i}")
+        for i in range(nb_objets):
+            current_dossier = ""
+            if creer_fichier:
+                current_dossier = g_io.creer_dossier(self.api_drive, nom_parent, f"Objets {i + 1}")
+                g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_objet, current_dossier)
+            dict_optionnels[f"id_dossier_objets_{i + 1}"] = current_dossier
 
         nb_pjs = int(self.nombre_dossiers_pjs_spinbox.get())
-        for i in range(1, nb_pjs + 1):
-            dict_optionnels[f"id_dossier_pjs_{i}"] = nom_dossier(f"PJs {i}")
+        for i in range(nb_pjs):
+            current_dossier = ""
+            if creer_fichier:
+                current_dossier = g_io.creer_dossier(self.api_drive, nom_parent, f"Fiches PJs {i + 1}")
+                g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_perso, current_dossier)
+            dict_optionnels[f"id_dossier_pjs_{i + 1}"] = current_dossier
 
         nb_pnjs = int(self.nombre_dossiers_pnjs_spinbox.get())
-        for i in range(1, nb_pnjs + 1):
-            dict_optionnels[f"id_dossier_pnjs_{i}"] = nom_dossier(f"PNJs {i}")
-        # todo : copier/coller un fichier Id factions dans le GN si demande de création si selectionné
-        # todo : copier/coller un fichier des PJs et PNJs dans le GN si demande de création si selectionné
-        # todo : copier/coller des fichiers exemples dans les dossiers créés
-        # todo : changer le comportement du bouton suivant : si génération
-        #  écrire tout
-        #  vérifier qu'il y a un fichier de sauvegarde >> popup sinon
-        #  afficher un enregistrer sous pour enregistrer le fichier ini
-        #  afficher un popup comme quoi on a fini
-        # todo : réparer la fonction de lecture des addresses drive
-        #  l'utiliser dans tous les champs du lecteur de config
-        # todo : mettre propagate 1 au bon niveau pour qua l fenetre change tout le temps de taille
+        for i in range(nb_pnjs):
+            current_dossier = ""
+            if creer_fichier:
+                current_dossier = g_io.creer_dossier(self.api_drive, nom_parent, f"Fiches PNJs {i + 1}")
+                g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_perso, current_dossier)
+            dict_optionnels[f"id_dossier_pnjs_{i + 1}"] = current_dossier
 
+        if self.utilisation_fichier_factions_var.get():
+            id_factions = ""
+            if creer_fichier:
+                id_factions = g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fichier_faction, nom_parent)
+            dict_optionnels["id_factions"] = id_factions
 
+        if self.utilisation_fichier_pjs_pnjs_var.get():
+            id_pjpnj = ""
+            if creer_fichier:
+                id_pjpnj = g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fichier_pj_pnj, nom_parent)
+            dict_optionnels["id_pjs_et_pnjs"] = id_pjpnj
 
-        print(dict_essentiels)
-        print(dict_optionnels)
+        if self.date_gn_checkbox_var.get():
+            dict_optionnels["date_gn"] = self.date_gn_entry['text']
+
+        # print(dict_essentiels)
+        # print(dict_optionnels)
         # créer un configparser et mettre les dictionnaires dedans
         config = configparser.ConfigParser()
         config.add_section('Essentiels')
@@ -204,20 +233,25 @@ class WizzardGN(ttk.Frame):
         for param in dict_optionnels:
             config.set("Optionnels", param, dict_optionnels[param])
 
-        if self.date_gn_checkbox_var.get():
-            config.set("Optionnels", "date_gn", self.date_gn_entry.get())
+        if creer_fichier:
+            if file_path := filedialog.asksaveasfilename(
+                    defaultextension=".ini",
+                    filetypes=[("INI files", "*.ini"), ("All files", "*.*")],
+                    title="Choisissez un fichier pour enregistrer la configuration",
+            ):
+                nom_fichier_ini = file_path
+                with open(nom_fichier_ini, "w") as config_file:
+                    config.write(config_file)
+            messagebox.showinfo("Enregistrement réussi", "Le fichier de paramètre a bien été créé et enregistré \n"
+                                                         "Les répertoires ont été créés \n"
+                                                         "Le fichiers exemple ont été générés"
+                                )
 
-        # ungrid me et mettre à la place un step two, chargé à partir du configparser créé
-        self.grid_forget()
-        nxt = IHM_step_two.FenetreEditionConfig(self.winfo_toplevel(), api_drive=self.api_drive, config_parser=config)
-        nxt.grid(row=0, column=0)
-
-    def get_folder(self, creer_fichiers, dossier_parent, nom_dossier):
-        if creer_fichiers:
-            return extraireTexteDeGoogleDoc.creer_dossier(
-                self.api_drive, dossier_parent, nom_dossier
-            )
-        return ''
+        else:
+            # ungrid me et mettre à la place un step two, chargé à partir du configparser créé
+            self.grid_forget()
+            nxt = IHM_step_two.FenetreEditionConfig(self.winfo_toplevel(), api_drive=self.api_drive, config_parser=config)
+            nxt.grid(row=0, column=0)
 
     def on_annuler_click(self):
         # self.destroy()

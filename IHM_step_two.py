@@ -7,6 +7,7 @@ import IHM_MAGnet
 import extraireTexteDeGoogleDoc
 import lecteurGoogle
 
+
 class FenetreEditionConfig(ttk.Frame):
     def __init__(self, master, api_drive, config_parser=configparser.ConfigParser(), nom_fichier_ini=None):
         super().__init__(master)
@@ -104,8 +105,6 @@ class FenetreEditionConfig(ttk.Frame):
             valeur_entree.grid(row=2, column=1, padx=(5, 5), pady=(5, 5))
             self.mes_panneaux[panneau]["valeur"] = valeur_entree
 
-
-
     class ParamsMultiples(Enum):
         INTRIGUES = "id_dossier_intrigues"
         PJS = "id_dossier_pjs"
@@ -145,7 +144,6 @@ class FenetreEditionConfig(ttk.Frame):
     def enregistrer_sous_ini(self):
         # fenetre_wizard = tk.Tk()
         # fenetre_wizard.withdraw()  # cache la fenêtre principale
-        root = self
 
         if file_path := filedialog.asksaveasfilename(
                 defaultextension=".ini",
