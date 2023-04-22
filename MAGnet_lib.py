@@ -40,7 +40,6 @@ from modeleGN import *
 
 # à faire - rapide
 # todo : utiliser la fonction de lecture des addresses drive dans tous les champs du lecteur de config
-# todo : mettre propagate 1 au bon niveau pour qua l fenetre change tout le temps de taille
 
 # todo : ajouter les évènements dans les talbeaux récaps des PNJs
 

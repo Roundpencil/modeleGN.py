@@ -19,6 +19,7 @@ class FenetreEditionConfig(ttk.Frame):
         self.root = self.winfo_toplevel()
         # self.fenetre_wizard = master.master
         self.winfo_toplevel().title("Editeur de fichier configuration")
+        self.grid_propagate(True)
 
         # Top frame for file selection
         self.top_frame = tk.Frame(self.root)
@@ -442,6 +443,14 @@ class widget_entree(ttk.Frame):
 
     def get_tuple_champ_entree(self):
         return self.prefixe_parametre + self.nom_parametre_var.get(), self.valeur_parametre_var.get()
+
+class gid_entry(ttk.Entry):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get(self) -> str:
+        raw = super().get()
+        return extraireTexteDeGoogleDoc.extraire_id_google_si_possible(raw)
 
 
 if __name__ == "__main__":

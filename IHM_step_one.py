@@ -8,20 +8,28 @@ import IHM_step_two
 import extraireTexteDeGoogleDoc as g_io
 import lecteurGoogle
 
-addresse_fiche_intrigue = "https://docs.google.com/document/d/1TeZ6FQafiHyRAJb61wSI6NKTAXHioSI5RmKkgxkqU10"
-addresse_fiche_perso = "https://docs.google.com/document/d/1ZfbzOmGkbVEPzn_u1h6M6JZBZyMcYKgMcqL55k996uw"
-addresse_fiche_evenement = "https://docs.google.com/document/d/1EkEhr6ZwqbpQIZFJxwYC3nt3QA1Fu3L3OezzgMPgMxg/edit"
-addresse_fiche_objet = "https://docs.google.com/document/d/1zUwBTLSwDDt4Pu5T-_JikkzrUVPj9Cdx5O2_iKPNrnM"
-addresse_fichier_pj_pnj = "https://docs.google.com/spreadsheets/d/1eMcP6yyQOX6RmFzkzFB-9BuOOB7ClnjYDwpnZFX5jpU"
-addresse_fichier_factions = \
-    "https://docs.google.com/document/d/1Y4LjLqmdyyZF7KzOLzufHsj4Ufl2npd-UW5cb_EWwhk/edit?usp=sharing"
+# addresse_fiche_intrigue = "https://docs.google.com/document/d/1TeZ6FQafiHyRAJb61wSI6NKTAXHioSI5RmKkgxkqU10"
+# addresse_fiche_perso = "https://docs.google.com/document/d/1ZfbzOmGkbVEPzn_u1h6M6JZBZyMcYKgMcqL55k996uw"
+# addresse_fiche_evenement = "https://docs.google.com/document/d/1EkEhr6ZwqbpQIZFJxwYC3nt3QA1Fu3L3OezzgMPgMxg/edit"
+# addresse_fiche_objet = "https://docs.google.com/document/d/1zUwBTLSwDDt4Pu5T-_JikkzrUVPj9Cdx5O2_iKPNrnM"
+# addresse_fichier_pj_pnj = "https://docs.google.com/spreadsheets/d/1eMcP6yyQOX6RmFzkzFB-9BuOOB7ClnjYDwpnZFX5jpU"
+# addresse_fichier_factions = \
+#     "https://docs.google.com/document/d/1Y4LjLqmdyyZF7KzOLzufHsj4Ufl2npd-UW5cb_EWwhk/edit?usp=sharing"
+
+addresse_fiche_intrigue = "1TeZ6FQafiHyRAJb61wSI6NKTAXHioSI5RmKkgxkqU10"
+addresse_fiche_perso = "1ZfbzOmGkbVEPzn_u1h6M6JZBZyMcYKgMcqL55k996uw"
+addresse_fiche_evenement = "1EkEhr6ZwqbpQIZFJxwYC3nt3QA1Fu3L3OezzgMPgMxg"
+addresse_fiche_objet = "1zUwBTLSwDDt4Pu5T-_JikkzrUVPj9Cdx5O2_iKPNrnM"
+addresse_fichier_pj_pnj = "1eMcP6yyQOX6RmFzkzFB-9BuOOB7ClnjYDwpnZFX5jpU"
+addresse_fichier_factions = "1Y4LjLqmdyyZF7KzOLzufHsj4Ufl2npd-UW5cb_EWwhk"
 
 class WizzardGN(ttk.Frame):
     def __init__(self, parent, api_drive):
         super().__init__(parent)
         self.api_drive = api_drive
         self.winfo_toplevel().title("Création d'un nouveau GN...")
-        self.winfo_toplevel().geometry("665x535")
+        self.grid_propagate(True)
+        # self.winfo_toplevel().geometry("665x535")
 
         # (previous widget definitions remain the same)
         # Mode association
@@ -38,12 +46,12 @@ class WizzardGN(ttk.Frame):
         nom_fichier_sauvegarde_label = tk.Label(self, text="Nom fichier de sauvegarde :")
         nom_fichier_sauvegarde_label.grid(column=0, row=10, sticky=tk.W, columnspan=1)
         self.nom_fichier_sauvegarde_entry = tk.Entry(self, width=50)
-        self.nom_fichier_sauvegarde_entry.grid(column=1, row=10, columnspan=2)
+        self.nom_fichier_sauvegarde_entry.grid(column=1, row=10, columnspan=2, padx=(0, 10))
 
         # Création fichiers
 
-        creation_fichiers_label = tk.Label(self, text="Création fichiers:")
-        creation_fichiers_label.grid(column=0, row=20, sticky=tk.W, pady=(10, 3))
+        # creation_fichiers_label = tk.Label(self, text="Création fichiers:")
+        # creation_fichiers_label.grid(column=0, row=20, sticky=tk.W, pady=(10, 3))
         self.creation_fichiers_var = tk.StringVar()
         self.creation_fichiers_var.set(0)
         creation_fichiers_options = [("Saisir des IDs existants pour les dossiers", 0),
@@ -55,7 +63,7 @@ class WizzardGN(ttk.Frame):
 
         # Entry for Creation fichiers
         self.creation_fichiers_entry = tk.Entry(self, state="normal")
-        self.creation_fichiers_entry.grid(column=2, row=51, columnspan=2, sticky=tk.EW)
+        self.creation_fichiers_entry.grid(column=1, row=52, columnspan=3, sticky=tk.EW, padx=(10,10))
         self.creation_fichiers_entry['state'] = 'disabled'
 
         # # Mode de saisie des personnages
@@ -144,8 +152,10 @@ class WizzardGN(ttk.Frame):
                 return
 
             # vérifier qu'il y a un fichier de sauvegarde >> popup sinon
-            if len(self.nom_fichier_sauvegarde_entry['text']) == 0:
-                messagebox.showerror("Erreur", "Vous avez demandé à ce que tout soit céé automatiquement "
+            # print(f"nom fichier sauvegarde = {self.nom_fichier_sauvegarde_entry.get()} / "
+            #       f"{self.nom_fichier_sauvegarde_entry['text']}")
+            if len(self.nom_fichier_sauvegarde_entry.get()) == 0:
+                messagebox.showerror("Erreur", "Vous avez demandé à ce que tout soit créé automatiquement "
                                                "mais aucun nom de fichier de sauvegarde n'a été fourni")
                 return
 
@@ -222,10 +232,10 @@ class WizzardGN(ttk.Frame):
             dict_optionnels["id_pjs_et_pnjs"] = id_pjpnj
 
         if self.date_gn_checkbox_var.get():
-            dict_optionnels["date_gn"] = self.date_gn_entry['text']
+            dict_optionnels["date_gn"] = self.date_gn_entry.get()
 
-        # print(dict_essentiels)
-        # print(dict_optionnels)
+        print(dict_essentiels)
+        print(dict_optionnels)
         # créer un configparser et mettre les dictionnaires dedans
         config = configparser.ConfigParser()
         config.add_section('Essentiels')
