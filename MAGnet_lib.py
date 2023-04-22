@@ -8,15 +8,7 @@ from modeleGN import *
 
 
 # communication :
-# todo Prefixes configurables
-#  cf. exemples dans fichiers
-#  ajouter lecture dans les fichiers de paramètres
-#  ajouter les données dans le dictionnaire
-#  prendre en compte les paramètres dans les lecture de fiches
-# todo : ajouter un paramètre pour définir des préfixes favoris
-### ajout d'une interface de création / férificationd es fichier d'ini :
-# todo : ajouter un menu avec trois entrées : créer GN... / modifier fichier ini... / régénérer
-# todo : reconstruire autour de switch, puis supprimer tous les fichiers intermédiaires
+
 # documentation
 # todo Prefixes configurables
 #  cf. exemples dans fichiers
@@ -24,6 +16,7 @@ from modeleGN import *
 #  ajouter les données dans le dictionnaire
 #  prendre en compte les paramètres dans les lecture de fiches
 # todo : ajouter un paramètre pour définir des préfixes favoris
+# interfaces de constructions
 
 # tester
 # todo : # ajoyt d'une fin des evenements dans les fiches évènements
