@@ -17,7 +17,6 @@ from modeleGN import *
 ### ajout d'une interface de création / férificationd es fichier d'ini :
 # todo : ajouter un menu avec trois entrées : créer GN... / modifier fichier ini... / régénérer
 # todo : reconstruire autour de switch, puis supprimer tous les fichiers intermédiaires
-
 # documentation
 # todo Prefixes configurables
 #  cf. exemples dans fichiers
@@ -39,8 +38,6 @@ from modeleGN import *
 # à tester
 
 # à faire - rapide
-# todo : utiliser la fonction de lecture des addresses drive dans tous les champs du lecteur de config
-
 # todo : ajouter les évènements dans les talbeaux récaps des PNJs
 
 

@@ -165,7 +165,7 @@ class FenetreEditionConfig(ttk.Frame):
         tuples_intrigues = self.mes_panneaux[self.ParamsMultiples.INTRIGUES.value].get_tuples_parametres()
         # print(f"tuples = {tuples_intrigues}")
         dict_essentiel = dict_essentiel | dict(tuples_intrigues)
-        # print(f"dict_essentiel : {dict_essentiel}")
+        print(f"dict_essentiel : {dict_essentiel}")
         tuples_pjs = self.mes_panneaux[self.ParamsMultiples.PJS.value].get_tuples_parametres()
         tuples_pnjs = self.mes_panneaux[self.ParamsMultiples.PNJS.value].get_tuples_parametres()
         tuples_evenements = self.mes_panneaux[self.ParamsMultiples.EVENEMENTS.value].get_tuples_parametres()
@@ -175,7 +175,7 @@ class FenetreEditionConfig(ttk.Frame):
                          dict(tuples_pnjs) | \
                          dict(tuples_evenements) | \
                          dict(tuples_objets)
-        # print(f"dict_optionnel : {dict_optionnel}")
+        print(f"dict_optionnel : {dict_optionnel}")
         # dict_essentiel = self.retirer_clefs_vides(dict_essentiel)
         # dict_optionnel = self.retirer_clefs_vides(dict_optionnel)
         # fabrication d'un config parser
@@ -195,6 +195,7 @@ class FenetreEditionConfig(ttk.Frame):
 class PremierPanneau(ttk.Frame):
     def __init__(self, parent=None, config_parser=configparser.ConfigParser(), *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
+        # self.mode_association_var = None
         self.mes_widgets_essentiels = {}
         self.mes_widgets_optionnels = {}
         self.essentials_frame = None
@@ -202,7 +203,6 @@ class PremierPanneau(ttk.Frame):
 
         self.essential_params = {
             "dossier_output_squelettes_pjs": "Dossier Output Squelettes PJs",
-            "mode_association": "Mode Association",
             "nom_fichier_sauvegarde": "Nom Fichier Sauvegarde",
         }
 
@@ -230,13 +230,21 @@ class PremierPanneau(ttk.Frame):
             label = ttk.Label(self.essentials_frame, text=label_text)
             label.grid(column=0, row=index, padx=10, pady=5, sticky="w")
 
-            entry = ttk.Entry(self.essentials_frame, name=f'{key}_entry')
+            entry = gid_entry(self.essentials_frame, name=f'{key}_entry')
             entry.grid(column=1, row=index, padx=10, pady=5, sticky="ew")
             entry.insert(0, config_parser.get("Essentiels", key, fallback=""))
 
             # mon_widget = WidgetPremierPanneau(self.essentials_frame, label_text, key, False)
             # mon_widget.grid(column=0, row=index, padx=10, pady=5, sticky="w")
             # self.mes_widgets_essentiels[key] = mon_widget
+
+            # mode_association_var.set("0 - Automatique")
+            mode_association_options = ["0 - Automatique", "1 - Manuel via fiches"]
+            mode_association_dropdown = ttk.Combobox(self.essentials_frame,
+                                                     values=mode_association_options, state="readonly",
+                                                     name='mode_association_entry')
+            mode_association_dropdown.set("0 - Automatique")
+            mode_association_dropdown.grid(column=1, row=len(self.essential_params), padx=10, pady=5, sticky="ew")
 
         self.essentials_frame.columnconfigure(1, weight=1)
 
@@ -247,7 +255,7 @@ class PremierPanneau(ttk.Frame):
         for index, (key, label_text) in enumerate(self.optional_params.items()):
             valeur_par_defaut = config_parser.get("Optionnels", key, fallback='')
             var = tk.BooleanVar(value=valeur_par_defaut == '')
-            entry = ttk.Entry(self.optionals_frame, name=f'{key}_entry')
+            entry = gid_entry(self.optionals_frame, name=f'{key}_entry')
             entry.insert(0, valeur_par_defaut)
 
             chk = ttk.Checkbutton(self.optionals_frame, variable=var,
@@ -435,11 +443,12 @@ class widget_entree(ttk.Frame):
 
         self.valeur_parametre_var = tk.StringVar()
         self.valeur_parametre_var.set(valeur_param)
-        self.valeur_parametre = ttk.Entry(self, textvariable=self.valeur_parametre_var)
+        self.valeur_parametre = gid_entry(self, textvariable=self.valeur_parametre_var)
         self.valeur_parametre.grid(column=2, row=0)
 
         self.bouton_detruire = ttk.Button(self, text="x", command=lambda: fonction_destruction(self))
         self.bouton_detruire.grid(column=3, row=0)
+
 
     def get_tuple_champ_entree(self):
         return self.prefixe_parametre + self.nom_parametre_var.get(), self.valeur_parametre_var.get()
