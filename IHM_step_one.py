@@ -189,6 +189,7 @@ class WizzardGN(ttk.Frame):
         #  afficher un popup comme quoi on a fini
         # todo : réparer la fonction de lecture des addresses drive
         #  l'utiliser dans tous les champs du lecteur de config
+        # todo : mettre propagate 1 au bon niveau pour qua l fenetre change tout le temps de taille
 
 
 
