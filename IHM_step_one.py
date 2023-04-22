@@ -182,6 +182,15 @@ class WizzardGN(ttk.Frame):
         # todo : copier/coller un fichier Id factions dans le GN si demande de création si selectionné
         # todo : copier/coller un fichier des PJs et PNJs dans le GN si demande de création si selectionné
         # todo : copier/coller des fichiers exemples dans les dossiers créés
+        # todo : changer le comportement du bouton suivant : si génération
+        #  écrire tout
+        #  vérifier qu'il y a un fichier de sauvegarde >> popup sinon
+        #  afficher un enregistrer sous pour enregistrer le fichier ini
+        #  afficher un popup comme quoi on a fini
+        # todo : réparer la fonction de lecture des addresses drive
+        #  l'utiliser dans tous les champs du lecteur de config
+
+
 
         print(dict_essentiels)
         print(dict_optionnels)
