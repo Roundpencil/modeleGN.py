@@ -2165,6 +2165,7 @@ def formatter_titres_scenes_dans_squelettes(service, file_id):
 
 
 def creer_dossier(service_drive, id_dossier_parent, nom_dossier):
+    print(f"debug : {id_dossier_parent}, {nom_dossier}")
     try:
         # Création de l'objet dossier
         nouveau_dossier = {'name': nom_dossier, 'parents': [id_dossier_parent],

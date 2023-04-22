@@ -57,7 +57,7 @@ class MAGnetMainGUI(ttk.Frame):
         self.change_window(future_fenetre)
 
     def nouveau_gn(self):
-        future_fenetre = IHM_step_one.WizzardGN(self.winfo_toplevel())
+        future_fenetre = IHM_step_one.WizzardGN(self.winfo_toplevel(), api_drive=self.api_drive)
         self.change_window(future_fenetre)
 
     def mouliner(self):
