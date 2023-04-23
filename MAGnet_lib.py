@@ -849,10 +849,10 @@ def generer_changelog(mon_gn, prefixe, nb_jours=1, verbal=False):
 #
 #     config['pjs_a_importer'] = {'noms_persos': ",".join(dict_config['noms_persos']),
 #                                 'nom_fichier_pnjs': dict_config['fichier_noms_pnjs']}
-
-    # Write the config file
-    with open(nom_fichier, 'w') as configfile:
-        config.write(configfile)
+#
+#     # Write the config file
+#     with open(nom_fichier, 'w') as configfile:
+#         config.write(configfile)
 
 
 def generer_table_objets_from_intrigues_et_evenements(mon_gn):
