@@ -5,6 +5,7 @@ import datetime
 from enum import IntEnum
 import re
 
+import dateparser
 from fuzzywuzzy import process
 import sys
 from packaging import version
@@ -1749,6 +1750,12 @@ class Intervention:
         self.description = description
         self.evenement = evenement
 
+    def heure_formattee(self):
+        try:
+            date_obj = dateparser.parse(self.heure_debut)
+            return date_obj.strftime("%Hh%M")
+        except Exception:
+            return self.heure_debut
 
 # def get_noms_pjs_impliques(self):
 #     if self.noms_pjs_impliques != ['']:
