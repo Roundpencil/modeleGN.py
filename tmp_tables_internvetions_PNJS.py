@@ -1,12 +1,14 @@
 from ortools.sat.python import cp_model
 
 # Définition des variables et des données d'exemple
-nb_pnj = 4
-nb_personnes = 6
+nb_pnj = 6
+nb_personnes = 4
 evenements = [
     {"start": 0, "end": 4, "pnjs": [0, 1]},
     {"start": 2, "end": 6, "pnjs": [2, 3]},
     {"start": 5, "end": 9, "pnjs": [0]},
+    {"start": 6, "end": 7, "pnjs": [4]},
+    {"start": 15, "end": 16, "pnjs": [5]},
     {"start": 8, "end": 13, "pnjs": [1, 3, 2]},
 ]
 
@@ -62,10 +64,22 @@ for pnj, personne in affectations_predefinies.items():
 
 
 # Définition de l'objectif du modèle
+# ancien objectif
+# temps_total_par_personne = [model.NewIntVar(0, 100, f"temps_total_p_{p}") for p in range(nb_personnes)]
+# for p in range(nb_personnes):
+#     model.Add(temps_total_par_personne[p] == sum(interventions[f"evt_{evt_id}_pnj_{pnj}_p_{p}"] * (evt["end"] - evt["start"]) for evt_id, evt in enumerate(evenements) for pnj in evt["pnjs"]))
+# model.Minimize(sum(temps_total_par_personne))
+
 temps_total_par_personne = [model.NewIntVar(0, 100, f"temps_total_p_{p}") for p in range(nb_personnes)]
 for p in range(nb_personnes):
     model.Add(temps_total_par_personne[p] == sum(interventions[f"evt_{evt_id}_pnj_{pnj}_p_{p}"] * (evt["end"] - evt["start"]) for evt_id, evt in enumerate(evenements) for pnj in evt["pnjs"]))
-model.Minimize(sum(temps_total_par_personne))
+
+plus_petit_temps = model.NewIntVar(0, 100, "plus_petit_temps")
+for p in range(nb_personnes):
+    model.Add(plus_petit_temps <= temps_total_par_personne[p])
+model.Maximize(plus_petit_temps)
+
+
 
 # Résoudre le modèle
 solver = cp_model.CpSolver()
