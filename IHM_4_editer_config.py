@@ -4,7 +4,7 @@ from tkinter import ttk, filedialog
 import tkinter as tk
 
 import IHM_2_generation
-import extraireTexteDeGoogleDoc
+import google_io as g_io
 import lecteurGoogle
 
 
@@ -159,7 +159,7 @@ class FenetreEditionConfig(ttk.Frame):
 
     def verifier_config_parser(self):
         config = self.generer_configparser()
-        param, resultat = extraireTexteDeGoogleDoc.verifier_config_parser(self.api_drive, config)
+        param, resultat = g_io.verifier_config_parser(self.api_drive, config)
         IHM_2_generation.afficher_resultats_test_config(self.master, resultat, param is None)
 
     def generer_configparser(self):
@@ -461,7 +461,7 @@ class gid_entry(ttk.Entry):
 
     def get(self) -> str:
         raw = super().get()
-        return extraireTexteDeGoogleDoc.extraire_id_google_si_possible(raw)
+        return g_io.extraire_id_google_si_possible(raw)
 
 
 if __name__ == "__main__":

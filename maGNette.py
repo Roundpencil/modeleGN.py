@@ -3,7 +3,7 @@ import configparser
 import csv
 import sys
 
-import extraireTexteDeGoogleDoc
+import google_io
 import lecteurGoogle
 import modeleGN
 from modeleGN import *
@@ -97,14 +97,14 @@ def main():
     # extraire_texte_de_google_doc.extraire_intrigues(gn, api_doc=api_doc, api_doc=api_doc, single_test="-01")
     # extraire_texte_de_google_doc.extraire_pjs(gn, api_doc=api_doc, api_doc=api_doc, single_test="-01")
 
-    extraireTexteDeGoogleDoc.extraire_intrigues(monGN, api_drive=apiDrive, api_doc=apiDoc, singletest=args.intrigue,
-                                                fast=(not args.allintrigues))
-    extraireTexteDeGoogleDoc.extraire_pjs(monGN, api_drive=apiDrive, api_doc=apiDoc, singletest=args.perso,
-                                          fast=(not args.allpjs))
-    extraireTexteDeGoogleDoc.extraire_pjs(monGN, api_drive=apiDrive, api_doc=apiDoc, singletest=args.perso,
-                                          fast=(not args.allpjs))
+    google_io.extraire_intrigues(monGN, api_drive=apiDrive, api_doc=apiDoc, singletest=args.intrigue,
+                                 fast=(not args.allintrigues))
+    google_io.extraire_pjs(monGN, api_drive=apiDrive, api_doc=apiDoc, singletest=args.perso,
+                           fast=(not args.allpjs))
+    google_io.extraire_pjs(monGN, api_drive=apiDrive, api_doc=apiDoc, singletest=args.perso,
+                           fast=(not args.allpjs))
 
-    extraireTexteDeGoogleDoc.extraire_factions(monGN, api_doc=apiDoc)
+    google_io.extraire_factions(monGN, api_doc=apiDoc)
     # extraire_texte_de_google_doc.lire_factions_depuis_fichier(gn, fichier_faction)
 
     monGN.forcer_import_pjs(noms_persos)
@@ -344,22 +344,22 @@ def reverse_generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive):
     for nom_perso in d:
         # créer le fichier et récupérer l'ID
         nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
-        id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, mon_GN.dossier_outputs_drive)
+        id = google_io.add_doc(api_drive, nom_fichier, mon_GN.dossier_outputs_drive)
 
         # ajouter le texte de l'intro
         texte_intro = d[nom_perso]["intro"]
-        extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, texte_intro, titre=False)
+        google_io.write_to_doc(api_doc, id, texte_intro, titre=False)
 
         # ajouter toutes les scènes
         for scene in d[nom_perso]["scenes"]:
             description_scene = scene.dict_text()
 
             # ajouter le titre
-            extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, description_scene["titre"], titre=True)
+            google_io.write_to_doc(api_doc, id, description_scene["titre"], titre=True)
             # ajouter les entetes
             extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, description_scene["en-tete"], titre=False)
             # ajouter le texte
-            extraireTexteDeGoogleDoc.write_to_doc(api_doc, id, description_scene["corps"], titre=True)
+            google_io.write_to_doc(api_doc, id, description_scene["corps"], titre=True)
 
 
 def tousLesSquelettesPNJ(monGN: GN, prefixe):

@@ -1,11 +1,10 @@
-import configparser
 import csv
 import os
 
-
-import extraireTexteDeGoogleDoc
+import google_io
 from modeleGN import *
 
+import google_io as g_io
 
 # communication :
 
@@ -126,34 +125,34 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     #     logging.debug(f"nom du pnj = {perso.nom} / {perso.forced}")
     # logging.debug(f"noms pnjs = {mon_gn.noms_pnjs()}")
 
-    ids_lus = extraireTexteDeGoogleDoc.extraire_intrigues(mon_gn,
-                                                          api_drive=api_drive,
-                                                          api_doc=api_doc,
-                                                          singletest=singletest_intrigue,
-                                                          fast=fast_intrigues,
-                                                          verbal=verbal,
-                                                          m_print=m_print,
-                                                          visualisation=visualisation,
-                                                          taille_visualisation=pas_visualisation)
+    ids_lus = google_io.extraire_intrigues(mon_gn,
+                                           api_drive=api_drive,
+                                           api_doc=api_doc,
+                                           singletest=singletest_intrigue,
+                                           fast=fast_intrigues,
+                                           verbal=verbal,
+                                           m_print=m_print,
+                                           visualisation=visualisation,
+                                           taille_visualisation=pas_visualisation)
     retirer_intrigues_supprimees(mon_gn, ids_lus)
     # visualisation(pas_visualisation)
     m_print("****** fin de la lecture des intrigues  *********")
 
-    ids_lus = extraireTexteDeGoogleDoc.extraire_pjs(mon_gn,
-                                                    api_drive=api_drive,
-                                                    api_doc=api_doc,
-                                                    singletest=singletest_perso,
-                                                    fast=fast_persos,
-                                                    verbal=verbal,
-                                                    m_print=m_print,
-                                                    visualisation=visualisation,
-                                                    taille_visualisation=pas_visualisation)
+    ids_lus = google_io.extraire_pjs(mon_gn,
+                                     api_drive=api_drive,
+                                     api_doc=api_doc,
+                                     singletest=singletest_perso,
+                                     fast=fast_persos,
+                                     verbal=verbal,
+                                     m_print=m_print,
+                                     visualisation=visualisation,
+                                     taille_visualisation=pas_visualisation)
 
     retirer_pjs_supprimees(mon_gn, ids_lus)
     # visualisation(pas_visualisation)
     m_print("****** fin de la lecture des pjs  *********")
 
-    ids_lus = extraireTexteDeGoogleDoc.extraire_pnjs(mon_gn,
+    ids_lus = g_io.extraire_pnjs(mon_gn,
                                                      api_drive=api_drive,
                                                      api_doc=api_doc,
                                                      singletest=singletest_perso,
@@ -167,27 +166,27 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     # visualisation(pas_visualisation)
     m_print("****** fin de la lecture des pnjs *********")
 
-    ids_lus = extraireTexteDeGoogleDoc.extraire_evenements(mon_gn,
-                                                           api_drive=api_drive,
-                                                           api_doc=api_doc,
-                                                           fast=fast_evenements,
-                                                           m_print=m_print,
-                                                           visualisation=visualisation,
-                                                           taille_visualisation=pas_visualisation
-                                                           )
+    ids_lus = google_io.extraire_evenements(mon_gn,
+                                            api_drive=api_drive,
+                                            api_doc=api_doc,
+                                            fast=fast_evenements,
+                                            m_print=m_print,
+                                            visualisation=visualisation,
+                                            taille_visualisation=pas_visualisation
+                                            )
 
     retirer_evenements_supprimes(mon_gn, ids_lus)
     # visualisation(pas_visualisation)
     m_print("****** fin de la lecture des évènements *********")
 
-    ids_lus = extraireTexteDeGoogleDoc.extraire_objets(mon_gn,
-                                                       api_drive=api_drive,
-                                                       api_doc=api_doc,
-                                                       fast=fast_objets,
-                                                       m_print=m_print,
-                                                       visualisation=visualisation,
-                                                       taille_visualisation=pas_visualisation
-                                                       )
+    ids_lus = google_io.extraire_objets(mon_gn,
+                                        api_drive=api_drive,
+                                        api_doc=api_doc,
+                                        fast=fast_objets,
+                                        m_print=m_print,
+                                        visualisation=visualisation,
+                                        taille_visualisation=pas_visualisation
+                                        )
     retirer_objets_supprimes(mon_gn, ids_lus)
     # visualisation(pas_visualisation)
 
@@ -200,8 +199,8 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         # dans ce cas on a un tableau global avec toutes les données > on le lit
         # on met à jour les données pour les PNJs pour
         logging.debug(f"sheet_id = {sheet_id}, mon_gn.id_pjs_et_pnjs = {mon_gn.get_id_pjs_et_pnjs()}")
-        liste_noms_pnjs = extraireTexteDeGoogleDoc.lire_gspread_pnj(api_sheets, sheet_id)
-        liste_noms_pjs, liste_orgas = extraireTexteDeGoogleDoc.lire_gspread_pj(api_sheets, sheet_id)
+        liste_noms_pnjs = google_io.lire_gspread_pnj(api_sheets, sheet_id)
+        liste_noms_pjs, liste_orgas = google_io.lire_gspread_pj(api_sheets, sheet_id)
         logging.debug(f"liste_noms_pnjs = {liste_noms_pnjs}")
         logging.debug(f"liste_noms_pjs = {liste_noms_pjs}")
         logging.debug(f"liste_orgas = {liste_orgas}")
@@ -222,7 +221,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         mon_gn.forcer_import_pjs(liste_noms_pjs, verbal=verbal, table_orgas_referent=liste_orgas)
         logging.debug("PJs forcés ok")
 
-    extraireTexteDeGoogleDoc.extraire_factions(mon_gn, api_doc=api_doc, verbal=verbal)
+    google_io.extraire_factions(mon_gn, api_doc=api_doc, verbal=verbal)
     # print(f"gn.factions = {gn.factions}")
     logging.debug("factions lues")
 
@@ -451,11 +450,11 @@ def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, parent, 
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Listes des erreurs dans les tableaux des persos'
-    mon_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, parent)
-    if extraireTexteDeGoogleDoc.write_to_doc(
+    mon_id = google_io.add_doc(api_drive, nom_fichier, parent)
+    if google_io.write_to_doc(
             api_doc, mon_id, texte_erreurs
     ):
-        extraireTexteDeGoogleDoc.formatter_fichier_erreurs(api_doc, mon_id)
+        google_io.formatter_fichier_erreurs(api_doc, mon_id)
 
 
 def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent, verbal=False):
@@ -463,11 +462,11 @@ def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent,
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Listes des erreurs dans les évènements'
-    mon_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, parent)
-    if extraireTexteDeGoogleDoc.write_to_doc(
+    mon_id = google_io.add_doc(api_drive, nom_fichier, parent)
+    if google_io.write_to_doc(
             api_doc, mon_id, texte_erreurs
     ):
-        extraireTexteDeGoogleDoc.formatter_fichier_erreurs(api_doc, mon_id)
+        google_io.formatter_fichier_erreurs(api_doc, mon_id)
 
 
 def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
@@ -574,9 +573,9 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Changelog'
     dossier_output = mon_gn.get_dossier_outputs_drive()
-    mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_output)
-    extraireTexteDeGoogleDoc.exporter_changelog(tableau_scene_orgas, mon_id, dict_orgas_persos, api_sheets)
-    extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, mon_id)
+    mon_id = g_io.creer_google_sheet(api_drive, nom_fichier, dossier_output)
+    google_io.exporter_changelog(tableau_scene_orgas, mon_id, dict_orgas_persos, api_sheets)
+    g_io.supprimer_feuille_1(api_sheets, mon_id)
 
 
 def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
@@ -598,10 +597,10 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
     )
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Etat des intrigues'
     dossier_export = mon_gn.get_dossier_outputs_drive()
-    mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, dossier_export)
+    mon_id = google_io.creer_google_sheet(api_drive, nom_fichier, dossier_export)
     # extraire_texte_de_google_doc.exporter_table_intrigue(api_doc, nom_fichier, dossier_export, df)
     # extraire_texte_de_google_doc.ecrire_table_google_sheets(api_sheets, df, mon_id)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_intrigues, mon_id)
+    google_io.ecrire_table_google_sheets(api_sheets, table_intrigues, mon_id)
 
 
 def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_print=print,
@@ -609,7 +608,7 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
     parent = mon_gn.get_dossier_outputs_drive()
     pj_pnj = "PJ" if pj else "PNJ"
     nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes {pj_pnj}'
-    nouveau_dossier = extraireTexteDeGoogleDoc.creer_dossier(api_drive, parent, nom_dossier)
+    nouveau_dossier = google_io.creer_dossier(api_drive, parent, nom_dossier)
     d = squelettes_par_perso(mon_gn, pj=pj, m_print=m_print)
     nb_persos_source = len(d)
     pas_visualisation = taille_visualisation / nb_persos_source
@@ -626,9 +625,9 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
         m_print(f'{prefixe} : {nom_perso}')
         visualisation(pas_visualisation)
 
-        file_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, nouveau_dossier)
-        extraireTexteDeGoogleDoc.write_to_doc(api_doc, file_id, texte, titre=nom_fichier)
-        extraireTexteDeGoogleDoc.formatter_titres_scenes_dans_squelettes(api_doc, file_id)
+        file_id = google_io.add_doc(api_drive, nom_fichier, nouveau_dossier)
+        google_io.write_to_doc(api_doc, file_id, texte, titre=nom_fichier)
+        google_io.formatter_titres_scenes_dans_squelettes(api_doc, file_id)
 
 
 def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
@@ -937,10 +936,10 @@ def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets):
     table_condensee = generer_table_objets_uniques(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Table des objets'
-    mon_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_detaillee, mon_id, "lus dans les fiches")
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_condensee, mon_id, "objets uniques")
-    extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, mon_id)
+    mon_id = google_io.creer_google_sheet(api_drive, nom_fichier, parent)
+    google_io.ecrire_table_google_sheets(api_sheets, table_detaillee, mon_id, "lus dans les fiches")
+    g_io.ecrire_table_google_sheets(api_sheets, table_condensee, mon_id, "objets uniques")
+    google_io.supprimer_feuille_1(api_sheets, mon_id)
 
 
 def generer_table_chrono_condensee_raw(gn: GN):
@@ -1109,12 +1108,12 @@ def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets):
     table_chrono_scenes = generer_table_chrono_scenes(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- synthèse chrono'
-    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="condensée")
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_complete, file_id, feuille="étendue")
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_chrono_scenes, file_id,
-                                                        feuille="toutes les scènes")
-    extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, file_id)
+    file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent)
+    google_io.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="condensée")
+    google_io.ecrire_table_google_sheets(api_sheets, table_complete, file_id, feuille="étendue")
+    google_io.ecrire_table_google_sheets(api_sheets, table_chrono_scenes, file_id,
+                                         feuille="toutes les scènes")
+    google_io.supprimer_feuille_1(api_sheets, file_id)
 
 
 def generer_tableau_recap_persos(gn: GN):
@@ -1137,8 +1136,8 @@ def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
     table = generer_tableau_recap_persos(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- synthèse des intrigues par personnage'
-    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table, file_id)
+    file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent)
+    google_io.ecrire_table_google_sheets(api_sheets, table, file_id)
 
 
 def generer_table_pnjs_etendue(gn: GN, verbal=False):
@@ -1211,14 +1210,14 @@ def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets):
     table_simple = generer_table_pnjs_simple(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- table des PNJs'
-    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="En synthèse")
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_etendue, file_id, feuille="Vision détaillée")
+    file_id = google_io.creer_google_sheet(api_drive, nom_fichier, parent)
+    g_io.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="En synthèse")
+    google_io.ecrire_table_google_sheets(api_sheets, table_etendue, file_id, feuille="Vision détaillée")
     if mon_gn.get_mode_association() == GN.ModeAssociation.AUTO:
         table_pnj_dedup = generer_table_pnj_dedupliquee(mon_gn)
-        extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, table_pnj_dedup, file_id,
+        g_io.ecrire_table_google_sheets(api_sheets, table_pnj_dedup, file_id,
                                                             feuille="Suggestion liste dedupliquée")
-    extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, file_id)
+    g_io.supprimer_feuille_1(api_sheets, file_id)
 
 
 def generer_table_pnj_dedupliquee(mon_gn: GN):
@@ -1265,8 +1264,8 @@ def ecrire_texte_info(mon_gn: GN, api_doc, api_drive):
     texte = generer_textes_infos(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- données pour aides de jeu'
-    mon_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.write_to_doc(
+    mon_id = google_io.add_doc(api_drive, nom_fichier, parent)
+    google_io.write_to_doc(
         api_doc, mon_id, texte
     )
 
@@ -1353,21 +1352,21 @@ def ecrire_table_commentaires(gn: GN, api_drive, api_doc, api_sheets):
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- commentaires ouverts dans les documents'
-    mon_id = extraireTexteDeGoogleDoc.add_doc(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.write_to_doc(
+    mon_id = google_io.add_doc(api_drive, nom_fichier, parent)
+    google_io.write_to_doc(
         api_doc, mon_id, texte
     )
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- table des commentaires'
 
-    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
+    file_id = google_io.creer_google_sheet(api_drive, nom_fichier, parent)
     for auteur in dict_auteurs_tableaux:
-        extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, dict_auteurs_tableaux[auteur], file_id,
-                                                            feuille=auteur)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tableau_global, file_id,
-                                                        feuille="tableau global")
-    extraireTexteDeGoogleDoc.supprimer_feuille_1(api_sheets, file_id)
+        google_io.ecrire_table_google_sheets(api_sheets, dict_auteurs_tableaux[auteur], file_id,
+                                             feuille=auteur)
+    google_io.ecrire_table_google_sheets(api_sheets, tableau_global, file_id,
+                                         feuille="tableau global")
+    google_io.supprimer_feuille_1(api_sheets, file_id)
 
 
 def generer_table_relations_personnages(gn):
@@ -1438,8 +1437,8 @@ def ecrire_table_relation(gn: GN, api_drive, api_sheets):
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- table des relations'
 
-    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tab_relations, file_id)
+    file_id = google_io.creer_google_sheet(api_drive, nom_fichier, parent)
+    google_io.ecrire_table_google_sheets(api_sheets, tab_relations, file_id)
 
 
 def generer_table_evenements(gn: GN):
@@ -1502,14 +1501,14 @@ def ecrire_table_evenements(gn: GN, api_drive, api_sheets):
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- table des evenements'
 
-    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tab_evenements, file_id)
+    file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent)
+    google_io.ecrire_table_google_sheets(api_sheets, tab_evenements, file_id)
 
 
 def generer_table_questionnaire(gn: GN):
     toutes_les_questions = [["Identifiant", "Question", "Explication"]]
     for intrigue in gn.intrigues.values():
-        id_intrigue = extraireTexteDeGoogleDoc.ref_du_doc(intrigue.nom, prefixes="I")
+        id_intrigue = google_io.ref_du_doc(intrigue.nom, prefixes="I")
         prefixes_id_questions = "I" + "{:03d}".format(id_intrigue) + "-"
 
         for i, questions in enumerate(intrigue.questionnaire, start=1):
@@ -1525,8 +1524,8 @@ def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets):
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- table questionnaire'
 
-    file_id = extraireTexteDeGoogleDoc.creer_google_sheet(api_drive, nom_fichier, parent)
-    extraireTexteDeGoogleDoc.ecrire_table_google_sheets(api_sheets, tab_questionnaire, file_id)
+    file_id = google_io.creer_google_sheet(api_drive, nom_fichier, parent)
+    google_io.ecrire_table_google_sheets(api_sheets, tab_questionnaire, file_id)
 
 
 def fichier_ini_defaut():
@@ -1541,7 +1540,7 @@ def verifier_derniere_version(api_doc):
         # contenu_document = document.get('body').get('content')
         # text = lecteurGoogle.read_structural_elements(contenu_document)
         # text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
-        texte = extraireTexteDeGoogleDoc.lire_google_doc(api_doc, ID_FICHIER_VERSION)
+        texte = google_io.lire_google_doc(api_doc, ID_FICHIER_VERSION)
         to_return = ""
         last_url = None
         start_include = False

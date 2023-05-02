@@ -2,12 +2,13 @@ import threading
 import tkinter as tk
 import traceback
 import webbrowser
-from tkinter import filedialog, ttk, messagebox
+from tkinter import filedialog, ttk
 from tkinter.ttk import Progressbar
 
-import extraireTexteDeGoogleDoc
 from MAGnet_lib import *
 from modeleGN import GN
+
+import google_io as g_io
 
 
 class Application(ttk.Frame):
@@ -409,7 +410,7 @@ class Application(ttk.Frame):
 
     def lire_verifier_config_updater_gui(self, boutons: list, display_label, v_config_label, afficher=False):
         config_file = display_label['text']
-        param_gn, resultats = extraireTexteDeGoogleDoc.charger_et_verifier_fichier_config(config_file, self.api_drive)
+        param_gn, resultats = g_io.charger_et_verifier_fichier_config(config_file, self.api_drive)
 
         # print(f"repr des champs : {repr(display_label)} - {display_label}, {repr(v_config_label)} - {v_config_label}")
         print(f"pgr = {(param_gn, resultats)}")

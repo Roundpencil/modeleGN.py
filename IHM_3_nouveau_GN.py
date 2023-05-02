@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 
 import IHM_4_editer_config
-import extraireTexteDeGoogleDoc as g_io
+import google_io as g_io
 import lecteurGoogle
 
 # addresse_fiche_intrigue = "https://docs.google.com/document/d/1TeZ6FQafiHyRAJb61wSI6NKTAXHioSI5RmKkgxkqU10"
