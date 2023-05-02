@@ -446,7 +446,7 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
 
     noms_colonnes = [nc.value for nc in NomsColonnes]
     headers = tableau_pjs[0]
-    dict_headers = header_2_index(headers, noms_colonnes, current_intrigue.error_log)
+    dict_headers = generer_dict_header_vers_no_colonne(headers, noms_colonnes, current_intrigue.error_log)
 
     grille_types_persos = {"PJ": TypePerso.EST_PJ,
                            "PNJ": TypePerso.EST_PNJ_HORS_JEU,
@@ -457,16 +457,16 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
                            "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
 
     for ligne in tableau_pjs[1:]:
-        nom = header_2_value(ligne, dict_headers, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
+        nom = header_2_colonne_no(ligne, dict_headers, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
         logging.debug(f"value  ={NomsColonnes.NOM_PERSO.value}, nom = {nom}")
-        description = header_2_value(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
-        pipi = header_2_value(ligne, dict_headers, NomsColonnes.PIP_I.value, 0)
-        pipr = header_2_value(ligne, dict_headers, NomsColonnes.PIP_R.value, 0)
-        sexe = header_2_value(ligne, dict_headers, NomsColonnes.GENRE.value, "i")
-        type_intrigue = header_2_value(ligne, dict_headers, NomsColonnes.TYPE_INTRIGUE.value, "")
-        niveau_implication = header_2_value(ligne, dict_headers, NomsColonnes.IMPLICATION.value, "")
-        pip_globaux = header_2_value(ligne, dict_headers, NomsColonnes.PIP.value, 0)
-        type_personnage_brut = header_2_value(ligne, dict_headers, NomsColonnes.TYPE_PERSONNAGE.value,
+        description = header_2_colonne_no(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
+        pipi = header_2_colonne_no(ligne, dict_headers, NomsColonnes.PIP_I.value, 0)
+        pipr = header_2_colonne_no(ligne, dict_headers, NomsColonnes.PIP_R.value, 0)
+        sexe = header_2_colonne_no(ligne, dict_headers, NomsColonnes.GENRE.value, "i")
+        type_intrigue = header_2_colonne_no(ligne, dict_headers, NomsColonnes.TYPE_INTRIGUE.value, "")
+        niveau_implication = header_2_colonne_no(ligne, dict_headers, NomsColonnes.IMPLICATION.value, "")
+        pip_globaux = header_2_colonne_no(ligne, dict_headers, NomsColonnes.PIP.value, 0)
+        type_personnage_brut = header_2_colonne_no(ligne, dict_headers, NomsColonnes.TYPE_PERSONNAGE.value,
                                               "PJ")
         type_personnage_brut = process.extractOne(type_personnage_brut, grille_types_persos.keys())[0]
         type_perso = grille_types_persos[type_personnage_brut]
@@ -475,7 +475,7 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
             pip_globaux = 0
             pipi = liste_pips[0] + pipi
             pipr = liste_pips[1] + pipr
-        affectation = header_2_value(ligne, dict_headers, NomsColonnes.AFFECTATION.value, "")
+        affectation = header_2_colonne_no(ligne, dict_headers, NomsColonnes.AFFECTATION.value, "")
         logging.debug(f"Tableau des headers : {dict_headers}")
         logging.debug(f"ligne = {ligne}")
         logging.debug(f"lecture associée : "
@@ -507,7 +507,15 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
     #     print("Erreur : tableau d'intrigue non standard")
 
 
-def header_2_index(headers, noms_colonnes, erreur_manager: ErreurManager):
+def generer_dict_header_vers_no_colonne(headers, noms_colonnes, erreur_manager: ErreurManager):
+    """
+    Associe les entêtes du tableau aux noms de colonnes prévus et renvoie un dictionnaire avec les correspondances.
+
+    :param headers: Liste des entêtes du tableau.
+    :param noms_colonnes: Liste des noms de colonnes attendus.
+    :param error_manager: Instance d'ErreurManager pour gérer les erreurs.
+    :return: Dictionnaire avec les correspondances entre les entêtes et les noms de colonnes.
+    """
     tab_rectifie = []
     min_score = 100
     pire_match = ""
@@ -535,7 +543,16 @@ def header_2_index(headers, noms_colonnes, erreur_manager: ErreurManager):
     return {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
 
 
-def header_2_value(ligne_tableau: list[str], table_header: dict, header_value, default):
+def header_2_colonne_no(ligne_tableau: list[str], table_header: dict, header_value, default):
+    """
+    Récupère la valeur d'une colonne spécifique dans une ligne de tableau en utilisant le mappage des entêtes.
+
+    :param ligne_tableau: Liste des valeurs de la ligne du tableau.
+    :param table_header: Dictionnaire avec les correspondances entre les entêtes et les noms de colonnes.
+    :param header_value: Entête de la colonne à rechercher.
+    :param default: Valeur par défaut à renvoyer si l'entête n'est pas trouvée.
+    :return: Valeur de la colonne correspondant à l'entête donnée ou la valeur par défaut si l'entête n'est pas trouvée.
+    """
     logging.debug(f"header / table header {header_value} {table_header.get(header_value)}")
     logging.debug(f"ligne : {ligne_tableau}")
     debug_value = table_header.get(header_value)
@@ -604,7 +621,7 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str, seui
         TYPE_PERSONNAGE = "Intervention"
 
     noms_colonnes = [c.value for c in NomsColonnes]
-    dict_headers = header_2_index(header, noms_colonnes, current_intrigue.error_log)
+    dict_headers = generer_dict_header_vers_no_colonne(header, noms_colonnes, current_intrigue.error_log)
 
     grille_types_persos = {"PNJ": TypePerso.EST_PNJ_HORS_JEU,
                            "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
@@ -613,12 +630,12 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str, seui
                            "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
 
     for pnj in tableau_pnjs[1:]:
-        affectation = header_2_value(pnj, dict_headers, NomsColonnes.AFFECTATION.value, "")
-        genre = header_2_value(pnj, dict_headers, NomsColonnes.GENRE.value, "i")
-        nom = header_2_value(pnj, dict_headers, NomsColonnes.NOM_PERSO.value, "")
-        implication = header_2_value(pnj, dict_headers, NomsColonnes.IMPLICATION.value, "")
-        description = header_2_value(pnj, dict_headers, NomsColonnes.DESCRIPTION.value, "")
-        type_personnage_brut = header_2_value(pnj, dict_headers, NomsColonnes.TYPE_PERSONNAGE.value, "PNJ Hors Jeu")
+        affectation = header_2_colonne_no(pnj, dict_headers, NomsColonnes.AFFECTATION.value, "")
+        genre = header_2_colonne_no(pnj, dict_headers, NomsColonnes.GENRE.value, "i")
+        nom = header_2_colonne_no(pnj, dict_headers, NomsColonnes.NOM_PERSO.value, "")
+        implication = header_2_colonne_no(pnj, dict_headers, NomsColonnes.IMPLICATION.value, "")
+        description = header_2_colonne_no(pnj, dict_headers, NomsColonnes.DESCRIPTION.value, "")
+        type_personnage_brut = header_2_colonne_no(pnj, dict_headers, NomsColonnes.TYPE_PERSONNAGE.value, "PNJ Hors Jeu")
         score_type_perso = process.extractOne(type_personnage_brut, grille_types_persos.keys())
 
         if score_type_perso[1] < seuil_type_perso:
@@ -673,24 +690,24 @@ def intrigue_rerolls(texte: str, current_intrigue: Intrigue, texte_label: str):
 
     noms_colonnes = [nc.value for nc in NomsColonnes]
     headers = tableau_rerolls[0]
-    dict_headers = header_2_index(headers, noms_colonnes, current_intrigue.error_log)
+    dict_headers = generer_dict_header_vers_no_colonne(headers, noms_colonnes, current_intrigue.error_log)
 
     for ligne in tableau_rerolls[1:]:
-        nom = header_2_value(ligne, dict_headers, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
+        nom = header_2_colonne_no(ligne, dict_headers, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
         logging.debug(f"value  ={NomsColonnes.NOM_PERSO.value}, nom = {nom}")
-        description = header_2_value(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
-        pipi = header_2_value(ligne, dict_headers, NomsColonnes.PIP_I.value, 0)
-        pipr = header_2_value(ligne, dict_headers, NomsColonnes.PIP_R.value, 0)
-        sexe = header_2_value(ligne, dict_headers, NomsColonnes.GENRE.value, "i")
-        type_intrigue = header_2_value(ligne, dict_headers, NomsColonnes.TYPE_INTRIGUE.value, "")
-        niveau_implication = header_2_value(ligne, dict_headers, NomsColonnes.IMPLICATION.value, "")
-        pip_globaux = header_2_value(ligne, dict_headers, NomsColonnes.PIP.value, 0)
+        description = header_2_colonne_no(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
+        pipi = header_2_colonne_no(ligne, dict_headers, NomsColonnes.PIP_I.value, 0)
+        pipr = header_2_colonne_no(ligne, dict_headers, NomsColonnes.PIP_R.value, 0)
+        sexe = header_2_colonne_no(ligne, dict_headers, NomsColonnes.GENRE.value, "i")
+        type_intrigue = header_2_colonne_no(ligne, dict_headers, NomsColonnes.TYPE_INTRIGUE.value, "")
+        niveau_implication = header_2_colonne_no(ligne, dict_headers, NomsColonnes.IMPLICATION.value, "")
+        pip_globaux = header_2_colonne_no(ligne, dict_headers, NomsColonnes.PIP.value, 0)
 
         if len(liste_pips := str(pip_globaux).split('/')) == 2:
             pip_globaux = 0
             pipi = liste_pips[0] + pipi
             pipr = liste_pips[1] + pipr
-        affectation = header_2_value(ligne, dict_headers, NomsColonnes.AFFECTATION.value, "")
+        affectation = header_2_colonne_no(ligne, dict_headers, NomsColonnes.AFFECTATION.value, "")
         logging.debug(f"Tableau des headers : {dict_headers}")
         logging.debug(f"ligne = {ligne}")
         logging.debug(f"lecture associée : "
@@ -731,16 +748,16 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
 
     noms_colonnes = [nc.value for nc in NomsColonnes]
     headers = tab_objets[0]
-    dict_headers = header_2_index(headers, noms_colonnes, current_intrigue.error_log)
+    dict_headers = generer_dict_header_vers_no_colonne(headers, noms_colonnes, current_intrigue.error_log)
 
     # faire un tableau avec une ligne par objet
     for ligne in tab_objets[1:]:
-        code = header_2_value(ligne, dict_headers, NomsColonnes.CODE.value, "")
-        description = header_2_value(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
-        fourni_par = header_2_value(ligne, dict_headers, NomsColonnes.FOURNI_PAR.value, "")
-        emplacement_debut = header_2_value(ligne, dict_headers, NomsColonnes.START.value, "")
-        special_effect_1 = header_2_value(ligne, dict_headers, NomsColonnes.FX.value, "")
-        special_effect_2 = header_2_value(ligne, dict_headers, NomsColonnes.RFID.value, "")
+        code = header_2_colonne_no(ligne, dict_headers, NomsColonnes.CODE.value, "")
+        description = header_2_colonne_no(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
+        fourni_par = header_2_colonne_no(ligne, dict_headers, NomsColonnes.FOURNI_PAR.value, "")
+        emplacement_debut = header_2_colonne_no(ligne, dict_headers, NomsColonnes.START.value, "")
+        special_effect_1 = header_2_colonne_no(ligne, dict_headers, NomsColonnes.FX.value, "")
+        special_effect_2 = header_2_colonne_no(ligne, dict_headers, NomsColonnes.RFID.value, "")
         special_effect = special_effect_1 + special_effect_2
 
         mon_objet = Objet(code=code,
@@ -1355,7 +1372,7 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
         INTRIGUE_LIEE = "Intrigue Liée"
         LIEU = "Lieu"
         JOUR = 'Jour, au format “J1”, “J2”, etc.'
-        HEURE = "Heure de démarrage"
+        HEURE_DEBUT = "Heure de démarrage"
         HEURE_FIN = "Heure de fin"
         DECLENCHEUR = "Déclencheur"
         CONSEQUENCES = "Conséquences Évènement"
@@ -1415,7 +1432,7 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
     current_evenement.intrigue_liee = dict_fiche.get(NomsLignes.INTRIGUE_LIEE.value, "").strip()
     current_evenement.lieu = dict_fiche.get(NomsLignes.LIEU.value, "").strip()
     current_evenement.date = dict_fiche.get(NomsLignes.JOUR.value, "").strip()
-    current_evenement.heure_de_demarrage = dict_fiche.get(NomsLignes.HEURE.value, "").strip()
+    current_evenement.heure_de_demarrage = dict_fiche.get(NomsLignes.HEURE_DEBUT.value, "").strip()
     current_evenement.heure_de_fin = dict_fiche.get(NomsLignes.HEURE_FIN.value, "").strip()
     current_evenement.declencheur = dict_fiche.get(NomsLignes.DECLENCHEUR.value, "").strip()
     current_evenement.consequences_evenement = dict_fiche.get(NomsLignes.CONSEQUENCES.value, "").strip()
