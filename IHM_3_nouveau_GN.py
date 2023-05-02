@@ -1,10 +1,9 @@
 import configparser
-import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import tkinter as tk
 from tkinter import ttk
 
-import IHM_step_two
+import IHM_4_editer_config
 import extraireTexteDeGoogleDoc as g_io
 import lecteurGoogle
 
@@ -262,7 +261,7 @@ class WizzardGN(ttk.Frame):
         else:
             # ungrid me et mettre à la place un step two, chargé à partir du configparser créé
             self.grid_forget()
-            nxt = IHM_step_two.FenetreEditionConfig(self.winfo_toplevel(), api_drive=self.api_drive, config_parser=config)
+            nxt = IHM_4_editer_config.FenetreEditionConfig(self.winfo_toplevel(), api_drive=self.api_drive, config_parser=config)
             nxt.grid(row=0, column=0)
 
     def on_annuler_click(self):

@@ -3,7 +3,7 @@ from enum import Enum
 from tkinter import ttk, filedialog
 import tkinter as tk
 
-import IHM_MAGnet
+import IHM_2_generation
 import extraireTexteDeGoogleDoc
 import lecteurGoogle
 
@@ -80,31 +80,32 @@ class FenetreEditionConfig(ttk.Frame):
     #         self.pack()
     #         # self.grid()
 
-    def create_tabs(self, config_parser):
-        # create tabs and add them to the notebook
-        for panneau in self.api_drive.get_liste_panneaux():
-            tab = ttk.Frame(self.notebook)
-            self.notebook.add(tab, text=panneau)
-            self.mes_panneaux[panneau] = {}
-
-            # create and place widgets in each tab
-            label = tk.Label(tab, text="Nom:")
-            label.grid(row=0, column=0, padx=(5, 5), pady=(5, 5))
-            nom_entree = tk.Entry(tab)
-            nom_entree.grid(row=0, column=1, padx=(5, 5), pady=(5, 5))
-            self.mes_panneaux[panneau]["nom"] = nom_entree
-
-            label = tk.Label(tab, text="Type:")
-            label.grid(row=1, column=0, padx=(5, 5), pady=(5, 5))
-            type_entree = tk.Entry(tab)
-            type_entree.grid(row=1, column=1, padx=(5, 5), pady=(5, 5))
-            self.mes_panneaux[panneau]["type"] = type_entree
-
-            label = tk.Label(tab, text="Valeur:")
-            label.grid(row=2, column=0, padx=(5, 5), pady=(5, 5))
-            valeur_entree = tk.Entry(tab)
-            valeur_entree.grid(row=2, column=1, padx=(5, 5), pady=(5, 5))
-            self.mes_panneaux[panneau]["valeur"] = valeur_entree
+    # def create_tabs(self, config_parser):
+    #
+    #     # create tabs and add them to the notebook
+    #     for panneau in self.api_drive.get_liste_panneaux():
+    #         tab = ttk.Frame(self.notebook)
+    #         self.notebook.add(tab, text=panneau)
+    #         self.mes_panneaux[panneau] = {}
+    #
+    #         # create and place widgets in each tab
+    #         label = tk.Label(tab, text="Nom:")
+    #         label.grid(row=0, column=0, padx=(5, 5), pady=(5, 5))
+    #         nom_entree = tk.Entry(tab)
+    #         nom_entree.grid(row=0, column=1, padx=(5, 5), pady=(5, 5))
+    #         self.mes_panneaux[panneau]["nom"] = nom_entree
+    #
+    #         label = tk.Label(tab, text="Type:")
+    #         label.grid(row=1, column=0, padx=(5, 5), pady=(5, 5))
+    #         type_entree = tk.Entry(tab)
+    #         type_entree.grid(row=1, column=1, padx=(5, 5), pady=(5, 5))
+    #         self.mes_panneaux[panneau]["type"] = type_entree
+    #
+    #         label = tk.Label(tab, text="Valeur:")
+    #         label.grid(row=2, column=0, padx=(5, 5), pady=(5, 5))
+    #         valeur_entree = tk.Entry(tab)
+    #         valeur_entree.grid(row=2, column=1, padx=(5, 5), pady=(5, 5))
+    #         self.mes_panneaux[panneau]["valeur"] = valeur_entree
 
     class ParamsMultiples(Enum):
         INTRIGUES = "id_dossier_intrigues"
@@ -114,6 +115,7 @@ class FenetreEditionConfig(ttk.Frame):
         OBJETS = "id_dossier_objets"
 
     def create_tabs(self, config_parser):
+        print("bonne méthode")
         premier_panneau = PremierPanneau(parent=self, config_parser=config_parser)
         self.notebook.add(premier_panneau, text="Paramètres du GN")
         self.mes_panneaux['premier panneau'] = premier_panneau
@@ -158,7 +160,7 @@ class FenetreEditionConfig(ttk.Frame):
     def verifier_config_parser(self):
         config = self.generer_configparser()
         param, resultat = extraireTexteDeGoogleDoc.verifier_config_parser(self.api_drive, config)
-        IHM_MAGnet.afficher_resultats_test_config(self.master, resultat, param is None)
+        IHM_2_generation.afficher_resultats_test_config(self.master, resultat, param is None)
 
     def generer_configparser(self):
         dict_essentiel, dict_optionnel = self.mes_panneaux['premier panneau'].generer_dictionnaires_parametres()

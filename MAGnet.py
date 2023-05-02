@@ -1,8 +1,8 @@
 import argparse
 
-import GUiSwitch
+import IHM_1_main
 import lecteurGoogle
-from IHM_MAGnet import *
+from IHM_2_generation import *
 
 
 # from maGNette import console_magnet
@@ -101,7 +101,7 @@ def main():
             style.configure("Accentbutton", foreground='white')
             style.configure("Togglebutton", foreground='white')
 
-        app = GUiSwitch.MAGnetMainGUI(mode_leger=mode_leger,
+        app = IHM_1_main.MAGnetMainGUI(mode_leger=mode_leger,
                                       api_drive=api_drive,
                                       api_doc=api_doc,
                                       api_sheets=api_sheets,
