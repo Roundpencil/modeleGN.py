@@ -1740,9 +1740,10 @@ class ObjetDansEvenement:
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
 class Intervention:
-    def __init__(self, evenement: Evenement, jour=None, heure=None, description=""):
+    def __init__(self, evenement: Evenement, jour=None, heure_debut=None, heure_fin=None, description=""):
         self.jour = jour
-        self.heure = heure
+        self.heure_debut = heure_debut
+        self.heure_fin = heure_fin
         self.liste_intervenants = []
         self.liste_pjs_concernes = []
         self.description = description

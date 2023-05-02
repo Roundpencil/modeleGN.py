@@ -184,6 +184,7 @@ class FenetreEditionConfig(ttk.Frame):
         config = configparser.ConfigParser()
         config.add_section('Essentiels')
         for param in dict_essentiel:
+            print(f"param, dict_essentiel[param] = {param}, {dict_essentiel[param]}")
             config.set("Essentiels", param, dict_essentiel[param])
         config.add_section('Optionnels')
         for param in dict_optionnel:
@@ -293,9 +294,16 @@ class PremierPanneau(ttk.Frame):
             entry = self.essentials_frame.nametowidget(f'{key}_entry')
             # tuples.append((key, entry.get()))
             dict_essentiels[key] = entry.get()
+            print(f"debug : widget, clef, get = {entry}, {key}_entry, {entry.get()}")
 
         # dict_essentiels = {key: self.essentials_frame.nametowidget(f'{key}_entry').get()
         #                    for key in self.essential_params}
+
+        entry = self.essentials_frame.nametowidget('mode_association_entry')
+        # tuples.append((key, entry.get()))
+        dict_essentiels['mode_association'] = entry.get()
+        print(f"debug : widget, clef, get = {entry}, mode_association_entry, {entry.get()}")
+
 
         for key in self.optional_params:
             # entry = self.optionals_frame.nametowidget(f'{key}_entry')
@@ -461,7 +469,7 @@ class gid_entry(ttk.Entry):
 
     def get(self) -> str:
         raw = super().get()
-        return g_io.extraire_id_google_si_possible(raw)
+        return g_io.extraire_id_google_si_possible(raw)[0]
 
 
 if __name__ == "__main__":

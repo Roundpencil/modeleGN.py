@@ -146,7 +146,8 @@ class WizzardGN(ttk.Frame):
         nom_parent = self.creation_fichiers_entry.get()
 
         if creer_fichier:
-            if not (nom_parent := g_io.extraire_id_google_si_possible(nom_parent)):
+            nom_parent, nom_valide = g_io.extraire_id_google_si_possible(nom_parent)
+            if not nom_valide:
                 messagebox.showerror("Erreur", "Le nom du dossier spécifié pour créer les fichiers n'est pas valide")
                 return
 

@@ -1566,22 +1566,56 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
                                                                       noms_colonnes=list(NomsColonnes.value),
                                                                       erreur_manager=current_evenement.erreur_manager,
                                                                       )
-    #todo : reprendre d'ici
-    for ligne in tableau_interventions:
-        evenement_extraire_ligne_chrono(current_evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj)
+    for ligne in tableau_interventions[1:]:
+        evenement_extraire_ligne_chrono(current_evenement, ligne, dict_header_vers_no_colonne, NomsColonnes,
+                                        seuil_alerte_pj, seuil_alerte_pnj)
 
 
-def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj):
-    # print(f"debug : 0 = {ligne[0]} {ligne[0] == ''}, 1 = {ligne[1]} {ligne[1] == ''}, 2 = {ligne[2]} {ligne[2] == ''}")
-    intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
-                                heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
-                                description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
+def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, dict_header_vers_no_colonne: dict,
+                                    noms_colonnes,
+                                    seuil_alerte_pj, seuil_alerte_pnj):
+    jour = en_tete_vers_valeur_dans_ligne(ligne,
+                                          dict_header_vers_no_colonne,
+                                          noms_colonnes.JOUR.value,
+                                          '')
+    heure_debut = en_tete_vers_valeur_dans_ligne(ligne,
+                                                 dict_header_vers_no_colonne,
+                                                 noms_colonnes.HEURE_DEBUT.value,
+                                                 '')
+    heure_fin = en_tete_vers_valeur_dans_ligne(ligne,
+                                               dict_header_vers_no_colonne,
+                                               noms_colonnes.HEURE_FIN.value,
+                                               '')
+    pnjs_raw = en_tete_vers_valeur_dans_ligne(ligne,
+                                              dict_header_vers_no_colonne,
+                                              noms_colonnes.PNJs.value,
+                                              '')
+    pj_raw = en_tete_vers_valeur_dans_ligne(ligne,
+                                            dict_header_vers_no_colonne,
+                                            noms_colonnes.PJs.value,
+                                            '')
+
+    description = en_tete_vers_valeur_dans_ligne(ligne,
+                                                 dict_header_vers_no_colonne,
+                                                 noms_colonnes.QUOI.value,
+                                                 '')
+
+    intervention = Intervention(jour=jour if jour != '' else current_evenement.date,
+                                heure_debut=heure_debut if heure_debut != '' else current_evenement.heure_de_demarrage,
+                                heure_fin=heure_fin if heure_fin != '' else current_evenement.heure_de_fin,
+                                description=description if description != '' else current_evenement.synopsis,
                                 evenement=current_evenement
                                 )
-    noms_pnjs_impliques = [nom.strip() for nom in ligne[2].split(',')]
+    # intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
+    #                             heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
+    #                             description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
+    #                             evenement=current_evenement
+    #                             )
+    noms_pnjs_impliques = [nom.strip() for nom in pnjs_raw.split(',')]
     noms_pnjs_dans_evenement = current_evenement.get_noms_pnjs()
     # print(f"debug : {len(current_evenement.interventions)} interventions "
     #       f"dans l'evènement {current_evenement.id_url}")
+
     current_evenement.interventions.append(intervention)
     # print(f"debug : apres ajout de l'intervention {intervention.description} dans l'évènement "
     #       f"{current_evenement.nom_evenement} / {current_evenement.code_evenement}, "
@@ -1612,7 +1646,8 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_a
             intervention.liste_intervenants.append(intervenant)
     for intervenant in intervention.liste_intervenants:
         intervenant.interventions.add(intervention)
-    noms_pj_impliques = [nom.strip() for nom in ligne[3].split(',')]
+
+    noms_pj_impliques = [nom.strip() for nom in pj_raw.split(',')]
     noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
     if noms_pj_impliques == ['']:
         intervention.liste_pjs_concernes.extend(current_evenement.pjs_concernes_evenement.values())
@@ -2686,7 +2721,7 @@ def verifier_config_parser(api_drive, config):
         test_global_reussi = False
     # intégration du mode association et vérifications
     try:
-        mode_association_value = int(config.get('Essentiels', 'mode_association', fallback=9)[0])
+        mode_association_value = int(config.get('Essentiels', 'mode_association', fallback="9")[0])
         if mode_association_value in [0, 1]:
             fichier_output['mode_association'] = GN.ModeAssociation(mode_association_value)
         else:
@@ -2891,12 +2926,12 @@ def extraire_id_google_si_possible(user_text):
 
     # If a match is found, return the resource ID from the match
     if match:
-        return match.group(1)
+        return match.group(1), True
 
     # If no match is found, check if the user_text looks like an ID
     elif re.fullmatch(r'[a-zA-Z0-9_-]+', user_text):
-        return user_text
+        return user_text, True
 
     # If neither a URL nor an ID, return None
     else:
-        return None
+        return user_text, False
