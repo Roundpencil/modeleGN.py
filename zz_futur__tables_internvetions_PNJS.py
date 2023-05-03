@@ -131,3 +131,25 @@ for t in range(derniere_heure):
         else:
             print("-", end=";")
     print()
+
+
+
+def est_ok(x):
+    # Remplacez cette fonction par votre propre implémentation
+    return x >= 10
+
+def recherche_dichotomique(min_val, max_val):
+    while min_val < max_val:
+        milieu = (min_val + max_val) // 2
+        if est_ok(milieu):
+            max_val = milieu
+        else:
+            min_val = milieu + 1
+    return min_val
+
+# Remplacez min_val et max_val par les valeurs de début et de fin de votre plage
+min_val = 1
+max_val = 100
+resultat = recherche_dichotomique(min_val, max_val)
+
+print(f"Le plus petit x satisfaisant est_ok(x) est : {resultat}")

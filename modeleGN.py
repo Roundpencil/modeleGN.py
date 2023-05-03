@@ -724,7 +724,6 @@ class GN:
     def get_id_factions(self):
         return self.dict_config.get('id_factions', None)
 
-
     def get_dossiers_pnjs(self):
         return self.dict_config.get('dossiers_pnjs', None)
 
@@ -1417,7 +1416,6 @@ class GN:
         if not hasattr(self, 'dict_config'):
             self.dict_config = None
 
-
         for scene in self.lister_toutes_les_scenes():
             if not hasattr(scene, 'date_absolue'):
                 scene.date_absolue = None
@@ -1750,12 +1748,14 @@ class Intervention:
         self.description = description
         self.evenement = evenement
 
-    def heure_formattee(self):
+    def heure_formattee(self, quatre_espaces_avant_si_ko=False):
         try:
             date_obj = dateparser.parse(self.heure_debut)
             return date_obj.strftime("%Hh%M")
         except Exception:
-            return self.heure_debut
+            prefixe = '    ' if quatre_espaces_avant_si_ko else ''
+            return prefixe + self.heure_debut
+
 
 # def get_noms_pjs_impliques(self):
 #     if self.noms_pjs_impliques != ['']:
