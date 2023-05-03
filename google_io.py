@@ -32,7 +32,7 @@ def extraire_pjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False,
         api_drive, api_doc, extraire_persos_de_texte, mon_gn.personnages, mon_gn.get_dossiers_pjs(),
         # api_drive, api_doc, extraire_persos_de_texte, mon_gn.dictPJs, mon_gn.dossiers_pjs,
         singletest,
-        verbal=verbal, fast=fast, prefixes=mon_gn.get_prefixe_PJs(), m_print=m_print,
+        verbal=verbal, fast=fast, prefixes=mon_gn.get_prefixe_pjs(), m_print=m_print,
         visualisation=visualisation,
         taille_visualisation=taille_visualisation)
 
@@ -53,7 +53,7 @@ def extraire_pnjs(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False
     return extraire_texte_de_google_doc(api_drive, api_doc, extraire_pnj_de_texte, mon_gn.personnages,
                                         mon_gn.get_dossiers_pnjs(),
                                         singletest,
-                                        verbal=verbal, fast=fast, prefixes=mon_gn.get_prefixe_PNJs(), m_print=m_print,
+                                        verbal=verbal, fast=fast, prefixes=mon_gn.get_prefixe_pnjs(), m_print=m_print,
                                         visualisation=visualisation,
                                         taille_visualisation=taille_visualisation)
 

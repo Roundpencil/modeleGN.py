@@ -10,7 +10,7 @@ from fuzzywuzzy import process
 import sys
 from packaging import version
 
-VERSION = "1.1.20230422"
+VERSION = "1.1.20230503"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -281,6 +281,13 @@ class Personnage(ConteneurDeScene):
                                      f"{description}"
                     to_return += "\n" if est_reciproque else "(non réciproque) \n"
         return to_return
+
+    def str_interventions(self):
+        to_return = [f"{intervention.implication} " 
+                     f"dans {intervention.evenement.nom_evenement}"
+                     for intervention in self.intervient_comme
+                     ]
+        return '\n'.join(to_return)
 
 
 # rôle
@@ -754,10 +761,10 @@ class GN:
     def get_prefixe_evenements(self):
         return self.dict_config['prefixe_evenements']
 
-    def get_prefixe_PJs(self):
+    def get_prefixe_pjs(self):
         return self.dict_config['prefixe_PJs']
 
-    def get_prefixe_PNJs(self):
+    def get_prefixe_pnjs(self):
         return self.dict_config['prefixe_PNJs']
 
     def get_prefixe_objets(self):

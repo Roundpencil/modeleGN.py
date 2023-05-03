@@ -276,11 +276,7 @@ class PremierPanneau(ttk.Frame):
             self.optionals_frame.columnconfigure(2, weight=1)
 
     def toggle_entry(self, entry, var):
-        if var.get():
-            entry['state'] = 'normal'
-        else:
-            # entry.delete(0, tk.END)  # Clear the entry
-            entry['state'] = 'disabled'
+        entry['state'] = 'normal' if var.get() else 'disabled'
 
     def generer_dictionnaires_parametres(self):
         # tuples = []

@@ -138,14 +138,14 @@ def est_ok(x):
     # Remplacez cette fonction par votre propre implémentation
     return x >= 10
 
-def recherche_dichotomique(min_val, max_val):
-    while min_val < max_val:
-        milieu = (min_val + max_val) // 2
+def recherche_dichotomique(min_val_base, max_val_base):
+    while min_val_base < max_val_base:
+        milieu = (min_val_base + max_val_base) // 2
         if est_ok(milieu):
-            max_val = milieu
+            max_val_base = milieu
         else:
-            min_val = milieu + 1
-    return min_val
+            min_val_base = milieu + 1
+    return min_val_base
 
 # Remplacez min_val et max_val par les valeurs de début et de fin de votre plage
 min_val = 1

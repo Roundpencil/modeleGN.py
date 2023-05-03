@@ -27,6 +27,9 @@ import google_io as g_io
 #todo : comprendre ce qu'il se passe avec les fiches des PJs et PNJs qui lisent tout qu'oi qu'il arrive
 #  >> est-ce qu'il n'y a pas une erreur sur la boucle ou il s'arrete a la fin du premier fichier?
 
+#todo : débugger la table des PNJs : pouruqoi est-ce qu'ils n'appraissent plus dans leurs intrigues?
+#todo : débugger la chrono : pouruqoi certains évènements / interventions disparaissent-ils?
+
 # à tester
 
 # à faire - rapide
@@ -1172,7 +1175,8 @@ def generer_table_pnjs_etendue(gn: GN, verbal=False):
 def generer_table_pnjs_simple(gn: GN, verbal=False):
     table_pnj = [["nom PNJ",
                   "type_pj",
-                  "intrigues"]]
+                  "intrigues",
+                  "évènements"]]
 
     logging.debug(f"pnjs contenus : {gn.get_dict_pnj()}")
 
@@ -1181,6 +1185,7 @@ def generer_table_pnjs_simple(gn: GN, verbal=False):
             pnj.nom,
             pnj.string_type_personnage(),
             pnj.toutes_les_apparitions(),
+            pnj.str_interventions()
         ]
         for pnj in gn.get_dict_pnj().values()
     )
@@ -1703,6 +1708,12 @@ def mettre_a_jour_champs(gn: GN):
                 intervention.noms_pjs_impliques = intervention.pj_impliques
                 delattr(intervention, 'pj_impliques')
 
+            if hasattr(intervention, 'heure'):
+                intervention.heure_debut = intervention.heure
+                delattr(intervention, 'heure')
+            if not hasattr(intervention, 'heure_fin'):
+                intervention.heure_fin = None
+
         if not hasattr(evenement, 'objets'):
             evenement.objets = set()
         if not hasattr(evenement, 'heure_de_fin'):
@@ -1729,5 +1740,7 @@ def mettre_a_jour_champs(gn: GN):
 
         if not hasattr(objet_de_reference, 'objets_dans_evenements'):
             objet_de_reference.objets_dans_evenements = set()
+
+
 
     gn.version = VERSION
