@@ -102,8 +102,7 @@ def main():
             style.configure("Accentbutton", foreground='white')
             style.configure("Togglebutton", foreground='white')
 
-        app = IHM_1_main.MAGnetMainGUI(mode_leger=mode_leger,
-                                      api_drive=api_drive,
+        app = IHM_1_main.MAGnetMainGUI(api_drive=api_drive,
                                       api_doc=api_doc,
                                       api_sheets=api_sheets,
                                       master=root)

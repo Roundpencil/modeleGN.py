@@ -1686,6 +1686,7 @@ class Evenement:
         #     del intervention
         self.interventions.clear()
 
+
 class IntervenantEvenement:
     def __init__(self, nom_pnj, evenement: Evenement, costumes_et_accessoires="", implication="",
                  situation_de_depart=""):
@@ -1743,6 +1744,14 @@ class ObjetDansEvenement:
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
+def _heure_formattee(heure, defaut_si_ko=None):
+    try:
+        date_obj = dateparser.parse(heure)
+        return date_obj.strftime("%Hh%M")
+    except Exception:
+        return "00h00" if defaut_si_ko is None else heure
+
+
 class Intervention:
     def __init__(self, evenement: Evenement, jour=None, heure_debut=None, heure_fin=None, description=""):
         self.jour = jour
@@ -1753,28 +1762,21 @@ class Intervention:
         self.description = description
         self.evenement = evenement
 
-    def heure_formattee(self, quatre_espaces_avant_si_ko=False):
-        try:
-            date_obj = dateparser.parse(self.heure_debut)
-            return date_obj.strftime("%Hh%M")
-        except Exception:
-            prefixe = '    ' if quatre_espaces_avant_si_ko else ''
-            return prefixe + self.heure_debut
+    def heure_debut_formattee(self, defaut_si_ko=None):
+        # try:
+        #     date_obj = dateparser.parse(self.heure_debut)
+        #     return date_obj.strftime("%Hh%M")
+        # except Exception:
+        #     return "00h00" if defaut_si_ko is None else self.heure_debut
+        return _heure_formattee(self.heure_debut, defaut_si_ko)
 
-
-# def get_noms_pjs_impliques(self):
-#     if self.noms_pjs_impliques != ['']:
-#         return self.noms_pjs_impliques
-#     return [info_pj.nom_pj for info_pj in self.evenement.infos_pj]
-#
-# def get_noms_pnj_impliques(self):
-#     # print(f"debug : pour l'intervention {self.description},
-#     len = {len(self.noms_pnjs_impliques)} / {self.noms_pnjs_impliques}")
-#     if self.noms_pnjs_impliques != ['']:
-#         return self.noms_pnjs_impliques
-#     # print(f"debug : self.evenement.briefs_pnj = {len(self.evenement.briefs_pnj)} {self.evenement.briefs_pnj}")
-#     return [brief.nom_pnj for brief in self.evenement.briefs_pnj]
-#
+    def heure_fin_formattee(self, defaut_si_ko=None):
+        # try:
+        #     date_obj = dateparser.parse(self.heure_debut)
+        #     return date_obj.strftime("%Hh%M")
+        # except Exception:
+        #     return "00h00" if defaut_si_ko is None else self.heure_debut
+        return _heure_formattee(self.heure_fin, defaut_si_ko)
 
 
 class Commentaire:

@@ -1455,7 +1455,7 @@ def generer_table_evenements(gn: GN):
     for evenement in gn.evenements.values():
         toutes_interventions.extend(evenement.interventions)
 
-    toutes_interventions = sorted(toutes_interventions, key=lambda x: [x.jour, x.heure_formattee(True)])
+    toutes_interventions = sorted(toutes_interventions, key=lambda x: [x.jour, x.heure_debut_formattee()])
 
     to_return = [["Code", "Jour", "Heure", "Lieu", "Description", "PNJs impliqués", "Costumes PNJs", "Implication PNJs",
                   "Démarrage PNJ", "PJ impliqués", "Intrigue", 'Évènement', 'Référent']]
@@ -1482,7 +1482,7 @@ def generer_table_evenements(gn: GN):
 
         ligne = [intervention.evenement.code_evenement,
                  intervention.jour,
-                 intervention.heure_formattee(),
+                 intervention.heure_debut_formattee(),
                  intervention.evenement.lieu,
                  intervention.description,
                  '\n'.join(pnj_pour_tableau),
