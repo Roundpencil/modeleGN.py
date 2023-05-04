@@ -10,7 +10,7 @@ import lecteurGoogle
 
 
 class MAGnetMainGUI(ttk.Frame):
-    def __init__(self, master, api_drive, api_doc, api_sheets, mode_leger=True):
+    def __init__(self, master, api_drive, api_doc, api_sheets):
         super().__init__(master)
 
         # self.geometry("300x150")
@@ -33,7 +33,8 @@ class MAGnetMainGUI(ttk.Frame):
         # view_menu.add_command(label="Quitter ", command=self.quitter)
         # Create the top-level menu bar
         menu = tk.Menu(self, tearoff=0)
-        self.master.config(menu=menu)
+        # self.master.config(menu=menu)
+        self.winfo_toplevel().config(menu=menu)
 
         # Create a "Menu" drop-down menu
         menu1 = tk.Menu(menu, tearoff=0)

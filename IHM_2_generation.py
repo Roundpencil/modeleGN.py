@@ -75,7 +75,7 @@ class Application(ttk.Frame):
         lecture_label.grid(row=50, column=0, columnspan=3)
 
         forcer_update_gn_button = ttk.Button(diagnostic_labelframe, text="Vérifier le modèle \nde la sauvegarde",
-                                             command=lambda: mettre_a_jour_champs(self.gn))
+                                             command=lambda: self.gn.mettre_a_jour_champs)
         forcer_update_gn_button.grid(row=50, column=3, rowspan=2, columnspan=2,
                                      sticky="ne")  # , sticky="nsew"
 

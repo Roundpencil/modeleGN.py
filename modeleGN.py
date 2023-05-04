@@ -108,9 +108,7 @@ class ConteneurDeScene:
         # self.roles.clear()
 
         # effacer toutes les scènes de l'intrigue
-        for scene in self.scenes:
-            del scene
-        # self.scenes.clear()
+        self.scenes.clear()
         # print(f"intrigue effacée {self.nom}")
         self.error_log.clear()
 
@@ -283,7 +281,7 @@ class Personnage(ConteneurDeScene):
         return to_return
 
     def str_interventions(self):
-        to_return = [f"{intervention.implication} " 
+        to_return = [f"{intervention.implication} "
                      f"dans {intervention.evenement.nom_evenement}"
                      for intervention in self.intervient_comme
                      ]
@@ -753,7 +751,7 @@ class GN:
         return self.dict_config['mode_association']
 
     def get_fichier_pnjs(self):
-        return self.dict_config.get('fichier_pnjs', None)
+        return self.dict_config.get('fichier_noms_pnjs', None)
 
     def get_prefixe_intrigues(self):
         return self.dict_config['prefixe_intrigues']
@@ -1306,7 +1304,7 @@ class GN:
                 objet_de_reference.clear()
                 self.objets.pop(objet_de_reference.id_url)
 
-    def forcer_import_pjs(self, noms_persos, suffixe="_imported", table_orgas_referent=False, verbal=False):
+    def forcer_import_pjs(self, noms_persos, suffixe="_imported", table_orgas_referent=None, verbal=False):
         return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=True, suffixe=suffixe, verbal=verbal,
                                          table_orgas_referent=table_orgas_referent)
 
@@ -1314,9 +1312,14 @@ class GN:
         return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=False, suffixe=suffixe, verbal=verbal)
 
     def forcer_import_pjpnjs(self, noms_persos, pj: bool, suffixe="_imported", verbal=False,
-                             table_orgas_referent=None):
+                             table_orgas_referent: list[str] = None):
+        # on commence par reconstruire la table des référents et l'ajuster si nécessaire
         if table_orgas_referent is None:
-            table_orgas_referent = [None for _ in range(len(noms_persos))]
+            table_orgas_referent = []
+
+        if len(noms_persos) > len(table_orgas_referent):
+            table_orgas_referent.extend([None] * (len(noms_persos) - len(table_orgas_referent)))
+            # table_orgas_referent = [None for _ in range(len(noms_persos))]
         logging.debug("début de l'ajout des personnages sans fiche")
         # nomsLus = [x.nom for x in self.dictPJs.values()]
 
@@ -1329,10 +1332,7 @@ class GN:
         # pour chaque personnage de ma liste :
         # SI son nom est dans les persos > ne rien faire
         # SINON, lui créer une coquille vide
-        # if pj:
-        #     valeur_pj = TypePerso.EST_PJ
-        # else:
-        #     valeur_pj = TypePerso.EST_PNJ_HORS_JEU
+
         valeur_pj = TypePerso.EST_PJ if pj else TypePerso.EST_PNJ_HORS_JEU
 
         for perso, orga_referent in zip(noms_persos, table_orgas_referent):
@@ -1374,8 +1374,6 @@ class GN:
             delattr(self, 'liste_noms_pnjs')
         # if not hasattr(self, 'id_pjs_et_pnjs'):
         #     self.id_pjs_et_pnjs = None
-        if not hasattr(self, 'fichier_pnjs'):
-            self.fichier_pnjs = None
         if not hasattr(self, 'evenements'):
             self.evenements = {}
         # if not hasattr(self, 'dossiers_evenements'):
@@ -1684,9 +1682,9 @@ class Evenement:
             del pj_concerne
 
         # effacer toutes les interventions de l'évènement
-        for intervention in self.interventions:
-            del intervention
-
+        # for intervention in self.interventions:
+        #     del intervention
+        self.interventions.clear()
 
 class IntervenantEvenement:
     def __init__(self, nom_pnj, evenement: Evenement, costumes_et_accessoires="", implication="",

@@ -233,7 +233,7 @@ class PremierPanneau(ttk.Frame):
             label = ttk.Label(self.essentials_frame, text=label_text)
             label.grid(column=0, row=index, padx=10, pady=5, sticky="w")
 
-            entry = gid_entry(self.essentials_frame, name=f'{key}_entry')
+            entry = GidEntry(self.essentials_frame, name=f'{key}_entry')
             entry.grid(column=1, row=index, padx=10, pady=5, sticky="ew")
             entry.insert(0, config_parser.get("Essentiels", key, fallback=""))
 
@@ -258,7 +258,7 @@ class PremierPanneau(ttk.Frame):
         for index, (key, label_text) in enumerate(self.optional_params.items()):
             valeur_par_defaut = config_parser.get("Optionnels", key, fallback='')
             var = tk.BooleanVar(value=valeur_par_defaut == '')
-            entry = gid_entry(self.optionals_frame, name=f'{key}_entry')
+            entry = GidEntry(self.optionals_frame, name=f'{key}_entry')
             entry.insert(0, valeur_par_defaut)
 
             chk = ttk.Checkbutton(self.optionals_frame, variable=var,
@@ -401,11 +401,11 @@ class PanneauParametresMultiples(ttk.Frame):
         return [widget.get_tuple_champ_entree() for widget in self.mes_widgets]
 
     def add_widget_entree(self, suffixe="", valeur=""):
-        widget_a_rajouter = widget_entree(self, self.retirer_widget_entree,
-                                          prefixe_parametre=self.prefixe_parametre,
-                                          nom_param=suffixe,
-                                          valeur_param=valeur
-                                          )
+        widget_a_rajouter = WidgetEntree(self, self.retirer_widget_entree,
+                                         prefixe_parametre=self.prefixe_parametre,
+                                         nom_param=suffixe,
+                                         valeur_param=valeur
+                                         )
         no_ligne = len(self.mes_widgets) + 1
         widget_a_rajouter.grid(row=no_ligne, column=0, columnspan=4)
         self.mes_widgets.add(widget_a_rajouter)
@@ -433,7 +433,7 @@ class PanneauParametresMultiples(ttk.Frame):
             widget_a_retirer.destroy()
 
 
-class widget_entree(ttk.Frame):
+class WidgetEntree(ttk.Frame):
     def __init__(self, master, fonction_destruction, prefixe_parametre: str, nom_param: str = "",
                  valeur_param: str = ""):
         super().__init__(master=master)
@@ -449,7 +449,7 @@ class widget_entree(ttk.Frame):
 
         self.valeur_parametre_var = tk.StringVar()
         self.valeur_parametre_var.set(valeur_param)
-        self.valeur_parametre = gid_entry(self, textvariable=self.valeur_parametre_var)
+        self.valeur_parametre = GidEntry(self, textvariable=self.valeur_parametre_var)
         self.valeur_parametre.grid(column=2, row=0)
 
         self.bouton_detruire = ttk.Button(self, text="x", command=lambda: fonction_destruction(self))
@@ -459,7 +459,7 @@ class widget_entree(ttk.Frame):
     def get_tuple_champ_entree(self):
         return self.prefixe_parametre + self.nom_parametre_var.get(), self.valeur_parametre_var.get()
 
-class gid_entry(ttk.Entry):
+class GidEntry(ttk.Entry):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

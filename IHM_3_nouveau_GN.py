@@ -1,7 +1,6 @@
 import configparser
 from tkinter import ttk, messagebox, filedialog
 import tkinter as tk
-from tkinter import ttk
 
 import IHM_4_editer_config
 import google_io as g_io

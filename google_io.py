@@ -3,7 +3,6 @@ from __future__ import print_function
 import configparser
 from enum import Enum
 
-import dateparser
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
 
@@ -516,7 +515,7 @@ def generer_dict_header_vers_no_colonne(en_tetes, noms_colonnes, erreur_manager:
 
     :param en_tetes: Liste des entêtes du tableau.
     :param noms_colonnes: Liste des noms de colonnes attendus.
-    :param error_manager: Instance d'ErreurManager pour gérer les erreurs.
+    :param erreur_manager: Instance d'ErreurManager pour gérer les erreurs.
     :return: Dictionnaire avec les correspondances entre les entêtes et les noms de colonnes.
     """
     tab_rectifie = []
