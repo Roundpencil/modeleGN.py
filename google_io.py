@@ -537,7 +537,7 @@ def generer_dict_header_vers_no_colonne(en_tetes, noms_colonnes, erreur_manager:
                                       texte_erreur,
                                       ErreurManager.ORIGINES.SCENE)
     if len(set(tab_rectifie)) != len(tab_rectifie):
-        texte_erreur = f"une valeur a été trouvée en double dans les en-têtes de colonne du tableau des persos. " \
+        texte_erreur = f"une valeur a été trouvée en double dans les en-têtes de colonne d'un tableau. " \
                        f"Tableau lu = {tab_rectifie}"
         erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                       texte_erreur,
@@ -744,8 +744,8 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
         CODE = "Code"
         DESCRIPTION = "Description"
         FX = "Effets spéciaux nécessaires (si aucun, vide)"
-        RFID = "RFID (non / oui (si pas plus clair sur ce qu’il fait)"
-        START = "Où se trouve-t-il en début de jeu ?"
+        RFID = "RFID (non / oui (si pas plus clair sur ce qu’il fait) / description de ce qu’il fait)"
+        START = "Où se trouve-t-il en début de jeu ? (Personnage ou lieu)"
         FOURNI_PAR = "Fourni par ?"
         LIEN_FICHE = "Lien vers la fiche objet (Facultatif)"
 
