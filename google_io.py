@@ -1532,7 +1532,9 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
 
     tableau_interventions, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
 
-    # print(f"debug : tableau interventions : {tableau_interventions}")
+    print(f"debug : nous sommes dans l'évènement {current_evenement.code_evenement}, "
+          f"len(tableau) = {len(tableau_interventions)}"
+          f"tableau interventions : {tableau_interventions}")
 
     if not 1 <= nb_colonnes <= 6:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_interventions}")
@@ -1544,7 +1546,7 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
     # du coup si le nombre de colonnes est bon mais que la longueur est nulle, le tableau est vide
     # il faut donc le remplir
     if len(tableau_interventions) == 1:
-        tableau_interventions = [[''] * 5]
+        tableau_interventions.append([''] * nb_colonnes)
         texte_erreur = "Le tableau des interventions a été trouvé, mais ne contenait aucune ligne " \
                        "> les informations de l'évènement (jour, date, tous les pjs, tous les pnjs, synopsys) " \
                        "ont été reprises"
@@ -1573,6 +1575,9 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
 def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, dict_header_vers_no_colonne: dict,
                                     noms_colonnes,
                                     seuil_alerte_pj, seuil_alerte_pnj):
+    print(f"debug : "
+          f"Je suis en train de lire une internventionde de l'évènement {current_evenement.code_evenement}, "
+          f"et ma ligne est  = {ligne}")
     jour = en_tete_vers_valeur_dans_ligne(ligne,
                                           dict_header_vers_no_colonne,
                                           noms_colonnes.JOUR.value,
@@ -1598,6 +1603,14 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, dict_he
                                                  dict_header_vers_no_colonne,
                                                  noms_colonnes.QUOI.value,
                                                  '')
+
+    print(f"debug : "
+          f"après correction, j'ai les données suivantes : "
+          f"jour={jour if jour != '' else current_evenement.date},"
+          f"heure_debut={heure_debut if heure_debut != '' else current_evenement.heure_de_demarrage},"
+          f"heure_fin={heure_fin if heure_fin != '' else current_evenement.heure_de_fin}, "
+          f"description={description if description != '' else current_evenement.synopsis},"
+          )
 
     intervention = Intervention(jour=jour if jour != '' else current_evenement.date,
                                 heure_debut=heure_debut if heure_debut != '' else current_evenement.heure_de_demarrage,
