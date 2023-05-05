@@ -1532,9 +1532,9 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
 
     tableau_interventions, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
 
-    print(f"debug : nous sommes dans l'évènement {current_evenement.code_evenement}, "
-          f"len(tableau) = {len(tableau_interventions)}"
-          f"tableau interventions : {tableau_interventions}")
+    # print(f"debug : nous sommes dans l'évènement {current_evenement.code_evenement}, "
+    #       f"len(tableau) = {len(tableau_interventions)}"
+    #       f"tableau interventions : {tableau_interventions}")
 
     if not 1 <= nb_colonnes <= 6:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_interventions}")
@@ -1575,9 +1575,9 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
 def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, dict_header_vers_no_colonne: dict,
                                     noms_colonnes,
                                     seuil_alerte_pj, seuil_alerte_pnj):
-    print(f"debug : "
-          f"Je suis en train de lire une internventionde de l'évènement {current_evenement.code_evenement}, "
-          f"et ma ligne est  = {ligne}")
+    # print(f"debug : "
+    #       f"Je suis en train de lire une internventionde de l'évènement {current_evenement.code_evenement}, "
+    #       f"et ma ligne est  = {ligne}")
     jour = en_tete_vers_valeur_dans_ligne(ligne,
                                           dict_header_vers_no_colonne,
                                           noms_colonnes.JOUR.value,
@@ -1604,13 +1604,13 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, dict_he
                                                  noms_colonnes.QUOI.value,
                                                  '')
 
-    print(f"debug : "
-          f"après correction, j'ai les données suivantes : "
-          f"jour={jour if jour != '' else current_evenement.date},"
-          f"heure_debut={heure_debut if heure_debut != '' else current_evenement.heure_de_demarrage},"
-          f"heure_fin={heure_fin if heure_fin != '' else current_evenement.heure_de_fin}, "
-          f"description={description if description != '' else current_evenement.synopsis},"
-          )
+    # print(f"debug : "
+    #       f"après correction, j'ai les données suivantes : "
+    #       f"jour={jour if jour != '' else current_evenement.date},"
+    #       f"heure_debut={heure_debut if heure_debut != '' else current_evenement.heure_de_demarrage},"
+    #       f"heure_fin={heure_fin if heure_fin != '' else current_evenement.heure_de_fin}, "
+    #       f"description={description if description != '' else current_evenement.synopsis},"
+    #       )
 
     intervention = Intervention(jour=jour if jour != '' else current_evenement.date,
                                 heure_debut=heure_debut if heure_debut != '' else current_evenement.heure_de_demarrage,
@@ -2248,7 +2248,7 @@ def formatter_titres_scenes_dans_squelettes(service, file_id):
 
 
 def creer_dossier(service_drive, id_dossier_parent, nom_dossier):
-    print(f"debug : {id_dossier_parent}, {nom_dossier}")
+    # print(f"debug : {id_dossier_parent}, {nom_dossier}")
     try:
         # Création de l'objet dossier
         nouveau_dossier = {'name': nom_dossier, 'parents': [id_dossier_parent],
@@ -2825,7 +2825,7 @@ def verifier_config_parser(api_drive, config):
             # dossier = api_drive.files().get(fileId=dossier_id).execute()
 
             folder_metadata = api_drive.files().get(fileId=dossier_id).execute()
-            print(f"debug : dossier ID {dossier_id}")
+            # print(f"debug : dossier ID {dossier_id}")
             # Récupérer le nom du dossier
             folder_name = folder_metadata['name']
 

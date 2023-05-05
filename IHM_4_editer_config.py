@@ -314,7 +314,7 @@ class PremierPanneau(ttk.Frame):
             # #     tuples.append((key, entry.get()))
             # dict_optionnels[key] = entry.get()
             entry = self.optionals_frame.nametowidget(f'{key}_entry')
-            print(f"debug : {entry}, {entry['state']}, {entry.get()}")
+            # print(f"debug : {entry}, {entry['state']}, {entry.get()}")
             if entry['state'] == 'normal':
                 dict_optionnels[key] = entry.get()
             # else:
