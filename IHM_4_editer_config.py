@@ -392,7 +392,7 @@ class PanneauParametresMultiples(ttk.Frame):
             for section in config_parser.sections():
                 valeurs_a_ajouter.extend(
                     [
-                        key[len(self.prefixe_parametre) :],
+                        key[len(self.prefixe_parametre):],
                         config_parser[section][key],
                     ]
                     for key in config_parser[section]
