@@ -1540,7 +1540,6 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
     return evenement_lire_chrono_depuis_tableau(tableau_interventions=tableau_interventions,
                                                 nb_colonnes=nb_colonnes,
                                                 current_evenement=current_evenement,
-                                                texte_label=texte_label,
                                                 seuil_alerte_pnj=seuil_alerte_pnj,
                                                 seuil_alerte_pj=seuil_alerte_pj)
 
