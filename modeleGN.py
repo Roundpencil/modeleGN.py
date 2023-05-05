@@ -161,7 +161,7 @@ class Personnage(ConteneurDeScene):
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
                  sexe="i", pj: TypePerso = TypePerso.EST_PJ, orga_referent=None, pitch_joueur="",
                  indications_costume="",
-                 textes_annexes="", url="", last_processing = None,
+                 textes_annexes="", url="", last_processing=None,
                  dates_clefs="", forced=False,
                  derniere_edition_fichier=0):
         # last_change = datetime.datetime(year=2000, month=1, day=1), retiré du constructeur
