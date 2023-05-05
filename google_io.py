@@ -1826,7 +1826,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
             ma_methode(texte, perso_en_cours, label.value)
 
     # et on enregistre la date de dernière mise à jour de l'intrigue
-    perso_en_cours.lastProcessing = datetime.datetime.now()
+    # perso_en_cours.lastProcessing = datetime.datetime.now()
     return perso_en_cours
 
 
