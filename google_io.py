@@ -1346,8 +1346,10 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
             methode_a_appliquer(texte_section, current_evenement, label.value)
     # on vérifie ensuite qu'on a bien une chrono, sinon on la force et elle sera remplie par défaut
     if indexes[Labels.CHRONO.value]["debut"] == -1:
-        ligne = [''] * 5
-        evenement_extraire_ligne_chrono(current_evenement, ligne, seuil_alerte_pnj=70, seuil_alerte_pj=70)
+        # dans ce cas on reconstruit un tableau de toute pièce en appelant lire_chono_tableau avec non comme argument
+
+        evenement_lire_chrono_depuis_tableau(current_evenement=current_evenement)
+
         texte_erreur = "Le tableau des interventions n'a pas été trouvé " \
                        "> les informations de l'évènement (jour, date, tous les pjs, tous les pnjs, synopsys) " \
                        "ont été reprises"
@@ -1535,9 +1537,35 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
     # print(f"debug : nous sommes dans l'évènement {current_evenement.code_evenement}, "
     #       f"len(tableau) = {len(tableau_interventions)}"
     #       f"tableau interventions : {tableau_interventions}")
+    return evenement_lire_chrono_depuis_tableau(tableau_interventions=tableau_interventions,
+                                                nb_colonnes=nb_colonnes,
+                                                current_evenement=current_evenement,
+                                                texte_label=texte_label,
+                                                seuil_alerte_pnj=seuil_alerte_pnj,
+                                                seuil_alerte_pj=seuil_alerte_pj)
 
-    if not 1 <= nb_colonnes <= 6:
-        logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_interventions}")
+
+def evenement_lire_chrono_depuis_tableau(current_evenement: Evenement,
+                                         tableau_interventions: list = None, nb_colonnes: int = 0,
+                                         seuil_alerte_pnj=70, seuil_alerte_pj=70):
+    class NomsColonnes(Enum):
+        JOUR = "jour"
+        HEURE_DEBUT = "heure début"
+        HEURE_FIN = "heure fin"
+        PNJs = "pnjs"
+        PJs = "pjs impliqués"
+        QUOI = "quoi?"
+
+    colonnes = [nc.value for nc in NomsColonnes]
+
+    # si on est entré avec les paramètres apr défaut, dans ce cas le tableau est à reconstruire en '',
+    # pour recopier plus tard ceux de l'évènement
+    if tableau_interventions is None or nb_colonnes == 0:
+        nb_colonnes = len(colonnes)
+        tableau_interventions = [colonnes, [''] * nb_colonnes]
+
+    if not 1 <= nb_colonnes <= len(colonnes):
+        logging.debug(f"format incorrect de tableau le la chronologie des évènements : {tableau_interventions}")
         texte_erreur = "format incorrect de tableau pour Chronologie de l'évènement"
         current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                                         texte_erreur,
@@ -1555,16 +1583,8 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
                                                         ErreurManager.ORIGINES.LECTURE_EVENEMENT)
         # print(f"debug : {tableau_interventions} pour l'evènement {current_evenement.nom_evenement}")
 
-    class NomsColonnes(Enum):
-        JOUR = "jour"
-        HEURE_DEBUT = "heure début"
-        HEURE_FIN = "heure fin"
-        PNJs = "pnjs"
-        PJs = "pjs impliqués"
-        QUOI = "quoi?"
-
     dict_header_vers_no_colonne = generer_dict_header_vers_no_colonne(en_tetes=tableau_interventions[0],
-                                                                      noms_colonnes=[c.value for c in NomsColonnes],
+                                                                      noms_colonnes=colonnes,
                                                                       erreur_manager=current_evenement.erreur_manager,
                                                                       )
     for ligne in tableau_interventions[1:]:

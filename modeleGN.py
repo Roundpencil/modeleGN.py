@@ -52,7 +52,7 @@ def string_type_pj(type_pj: TypePerso):
 # ceux qui sont liés aux personnes (roles)
 # et la contenance de ceux qui sont associés à ses propres scènes (via cette classe, donc)
 class ConteneurDeScene:
-    def __init__(self, derniere_edition_fichier, url):
+    def __init__(self, derniere_edition_fichier, last_processing, url):
         self.scenes = set()
         self.rolesContenus = {}  # nom, rôle
         self.error_log = ErreurManager()
@@ -60,6 +60,9 @@ class ConteneurDeScene:
         self.modifie_par = ""
         self.url = url
         self.nom = "Conteneur sans nom"
+        if last_processing is None:
+            last_processing = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
+        self.lastProcessing = last_processing
 
     def texte_error_log(self):
         return str(self.error_log)
@@ -158,10 +161,14 @@ class Personnage(ConteneurDeScene):
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
                  sexe="i", pj: TypePerso = TypePerso.EST_PJ, orga_referent=None, pitch_joueur="",
                  indications_costume="",
-                 textes_annexes="", url="",
-                 dates_clefs="", last_change=datetime.datetime(year=2000, month=1, day=1), forced=False,
+                 textes_annexes="", url="", last_processing = None,
+                 dates_clefs="", forced=False,
                  derniere_edition_fichier=0):
-        super(Personnage, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
+        # last_change = datetime.datetime(year=2000, month=1, day=1), retiré du constructeur
+        super(Personnage, self).__init__(derniere_edition_fichier=derniere_edition_fichier,
+                                         url=url,
+                                         last_processing=last_processing
+                                         )
         self.nom = nom
         self.concept = concept
         self.driver = driver
@@ -181,7 +188,7 @@ class Personnage(ConteneurDeScene):
         self.groupes = []
         self.datesClefs = dates_clefs
         self.textesAnnexes = textes_annexes
-        self.lastProcessing = last_change
+        # self.lastProcessing = last_change
         self.forced = forced
         self.commentaires = []
         self.informations_evenements = set()
@@ -381,7 +388,8 @@ class Intrigue(ConteneurDeScene):
                  questions_ouvertes="", notes="", resolution="", orga_referent="", timeline="", questionnaire=None,
                  last_processing=None,
                  derniere_edition_fichier=0):
-        super(Intrigue, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url)
+        super(Intrigue, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url,
+                                       last_processing=last_processing)
         self.nom = nom
         self.description = description
         self.pitch = pitch
@@ -393,9 +401,9 @@ class Intrigue(ConteneurDeScene):
         # self.dateModification = datetime.datetime.now() #seul usage dans le projet d'après l'inspecteur, je vire
         # self.url = url
         self.timeline = timeline
-        if last_processing is None:
-            last_processing = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
-        self.lastProcessing = last_processing
+        # if last_processing is None:
+        #     last_processing = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
+        # self.lastProcessing = last_processing
 
         self.lastFileEdit = derniere_edition_fichier
         self.objets = set()
