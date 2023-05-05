@@ -181,15 +181,15 @@ class FenetreEditionConfig(ttk.Frame):
         # dict_essentiel = self.retirer_clefs_vides(dict_essentiel)
         # dict_optionnel = self.retirer_clefs_vides(dict_optionnel)
         # fabrication d'un config parser
-        config = configparser.ConfigParser()
-        config.add_section('Essentiels')
+        config_ = configparser.ConfigParser()
+        config_.add_section('Essentiels')
         for param in dict_essentiel:
             print(f"param, dict_essentiel[param] = {param}, {dict_essentiel[param]}")
-            config.set("Essentiels", param, dict_essentiel[param])
-        config.add_section('Optionnels')
+            config_.set("Essentiels", param, dict_essentiel[param])
+        config_.add_section('Optionnels')
         for param in dict_optionnel:
-            config.set("Optionnels", param, dict_optionnel[param])
-        return config
+            config_.set("Optionnels", param, dict_optionnel[param])
+        return config_
 
     def retirer_clefs_vides(self, d: dict):
         return {key: value for key, value in d.items() if value != ''}
