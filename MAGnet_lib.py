@@ -27,8 +27,7 @@ from modeleGN import *
 # todo : comprendre ce qu'il se passe avec les fiches des PJs et PNJs qui lisent tout qu'oi qu'il arrive
 #  >> est-ce qu'il n'y a pas une erreur sur la boucle ou il s'arrete a la fin du premier fichier?
 
-# todo : débugger la table des PNJs : pouruqoi est-ce qu'ils n'appraissent plus dans leurs intrigues?
-# todo : débugger la chrono : pouruqoi certains évènements / interventions disparaissent-ils?
+# todo : débugger la chrono : pouruqoi certains évènements / interventions disparaissent-ils dans la version actuelle?
 
 # à tester
 

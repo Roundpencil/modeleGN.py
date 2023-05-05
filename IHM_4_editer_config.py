@@ -115,7 +115,7 @@ class FenetreEditionConfig(ttk.Frame):
         OBJETS = "id_dossier_objets"
 
     def create_tabs(self, config_parser):
-        print("bonne méthode")
+        # print("bonne méthode")
         premier_panneau = PremierPanneau(parent=self, config_parser=config_parser)
         self.notebook.add(premier_panneau, text="Paramètres du GN")
         self.mes_panneaux['premier panneau'] = premier_panneau
@@ -246,7 +246,13 @@ class PremierPanneau(ttk.Frame):
             mode_association_dropdown = ttk.Combobox(self.essentials_frame,
                                                      values=mode_association_options, state="readonly",
                                                      name='mode_association_entry')
-            mode_association_dropdown.set("0 - Automatique")
+            if (association := config_parser.get("Essentiels", 'mode_association', fallback='')) \
+                    in mode_association_options:
+                # print(f"debub : mode assocaition = {association}")
+                mode_association_dropdown.set(association)
+            else:
+                mode_association_dropdown.set("0 - Automatique")
+
             mode_association_dropdown.grid(column=1, row=len(self.essential_params), padx=10, pady=5, sticky="ew")
 
         self.essentials_frame.columnconfigure(1, weight=1)
@@ -299,7 +305,6 @@ class PremierPanneau(ttk.Frame):
         # tuples.append((key, entry.get()))
         dict_essentiels['mode_association'] = entry.get()
         print(f"debug : widget, clef, get = {entry}, mode_association_entry, {entry.get()}")
-
 
         for key in self.optional_params:
             # entry = self.optionals_frame.nametowidget(f'{key}_entry')
@@ -385,12 +390,14 @@ class PanneauParametresMultiples(ttk.Frame):
             valeurs_a_ajouter = []
             # on trouve tous les couples suffixes / valeurs dans le fichier de paramètres
             for section in config_parser.sections():
-                for key in config_parser[section]:
-                    if self.prefixe_parametre in key:
-                        valeurs_a_ajouter.append([key[len(self.prefixe_parametre):],
-                                                  config_parser[section][key]
-                                                  ])
-
+                valeurs_a_ajouter.extend(
+                    [
+                        key[len(self.prefixe_parametre) :],
+                        config_parser[section][key],
+                    ]
+                    for key in config_parser[section]
+                    if self.prefixe_parametre in key
+                )
             # on ajoute le bon nombre de champs
             for couple in valeurs_a_ajouter:
                 self.add_widget_entree(couple[0], couple[1])
@@ -455,9 +462,9 @@ class WidgetEntree(ttk.Frame):
         self.bouton_detruire = ttk.Button(self, text="x", command=lambda: fonction_destruction(self))
         self.bouton_detruire.grid(column=3, row=0)
 
-
     def get_tuple_champ_entree(self):
         return self.prefixe_parametre + self.nom_parametre_var.get(), self.valeur_parametre_var.get()
+
 
 class GidEntry(ttk.Entry):
     def __init__(self, *args, **kwargs):
@@ -465,6 +472,7 @@ class GidEntry(ttk.Entry):
 
     def get(self) -> str:
         raw = super().get()
+        print(f"debug : raw = {raw} / mixed = {g_io.extraire_id_google_si_possible(raw)}")
         return g_io.extraire_id_google_si_possible(raw)[0]
 
 
