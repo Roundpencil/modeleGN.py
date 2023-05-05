@@ -24,16 +24,12 @@ from modeleGN import *
 #  >>utiliser des focntions get_ pour remplacer tous les appels en dur par une lecture du dictionnaire sur appel
 
 # bugs
-# todo : comprendre ce qu'il se passe avec les fiches des PJs et PNJs qui lisent tout qu'oi qu'il arrive
+# todo : comprendre ce qu'il se passe avec les fiches des PJs et PNJs qui lisent tout qu'il arrive
 #  >> est-ce qu'il n'y a pas une erreur sur la boucle ou il s'arrete a la fin du premier fichier?
-
-# todo : débugger la chrono : pouruqoi certains évènements / interventions disparaissent-ils dans la version actuelle?
 
 # à tester
 
 # à faire - rapide
-# todo : ajouter les évènements dans les talbeaux récaps des PNJs
-
 
 # à faire - plus long
 
