@@ -7,6 +7,7 @@ import IHM_2_generation
 import google_io as g_io
 import lecteurGoogle
 
+from tkinter import messagebox
 
 class FenetreEditionConfig(ttk.Frame):
     def __init__(self, master, api_drive, config_parser=configparser.ConfigParser(), nom_fichier_ini=None):
@@ -143,6 +144,8 @@ class FenetreEditionConfig(ttk.Frame):
         config_parser = self.generer_configparser()
         with open(self.nom_fichier_ini, "w") as config_file:
             config_parser.write(config_file)
+        messagebox.showinfo("Enregistrement réussi",
+                            f"Le fichier {self.nom_fichier_ini} a bien été mis à jour")
 
     def enregistrer_sous_ini(self):
         # fenetre_wizard = tk.Tk()

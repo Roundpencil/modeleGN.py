@@ -1534,7 +1534,7 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
 
     # print(f"debug : tableau interventions : {tableau_interventions}")
 
-    if 1 <= nb_colonnes <= 6:
+    if not 1 <= nb_colonnes <= 6:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_interventions}")
         texte_erreur = "format incorrect de tableau pour Chronologie de l'évènement"
         current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
@@ -1562,7 +1562,7 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label:
         QUOI = "quoi?"
 
     dict_header_vers_no_colonne = generer_dict_header_vers_no_colonne(en_tetes=tableau_interventions[0],
-                                                                      noms_colonnes=list(NomsColonnes.value),
+                                                                      noms_colonnes=[c.value for c in NomsColonnes],
                                                                       erreur_manager=current_evenement.erreur_manager,
                                                                       )
     for ligne in tableau_interventions[1:]:
