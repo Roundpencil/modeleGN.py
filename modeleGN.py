@@ -182,7 +182,7 @@ class Personnage(ConteneurDeScene):
         self.images = set()
         self.description = description
         self.orga_referent = orga_referent if orga_referent is not None else ""
-        self.joueurs = {}
+        self.interpretes = {}
         self.pitchJoueur = pitch_joueur
         self.indicationsCostume = indications_costume
         self.factions = []  # todo : supprimer
@@ -247,7 +247,7 @@ class Personnage(ConteneurDeScene):
         to_return += f"images = {self.images} \n"
         to_return += f"description = {self.description} \n"
         to_return += f"orgaReferent = {self.orga_referent} \n"
-        to_return += f"joueurs = {self.joueurs.values()} \n"
+        to_return += f"joueurs = {self.interpretes.values()} \n"
         to_return += f"pitchJoueur = {self.pitchJoueur} \n"
         to_return += f"indicationsCostume = {self.indicationsCostume} \n"
         # to_return += f"factions = {self.factions} \n"
@@ -304,7 +304,7 @@ class Personnage(ConteneurDeScene):
                 setattr(to_return, key_propre, dict_perso[key])
             elif key_propre.startswith("interprete"):
                 session = key[len("interprete"):].strip()
-                to_return.joueurs[session] = dict_perso[key]
+                to_return.interpretes[session] = dict_perso[key]
         return to_return
 
 
@@ -1040,7 +1040,7 @@ class GN:
         self.trouver_roles_sans_scenes()
 
     def lier_et_completer_les_objets(self):
-        dict_code_objet_reference = {o.code_objet: o for o in self.objets.values()}
+        dict_code_objet_reference = {o.code_objet: o for o in self.objets_de_reference.values()}
         for intrigue in self.intrigues.values():
             for i, objet in enumerate(intrigue.objets):
                 code = objet.code.strip()
@@ -1056,7 +1056,7 @@ class GN:
                     url = f"{code}_imported"
                     mon_objet = ObjetDeReference(id_url=url, ajoute_via_forcage=True, code_objet=code)
                     dict_code_objet_reference[code] = mon_objet
-                    self.objets[url] = mon_objet
+                    self.objets_de_reference[url] = mon_objet
 
                 mon_objet.objets_dans_intrigues.add(objet)
         for evenement in self.evenements.values():
@@ -1078,7 +1078,7 @@ class GN:
                     url = f"{code}_imported"
                     mon_objet = ObjetDeReference(id_url=url, ajoute_via_forcage=True, code_objet=code)
                     dict_code_objet_reference[code] = mon_objet
-                    self.objets[url] = mon_objet
+                    self.objets_de_reference[url] = mon_objet
 
                 mon_objet.objets_dans_evenements.add(objet)
 
@@ -1318,17 +1318,16 @@ class GN:
                 evenement.intrigue = None
             intrigue.evenements.clear()
 
-        objets = list(self.objets.values())
+        objets = list(self.objets_de_reference.values())
         for objet_de_reference in objets:
             # print(f"debug : objref : {objet_de_reference} /"
             #       f" {objet_de_reference.ajoute_via_forcage} /"
             #       f" {objet_de_reference.id_url}")
             if objet_de_reference.ajoute_via_forcage:
                 objet_de_reference.clear()
-                self.objets.pop(objet_de_reference.id_url)
+                self.objets_de_reference.pop(objet_de_reference.id_url)
 
-    def forcer_import_pjs(self, dicts_pjs_lus: list[dict], suffixe="_imported", table_orgas_referent=None,
-                          verbal=False):
+    def forcer_import_pjs(self, dicts_pjs_lus: list[dict], suffixe="_imported", verbal=False):
         return self.forcer_import_pjpnjs(dicts_perso_lu=dicts_pjs_lus, pj=True, suffixe=suffixe, verbal=verbal)
 
     def forcer_import_pnjs(self, dicts_pnjs_lus: list[dict], suffixe="_imported", verbal=False):
@@ -1375,6 +1374,8 @@ class GN:
         valeur_pj = TypePerso.EST_PJ if pj else TypePerso.EST_PNJ_HORS_JEU
 
         for dict_perso in dicts_perso_lu:
+            if 'pj' not in dict_perso:
+                dict_perso['pj'] = valeur_pj
 
             nom_perso = dict_perso["Nom"]
             # for nom_perso, orga_referent in zip(dicts_perso_lu, table_orgas_referent):
@@ -1592,7 +1593,8 @@ class GN:
         renommages = {GN:
                           {'objets': 'objets_de_reference'},
                       Personnage:
-                          {"orgaReferent": "orga_referent"}
+                          {"orgaReferent": "orga_referent",
+                           "joueurs": "interpretes"}
                       }
 
         # déclaration de la méthode de mise à jour

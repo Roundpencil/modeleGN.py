@@ -211,7 +211,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         if (nom_fichier_pnjs := mon_gn.get_fichier_pnjs()) is not None:
             logging.debug("Pas d'id_pj_et_pnj, mais un fichier PNJs")
             pnjs_lus = lire_fichier_pnjs(nom_fichier_pnjs)
-            logging.debug(f"après ajout, liste nom = {liste_noms_pnjs}")
+            logging.debug(f"après lecture, liste nom = {pnjs_lus}")
         if liste_noms_pjs is not None:
             pjs_lus = [{"Nom": nom} for nom in liste_noms_pjs]
 
@@ -357,7 +357,7 @@ def retirer_evenements_supprimes(mon_gn: GN, ids_evenements_lus: list[str]):
 
 
 def retirer_objets_supprimes(mon_gn: GN, ids_objets_lus: list[str]):
-    retirer_elements_supprimes(ids_objets_lus, mon_gn.objets)
+    retirer_elements_supprimes(ids_objets_lus, mon_gn.objets_de_reference)
 
 
 def retirer_elements_supprimes(ids_lus: list[str], dict_reference: dict):

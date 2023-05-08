@@ -80,7 +80,7 @@ def extraire_objets(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=Fal
     if mon_gn.get_dossiers_objets() is None or len(mon_gn.get_dossiers_objets()) == 0:
         logging.debug("pas de dossier objets trouvé dans le gn")
         return
-    return extraire_texte_de_google_doc(api_drive, api_doc, extraire_objets_de_texte, mon_gn.objets,
+    return extraire_texte_de_google_doc(api_drive, api_doc, extraire_objets_de_texte, mon_gn.objets_de_reference,
                                         mon_gn.get_dossiers_objets(),
                                         singletest,
                                         verbal=verbal, fast=fast, prefixes=mon_gn.get_prefixe_objets(), m_print=m_print,
@@ -1867,7 +1867,7 @@ def personnage_interprete(texte: str, perso_en_cours: Personnage, text_label: st
     pattern = f"{text_label}(.+):(.+)"
     if match := re.match(pattern, texte):
         session_id, interprete_session = match.group(1).strip(), match.group(2).strip()
-        perso_en_cours.joueurs[session_id] = interprete_session
+        perso_en_cours.interpretes[session_id] = interprete_session
 
 # def personnage_joueurv2(texte: str, perso_en_cours: Personnage, text_label: str):
 #     perso_en_cours.joueurs['V2'] = retirer_label(texte, text_label)

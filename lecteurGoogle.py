@@ -110,7 +110,7 @@ def read_structural_elements(elements):
             # The text in the TOC is also in a Structural Element.
             toc = value.get('tableOfContents')
             text += read_structural_elements(toc.get('content'))
-    return text + '\n' #todo: tester si ca répare les problème de tableaux
+    return text + '\n'
 
 
 # renvoie un dictionnaire [label]["debut"/"fin"]
