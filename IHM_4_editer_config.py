@@ -466,7 +466,8 @@ class WidgetEntree(ttk.Frame):
         self.bouton_detruire.grid(column=3, row=0)
 
     def get_tuple_champ_entree(self):
-        return self.prefixe_parametre + self.nom_parametre_var.get(), self.valeur_parametre_var.get()
+        return self.prefixe_parametre + self.nom_parametre_var.get(), self.valeur_parametre.get()
+        # return self.prefixe_parametre + self.nom_parametre_var.get(), self.valeur_parametre_var.get()
 
 
 class GidEntry(ttk.Entry):
