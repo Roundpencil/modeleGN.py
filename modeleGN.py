@@ -1378,7 +1378,7 @@ class GN:
                     self.personnages[nom_perso + suffixe] = Personnage(nom=nom_perso,
                                                                        pj=valeur_pj,
                                                                        forced=True,
-                                                                       orga_referent=dict_perso["Orga référent"]
+                                                                       orga_referent=dict_perso.get("Orga référent", None)
                                                                        )
                     # on met son nom en clef pour se souvenir qu'il a été généré
 
