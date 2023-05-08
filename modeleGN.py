@@ -11,7 +11,7 @@ from fuzzywuzzy import process
 import sys
 from packaging import version
 
-VERSION = "1.1.20230508"
+VERSION = "1.1.20230508.1"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -247,7 +247,7 @@ class Personnage(ConteneurDeScene):
         to_return += f"images = {self.images} \n"
         to_return += f"description = {self.description} \n"
         to_return += f"orgaReferent = {self.orga_referent} \n"
-        to_return += f"joueurs = {self.interpretes.values()} \n"
+        to_return += f"interprète(s) = {self.interpretes.values()} \n"
         to_return += f"pitchJoueur = {self.pitchJoueur} \n"
         to_return += f"indicationsCostume = {self.indicationsCostume} \n"
         # to_return += f"factions = {self.factions} \n"
@@ -410,7 +410,7 @@ class Intrigue(ConteneurDeScene):
         self.questionnaire = questionnaire or []
         self.notes = notes
         self.resolution = resolution
-        self.orgaReferent = orga_referent
+        self.orga_referent = orga_referent
         # self.dateModification = datetime.datetime.now() #seul usage dans le projet d'après l'inspecteur, je vire
         # self.url = url
         self.timeline = timeline
@@ -1594,7 +1594,9 @@ class GN:
                           {'objets': 'objets_de_reference'},
                       Personnage:
                           {"orgaReferent": "orga_referent",
-                           "joueurs": "interpretes"}
+                           "joueurs": "interpretes"},
+                      Intrigue:
+                          {'orgaReferent', 'orga_referent'}
                       }
 
         # déclaration de la méthode de mise à jour

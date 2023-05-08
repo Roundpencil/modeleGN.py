@@ -44,7 +44,6 @@ def main():
     args = parser.parse_args()
 
     # on crée les lecteurs
-    # todo : ajouter erreurs sur expiration du token ici
     message = (None, None)
     derniere_version = True
 

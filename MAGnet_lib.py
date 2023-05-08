@@ -864,7 +864,7 @@ def generer_changelog(mon_gn, prefixe, nb_jours=1, verbal=False):
 def generer_table_objets_from_intrigues_et_evenements(mon_gn):
     to_return = [['code', 'description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'Intrigues', 'Evènements',
                   'fiche objet trouvée?']]
-    for objet_ref in mon_gn.objets.values():
+    for objet_ref in mon_gn.objets_de_reference.values():
         ma_liste = [objet for objet in objet_ref.objets_dans_intrigues if objet.intrigue is not None]
         for objet in ma_liste:
             code = objet.code.replace('\n', '\v')
@@ -913,7 +913,7 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
 
 def generer_table_objets_uniques(mon_gn):
     to_return = [['Code', 'Nom / Description', 'Intrigues', 'Evènements', 'fiche objet trouvée?']]
-    for objet_ref in mon_gn.objets.values():
+    for objet_ref in mon_gn.objets_de_reference.values():
         code = objet_ref.code_objet.replace('\n', '\v')
         if objet_ref.nom_objet != "":
             nom = objet_ref.nom_objet

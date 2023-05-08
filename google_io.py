@@ -406,7 +406,7 @@ def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_e
 
 
 def intrigue_referent(texte: str, intrigue: Intrigue, texte_label: str):
-    intrigue.orgaReferent = retirer_label(texte, texte_label)
+    intrigue.orga_referent = retirer_label(texte, texte_label)
 
 
 def intrigue_todo(texte: str, intrigue: Intrigue, texte_label: str):
