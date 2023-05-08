@@ -1790,10 +1790,9 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
     class Labels(Enum):
         REFERENT = "orga référent : "
-        JOUEURV1 = "joueur v1 : "
-        JOUEURV2 = "joueur v2 : "
-        JOUEUSE1 = "joueuse v1 : "
-        JOUEUSE2 = "joueuse v2 : "
+        JOUEUR = "joueur"
+        JOUEUSE = "joueuse"
+        INTERPRETE = "interprète"
         PITCH = "pitch personnage"
         COSTUME = "indications costumes : "
         FACTION1 = "faction principale : "
@@ -1815,10 +1814,9 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
     dict_methodes = {
         Labels.REFERENT: personnage_referent,
-        Labels.JOUEURV1: personnage_joueurv1,
-        Labels.JOUEURV2: personnage_joueurv2,
-        Labels.JOUEUSE1: personnage_joueusev1,
-        Labels.JOUEUSE2: personnage_joueusev2,
+        Labels.JOUEUR: personnage_interprete,
+        Labels.JOUEUSE: personnage_interprete,
+        Labels.INTERPRETE: personnage_interprete,
         Labels.PITCH: personnage_pitch,
         Labels.COSTUME: personnage_costume,
         Labels.FACTION1: personnage_faction1,
@@ -1853,9 +1851,9 @@ def personnage_referent(texte: str, perso_en_cours: Personnage, text_label: str)
     perso_en_cours.orga_referent = retirer_label(texte, text_label)
 
 
-def personnage_joueurv1(texte: str, perso_en_cours: Personnage, text_label: str):
-    perso_en_cours.joueurs['V1'] = retirer_label(texte, text_label)
-
+# def personnage_joueurv1(texte: str, perso_en_cours: Personnage, text_label: str):
+#     perso_en_cours.joueurs['V1'] = retirer_label(texte, text_label)
+#
 
 def personnage_relations(texte: str, perso_en_cours: Personnage, text_label: str):
     print(f"Balise {text_label} trouvée : cette balise n'est plus prise en compte")
@@ -1865,16 +1863,22 @@ def personnage_intrigues(texte: str, perso_en_cours: Personnage, text_label: str
     print(f"Balise {text_label} trouvée : cette balise n'a pas d'effet dans MAGnet")
 
 
-def personnage_joueurv2(texte: str, perso_en_cours: Personnage, text_label: str):
-    perso_en_cours.joueurs['V2'] = retirer_label(texte, text_label)
+def personnage_interprete(texte: str, perso_en_cours: Personnage, text_label: str):
+    pattern = f"{text_label}(.+):(.+)"
+    if match := re.match(pattern, texte):
+        session_id, interprete_session = match.group(1).strip(), match.group(2).strip()
+        perso_en_cours.joueurs[session_id] = interprete_session
 
-
-def personnage_joueusev1(texte: str, perso_en_cours: Personnage, text_label: str):
-    perso_en_cours.joueurs['V1'] = retirer_label(texte, text_label)
-
-
-def personnage_joueusev2(texte: str, perso_en_cours: Personnage, text_label: str):
-    perso_en_cours.joueurs['V2'] = retirer_label(texte, text_label)
+# def personnage_joueurv2(texte: str, perso_en_cours: Personnage, text_label: str):
+#     perso_en_cours.joueurs['V2'] = retirer_label(texte, text_label)
+#
+#
+# def personnage_joueusev1(texte: str, perso_en_cours: Personnage, text_label: str):
+#     perso_en_cours.joueurs['V1'] = retirer_label(texte, text_label)
+#
+#
+# def personnage_joueusev2(texte: str, perso_en_cours: Personnage, text_label: str):
+#     perso_en_cours.joueurs['V2'] = retirer_label(texte, text_label)
 
 
 def personnage_pitch(texte: str, perso_en_cours: Personnage, text_label: str):
