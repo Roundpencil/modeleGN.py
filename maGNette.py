@@ -232,7 +232,7 @@ def afficherDatesScenes(monGN):
 
 def genererCsvOrgaIntrigue(monGN):
     for intrigue in monGN.intrigues:
-        print("{0};{1}".format(intrigue.nom, intrigue.orgaReferent))
+        print("{0};{1}".format(intrigue.nom, intrigue.orga_referent))
 
 
 def listerLesRoles(monGN):
@@ -305,7 +305,7 @@ def squelettes_persos_en_kit(monGN):
     squelettes_persos = {}
     for perso in monGN.dictPJs.values():
         texte_intro = ""
-        texte_intro += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
+        texte_intro += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orga_referent}) : \n"
         texte_intro += f"résumé de la bio : \n"
         for item in perso.description:
             texte_intro += f"{item} \n"
@@ -365,7 +365,7 @@ def reverse_generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive):
 def tousLesSquelettesPNJ(monGN: GN, prefixe):
     toutesScenes = ""
     for perso in monGN.dictPNJs.values():
-        toutesScenes += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
+        toutesScenes += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orga_referent}) : \n"
         toutesScenes += f"résumé de la bio : \n {perso.description} \n"
         toutesScenes += f"Psychologie : \n {perso.concept} \n"
         toutesScenes += f"Motivations et objectifs : \n {perso.driver} \n"
@@ -534,7 +534,7 @@ def generecsvobjets(monGn):
     for intrigue in monGn.intrigues.values():
         for objet in intrigue.objets:
             print(
-                f"{intrigue.nom};{intrigue.orgaReferent};{objet.description};{objet.fourniParJoueur};{objet.fourniParJoueur};{objet.rfid};{objet.specialEffect};")
+                f"{intrigue.nom};{intrigue.orga_referent};{objet.description};{objet.fourniParJoueur};{objet.fourniParJoueur};{objet.rfid};{objet.specialEffect};")
 
 
 def dumpPersosLus(monGN):
@@ -597,7 +597,7 @@ def genererTableauIntrigues(monGN):
     toPrint = monGN.intrigues.values()
     toPrint = sorted(toPrint, key=lambda x: x.nom)
     for intrigue in toPrint:
-        print(f"{intrigue.nom};{intrigue.orgaReferent.strip()};")
+        print(f"{intrigue.nom};{intrigue.orga_referent.strip()};")
 
 
 

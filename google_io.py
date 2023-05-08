@@ -1850,7 +1850,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
 
 def personnage_referent(texte: str, perso_en_cours: Personnage, text_label: str):
-    perso_en_cours.orgaReferent = retirer_label(texte, text_label)
+    perso_en_cours.orga_referent = retirer_label(texte, text_label)
 
 
 def personnage_joueurv1(texte: str, perso_en_cours: Personnage, text_label: str):

@@ -411,13 +411,13 @@ def ecrire_fichier_erreur_localement(mon_gn: GN, prefixe: str, verbal: False):
 def generer_texte_erreurs_intrigues(mon_gn, verbal=False):
     log_erreur = ""
 
-    intrigues_triees = sorted(mon_gn.intrigues.values(), key=lambda x: x.orgaReferent)
+    intrigues_triees = sorted(mon_gn.intrigues.values(), key=lambda x: x.orga_referent)
     # for intrigue in gn.intrigues.values():
 
     current_orga = "ceci est un placeholder"
     for intrigue in intrigues_triees:
-        if current_orga != intrigue.orgaReferent:
-            current_orga = intrigue.orgaReferent
+        if current_orga != intrigue.orga_referent:
+            current_orga = intrigue.orga_referent
             log_erreur += f"{current_orga} voici les intrigues avec des soucis dans leurs tableaux de persos \n"
 
         if intrigue.error_log.nb_erreurs() > 0:
@@ -543,10 +543,10 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
                 continue
             if role.personnage is None:
                 continue
-            if len(role.personnage.orgaReferent) < 3:
+            if len(role.personnage.orga_referent) < 3:
                 orga_referent = "Orga sans nom"
             else:
-                orga_referent = role.personnage.orgaReferent.strip()
+                orga_referent = role.personnage.orga_referent.strip()
             if orga_referent not in dict_orgas_persos:
                 # dict_orgas_persos[role.personnage.orga_referent].append(role.personnage.nom)
                 dict_orgas_persos[orga_referent] = set()
@@ -569,7 +569,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
                 continue
             if role.personnage is None:
                 continue
-            orga_referent = role.personnage.orgaReferent.strip()
+            orga_referent = role.personnage.orga_referent.strip()
             if len(orga_referent) < 3:
                 orga_referent = "Orga sans nom"
             if orga_referent not in dict_orgas:
@@ -595,7 +595,7 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
             len(intrigue.scenes),
             intrigue.lastFileEdit.strftime("%Y-%m-%d %H:%M:%S"),
             intrigue.modifie_par,
-            intrigue.orgaReferent,
+            intrigue.orga_referent,
             intrigue.questions_ouvertes,
             intrigue.error_log.nb_erreurs(),
             intrigue.get_full_url(),
@@ -654,7 +654,7 @@ def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
 
         # ajout des informations issues des fiches :
         texte_perso = ""
-        texte_perso += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orgaReferent}) : \n"
+        texte_perso += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orga_referent}) : \n"
         texte_perso += f"type de personnage : {perso.string_type_personnage()} \n"
         texte_perso += f"résumé de la bio : \n"
         texte_perso += f"{perso.description} \n"
@@ -777,7 +777,7 @@ def generer_changelog(mon_gn, prefixe, nb_jours=1, verbal=False):
         if intrigue.lastFileEdit.date() > date_reference:
             for role in intrigue.rolesContenus.values():
                 if role.personnage is not None and est_un_pj(role.personnage.pj):
-                    referent = role.personnage.orgaReferent.strip()
+                    referent = role.personnage.orga_referent.strip()
 
                     if len(referent) < 3:
                         referent = "Orga sans nom"
@@ -1132,7 +1132,7 @@ def generer_tableau_recap_persos(gn: GN):
         #     table_perso += [role.conteneur.nom]
         table_perso = sorted(table_perso)
 
-        table_perso = [perso.nom] + [perso.orgaReferent] + [perso.sommer_pip()] + table_perso
+        table_perso = [perso.nom] + [perso.orga_referent] + [perso.sommer_pip()] + table_perso
         to_return.append(table_perso)
 
     return to_return
