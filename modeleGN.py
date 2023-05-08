@@ -1312,22 +1312,37 @@ class GN:
                 objet_de_reference.clear()
                 self.objets.pop(objet_de_reference.id_url)
 
-    def forcer_import_pjs(self, noms_persos, suffixe="_imported", table_orgas_referent=None, verbal=False):
-        return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=True, suffixe=suffixe, verbal=verbal,
-                                         table_orgas_referent=table_orgas_referent)
+    def forcer_import_pjs(self, dicts_pjs_lus: list[dict], suffixe="_imported", table_orgas_referent=None, verbal=False):
+        return self.forcer_import_pjpnjs(dicts_perso_lu=dicts_pjs_lus, pj=True, suffixe=suffixe, verbal=verbal)
 
-    def forcer_import_pnjs(self, noms_persos, suffixe="_imported", verbal=False):
-        return self.forcer_import_pjpnjs(noms_persos=noms_persos, pj=False, suffixe=suffixe, verbal=verbal)
+    def forcer_import_pnjs(self, dicts_pnjs_lus: list[dict], suffixe="_imported", verbal=False):
+        return self.forcer_import_pjpnjs(dicts_perso_lu=dicts_pnjs_lus, pj=False, suffixe=suffixe, verbal=verbal)
 
-    def forcer_import_pjpnjs(self, noms_persos, pj: bool, suffixe="_imported", verbal=False,
-                             table_orgas_referent: list[str] = None):
+    def forcer_import_pjpnjs(self, dicts_perso_lu: list[dict], pj: bool, suffixe="_imported", verbal=False):
+        """
+        Force l'importation des personnages sans fiche à partir d'une liste de dictionnaires.
+
+        Cette méthode vérifie si les personnages sont déjà présents dans la liste des personnages actifs,
+        sinon elle crée une nouvelle instance de la classe Personnage avec les données minimales et l'ajoute
+        à la liste des personnages actifs. Le nom du personnage importé est ajouté à la liste des noms présents
+        pour se souvenir qu'il a été généré.
+
+        Args:
+            dicts_perso_lu (list[dict]): Liste de dictionnaires représentant les personnages à importer.
+            pj (bool): Indique si les personnages sont des PJs (True) ou des PNJs (False).
+            suffixe (str, optional): Un suffixe à ajouter au nom du personnage lors de l'importation. Par défaut "_imported".
+            verbal (bool, optional): Si True, imprime des messages détaillant le processus d'importation. Par défaut False.
+
+        Returns:
+            None
+        """
         # on commence par reconstruire la table des référents et l'ajuster si nécessaire
-        if table_orgas_referent is None:
-            table_orgas_referent = []
-
-        if len(noms_persos) > len(table_orgas_referent):
-            table_orgas_referent.extend([None] * (len(noms_persos) - len(table_orgas_referent)))
-            # table_orgas_referent = [None for _ in range(len(noms_persos))]
+        # if table_orgas_referent is None:
+        #     table_orgas_referent = []
+        #
+        # if len(noms_persos) > len(table_orgas_referent):
+        #     table_orgas_referent.extend([None] * (len(noms_persos) - len(table_orgas_referent)))
+        #     # table_orgas_referent = [None for _ in range(len(noms_persos))]
         logging.debug("début de l'ajout des personnages sans fiche")
         # nomsLus = [x.nom for x in self.dictPJs.values()]
 
@@ -1335,30 +1350,36 @@ class GN:
         #     dict_actif = self.dictPJs
         # else:
         #     dict_actif = self.dictPNJs
-        noms_lus = self.noms_pjpnjs(pj)
-        logging.debug(f"noms lus avant forçage dans le GN = {noms_lus} pour pj = {pj}")
+        noms_deja_presents = self.noms_pjpnjs(pj)
+        logging.debug(f"noms présents avant forçage dans le GN = {noms_deja_presents} pour pj = {pj}")
         # pour chaque personnage de ma liste :
         # SI son nom est dans les persos > ne rien faire
         # SINON, lui créer une coquille vide
 
         valeur_pj = TypePerso.EST_PJ if pj else TypePerso.EST_PNJ_HORS_JEU
 
-        for perso, orga_referent in zip(noms_persos, table_orgas_referent):
-            # print(f"personnage zippé = {perso}, orgazippé = {orga_referent}")
-            if perso in noms_lus and verbal:
-                print(f"le personnage {perso} a une correspondance dans les persos déjà présents")
+        for dict_perso in dicts_perso_lu:
+
+            nom_perso = dict_perso["Nom"]
+        # for nom_perso, orga_referent in zip(dicts_perso_lu, table_orgas_referent):
+            # print(f"personnage zippé = {nom_perso}, orgazippé = {orga_referent}")
+            if nom_perso in noms_deja_presents and verbal:
+                print(f"le personnage {nom_perso} a une correspondance dans les persos déjà présents")
             else:
-                score_proche = process.extractOne(perso, noms_lus)
+                score_proche = process.extractOne(nom_perso, noms_deja_presents)
                 # print(f"avant association, {personnage} correspond à {score_proche[0]} à {score_proche[1]}%")
                 if score_proche is not None and score_proche[1] >= 75:
                     if verbal:
-                        print(f"{perso} correspond à {score_proche[0]} à {score_proche[1]}%")
+                        print(f"{nom_perso} correspond à {score_proche[0]} à {score_proche[1]}%")
                     # donc on ne fait rien
                 else:
                     if verbal:
-                        print(f"{perso} a été créé (coquille vide)")
-                    self.personnages[perso + suffixe] = Personnage(nom=perso, pj=valeur_pj,
-                                                                   forced=True, orga_referent=orga_referent)
+                        print(f"{nom_perso} a été créé (coquille vide)")
+                    self.personnages[nom_perso + suffixe] = Personnage(nom=nom_perso,
+                                                                       pj=valeur_pj,
+                                                                       forced=True,
+                                                                       orga_referent=dict_perso["Orga référent"]
+                                                                       )
                     # on met son nom en clef pour se souvenir qu'il a été généré
 
     def lister_tous_les_persos(self):

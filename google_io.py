@@ -2620,27 +2620,83 @@ def reconstituer_tableau(texte_lu: str, sans_la_premiere_ligne=True):
     return to_return or [], len(to_return[0]) if to_return else 0
 
 
-def lire_gspread_pnj(api_sheets, sheet_id):
-    a, b = lire_gspread_pj_pnjs(api_sheets, sheet_id, "PNJs")
-    return a
+# def lire_gspread_pnj(api_sheets, sheet_id):
+#     a, b = lire_gspread_pj_pnjs(api_sheets, sheet_id, "PNJs")
+#     return a
+#
+#
+# def lire_gspread_pj(api_sheets, sheet_id):
+#     return lire_gspread_pj_pnjs(api_sheets, sheet_id, "PJs")
 
 
-def lire_gspread_pj(api_sheets, sheet_id):
-    return lire_gspread_pj_pnjs(api_sheets, sheet_id, "PJs")
+def lire_gspread_pj_pnjs(api_sheets, sheet_id):
+    """
+    Lit les données des feuilles "PJs" et "PNJs" d'un Google Spreadsheet et les stocke dans deux listes de dictionnaires.
 
+    Cette fonction utilise la méthode `mettre_sheet_dans_dictionnaires` pour lire les données des feuilles "PJs" et "PNJs"
+    et les stocker dans deux listes de dictionnaires séparées.
 
-def lire_gspread_pj_pnjs(api_sheets, sheet_id, sheet_name):
+    Args:
+        api_sheets (googleapiclient.discovery.Resource): L'objet API Google Sheets pour accéder au service.
+        sheet_id (str): L'ID du Google Spreadsheet.
+
+    Returns:
+        tuple: Un tuple contenant deux listes de dictionnaires :
+               - La première liste contient les données de la feuille "PJs".
+               - La deuxième liste contient les données de la feuille "PNJs".
+    """
+    pjs_lus = mettre_sheet_dans_dictionnaires(api_sheets, sheet_id, "PJs")
+    pnjs_lus = mettre_sheet_dans_dictionnaires(api_sheets, sheet_id, "PNJs")
+    return pjs_lus, pnjs_lus
+
+    # anciennement :
+    # try:
+    #
+    #     result = api_sheets.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name,
+    #                                                     majorDimension="COLUMNS").execute()
+    #     values = result.get('values', [])
+    #
+    #     logging.debug(f"result =  {values}")
+    #
+    #     noms_pjs = values[0][1:]
+    #     orgas_referents = values[1][1:] if len(values) > 1 else None
+    #     return noms_pjs, orgas_referents
+    # except HttpError as error:
+    #     print(f"An error occurred: {error}")
+    #     return None
+
+def mettre_sheet_dans_dictionnaires(api_sheets, sheet_id, sheet_name):
+    """
+    Récupère les données d'une feuille Google Spreadsheet et les stocke dans une liste de dictionnaires.
+
+    Chaque ligne de la feuille est convertie en un dictionnaire avec les entêtes de colonnes comme clés
+    et les cellules comme valeurs. La liste retournée contient ces dictionnaires pour chaque ligne.
+
+    Args:
+        api_sheets (googleapiclient.discovery.Resource): L'objet API Google Sheets pour accéder au service.
+        sheet_id (str): L'ID du Google Spreadsheet.
+        sheet_name (str): Le nom de la feuille à récupérer.
+
+    Returns:
+        list[dict]: Une liste de dictionnaires contenant les données de la feuille,
+                   ou None en cas d'erreur.
+    """
     try:
-
         result = api_sheets.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name,
-                                                        majorDimension="COLUMNS").execute()
+                                                        majorDimension="ROWS").execute()
         values = result.get('values', [])
+        en_tetes = [en_tete.strip() for en_tete in values[0]]
+        taille_ligne = len(en_tetes)
 
-        logging.debug(f"result =  {values}")
+        to_return = []
+        for ligne in values[1:]:
+            dico_ligne = {
+                en_tete: ligne[i] if i < len(ligne) else ''
+                for i, en_tete in enumerate(en_tetes)
+            }
+            to_return.append(dico_ligne)
 
-        noms_pjs = values[0][1:]
-        orgas_referents = values[1][1:] if len(values) > 1 else None
-        return noms_pjs, orgas_referents
+        return to_return
     except HttpError as error:
         print(f"An error occurred: {error}")
         return None

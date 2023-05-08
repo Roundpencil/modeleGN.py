@@ -63,7 +63,8 @@ def lire_fichier_pnjs(nom_fichier: str):
             # with open(nom_fichier, 'r') as f:
             for ligne in f:
                 nom = ligne.strip()
-                to_return.append(nom)
+                # to_return.append(nom)
+                to_return.append({"Nom": nom})
     except FileNotFoundError:
         print(f"Le fichier {nom_fichier} - {os.getcwd()} n'a pas été trouvé.")
     except Exception as e:
@@ -189,8 +190,10 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     retirer_objets_supprimes(mon_gn, ids_lus)
     # visualisation(pas_visualisation)
 
-    liste_orgas = None
-    liste_noms_pnjs = None
+    # liste_orgas = None
+    # liste_noms_pnjs = None
+    pnjs_lus = None
+    pjs_lus = None
     logging.debug(f"mon_gn.id_pjs_et_pnjs = {mon_gn.get_id_pjs_et_pnjs()}")
     logging.debug(f"nom fichier pnj = {mon_gn.get_fichier_pnjs()}")
 
@@ -198,27 +201,31 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         # dans ce cas on a un tableau global avec toutes les données > on le lit
         # on met à jour les données pour les PNJs pour
         logging.debug(f"sheet_id = {sheet_id}, mon_gn.id_pjs_et_pnjs = {mon_gn.get_id_pjs_et_pnjs()}")
-        liste_noms_pnjs = g_io.lire_gspread_pnj(api_sheets, sheet_id)
-        liste_noms_pjs, liste_orgas = g_io.lire_gspread_pj(api_sheets, sheet_id)
-        logging.debug(f"liste_noms_pnjs = {liste_noms_pnjs}")
-        logging.debug(f"liste_noms_pjs = {liste_noms_pjs}")
-        logging.debug(f"liste_orgas = {liste_orgas}")
-    elif (nom_fichier_pnjs := mon_gn.get_fichier_pnjs()) is not None:
-        logging.debug("Pas d'id_pj_et_pnj, mais un fichier PNJs")
-        liste_noms_pnjs = lire_fichier_pnjs(nom_fichier_pnjs)
-        logging.debug(f"après ajout, liste nom = {liste_noms_pnjs}")
+        # liste_noms_pnjs = g_io.lire_gspread_pnj(api_sheets, sheet_id)
+        # liste_noms_pjs, liste_orgas = g_io.lire_gspread_pj(api_sheets, sheet_id)
+        pjs_lus, pnjs_lus = g_io.lire_gspread_pj_pnjs(api_sheets, sheet_id)
+        logging.debug(f"liste_noms_pnjs = {pjs_lus}")
+        logging.debug(f"liste_noms_pjs = {pnjs_lus}")
+        # logging.debug(f"liste_orgas = {liste_orgas}")
+    else:
+        if (nom_fichier_pnjs := mon_gn.get_fichier_pnjs()) is not None:
+            logging.debug("Pas d'id_pj_et_pnj, mais un fichier PNJs")
+            pnjs_lus = lire_fichier_pnjs(nom_fichier_pnjs)
+            logging.debug(f"après ajout, liste nom = {liste_noms_pnjs}")
+        if liste_noms_pjs is not None:
+            pjs_lus = [{"Nom": nom} for nom in liste_noms_pjs]
 
         # sinon on prend en compte les données envoyées en input, issues des balises du fichier init pour une création
         # et on utilise les focntion classiques d'injections si on trouve des trucs
 
-    if liste_noms_pnjs is not None:
+    if pnjs_lus is not None:
         logging.debug("début du forçage des PNJs")
-        mon_gn.forcer_import_pnjs(liste_noms_pnjs, verbal=verbal)
+        mon_gn.forcer_import_pnjs(pnjs_lus, verbal=verbal)
         logging.debug("PNJs forcés ok")
 
-    if liste_noms_pjs is not None:
+    if pjs_lus is not None:
         logging.debug("début du forçage des PJs")
-        mon_gn.forcer_import_pjs(liste_noms_pjs, verbal=verbal, table_orgas_referent=liste_orgas)
+        mon_gn.forcer_import_pjs(pjs_lus, verbal=verbal)
         logging.debug("PJs forcés ok")
 
     g_io.extraire_factions(mon_gn, api_doc=api_doc, verbal=verbal)
