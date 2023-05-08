@@ -669,7 +669,7 @@ class Scene:
 
 # objet pour tout sauvegarder
 class Faction:
-    def __init__(self, nom: str="faction sans nom"):
+    def __init__(self, nom: str = "faction sans nom"):
         self.nom = nom
         self.personnages = set()
         # self.infos_pour_evenements = set()
@@ -700,7 +700,7 @@ class GN:
         self.factions = {}  # nom, Faction
         self.intrigues = {}  # clef : id google
         self.evenements = {}  # clef : id google
-        self.objets = {}  # clef : id google
+        self.objets_de_reference = {}  # clef : id google
 
         # todo : est-ce que ces variables servent à quelque chose?
         self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN
@@ -1408,188 +1408,189 @@ class GN:
             tous_les_roles.extend(scene.roles)
         return tous_les_roles
 
-    def mettre_a_jour_champs(self):
-        # # mise à jour des formats de date et des factions
-        # if not hasattr(self, 'factions'):
-        #     self.factions = {}
-        # # if not hasattr(self, 'id_factions'):
-        # #     self.id_factions = None
-        # if hasattr(self, 'liste_noms_pjs'):
-        #     delattr(self, 'liste_noms_pjs')
-        # if hasattr(self, 'liste_noms_pnjs'):
-        #     delattr(self, 'liste_noms_pnjs')
-        # # if not hasattr(self, 'id_pjs_et_pnjs'):
-        # #     self.id_pjs_et_pnjs = None
-        # if not hasattr(self, 'evenements'):
-        #     self.evenements = {}
-        # # if not hasattr(self, 'dossiers_evenements'):
-        # #     self.dossiers_evenements = []
-        # # if hasattr(self, 'dossier_evenements'):
-        # #     delattr(self, 'dossier_evenements')
-        # if not hasattr(self, 'objets'):
-        #     self.objets = {}
-        # if hasattr(self, 'association_auto'):
-        #     delattr(self, 'association_auto')
-        # # if not hasattr(self, 'mode_association'):
-        # #     self.mode_association = self.ModeAssociation.AUTO
-        # if hasattr(self, 'dictPJs') and hasattr(self, 'dictPNJs'):
-        #     self.personnages = self.dictPJs | self.dictPNJs
-        #     delattr(self, 'dictPJs')
-        #     delattr(self, 'dictPNJs')
-        # if not hasattr(self, 'version'):
-        #     self.version = VERSION
-        # if hasattr(self, 'date_self'):
-        #     delattr(self, 'date_self')
-        # if hasattr(self, 'association_auto'):
-        #     delattr(self, 'association_auto')
-        # if hasattr(self, 'id_factions'):
-        #     delattr(self, 'id_factions')
-        # if hasattr(self, 'dossiers_pnjs'):
-        #     delattr(self, 'dossiers_pnjs')
-        # if hasattr(self, 'dossiers_pjs'):
-        #     delattr(self, 'dossiers_pjs')
-        # if hasattr(self, 'dossier_outputs_drive'):
-        #     delattr(self, 'dossier_outputs_drive')
-        # if hasattr(self, 'dossiers_intrigues'):
-        #     delattr(self, 'dossiers_intrigues')
-        # if hasattr(self, 'dossiers_objets'):
-        #     delattr(self, 'dossiers_objets')
-        # if hasattr(self, 'dossiers_evenements'):
-        #     delattr(self, 'dossiers_evenements')
-        # if hasattr(self, 'date_gn'):
-        #     delattr(self, 'date_gn')
-        # if hasattr(self, 'id_pjs_et_pnjs'):
-        #     delattr(self, 'id_pjs_et_pnjs')
-        # if hasattr(self, 'fichier_pnjs'):
-        #     delattr(self, 'fichier_pnjs')
-        # if hasattr(self, 'mode_association'):
-        #     delattr(self, 'mode_association')
-        # if not hasattr(self, 'dict_config'):
-        #     self.dict_config = None
-        #
-        # for scene in self.lister_toutes_les_scenes():
-        #     if not hasattr(scene, 'date_absolue'):
-        #         scene.date_absolue = None
-        #     # print(f"la scène {scene.titre}, dateba absolue = {scene.date_absolue}")
-        #     if hasattr(scene, 'niveau'):
-        #         delattr(scene, 'niveau')
-        #
-        # for intrigue in self.intrigues.values():
-        #     for objet in intrigue.objets:
-        #         if not hasattr(objet, 'code'):
-        #             objet.code = ""
-        #         if hasattr(objet, 'rfid'):
-        #             delattr(objet, 'rfid')
-        #         if hasattr(objet, 'commentaires'):
-        #             delattr(objet, 'commentaires')
-        #         if hasattr(objet, 'objet_de_reference'):
-        #             delattr(objet, 'objet_de_reference')
-        #         if not hasattr(objet, 'intrigue'):
-        #             objet.intrigue = None
-        #         if hasattr(objet, 'inIntrigues'):
-        #             if len(objet.inIntrigues) > 0:
-        #                 objet.intrigue = list(objet.inIntrigues)[0]
-        #             delattr(objet, 'inIntrigues')
-        #
-        #     if not hasattr(intrigue, 'commentaires'):
-        #         intrigue.commentaires = []
-        #     if not hasattr(intrigue, 'codes_evenements_raw'):
-        #         intrigue.codes_evenements_raw = []
-        #     if not hasattr(intrigue, 'evenements'):
-        #         intrigue.evenements = set()
-        #     if not hasattr(intrigue, 'questionnaire'):
-        #         intrigue.questionnaire = []
-        #     if isinstance(intrigue.questionnaire, str):
-        #         intrigue.questionnaire = []
-        #
-        # # for conteneur in list(self.dictPJs.values()) + list(self.dictPNJs.values()) + list(self.intrigues.values()):
-        # #     for role in conteneur.rolesContenus.values():
-        # for role in self.lister_tous_les_roles():
-        #     print(f"clefs (2) pour {role.nom} = {vars(role).keys()}")
-        #     if not hasattr(role, 'affectation'):
-        #         role.affectation = ""
-        #     if hasattr(role, 'perimetreIntervention'):
-        #         if not hasattr(role, 'perimetre_intervention'):
-        #             role.perimetre_intervention = role.perimetreIntervention
-        #         delattr(role, 'perimetreIntervention')
-        #         # print(f"PerimetreIntervention supprimé pour {role.nom}")
-        #
-        #     if hasattr(role, 'perimetre_Intervention'):
-        #         if not hasattr(role, 'perimetre_intervention'):
-        #             role.perimetre_intervention = role.perimetre_Intervention
-        #         delattr(role, 'perimetre_Intervention')
-        #     if not hasattr(role, 'relations'):
-        #         role.relations = set()
-        #     if not hasattr(role, 'personnage'):
-        #         if hasattr(role, 'perso'):
-        #             role.personnage = role.perso
-        #             delattr(role, 'perso')
-        #         else:
-        #             role.personnage = None
-        #     if not hasattr(role, 'affectation'):
-        #         role.affectation = None
-        #
-        # for scene in self.lister_toutes_les_scenes():
-        #     if not hasattr(scene, 'infos'):
-        #         scene.infos = set()
-        #
-        # # for pnj in self.dictPNJs.values():
-        # #     if not hasattr(pnj, 'commentaires'):
-        # #         pnj.commentaires = []
-        # #
-        # # for pj in self.dictPJs.values():
-        # #     if not hasattr(pj, 'commentaires'):
-        # #         pj.commentaires = []
-        #
-        # for p in self.personnages.values():
-        #     if not hasattr(p, 'commentaires'):
-        #         p.commentaires = []
-        #
-        # for evenement in self.evenements.values():
-        #     for intervention in evenement.interventions:
-        #         if not hasattr(intervention, "liste_pnjs_impliques"):
-        #             intervention.liste_pnjs_impliques = set()
-        #
-        #         if not hasattr(intervention, 'liste_pjs_impliques'):
-        #             intervention.liste_pjs_impliques = set()
-        #
-        #         if hasattr(intervention, 'noms_pj_impliques'):
-        #             intervention.noms_pjs_impliques = intervention.pj_impliques
-        #             delattr(intervention, 'pj_impliques')
-        #
-        #     if not hasattr(evenement, 'objets'):
-        #         evenement.objets = set()
-        #     if not hasattr(evenement, 'heure_de_fin'):
-        #         evenement.heure_de_fin = ""
-        #
-        # # for pj in self.dictPJs:
-        # #     if pj in self.dictPNJs:
-        # #         self.dictPJs.pop(pj)
-        # #         print(f"le personnage {self.dictPJs[pj].name} a été retiré car c'était un pnj")
-        #
-        # for personnage in list(self.personnages.values()):
-        #     if not hasattr(personnage, 'informations_evenements'):
-        #         personnage.informations_evenements = set()
-        #     if not hasattr(personnage, 'intervient_comme'):
-        #         personnage.intervient_comme = set()
-        #     if hasattr(personnage, 'factions'):
-        #         personnage.groupes = []
-        #         personnage.groupes.extend(personnage.factions)
-        #         delattr(personnage, 'factions')
-        #     if hasattr(personnage, "orgaReferent"):
-        #         personnage.orga_referent = personnage.orgaReferent
-        #         delattr(personnage, "orgaReferent")
-        #
-        # for objet_de_reference in self.objets.values():
-        #     if not hasattr(objet_de_reference, 'ajoute_via_forcage'):
-        #         objet_de_reference.ajoute_via_forcage = True
-        #
-        #     if not hasattr(objet_de_reference, 'objets_dans_evenements'):
-        #         objet_de_reference.objets_dans_evenements = set()
+    # def mettre_a_jour_champs(self):
+    # # mise à jour des formats de date et des factions
+    # if not hasattr(self, 'factions'):
+    #     self.factions = {}
+    # # if not hasattr(self, 'id_factions'):
+    # #     self.id_factions = None
+    # if hasattr(self, 'liste_noms_pjs'):
+    #     delattr(self, 'liste_noms_pjs')
+    # if hasattr(self, 'liste_noms_pnjs'):
+    #     delattr(self, 'liste_noms_pnjs')
+    # # if not hasattr(self, 'id_pjs_et_pnjs'):
+    # #     self.id_pjs_et_pnjs = None
+    # if not hasattr(self, 'evenements'):
+    #     self.evenements = {}
+    # # if not hasattr(self, 'dossiers_evenements'):
+    # #     self.dossiers_evenements = []
+    # # if hasattr(self, 'dossier_evenements'):
+    # #     delattr(self, 'dossier_evenements')
+    # if not hasattr(self, 'objets'):
+    #     self.objets = {}
+    # if hasattr(self, 'association_auto'):
+    #     delattr(self, 'association_auto')
+    # # if not hasattr(self, 'mode_association'):
+    # #     self.mode_association = self.ModeAssociation.AUTO
+    # if hasattr(self, 'dictPJs') and hasattr(self, 'dictPNJs'):
+    #     self.personnages = self.dictPJs | self.dictPNJs
+    #     delattr(self, 'dictPJs')
+    #     delattr(self, 'dictPNJs')
+    # if not hasattr(self, 'version'):
+    #     self.version = VERSION
+    # if hasattr(self, 'date_self'):
+    #     delattr(self, 'date_self')
+    # if hasattr(self, 'association_auto'):
+    #     delattr(self, 'association_auto')
+    # if hasattr(self, 'id_factions'):
+    #     delattr(self, 'id_factions')
+    # if hasattr(self, 'dossiers_pnjs'):
+    #     delattr(self, 'dossiers_pnjs')
+    # if hasattr(self, 'dossiers_pjs'):
+    #     delattr(self, 'dossiers_pjs')
+    # if hasattr(self, 'dossier_outputs_drive'):
+    #     delattr(self, 'dossier_outputs_drive')
+    # if hasattr(self, 'dossiers_intrigues'):
+    #     delattr(self, 'dossiers_intrigues')
+    # if hasattr(self, 'dossiers_objets'):
+    #     delattr(self, 'dossiers_objets')
+    # if hasattr(self, 'dossiers_evenements'):
+    #     delattr(self, 'dossiers_evenements')
+    # if hasattr(self, 'date_gn'):
+    #     delattr(self, 'date_gn')
+    # if hasattr(self, 'id_pjs_et_pnjs'):
+    #     delattr(self, 'id_pjs_et_pnjs')
+    # if hasattr(self, 'fichier_pnjs'):
+    #     delattr(self, 'fichier_pnjs')
+    # if hasattr(self, 'mode_association'):
+    #     delattr(self, 'mode_association')
+    # if not hasattr(self, 'dict_config'):
+    #     self.dict_config = None
+    #
+    # for scene in self.lister_toutes_les_scenes():
+    #     if not hasattr(scene, 'date_absolue'):
+    #         scene.date_absolue = None
+    #     # print(f"la scène {scene.titre}, dateba absolue = {scene.date_absolue}")
+    #     if hasattr(scene, 'niveau'):
+    #         delattr(scene, 'niveau')
+    #
+    # for intrigue in self.intrigues.values():
+    #     for objet in intrigue.objets:
+    #         if not hasattr(objet, 'code'):
+    #             objet.code = ""
+    #         if hasattr(objet, 'rfid'):
+    #             delattr(objet, 'rfid')
+    #         if hasattr(objet, 'commentaires'):
+    #             delattr(objet, 'commentaires')
+    #         if hasattr(objet, 'objet_de_reference'):
+    #             delattr(objet, 'objet_de_reference')
+    #         if not hasattr(objet, 'intrigue'):
+    #             objet.intrigue = None
+    #         if hasattr(objet, 'inIntrigues'):
+    #             if len(objet.inIntrigues) > 0:
+    #                 objet.intrigue = list(objet.inIntrigues)[0]
+    #             delattr(objet, 'inIntrigues')
+    #
+    #     if not hasattr(intrigue, 'commentaires'):
+    #         intrigue.commentaires = []
+    #     if not hasattr(intrigue, 'codes_evenements_raw'):
+    #         intrigue.codes_evenements_raw = []
+    #     if not hasattr(intrigue, 'evenements'):
+    #         intrigue.evenements = set()
+    #     if not hasattr(intrigue, 'questionnaire'):
+    #         intrigue.questionnaire = []
+    #     if isinstance(intrigue.questionnaire, str):
+    #         intrigue.questionnaire = []
+    #
+    # # for conteneur in list(self.dictPJs.values()) + list(self.dictPNJs.values()) + list(self.intrigues.values()):
+    # #     for role in conteneur.rolesContenus.values():
+    # for role in self.lister_tous_les_roles():
+    #     print(f"clefs (2) pour {role.nom} = {vars(role).keys()}")
+    #     if not hasattr(role, 'affectation'):
+    #         role.affectation = ""
+    #     if hasattr(role, 'perimetreIntervention'):
+    #         if not hasattr(role, 'perimetre_intervention'):
+    #             role.perimetre_intervention = role.perimetreIntervention
+    #         delattr(role, 'perimetreIntervention')
+    #         # print(f"PerimetreIntervention supprimé pour {role.nom}")
+    #
+    #     if hasattr(role, 'perimetre_Intervention'):
+    #         if not hasattr(role, 'perimetre_intervention'):
+    #             role.perimetre_intervention = role.perimetre_Intervention
+    #         delattr(role, 'perimetre_Intervention')
+    #     if not hasattr(role, 'relations'):
+    #         role.relations = set()
+    #     if not hasattr(role, 'personnage'):
+    #         if hasattr(role, 'perso'):
+    #             role.personnage = role.perso
+    #             delattr(role, 'perso')
+    #         else:
+    #             role.personnage = None
+    #     if not hasattr(role, 'affectation'):
+    #         role.affectation = None
+    #
+    # for scene in self.lister_toutes_les_scenes():
+    #     if not hasattr(scene, 'infos'):
+    #         scene.infos = set()
+    #
+    # # for pnj in self.dictPNJs.values():
+    # #     if not hasattr(pnj, 'commentaires'):
+    # #         pnj.commentaires = []
+    # #
+    # # for pj in self.dictPJs.values():
+    # #     if not hasattr(pj, 'commentaires'):
+    # #         pj.commentaires = []
+    #
+    # for p in self.personnages.values():
+    #     if not hasattr(p, 'commentaires'):
+    #         p.commentaires = []
+    #
+    # for evenement in self.evenements.values():
+    #     for intervention in evenement.interventions:
+    #         if not hasattr(intervention, "liste_pnjs_impliques"):
+    #             intervention.liste_pnjs_impliques = set()
+    #
+    #         if not hasattr(intervention, 'liste_pjs_impliques'):
+    #             intervention.liste_pjs_impliques = set()
+    #
+    #         if hasattr(intervention, 'noms_pj_impliques'):
+    #             intervention.noms_pjs_impliques = intervention.pj_impliques
+    #             delattr(intervention, 'pj_impliques')
+    #
+    #     if not hasattr(evenement, 'objets'):
+    #         evenement.objets = set()
+    #     if not hasattr(evenement, 'heure_de_fin'):
+    #         evenement.heure_de_fin = ""
+    #
+    # # for pj in self.dictPJs:
+    # #     if pj in self.dictPNJs:
+    # #         self.dictPJs.pop(pj)
+    # #         print(f"le personnage {self.dictPJs[pj].name} a été retiré car c'était un pnj")
+    #
+    # for personnage in list(self.personnages.values()):
+    #     if not hasattr(personnage, 'informations_evenements'):
+    #         personnage.informations_evenements = set()
+    #     if not hasattr(personnage, 'intervient_comme'):
+    #         personnage.intervient_comme = set()
+    #     if hasattr(personnage, 'factions'):
+    #         personnage.groupes = []
+    #         personnage.groupes.extend(personnage.factions)
+    #         delattr(personnage, 'factions')
+    #     if hasattr(personnage, "orgaReferent"):
+    #         personnage.orga_referent = personnage.orgaReferent
+    #         delattr(personnage, "orgaReferent")
+    #
+    # for objet_de_reference in self.objets.values():
+    #     if not hasattr(objet_de_reference, 'ajoute_via_forcage'):
+    #         objet_de_reference.ajoute_via_forcage = True
+    #
+    #     if not hasattr(objet_de_reference, 'objets_dans_evenements'):
+    #         objet_de_reference.objets_dans_evenements = set()
 
-        #nouvelle méthode : déclaration du dictionnaire de renommage
+    def mettre_a_jour_champs(self):
+        # nouvelle méthode : déclaration du dictionnaire de renommage
         renommages = {GN:
-                          {},
+                          {'objets': 'objets_de_reference'},
                       Personnage:
                           {"orgaReferent": "orga_referent"}
                       }
@@ -1599,21 +1600,25 @@ class GN:
             reference = vars(type(objet_a_maj)())
             current = vars(objet_a_maj)
             # mettre à jour les noms si dans le dictionnaire il y a un nom correspondant
-            if dict_renommage := renommages[type(objet_a_maj)]:
+            if dict_renommage := renommages.get(type(objet_a_maj)):
+                print(f"debug : {dict_renommage}")
                 for old_attr, new_attr in dict_renommage.items():
                     if hasattr(objet_a_maj, old_attr):
-                        setattr(objet_a_maj, new_attr, current[old_attr])
+                        valeur_cible = current[old_attr]
+                        print(f"debug : l'objet {type(objet_a_maj)} a bien un champ {old_attr} qui vaut {valeur_cible}")
+                        setattr(objet_a_maj, new_attr, valeur_cible)
                         delattr(objet_a_maj, old_attr)
             # ajouter les nouveaux champs
             for ref_attr, ref_value in reference.items():
                 if not hasattr(objet_a_maj, ref_attr):
                     setattr(objet_a_maj, ref_attr, ref_value)
             # supprimer les champs superflus
-            for old_attr in current:
+            old_attrs = list(current.keys())
+            for old_attr in old_attrs:
                 if old_attr not in reference:
                     delattr(objet_a_maj, old_attr)
 
-        #parcours de toutes les classes pour mettre à jour les Objets
+        # parcours de toutes les classes pour mettre à jour les Objets
 
         maj_classe(self)
 
@@ -1629,7 +1634,7 @@ class GN:
         for evenement in self.evenements.values():
             maj_classe(evenement)
 
-        for objet in self.objets.values():
+        for objet in self.objets_de_reference.values():
             maj_classe(objet)
 
         self.version = VERSION
@@ -1717,7 +1722,7 @@ class ErreurManager:
 class Evenement:
     def __init__(
             self,
-            id_url = "",
+            id_url="",
             nom_evenement="",
             code_evenement="",
             referent="",
@@ -1888,7 +1893,7 @@ class Commentaire:
 class ObjetDeReference:
     def __init__(
             self,
-            id_url,
+            id_url="",
             nom_objet="",
             code_objet="",
             referent="",
