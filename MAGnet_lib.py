@@ -657,6 +657,9 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
     nouveau_dossier = g_io.creer_dossier(api_drive, parent, nom_dossier)
     d = squelettes_par_perso(mon_gn, pj=pj, m_print=m_print)
     nb_persos_source = len(d)
+    if nb_persos_source == 0:
+        visualisation(taille_visualisation)
+        return
     pas_visualisation = taille_visualisation / nb_persos_source
     for index, nom_perso in enumerate(d, start=1):
         prefixe = f"Écriture des fichiers des {pj_pnj} dans drive ({index}/{nb_persos_source})"
