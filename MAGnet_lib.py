@@ -213,7 +213,9 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
             pnjs_lus = lire_fichier_pnjs(nom_fichier_pnjs)
             logging.debug(f"après lecture, liste nom = {pnjs_lus}")
         if liste_noms_pjs is not None:
-            pjs_lus = [{"Nom": nom} for nom in liste_noms_pjs]
+            print(f"debug : liste noms pjs = {liste_noms_pjs}")
+            pjs_lus = [{"Nom": nom.strip()} for nom in liste_noms_pjs.split(',')]
+            print(f"debug : pjs_lus = {pjs_lus}")
 
         # sinon on prend en compte les données envoyées en input, issues des balises du fichier init pour une création
         # et on utilise les focntion classiques d'injections si on trouve des trucs

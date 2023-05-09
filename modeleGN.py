@@ -173,10 +173,6 @@ class Personnage(ConteneurDeScene):
                                          last_processing=last_processing
                                          )
         self.nom = nom
-        if nom == '4':
-            print("debug : erreur : persona vec un nom incompréhensible trouvé")
-            traceback.print_stack()
-
         self.concept = concept
         self.driver = driver
         self.questions_ouvertes = questions_ouvertes
@@ -306,7 +302,10 @@ class Personnage(ConteneurDeScene):
         to_return = Personnage()
         for key in dict_perso:
             key_propre = unidecode(key).replace(" ", "_").lower()
-            print(f"debug : key = {key}, keypropre = {key_propre}, dict_perso[key] = {dict_perso[key]}")
+            # print(f"debug : key = {key}, keypropre = {key_propre}, dict_perso[key] = {dict_perso[key]}")
+            # if key_propre == "nom" and len(dict_perso[key])==1:
+            #         print("debug : erreur : persona vec un nom incompréhensible trouvé")
+            #         traceback.print_stack()
             if hasattr(to_return, key_propre):
                 setattr(to_return, key_propre, dict_perso[key])
             elif key_propre.startswith("interprete"):
@@ -623,6 +622,7 @@ class Scene:
             if role.personnage is None:
                 str_roles_persos += f"{role.nom} (pas de personnage affecté) / "
                 print(f"$$$$$$$$$$$ J'ai trouvé un role sans perso = {role.nom} "
+                      f"dans la scene {self.titre} / {self.conteneur.nom} "
                       f"est_il est factionneux ? {role.issu_dune_faction}")
             else:
                 str_roles_persos += f" {role.nom} ({role.personnage.nom}) / "
