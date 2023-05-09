@@ -18,9 +18,11 @@ def main():
     parser = argparse.ArgumentParser(description="MAGnet (Moulinette à GN) vise à assister l'écriture de GN "
                                                  "et automatiser les tâches les plus chronophages",
                                      usage="utilisation: MAGnet [options]",
-                                     epilog="Informations supplémentaires en français"
+                                     # epilog="Informations supplémentaires en français",
                                      )
 
+    parser.add_argument("--console", "-c", action="store_true",
+                        help="pour utiliser MAGnet en mode console")
     group1 = parser.add_mutually_exclusive_group()
     group1.add_argument("--intrigue", "-i", type=str, default="-01", help="si une seule intrigue doit être lue")
     group1.add_argument("--allintrigues", "-ai", action="store_true",
@@ -42,8 +44,7 @@ def main():
     parser.add_argument("--init", "-in", action="store_true", help="fait que la fonction self.load n'est pas appelée")
     parser.add_argument("--nosave", "-ns", action="store_true", help="fait que la focntion GN.save n'est pas appelée")
     parser.add_argument("--verbal", "-v", action="store_true", help="si on veut afficher toutes les erreurs")
-    parser.add_argument("--console", "-c", action="store_true",
-                        help="pour utiliser MAGnet en mode console")
+
 
     args = parser.parse_args()
 
