@@ -478,6 +478,17 @@ def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent,
 
 
 def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
+    """
+    Suggère un tableau de personnages participant à une intrigue donnée, en se basant sur les scènes qui la composent.
+
+    Args:
+        mon_gn (GN): Un objet GN contenant les informations sur le jeu de rôle.
+        intrigue (Intrigue): Un objet Intrigue représentant l'intrigue pour laquelle les personnages sont recherchés.
+        verbal (bool, optional): Si True, affiche le résultat à l'écran. Par défaut à False.
+
+    Returns:
+        str: Une chaîne de caractères formatée avec les personnages suggérés et leur niveau de certitude.
+    """
     noms_personnages = mon_gn.noms_personnages()
     noms_roles_dans_tableau_intrigue = [x.personnage.nom for x in intrigue.rolesContenus.values()
                                         if not x.issu_dune_faction and x.personnage is not None]
