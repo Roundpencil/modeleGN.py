@@ -15,7 +15,11 @@ def main():
 
     # lecture des paramètres
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="MAGnet (Moulinette à GN) vise à assister l'écriture de GN "
+                                                 "et automatiser les tâches les plus chronophages",
+                                     usage="utilisation: MAGnet [options]",
+                                     epilog="Informations supplémentaires en français"
+                                     )
 
     group1 = parser.add_mutually_exclusive_group()
     group1.add_argument("--intrigue", "-i", type=str, default="-01", help="si une seule intrigue doit être lue")
@@ -26,7 +30,7 @@ def main():
     group2.add_argument("--personnage", "-p", type=str, default="-01", help="si un seul personnage doit être lu")
     group2.add_argument("--allpjs", "-ap", action="store_true", help="si on veut reparcourir tous les pjs")
 
-    parser.add_argument("--initfile", "-f", type=str, default="config.init",
+    parser.add_argument("--initfile", "-f", type=str, default="config.ini",
                         help="pour spécifier le fichier d'init à charger")
     parser.add_argument("--nofichiererreurs", "-nfe", action="store_true",
                         help="pour ne pas générer la table des intrigues")
