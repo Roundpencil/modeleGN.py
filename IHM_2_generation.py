@@ -343,8 +343,8 @@ class Application(ttk.Frame):
                                  api_doc=self.api_doc,
                                  api_sheets=self.api_sheets,
                                  aides_de_jeu=aide_de_jeu_var.get(),
-                                 liste_noms_pjs=self.dict_config.get(
-                                     'liste_noms_pjs'),
+                                 # liste_noms_pjs=self.dict_config.get(
+                                 #     'liste_noms_pjs'),
                                  # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
                                  nom_fichier_sauvegarde=self.dict_config[
                                      'nom_fichier_sauvegarde'],

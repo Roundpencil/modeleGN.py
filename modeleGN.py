@@ -783,6 +783,9 @@ class GN:
     def get_fichier_pnjs(self):
         return self.dict_config.get('fichier_noms_pnjs', None)
 
+    def get_liste_noms_pjs(self):
+        return self.dict_config.get('liste_noms_pjs', None)
+
     def get_prefixe_intrigues(self):
         return self.dict_config['prefixe_intrigues']
 

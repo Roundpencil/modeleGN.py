@@ -34,10 +34,7 @@ from modeleGN import *
 
 
 # confort / logique
-# todo : virer les joueurs V1/V2 des fiches de persos et les rappatrier dans le tableau des persos
-#  faire la meme chose avec les PNJs
-#  ajouter un paramètre dans le GN pour le nombre de sessions envisagées pour savoir combien de colonnes on lit
-
+# todo : ajouter un paramètre dans le GN pour le nombre de sessions envisagées pour savoir combien de colonnes on lit
 # todo : refaire version console
 
 # fiches de persos
@@ -77,7 +74,7 @@ def lire_fichier_pnjs(nom_fichier: str):
 def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier_sauvegarde: str,
                          sans_chargement_fichier=False,
                          sauver_apres_operation=True,
-                         liste_noms_pjs=None,  # noms_pnjs=None,
+                         # liste_noms_pjs=None,  # noms_pnjs=None,
                          fichier_erreurs_intrigues: bool = True, fichier_erreurs_evenements: bool = True,
                          generer_fichiers_pjs: bool = True,
                          generer_fichiers_pnjs: bool = True, aides_de_jeu: bool = True,
@@ -212,10 +209,11 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
             logging.debug("Pas d'id_pj_et_pnj, mais un fichier PNJs")
             pnjs_lus = lire_fichier_pnjs(nom_fichier_pnjs)
             logging.debug(f"après lecture, liste nom = {pnjs_lus}")
-        if liste_noms_pjs is not None:
-            print(f"debug : liste noms pjs = {liste_noms_pjs}")
+        if liste_noms_pjs := mon_gn.get_liste_noms_pjs() is not None:
+            logging.debug("Pas d'id_pj_et_pnj, mais une liste de pjs")
+            logging.debug(f"liste noms pjs = {liste_noms_pjs}")
             pjs_lus = [{"Nom": nom.strip()} for nom in liste_noms_pjs.split(',')]
-            print(f"debug : pjs_lus = {pjs_lus}")
+            logging.debug(f"dictionnaire pjs injectés : {pjs_lus}")
 
         # sinon on prend en compte les données envoyées en input, issues des balises du fichier init pour une création
         # et on utilise les focntion classiques d'injections si on trouve des trucs
@@ -255,85 +253,86 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     visualisation(pas_visualisation)
 
-    m_print("* génération du fichier des erreurs évènements * ")
     if fichier_erreurs_evenements:
+        m_print("* génération du fichier des erreurs évènements * ")
         # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
         ecrire_erreurs_evenements_dans_drive(mon_gn, api_doc, api_drive, mon_gn.get_dossier_outputs_drive())
 
     visualisation(pas_visualisation)
 
-    m_print("******* statut intrigues *******************")
     if table_intrigues:
+        m_print("******* statut intrigues *******************")
         creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive)
 
     visualisation(pas_visualisation)
 
-    m_print("*******changelog*****************************")
     if changelog:
+        m_print("*******changelog*****************************")
         generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
 
-    m_print("*********touslesquelettes*********************")
     if generer_fichiers_pjs:
+        m_print("*******génération squelettes PJs ***********")
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=True,
                                       m_print=m_print, visualisation=visualisation, taille_visualisation=12.5)
     else:
         visualisation(12.5)
 
     if generer_fichiers_pnjs:
+        m_print("*******génération squelettes PJs ***********")
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=False,
                                       m_print=m_print, visualisation=visualisation, taille_visualisation=12.5)
     else:
         visualisation(12.5)
 
-    m_print("************* table objets *******************")
     if table_objets:
+        m_print("************* table objets *******************")
         ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
 
-    m_print("******* table planning ***********************")
     if table_chrono:
+        m_print("******* table planning ***********************")
         ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
 
-    m_print("************ table persos ********************")
     if table_persos:
+        m_print("******* table récap PJS ********************")
         ecrire_table_persos(mon_gn, api_drive, api_sheets)
     if table_pnjs:
+        m_print("******* table récap PNJS ********************")
         ecrire_table_pnj(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
 
-    m_print("******* table commentaires *******************")
     if table_commentaires:
+        m_print("******* table commentaires *******************")
         ecrire_table_commentaires(mon_gn, api_drive, api_doc, api_sheets)
 
     visualisation(pas_visualisation)
 
-    m_print("********** table relations *******************")
     if table_relations:
+        m_print("********** table relations *******************")
         ecrire_table_relation(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
 
-    m_print("******* aides de jeu *************************")
     if aides_de_jeu:
+        m_print("******* aides de jeu *************************")
         ecrire_texte_info(mon_gn, api_doc, api_drive)
 
     visualisation(pas_visualisation)
 
-    m_print("******* table des évènements ******************")
-
     if table_evenements:
+        m_print("******* table des évènements ******************")
         ecrire_table_evenements(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
-    m_print("******* table des questions pour inscription ******************")
 
     if table_questionnaire:
+        m_print("******* table des questions pour inscription ******************")
         ecrire_table_questionnaire(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
