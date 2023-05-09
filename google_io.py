@@ -2094,14 +2094,14 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
 
     current_faction = None
     for line in lines:
-        if line.startswith("### "):
-            faction_name = line.replace("### ", "")
+        if line.startswith("###"):
+            faction_name = line.replace("###", "")
             faction_name = faction_name.strip()
             current_faction = Faction(faction_name)
             mon_gn.factions[faction_name] = current_faction
             logging.info(f"J'ai ajouté la faction {faction_name}")
-        elif line.startswith("## "):
-            line = line.replace("## ", "")
+        elif line.startswith("##"):
+            line = line.replace("##", "")
             personnages_names = line.strip().split(",")
             for perso_name in personnages_names:
                 perso_name = perso_name.strip()

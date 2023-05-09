@@ -478,8 +478,7 @@ def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent,
 
 
 def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
-    noms_persos = mon_gn.noms_pjs()
-    noms_pnjs = mon_gn.noms_pnjs()
+    noms_personnages = mon_gn.noms_personnages()
     noms_roles_dans_tableau_intrigue = [x.personnage.nom for x in intrigue.rolesContenus.values()
                                         if not x.issu_dune_faction and x.personnage is not None]
     # print(f"noms roles dans intrigue {intrigue.nom} : {noms_roles_dans_tableau_intrigue}")
@@ -499,17 +498,13 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     # pour chaque nom dans une scène, trouver le personnage correspondant
     for nom in tous_les_noms_lus_dans_scenes:
         # print(str(nom))
-        score_pj = process.extractOne(str(nom), noms_persos)
-        score_pnj = process.extractOne(str(nom), noms_pnjs)
-        if score_pj[0] in noms_roles_dans_tableau_intrigue or score_pnj[0] in noms_roles_dans_tableau_intrigue:
+        score_perso = process.extractOne(str(nom), noms_personnages)
+        if score_perso[0] in noms_roles_dans_tableau_intrigue:
             prefixe = "[OK]"
         else:
             prefixe = "[XX]"
 
-        if score_pj[1] > score_pnj[1]:
-            meilleur_nom = f"{score_pj[0]} pour {nom} ({score_pj[1]} % de certitude)"
-        else:
-            meilleur_nom = f"{score_pnj[0]} pour {nom} ({score_pnj[1]} % de certitude)"
+        meilleur_nom = f"{score_perso[0]} pour {nom} ({score_perso[1]} % de certitude)"
 
         tableau_sortie.append([prefixe, meilleur_nom])
         tableau_sortie = sorted(tableau_sortie)
@@ -521,6 +516,49 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
         print(to_print)
 
     return to_print
+    # noms_persos = mon_gn.noms_pjs()
+    # noms_pnjs = mon_gn.noms_pnjs()
+    # noms_roles_dans_tableau_intrigue = [x.personnage.nom for x in intrigue.rolesContenus.values()
+    #                                     if not x.issu_dune_faction and x.personnage is not None]
+    # # print(f"noms roles dans intrigue {intrigue.nom} : {noms_roles_dans_tableau_intrigue}")
+    # # print("Tableau suggéré")
+    # # créer un set de tous les rôles de chaque scène de l'intrigue
+    # tous_les_noms_lus_dans_scenes = []
+    # for scene in intrigue.scenes:
+    #     if scene.noms_roles_lus is not None:
+    #         # comme on prend uniquement les roles lus, on exclut de facto les persos issus de faction
+    #         tous_les_noms_lus_dans_scenes += scene.noms_roles_lus
+    # tous_les_noms_lus_dans_scenes = [x.strip() for x in tous_les_noms_lus_dans_scenes]
+    # tous_les_noms_lus_dans_scenes = set(tous_les_noms_lus_dans_scenes)
+    #
+    # tableau_sortie = []
+    # to_print = "Tableau suggéré : \n"
+    #
+    # # pour chaque nom dans une scène, trouver le personnage correspondant
+    # for nom in tous_les_noms_lus_dans_scenes:
+    #     # print(str(nom))
+    #     score_pj = process.extractOne(str(nom), noms_persos)
+    #     score_pnj = process.extractOne(str(nom), noms_pnjs)
+    #     if score_pj[0] in noms_roles_dans_tableau_intrigue or score_pnj[0] in noms_roles_dans_tableau_intrigue:
+    #         prefixe = "[OK]"
+    #     else:
+    #         prefixe = "[XX]"
+    #
+    #     if score_pj[1] > score_pnj[1]:
+    #         meilleur_nom = f"{score_pj[0]} pour {nom} ({score_pj[1]} % de certitude)"
+    #     else:
+    #         meilleur_nom = f"{score_pnj[0]} pour {nom} ({score_pnj[1]} % de certitude)"
+    #
+    #     tableau_sortie.append([prefixe, meilleur_nom])
+    #     tableau_sortie = sorted(tableau_sortie)
+    #
+    # for e in tableau_sortie:
+    #     to_print += f"{e[0]} {e[1]} \n"
+    #
+    # if verbal:
+    #     print(to_print)
+    #
+    # return to_print
 
 
 def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
