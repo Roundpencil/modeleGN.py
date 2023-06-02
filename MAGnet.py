@@ -57,7 +57,7 @@ def main():
         derniere_version, maj_versions, url_derniere_version = verifier_derniere_version(api_doc)
         # print(f"derniere version = {derniere_version}")
     except Exception as e:
-        if "Token has been expired or revoked." in str(e):
+        if "Token has been expired or revoked." in str(e) or "invalid_grant" in str(e) :
             # if token has been expired or revoked, show a popup with a specific error message
             message = ("Expirations des droits",
                        "Le fichier token.json a expiré. \n"

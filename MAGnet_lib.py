@@ -194,6 +194,10 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     logging.debug(f"mon_gn.id_pjs_et_pnjs = {mon_gn.get_id_pjs_et_pnjs()}")
     logging.debug(f"nom fichier pnj = {mon_gn.get_fichier_pnjs()}")
 
+    # # debuggage
+    # if sauver_apres_operation:
+    #     mon_gn.save(nom_fichier_sauvegarde)
+
     if (sheet_id := mon_gn.get_id_pjs_et_pnjs()) is not None:
         # dans ce cas on a un tableau global avec toutes les données > on le lit
         # on met à jour les données pour les PNJs pour
@@ -209,7 +213,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
             logging.debug("Pas d'id_pj_et_pnj, mais un fichier PNJs")
             pnjs_lus = lire_fichier_pnjs(nom_fichier_pnjs)
             logging.debug(f"après lecture, liste nom = {pnjs_lus}")
-        if liste_noms_pjs := mon_gn.get_liste_noms_pjs() is not None:
+        if (liste_noms_pjs := mon_gn.get_liste_noms_pjs()) is not None:
             logging.debug("Pas d'id_pj_et_pnj, mais une liste de pjs")
             logging.debug(f"liste noms pjs = {liste_noms_pjs}")
             pjs_lus = [{"Nom": nom.strip()} for nom in liste_noms_pjs.split(',')]
