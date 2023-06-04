@@ -1606,7 +1606,9 @@ class GN:
                           {"orgaReferent": "orga_referent",
                            "joueurs": "interpretes"},
                       Intrigue:
-                          {'orgaReferent': 'orga_referent'}
+                          {'orgaReferent': 'orga_referent'},
+                      Intervention:
+                          {'heure': 'heure_debut'}
                       }
 
         # déclaration de la méthode de mise à jour
@@ -1647,6 +1649,8 @@ class GN:
 
         for evenement in self.evenements.values():
             maj_classe(evenement)
+            for intervention in evenement.interventions:
+                maj_classe(intervention)
 
         for objet in self.objets_de_reference.values():
             maj_classe(objet)
@@ -1871,7 +1875,7 @@ def _heure_formattee(heure, defaut_si_ko=None):
 
 
 class Intervention:
-    def __init__(self, evenement: Evenement, jour=None, heure_debut=None, heure_fin=None, description=""):
+    def __init__(self, evenement: Evenement=None, jour=None, heure_debut=None, heure_fin=None, description=""):
         self.jour = jour
         self.heure_debut = heure_debut
         self.heure_fin = heure_fin
