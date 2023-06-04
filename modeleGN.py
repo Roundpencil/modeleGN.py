@@ -1606,7 +1606,7 @@ class GN:
                           {"orgaReferent": "orga_referent",
                            "joueurs": "interpretes"},
                       Intrigue:
-                          {'orgaReferent', 'orga_referent'}
+                          {'orgaReferent': 'orga_referent'}
                       }
 
         # déclaration de la méthode de mise à jour
@@ -1615,7 +1615,7 @@ class GN:
             current = vars(objet_a_maj)
             # mettre à jour les noms si dans le dictionnaire il y a un nom correspondant
             if dict_renommage := renommages.get(type(objet_a_maj)):
-                print(f"debug : {dict_renommage}")
+                print(f"debug : dict_renommage :  {dict_renommage}")
                 for old_attr, new_attr in dict_renommage.items():
                     if hasattr(objet_a_maj, old_attr):
                         valeur_cible = current[old_attr]

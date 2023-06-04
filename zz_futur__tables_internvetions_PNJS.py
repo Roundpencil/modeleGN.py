@@ -1,4 +1,61 @@
+import contextlib
 from ortools.sat.python import cp_model
+from modeleGN import *
+
+
+def heure_en_pas(heure_en_texte:str, pas: int):
+    try :
+        heure_splittee = heure_en_texte.split('h')
+        minutes = int(heure_splittee[0]) * 60 + (int(heure_splittee[1]) if len(heure_splittee[1]) else 0)
+        return minutes // pas
+    except :
+        return 0
+
+def determiner_pas(evenements: list[Evenement]):
+    minutes = {'0'}
+    for evenement in evenements:
+        with contextlib.suppress(Exception):
+            minutes.add(evenement.heure_de_demarrage.split('h')[1])
+            minutes.add(evenement.heure_de_fin.split('h')[1])
+
+    print(f"debug : minutes avant rationalisation : {minutes}")
+    maximum = max(int(m) for m in minutes if m.isnumeric())
+    print(f"debug : pas trouvé avant arrondi = {maximum}")
+    if maximum == 0:
+        return 60
+    elif maximum <=30:
+        return 30
+    else :
+        return 15
+
+def creer_dict_intervenants_id(evenements: list[Evenement]):
+    tous_les_intervenants = set()
+    for evenement in evenements:
+        for intervenant in evenement.intervenants_evenement:
+            tous_les_intervenants.add(intervenant)
+    return {intervenant: i for i, intervenant in enumerate(tous_les_intervenants)}
+
+
+# préparer les données à partir des évènements
+def evenements_2_dict_ortools(gn: GN):
+    pas = determiner_pas(gn.evenements.values())
+    dict_intervenants_id = creer_dict_intervenants_id(gn.evenements.values())
+
+    evenements_formattes = []
+    for evenement in gn.evenements.values():
+        for i, intervention in enumerate(evenement.interventions):
+            # {"start": 0, "end": 4, "pnjs": [0, 1]},
+            heure_debut = heure_en_pas(intervention.heure_debut, pas)
+            heure_fin = heure_en_pas(intervention.heure_fin, pas)
+            pnjs = [dict_intervenants_id[nom] for nom in intervention.liste_intervenants]
+            current_dict = {"start": heure_debut,
+                            "end": heure_fin,
+                            "pnjs": pnjs,
+                            "nom" : f"{evenement.nom_evenement} - {i}"
+                            }
+            evenements_formattes.append(current_dict)
+    return evenements_formattes
+
 
 # Définition des variables et des données d'exemple
 nb_pnj = 6
