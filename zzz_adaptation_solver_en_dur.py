@@ -24,12 +24,19 @@ nb_personnes = 4
 #     {"start": 8, "end": 13, "pnjs": [1, 3, 2]},
 # ]
 
+# evenements = [
+#     {'start': 15, 'end': 16, 'pnjs': [2], 'nom': 'E027 - Fête des sports - 1'},
+#     {'start': 12, 'end': 13, 'pnjs': [3], 'nom': 'E004-1 - coup de fil de mr wang - 1'},
+#     {'start': 15, 'end': 16, 'pnjs': [5], 'nom': 'E029 - Le conseil des élèves - 1'},
+#     {'start': 0, 'end': 1, 'pnjs': [4, 6], 'nom': 'E015-1- Il faut sauver Charlie - 1'},
+#     {'start': 8, 'end': 9, 'pnjs': [1, 7], 'nom': 'E008-1 - appel du conseil des observateurs - 1'}]
+
 evenements = [
-    {'start': 15, 'end': 16, 'pnjs': [2], 'nom': 'E027 - Fête des sports - 1'},
-    {'start': 12, 'end': 13, 'pnjs': [3], 'nom': 'E004-1 - coup de fil de mr wang - 1'},
-    {'start': 15, 'end': 16, 'pnjs': [5], 'nom': 'E029 - Le conseil des élèves - 1'},
-    {'start': 0, 'end': 1, 'pnjs': [4, 6], 'nom': 'E015-1- Il faut sauver Charlie - 1'},
-    {'start': 8, 'end': 9, 'pnjs': [1, 7], 'nom': 'E008-1 - appel du conseil des observateurs - 1'}]
+    {'start': 15, 'end': 16, 'pnjs': ['b'], 'nom': 'E027 - Fête des sports - 1'},
+    {'start': 12, 'end': 13, 'pnjs': ['c'], 'nom': 'E004-1 - coup de fil de mr wang - 1'},
+    {'start': 15, 'end': 16, 'pnjs': ['e'], 'nom': 'E029 - Le conseil des élèves - 1'},
+    {'start': 0, 'end': 1, 'pnjs': ['d', 'f'], 'nom': 'E015-1- Il faut sauver Charlie - 1'},
+    {'start': 8, 'end': 9, 'pnjs': ['a', 'g'], 'nom': 'E008-1 - appel du conseil des observateurs - 1'}]
 
 # evenements = [
 #     {'start': 15, 'end': 16, 'pnjs': [2]},
