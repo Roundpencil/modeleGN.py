@@ -36,7 +36,7 @@ evenements = [
 
 
 
-
+#todo : remplacer les énumération de personne et les pnjs par leurs noms
 
 affectations_predefinies = {
     # 1: 0,  # La personne 0 jouera le PNJ 1
