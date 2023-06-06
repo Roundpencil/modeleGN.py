@@ -48,7 +48,27 @@ def preparer_donnees_pour_ortools(gn: GN, pas=None):
     return evenements_formattes, dict_intervenants_id
 
 
-def evenements_2_dict_ortools(dict_intervenants_id, liste_evenements: list[Evenement], pas):
+# def evenements_2_dict_ortools(dict_intervenants_id, liste_evenements: list[Evenement], pas):
+#     evenements_formattes = []
+#     for evenement in liste_evenements:
+#         for i, intervention in enumerate(evenement.interventions, start=1):
+#             # {"start": 0, "end": 4, "pnjs": [0, 1]},
+#             heure_debut = heure_en_pas(intervention.heure_debut, pas)
+#             heure_fin = heure_en_pas(intervention.heure_fin, pas)
+#             if heure_fin <= heure_debut:
+#                 heure_fin = heure_debut + 1
+#                 # si il y a eu un soucis dans la création de l'heure de fin, on ajoute un pas par défaut
+#                 # pour nous assurer que tous les évènements on un début et une fin
+#             pnjs = [dict_intervenants_id[intervenant.nom_pnj] for intervenant in intervention.liste_intervenants]
+#             current_dict = {"start": heure_debut,
+#                             "end": heure_fin,
+#                             "pnjs": pnjs,
+#                             "nom": f"{evenement.nom_evenement} - {i}"
+#                             }
+#             evenements_formattes.append(current_dict)
+#     return evenements_formattes
+
+def evenements_2_dict_ortools(liste_evenements: list[Evenement], pas):
     evenements_formattes = []
     for evenement in liste_evenements:
         for i, intervention in enumerate(evenement.interventions, start=1):
@@ -59,7 +79,7 @@ def evenements_2_dict_ortools(dict_intervenants_id, liste_evenements: list[Evene
                 heure_fin = heure_debut + 1
                 # si il y a eu un soucis dans la création de l'heure de fin, on ajoute un pas par défaut
                 # pour nous assurer que tous les évènements on un début et une fin
-            pnjs = [dict_intervenants_id[intervenant.nom_pnj] for intervenant in intervention.liste_intervenants]
+            pnjs = [intervenant.pnj.nom for intervenant in intervention.liste_intervenants]
             current_dict = {"start": heure_debut,
                             "end": heure_fin,
                             "pnjs": pnjs,
@@ -67,7 +87,6 @@ def evenements_2_dict_ortools(dict_intervenants_id, liste_evenements: list[Evene
                             }
             evenements_formattes.append(current_dict)
     return evenements_formattes
-
 
 def proposer_affectation_pnjs(nb_pnj, nb_personnes, dict_evenements_formatte, affectations_predefinies=None):
     # Création du modèle
