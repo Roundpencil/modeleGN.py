@@ -30,22 +30,21 @@ def determiner_pas(evenements: list[Evenement]):
         return 15
 
 
-def creer_dict_intervenants_id(evenements: list[Evenement]):
-    tous_les_intervenants = set()
-    for evenement in evenements:
-        for intervenant in evenement.intervenants_evenement:
-            tous_les_intervenants.add(intervenant)
-    return {intervenant: i for i, intervenant in enumerate(tous_les_intervenants)}
+# def creer_dict_intervenants_id(evenements: list[Evenement]):
+#     tous_les_intervenants = set()
+#     for evenement in evenements:
+#         for intervenant in evenement.intervenants_evenement:
+#             tous_les_intervenants.add(intervenant)
+#     return {intervenant: i for i, intervenant in enumerate(tous_les_intervenants)}
 
 
 # préparer les données à partir des évènements
 def preparer_donnees_pour_ortools(gn: GN, pas=None):
     if pas is None:
         pas = determiner_pas(gn.evenements.values())
-    dict_intervenants_id = creer_dict_intervenants_id(gn.evenements.values())
+        print(f'debug : pas final = {pas}')
 
-    evenements_formattes = evenements_2_dict_ortools(dict_intervenants_id, gn.evenements.values(), pas)
-    return evenements_formattes, dict_intervenants_id
+    return evenements_2_dict_ortools(gn.evenements.values(), pas)
 
 
 # def evenements_2_dict_ortools(dict_intervenants_id, liste_evenements: list[Evenement], pas):
