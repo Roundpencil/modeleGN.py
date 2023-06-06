@@ -43,8 +43,8 @@ aides = ['aide 0', 'aide 1', 'aide 2', 'aide 3']
 #todo : remplacer les énumération de personne et les pnjs par leurs noms
 
 affectations_predefinies = {
-    # 1: 0,  # La personne 0 jouera le PNJ 1
-    # 3: 2,  # La personne 2 jouera le PNJ 3
+    'aide 0': 'b',  # La personne 0 jouera le PNJ 1
+    'aide 2': 'c',  # La personne 2 jouera le PNJ 3
 }
 
 # Création du modèle
@@ -83,13 +83,17 @@ for p in aides:
 # Un PNJ doit être joué par la même personne tout au long du jeu
 for pnj in pnjs:
     for i, p1 in enumerate(aides):
-        for p2 in aides[i:]:
+        for p2 in aides[i+1:]:
         # for p2 in range(p1 + 1, nb_personnes):
             for evt1 in evenements:
-                evt_id1 = evt['nom']
+                evt_id1 = evt1['nom']
                 for evt2 in evenements:
-                    evt_id2 = evt['nom']
+                    evt_id2 = evt2['nom']
                     if pnj in evt1["pnjs"] and pnj in evt2["pnjs"]:
+                        print(f"debug : evt1 = {evt1} \n"
+                              f"evt2 = {evt2} \n"
+                              f"pnjs evts1 = {evt1['pnjs']} \n "
+                              f"pnjs evts2 = {evt2['pnjs']}")
                         model.Add(interventions[f"evt_{evt_id1}_pnj_{pnj}_p_{p1}"] + interventions[
                             f"evt_{evt_id2}_pnj_{pnj}_p_{p2}"] <= 1)
 
@@ -108,8 +112,8 @@ for pnj, personne in affectations_predefinies.items():
 # model.Minimize(sum(temps_total_par_personne))
 
 temps_total_par_personne = [model.NewIntVar(0, 100, f"temps_total_p_{p}") for p in aides]
-for p in aides:
-    model.Add(temps_total_par_personne[p] == sum(
+for i, p in enumerate(aides):
+    model.Add(temps_total_par_personne[i] == sum(
         interventions[f"evt_{evt['nom']}_pnj_{pnj}_p_{p}"] * (evt["end"] - evt["start"])
             for evt in evenements for pnj in evt["pnjs"]))
 
@@ -120,8 +124,8 @@ for p in aides:
 #         enumerate(evenements) for pnj in evt["pnjs"]))
 
 plus_petit_temps = model.NewIntVar(0, 100, "plus_petit_temps")
-for p in aides:
-    model.Add(plus_petit_temps <= temps_total_par_personne[p])
+for i, p in enumerate(aides):
+    model.Add(plus_petit_temps <= temps_total_par_personne[i])
 model.Maximize(plus_petit_temps)
 
 # Résoudre le modèle
@@ -138,8 +142,8 @@ print(f"solution = {status}")
 if status in [cp_model.FEASIBLE, cp_model.OPTIMAL]:
     # if status == cp_model.OPTIMAL:
     print("Temps total par personne :")
-    for p in aides:
-        print(f"Personne {p}: {solver.Value(temps_total_par_personne[p])} minutes")
+    for i, p in enumerate(aides):
+        print(f"Personne {p}: {solver.Value(temps_total_par_personne[i])} minutes")
 
     print("\nPlanning des interventions :")
     for evt in evenements:
