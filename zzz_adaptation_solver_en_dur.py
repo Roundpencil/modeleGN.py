@@ -1,5 +1,7 @@
 from ortools.sat.python import cp_model
 
+from google_io import evenement_extraire_ligne_chrono
+
 
 ## Code création données de test :
 #
@@ -16,7 +18,7 @@ from ortools.sat.python import cp_model
 # from ortools.sat.python import cp_model
 # from modeleGN import *
 
-#code identification nb pnjs simultanés nécessaires :
+# code identification nb pnjs simultanés nécessaires :
 # mini = min(evt['start'] for evt in evenements)
 # maxi = max(evt['end'] for evt in evenements)
 # cumul = {i: 0 for i in range(mini, maxi + 1)}
@@ -163,7 +165,7 @@ def construire_timing_pnjs(evenements, aides: list[str], affectations_predefinie
     derniere_heure = max(evt["end"] for evt in evenements)
 
     # construire table planning
-    table_planning = [["Heure"] + list(aides)]
+    table_planning = [["Heure", "Evenement(s)"] + list(aides)]
 
     # construire les lignes du planning pour chaque heure
     for t in range(premiere_heure, derniere_heure):
@@ -172,15 +174,23 @@ def construire_timing_pnjs(evenements, aides: list[str], affectations_predefinie
             pnj_et_evt = None
             for evt in evenements:
                 evt_id = evt['nom']
-                for pnj in evt["pnjs"]:
-                    if evt["start"] <= t < evt["end"] and solver.Value(
-                            interventions[f"evt_{evt_id}_pnj_{pnj}_p_{p}"]) == 1:
-                        pnj_et_evt = f"{pnj} ({evt_id})"
+                if evt["start"] <= t < evt["end"]:
+                    # ajouter le nom de l'évènement dans la colonne dédiée
+                    if len(current_ligne) == 1:
+                        current_ligne.append(evt_id)
+                    elif evt_id not in current_ligne[1]:
+                        current_ligne[1] += f'\n{evt_id}'
+                        # current_ligne[1] += f'\n{evt_id}'
+
+                    for pnj in evt["pnjs"]:
+
+                        if solver.Value(interventions[f"evt_{evt_id}_pnj_{pnj}_p_{p}"]) == 1:
+                            pnj_et_evt = f"{pnj} ({evt_id})"
                         break
                 if pnj_et_evt:
                     break
 
-            current_ligne.append(pnj_et_evt if pnj_et_evt else "")
+            current_ligne.append(pnj_et_evt or "")
             # if pnj_et_evt:
             #     # print(f"\t{pnj_et_evt}", end=";")
             #     current_ligne.append(pnj_et_evt)
@@ -224,58 +234,73 @@ def generer_tableau_aide(nb_aides, aides_connus=None):
     return aides_connus + [f"aide {i}" for i in range(1, aides_a_ajouter + 1)]
 
 
-def recherche_dichotomique_aides(evenements, min_aides=0, max_aides=100, aides_connus=None, consever_liens_aides_pnjs = True):
+def recherche_dichotomique_aides(evenements, min_aides=0, max_aides=100, aides_connus=None,
+                                 consever_liens_aides_pnjs=True):
     table_planning = None
     while min_aides < max_aides:
         print(f"debug : min actuel = {min_aides} / max actuel = {max_aides}")
         milieu = (min_aides + max_aides) // 2
         aides_testes = generer_tableau_aide(milieu, aides_connus)
-        if table_planning := construire_timing_pnjs(evenements, aides_testes, consever_liens_aides_pnjs=consever_liens_aides_pnjs):
+        if table_planning := construire_timing_pnjs(evenements, aides_testes,
+                                                    consever_liens_aides_pnjs=consever_liens_aides_pnjs):
             max_aides = milieu
         else:
             min_aides = milieu + 1
     if table_planning:
         return table_planning
     else:
-        return construire_timing_pnjs(evenements, generer_tableau_aide(min(min_aides+1, max_aides), aides_connus), consever_liens_aides_pnjs=consever_liens_aides_pnjs)
+        return construire_timing_pnjs(evenements, generer_tableau_aide(min(min_aides + 1, max_aides), aides_connus),
+                                      consever_liens_aides_pnjs=consever_liens_aides_pnjs)
 
 
 def main():
     evenements = [{'start': 60, 'end': 61, 'pnjs': ['Foster - Magnet'], 'nom': 'E027 - Fête des sports - 1'},
                   {'start': 48, 'end': 49, 'pnjs': ['Ms. Beakman'], 'nom': 'E004-1 - coup de fil de mr wang - 1'},
                   {'start': 60, 'end': 61, 'pnjs': ['Snyder - Magnet'], 'nom': 'E029 - Le conseil des élèves - 1'},
-                  {'start': 0, 'end': 1, 'pnjs': ['Charlie - Magnet', 'Ruth Greeliegh - Infirmière - Magnet'], 'nom': 'E015-1- Il faut sauver Charlie - 1'},
-                  {'start': 35, 'end': 36, 'pnjs': ['PNJ Statue'], 'nom': 'E008-1 - appel du conseil des observateurs - 1'},
+                  {'start': 0, 'end': 1, 'pnjs': ['Charlie - Magnet', 'Ruth Greeliegh - Infirmière - Magnet'],
+                   'nom': 'E015-1- Il faut sauver Charlie - 1'},
+                  {'start': 35, 'end': 36, 'pnjs': ['PNJ Statue'],
+                   'nom': 'E008-1 - appel du conseil des observateurs - 1'},
                   {'start': 34, 'end': 35, 'pnjs': ['Première tueuse'], 'nom': 'E022-1 - La nouvelle tueuse - 1'},
-                  {'start': 57, 'end': 58, 'pnjs': ['Snyder - Magnet'], 'nom': 'E020 - Convocation des Cordettes chez Snyder - 1'},
-                  {'start': 0, 'end': 1, 'pnjs': ['Gardien du cimetière'], 'nom': 'E023-3 - Choix de la faux par la nouvelle tueuse - 1'},
-                  {'start': 94, 'end': 95, 'pnjs': ['Gardien du cimetière'], 'nom': 'E023-1 - Rencontre Gage vs Gardienne - 1'},
+                  {'start': 57, 'end': 58, 'pnjs': ['Snyder - Magnet'],
+                   'nom': 'E020 - Convocation des Cordettes chez Snyder - 1'},
+                  {'start': 0, 'end': 1, 'pnjs': ['Gardien du cimetière'],
+                   'nom': 'E023-3 - Choix de la faux par la nouvelle tueuse - 1'},
+                  {'start': 94, 'end': 95, 'pnjs': ['Gardien du cimetière'],
+                   'nom': 'E023-1 - Rencontre Gage vs Gardienne - 1'},
 
                   {'start': 56, 'end': 57, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E025-1 - Le Club de Science - 1'},
 
-                  {'start': 72, 'end': 73, 'pnjs': ['PNJ torrance 1', 'PNJ Torrance 2'], 'nom': 'E014-1 - Attaque de l’équipe pendant le dogball - 1'},
+                  {'start': 72, 'end': 73, 'pnjs': ['PNJ torrance 1', 'PNJ Torrance 2'],
+                   'nom': 'E014-1 - Attaque de l’équipe pendant le dogball - 1'},
                   {'start': 0, 'end': 1, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E013-1 - Peter Clarner devient Crochet - 1'},
-                  {'start': 36, 'end': 37, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E100-8 - Arrivée des élèves pour les cours - 1'},
+                  {'start': 36, 'end': 37, 'pnjs': ['PNJ MESSAGE'],
+                   'nom': 'E100-8 - Arrivée des élèves pour les cours - 1'},
                   {'start': 76, 'end': 77, 'pnjs': ['Snyder - Magnet'], 'nom': 'E100-10 - La soirée d’adieu - 1'},
-                  {'start': 44, 'end': 45, 'pnjs': ['Eleonore Abernathy. la Vieille  aux chats'], 'nom': 'E048-1 - Eleonore Abernaty is back - 1'},
-
+                  {'start': 44, 'end': 45, 'pnjs': ['Eleonore Abernathy. la Vieille  aux chats'],
+                   'nom': 'E048-1 - Eleonore Abernaty is back - 1'},
 
                   # {'start': 82, 'end': 83, 'pnjs': ['Jackson Hunt - Magnet'], 'nom': 'E017-2 - Mon père, ce héros Reprise - 1'},
-                  {'start': 70, 'end': 71, 'pnjs': ['PNJ torrance 1'], 'nom': 'E035-3- Vengeance du lycée de Torrance - 1'},
+                  {'start': 70, 'end': 71, 'pnjs': ['PNJ torrance 1'],
+                   'nom': 'E035-3- Vengeance du lycée de Torrance - 1'},
 
-
-
-                  {'start': 70, 'end': 71, 'pnjs': ['PNJ torrance 1'], 'nom': 'E035-3- Vengeance du lycée de Torrance - 2'},
-                  {'start': 36, 'end': 37, 'pnjs': ['Foster - Magnet', 'Joy Bennet'], 'nom': "E034-1 - Sélection des pompoms de l'année prochaine - 1"},
+                  {'start': 70, 'end': 71, 'pnjs': ['PNJ torrance 1'],
+                   'nom': 'E035-3- Vengeance du lycée de Torrance - 2'},
+                  {'start': 36, 'end': 37, 'pnjs': ['Foster - Magnet', 'Joy Bennet'],
+                   'nom': "E034-1 - Sélection des pompoms de l'année prochaine - 1"},
                   {'start': 91, 'end': 92, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E010-1 - Effets secondaires Larry - 1'},
                   {'start': 94, 'end': 95, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E006-1 -  Cauchemar Wendell - 1'},
                   {'start': 0, 'end': 1, 'pnjs': ['clown de Zoé'], 'nom': 'E005-1 - la fuite du clown de Zoé - 1'},
-                  {'start': 0, 'end': 1, 'pnjs': ['Vendeur de bananes de Larry'],'nom': 'E005-2 - la fuite du marchand de bananes de Larry - 1'},
-                  {'start': 92, 'end': 93, 'pnjs': ['Aradia - Intrigue 006 - La vigilante Malgrès elle'], 'nom': "E006-3 - Sortie d'Aradia Rituel - 1"},
+                  {'start': 0, 'end': 1, 'pnjs': ['Vendeur de bananes de Larry'],
+                   'nom': 'E005-2 - la fuite du marchand de bananes de Larry - 1'},
+                  {'start': 92, 'end': 93, 'pnjs': ['Aradia - Intrigue 006 - La vigilante Malgrès elle'],
+                   'nom': "E006-3 - Sortie d'Aradia Rituel - 1"},
                   {'start': 4, 'end': 5, 'pnjs': ['Aradia - Intrigue 006 - La vigilante Malgrès elle', 'PNJ MESSAGE'],
                    'nom': "E006-3 - Sortie d'Aradia Rituel - 2"},
-                  {'start': 64, 'end': 65, 'pnjs': ['Snyder - Magnet'], 'nom': 'E026-3 - Annonce à Snyder des résultats du meilleur projet caritatif - 1'},
-                  {'start': 40, 'end': 41, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E026-1 - Vote pour le meilleur projet caritatif - 1'},
+                  {'start': 64, 'end': 65, 'pnjs': ['Snyder - Magnet'],
+                   'nom': 'E026-3 - Annonce à Snyder des résultats du meilleur projet caritatif - 1'},
+                  {'start': 40, 'end': 41, 'pnjs': ['PNJ MESSAGE'],
+                   'nom': 'E026-1 - Vote pour le meilleur projet caritatif - 1'},
                   {'start': 80, 'end': 81, 'pnjs': ['Snyder - Magnet'], 'nom': 'E048-2 - Tags du lycée - 1'},
                   {'start': 38, 'end': 39, 'pnjs': ['Snyder - Magnet'],
                    'nom': 'E100-9 - Discour de Snyder - Matinée - 1'},
@@ -304,7 +329,8 @@ def main():
                   {'start': 44, 'end': 45, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E002-3 - Livraison de Sunnycola - 1'},
                   {'start': 88, 'end': 89, 'pnjs': ['Snyder - Magnet'],
                    'nom': 'E002-2 - Dépouillement et annonce des résultats - 1'},
-                  {'start': 90, 'end': 91, 'pnjs': ['Max Miller'], 'nom': 'E002-2 - Dépouillement et annonce des résultats - 2'},
+                  {'start': 90, 'end': 91, 'pnjs': ['Max Miller'],
+                   'nom': 'E002-2 - Dépouillement et annonce des résultats - 2'},
                   {'start': 76, 'end': 77, 'pnjs': ['PNJ MESSAGE'],
                    'nom': 'E002-1 - Vote pour le mannequin vedette Sunnycola - 1'},
                   {'start': 8, 'end': 9, 'pnjs': ['Le Maître', 'Ruth Greeliegh - Infirmière - Magnet'],
@@ -345,18 +371,34 @@ def main():
 
     # table_planning = construire_timing_pnjs()
 
-
-    table_planning = recherche_dichotomique_aides(evenements, min_aides=1, max_aides=30, consever_liens_aides_pnjs=False)
+    table_planning = recherche_dichotomique_aides(evenements, min_aides=1, max_aides=30,
+                                                  consever_liens_aides_pnjs=False)
 
     # table_planning = construire_timing_pnjs(evenements, generer_tableau_aide(30), consever_liens_aides_pnjs=False)
 
     print(table_planning)
+    table_planning_csv = ""
+    for ligne in table_planning:
+        for colonne in ligne:
+            table_planning_csv += str(colonne).replace('\n', ' // ') + ';'
+        table_planning_csv += '\n'
 
-#todo : préparation des données :
+
+    #
+    # table_planning_csv = "".join(
+    #     ';'.join(ligne) + '\n' for ligne in table_planning
+    # )
+
+    # table_planning_csv = '\n'.join(
+    #     ';'.join(ligne) for ligne in table_planning
+    # )
+    print(table_planning_csv)
+
+
+# todo : préparation des données :
 # enlever les évènements sans personnage lors de  la constitution des fichiers
 # ajouter une fonction pour détecter qu'un pnj est à deux endroits à la fois en parvourant toutes ses interventions et en lui construirant un tableau de type cumul par heure
 # détecter les PNJs en double dans leur évènement
-
 
 
 if __name__ == '__main__':
