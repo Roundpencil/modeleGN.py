@@ -1,6 +1,7 @@
 from ortools.sat.python import cp_model
 
 from google_io import evenement_extraire_ligne_chrono
+from modeleGN import *
 
 
 ## Code création données de test :
@@ -250,6 +251,60 @@ def recherche_dichotomique_aides(evenements, min_aides=0, max_aides=100, aides_c
         return construire_timing_pnjs(evenements, generer_tableau_aide(min(min_aides + 1, max_aides), aides_connus),
                                       consever_liens_aides_pnjs=consever_liens_aides_pnjs)
 
+def determiner_pas(evenements: list[Evenement]):
+    minutes = {'0'}
+    for evenement in evenements:
+        with contextlib.suppress(Exception):
+            minutes.add(evenement.heure_de_demarrage.split('h')[1])
+            minutes.add(evenement.heure_de_fin.split('h')[1])
+
+    print(f"debug : minutes avant rationalisation : {minutes}")
+    maximum = max(int(m) for m in minutes if m.isnumeric())
+    print(f"debug : pas trouvé avant arrondi = {maximum}")
+    if maximum == 0:
+        return 60
+    elif maximum <= 30:
+        return 30
+    else:
+        return 15
+
+def preparer_donnees_pour_ortools(gn: GN, pas=None):
+    if pas is None:
+        pas = determiner_pas(gn.evenements.values())
+        print(f'debug : pas final = {pas}')
+
+    return evenements_2_dict_ortools(gn.evenements.values(), pas)
+
+
+def evenements_2_dict_ortools(liste_evenements: list[Evenement], pas):
+    evenements_formattes = []
+    for evenement in liste_evenements:
+        for i, intervention in enumerate(evenement.interventions, start=1):
+            # {"start": 0, "end": 4, "pnjs": [0, 1]},
+            jour_nombre = int(''.join(chiffre for chiffre in texte if chiffre.isdigit()))
+            heure_debut = heure_en_pas(intervention.heure_debut, pas) + jour_nombre * 100
+            heure_fin = heure_en_pas(intervention.heure_fin, pas) + jour_nombre * 100
+            if heure_fin <= heure_debut:
+                heure_fin = heure_debut + 1
+                # si il y a eu un soucis dans la création de l'heure de fin, on ajoute un pas par défaut
+                # pour nous assurer que tous les évènements on un début et une fin
+            pnjs = [intervenant.pnj.nom for intervenant in intervention.liste_intervenants]
+            current_dict = {"start": heure_debut,
+                            "end": heure_fin,
+                            "pnjs": pnjs,
+                            "nom": f"{evenement.nom_evenement} - {i}"
+                            }
+            evenements_formattes.append(current_dict)
+    return evenements_formattes
+
+def heure_en_pas(heure_en_texte: str, pas: int):
+    try:
+        heure_splittee = heure_en_texte.split('h')
+        minutes = int(heure_splittee[0]) * 60 + (int(heure_splittee[1]) if len(heure_splittee[1]) else 0)
+        return minutes // pas
+    except:
+        return 0
+
 
 def main():
     evenements = [{'start': 60, 'end': 61, 'pnjs': ['Foster - Magnet'], 'nom': 'E027 - Fête des sports - 1'},
@@ -397,7 +452,7 @@ def main():
 # enlever les évènements sans personnage lors de  la constitution des fichiers
 # ajouter une fonction pour détecter qu'un pnj est à deux endroits à la fois en parvourant toutes ses interventions et en lui construirant un tableau de type cumul par heure
 # détecter les PNJs en double dans leur évènement
-# vérifier qu'on gere bien les évènements à une tab par jour
+# vérifier qu'on gere bien les évènements à une tab par jour > ajouter des pas fictifs? 1000 pour le premier jour, etc?
 # lors de la restitution, sauter les lignes vides
 
 if __name__ == '__main__':
