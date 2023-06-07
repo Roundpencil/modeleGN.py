@@ -52,7 +52,8 @@ def evenements_2_dict_ortools(liste_evenements: list[Evenement], pas):
     for evenement in liste_evenements:
         for i, intervention in enumerate(evenement.interventions, start=1):
             # {"start": 0, "end": 4, "pnjs": [0, 1]},
-            jour_nombre = int(''.join(chiffre for chiffre in texte if chiffre.isdigit()))
+            jour_nombre = ''.join(chiffre for chiffre in evenement.date if chiffre.isdigit())
+            jour_nombre = int(jour_nombre) if jour_nombre else 0
             heure_debut = heure_en_pas(intervention.heure_debut, pas) + jour_nombre * 100
             heure_fin = heure_en_pas(intervention.heure_fin, pas) + jour_nombre * 100
             if heure_fin <= heure_debut:

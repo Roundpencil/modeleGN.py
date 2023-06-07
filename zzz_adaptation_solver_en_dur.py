@@ -1,6 +1,5 @@
 from ortools.sat.python import cp_model
 
-from google_io import evenement_extraire_ligne_chrono
 from modeleGN import *
 
 
@@ -162,8 +161,7 @@ def construire_timing_pnjs(evenements, aides: list[str], affectations_predefinie
     #                 #     print("Pas de solution trouvée.")
     #
     # Trouver la dernière heure de fin des événements
-    premiere_heure = min(evt["start"] for evt in evenements)
-    derniere_heure = max(evt["end"] for evt in evenements)
+    premiere_heure, derniere_heure = trouver_premiere_derniere_heure_en_pas(evenements)
 
     # construire table planning
     table_planning = [["Heure", "Evenement(s)"] + list(aides)]
@@ -226,6 +224,12 @@ def construire_timing_pnjs(evenements, aides: list[str], affectations_predefinie
     #     print()
 
 
+def trouver_premiere_derniere_heure_en_pas(evenements):
+    premiere_heure = min(evt["start"] for evt in evenements)
+    derniere_heure = max(evt["end"] for evt in evenements)
+    return premiere_heure, derniere_heure
+
+
 def generer_tableau_aide(nb_aides, aides_connus=None):
     if aides_connus is None:
         aides_connus = []
@@ -251,6 +255,7 @@ def recherche_dichotomique_aides(evenements, min_aides=0, max_aides=100, aides_c
         return construire_timing_pnjs(evenements, generer_tableau_aide(min(min_aides + 1, max_aides), aides_connus),
                                       consever_liens_aides_pnjs=consever_liens_aides_pnjs)
 
+
 def determiner_pas(evenements: list[Evenement]):
     minutes = {'0'}
     for evenement in evenements:
@@ -268,12 +273,40 @@ def determiner_pas(evenements: list[Evenement]):
     else:
         return 15
 
+
 def preparer_donnees_pour_ortools(gn: GN, pas=None):
     if pas is None:
         pas = determiner_pas(gn.evenements.values())
         print(f'debug : pas final = {pas}')
 
-    return evenements_2_dict_ortools(gn.evenements.values(), pas)
+    evenements = evenements_2_dict_ortools(gn.evenements.values(), pas)
+    return evenements
+
+
+def identifier_erreurs_cumul(evenements: list, pas):
+    premiere_heure, derniere_heure = trouver_premiere_derniere_heure_en_pas(evenements)
+    liste_pnjs = {pnj for evenement in evenements for pnj in evenement['pnjs']}
+
+    cumul = {pnj: {h: [] for h in range(premiere_heure, derniere_heure+1)} for pnj in liste_pnjs}
+    for pnj in liste_pnjs:
+        for heure in range(premiere_heure, derniere_heure+1):
+            for evt in evenements:
+                if evt['start']<= heure < evt['end']:
+                    cumul[pnj][heure].append(evt['nom'])
+
+    for pnj in cumul:
+        for heure in cumul[pnj]:
+            if len(cumul[pnj][heure]) > 1:
+                str_evts = '\n\t'.join(cumul[pnj][heure])
+                print(f"erreur avec le pnj {pnj}, dans plus d'une intrigues à {pas_2_h(heure, pas)} : \n\t"
+                      f"{str_evts}")
+
+    return cumul
+
+def pas_2_h(heure_en_pas, pas):
+    jour = heure_en_pas // 100
+    minutes = (heure_en_pas % 100) * pas
+    return f"J{jour} - {minutes//60}h{minutes%60}"
 
 
 def evenements_2_dict_ortools(liste_evenements: list[Evenement], pas):
@@ -281,7 +314,10 @@ def evenements_2_dict_ortools(liste_evenements: list[Evenement], pas):
     for evenement in liste_evenements:
         for i, intervention in enumerate(evenement.interventions, start=1):
             # {"start": 0, "end": 4, "pnjs": [0, 1]},
-            jour_nombre = int(''.join(chiffre for chiffre in texte if chiffre.isdigit()))
+
+            jour_nombre = ''.join(chiffre for chiffre in evenement.date if chiffre.isdigit())
+            jour_nombre = int(jour_nombre) if jour_nombre else 0
+
             heure_debut = heure_en_pas(intervention.heure_debut, pas) + jour_nombre * 100
             heure_fin = heure_en_pas(intervention.heure_fin, pas) + jour_nombre * 100
             if heure_fin <= heure_debut:
@@ -297,6 +333,7 @@ def evenements_2_dict_ortools(liste_evenements: list[Evenement], pas):
             evenements_formattes.append(current_dict)
     return evenements_formattes
 
+
 def heure_en_pas(heure_en_texte: str, pas: int):
     try:
         heure_splittee = heure_en_texte.split('h')
@@ -307,7 +344,7 @@ def heure_en_pas(heure_en_texte: str, pas: int):
 
 
 def main():
-    evenements = [{'start': 60, 'end': 61, 'pnjs': ['Foster - Magnet'], 'nom': 'E027 - Fête des sports - 1'},
+    evenements = [{'start': 60, 'end': 61, 'pnjs': [], 'nom': 'E027 - Fête des sports - 1'},
                   {'start': 48, 'end': 49, 'pnjs': ['Ms. Beakman'], 'nom': 'E004-1 - coup de fil de mr wang - 1'},
                   {'start': 60, 'end': 61, 'pnjs': ['Snyder - Magnet'], 'nom': 'E029 - Le conseil des élèves - 1'},
                   {'start': 0, 'end': 1, 'pnjs': ['Charlie - Magnet', 'Ruth Greeliegh - Infirmière - Magnet'],
@@ -436,7 +473,6 @@ def main():
             table_planning_csv += str(colonne).replace('\n', ' // ') + ';'
         table_planning_csv += '\n'
 
-
     #
     # table_planning_csv = "".join(
     #     ';'.join(ligne) + '\n' for ligne in table_planning
@@ -449,11 +485,11 @@ def main():
 
 
 # todo : préparation des données :
-# enlever les évènements sans personnage lors de  la constitution des fichiers
-# ajouter une fonction pour détecter qu'un pnj est à deux endroits à la fois en parvourant toutes ses interventions et en lui construirant un tableau de type cumul par heure
-# détecter les PNJs en double dans leur évènement
-# vérifier qu'on gere bien les évènements à une tab par jour > ajouter des pas fictifs? 1000 pour le premier jour, etc?
-# lors de la restitution, sauter les lignes vides
+#  générer un warning pour les évènements sans personnage lors de  la constitution des fichiers
+#  ajouter une fonction pour détecter qu'un pnj est à deux endroits à la fois en parvourant toutes ses interventions et en lui construirant un tableau de type cumul par heure
+#  détecter les PNJs en double dans leur évènement
+#  vérifier qu'on gere bien les évènements à une tab par jour > ajouter des pas fictifs? 1000 pour le premier jour, etc?
+#  lors de la restitution, sauter les lignes vides
 
 if __name__ == '__main__':
     main()
