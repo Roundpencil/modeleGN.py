@@ -169,21 +169,19 @@ def construire_timing_pnjs(evenements, aides: list[str], affectations_predefinie
 
     # construire les lignes du planning pour chaque heure
     for t in range(premiere_heure, derniere_heure):
-        current_ligne = [t]
+        current_ligne = [t, ""]
         for p in aides:
             pnj_et_evt = None
             for evt in evenements:
                 evt_id = evt['nom']
                 if evt["start"] <= t < evt["end"]:
                     # ajouter le nom de l'évènement dans la colonne dédiée
-                    if len(current_ligne) == 1:
-                        current_ligne.append(evt_id)
-                    elif evt_id not in current_ligne[1]:
+                    if evt_id not in current_ligne[1]:
                         current_ligne[1] += f'\n{evt_id}'
                         # current_ligne[1] += f'\n{evt_id}'
 
+                    # remplir es colonnes des PNJs
                     for pnj in evt["pnjs"]:
-
                         if solver.Value(interventions[f"evt_{evt_id}_pnj_{pnj}_p_{p}"]) == 1:
                             pnj_et_evt = f"{pnj} ({evt_id})"
                         break
@@ -399,7 +397,8 @@ def main():
 # enlever les évènements sans personnage lors de  la constitution des fichiers
 # ajouter une fonction pour détecter qu'un pnj est à deux endroits à la fois en parvourant toutes ses interventions et en lui construirant un tableau de type cumul par heure
 # détecter les PNJs en double dans leur évènement
-
+# vérifier qu'on gere bien les évènements à une tab par jour
+# lors de la restitution, sauter les lignes vides
 
 if __name__ == '__main__':
     main()
