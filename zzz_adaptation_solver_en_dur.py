@@ -283,7 +283,7 @@ def preparer_donnees_pour_ortools(gn: GN, pas=None, avec_corrections=True):
     evenements = evenements_2_dict_ortools(gn.evenements.values(), pas, texte_erreurs)
 
     if avec_corrections:
-        evenements, texte_cumul = identifier_erreurs_cumul(evenements, pas)
+        texte_cumul = identifier_erreurs_cumul(evenements, pas)
         texte_erreurs += texte_cumul
 
     return evenements, pas, texte_erreurs
@@ -297,8 +297,10 @@ def identifier_erreurs_cumul(evenements: list, pas):
     for pnj in liste_pnjs:
         for heure in range(premiere_heure, derniere_heure + 1):
             for i, evt in enumerate(evenements):
-                if evt['start'] <= heure < evt['end'] and pnj in evt['pnjs']:
-                    cumul[pnj][heure].append(i)
+                if evt['start'] <= heure < evt['end']:
+                    cumul[pnj][heure].extend([i] * evt['pnjs'].count(pnj))
+                # if evt['start'] <= heure < evt['end'] and pnj in evt['pnjs']:
+                #     cumul[pnj][heure].append(i)
 
     texte_erreurs = ""
     for pnj in cumul:
@@ -336,7 +338,7 @@ def identifier_erreurs_cumul(evenements: list, pas):
                         except Exception as e:
                             print(e)
                             found = False
-    return evenements, texte_erreurs
+    return texte_erreurs
 
 
 def pas_2_h(heure_en_pas, pas):
@@ -395,113 +397,113 @@ def main():
 
     print(texte_erreurs)
 
-    evenements = [
-                  {'start': 260, 'end': 261, 'pnjs': ['Foster - Magnet'], 'nom': 'E027 - Fête des sports - 1'},
-                  {'start': 248, 'end': 249, 'pnjs': ['Ms. Beakman'], 'nom': 'E004-1 - coup de fil de mr wang - 1'},
-                  {'start': 260, 'end': 261, 'pnjs': ['Snyder - Magnet'], 'nom': 'E029 - Le conseil des élèves - 1'},
-                  {'start': 200, 'end': 201, 'pnjs': ['Charlie - Magnet', 'Ruth Greeliegh - Infirmière - Magnet'],
-                   'nom': 'E015-1- Il faut sauver Charlie - 1'},
-                  # {'start': 235, 'end': 236, 'pnjs': ['PNJ Statue', 'PNJ Statue'], 'nom': 'E008-1 - appel du conseil '
-                  #                                                                         'des observateurs - 1'},
-                  {'start': 234, 'end': 235, 'pnjs': ['Première tueuse'], 'nom': 'E022-1 - La nouvelle tueuse - 1'},
-                  {'start': 272, 'end': 273, 'pnjs': ['PNJ torrance 1 - ubiquité 1', 'PNJ torrance 1 - ubiquité 2',
-                                                      'PNJ torrance 1 - ubiquité 3', 'PNJ torrance 1 - ubiquité 4',
-                                                      'PNJ torrance 1 - ubiquité 5', 'PNJ torrance 1 - ubiquité 6'],
-                   'nom': 'E035-4 - Echange d’objets avec le lycée de Torrance - 1'},
-
-                  {'start': 257, 'end': 258,
-                   'pnjs': ['Snyder - Magnet'],
-                   'nom': 'E020 - Convocation des '
-                          'Cordettes chez Snyder '
-                          '- 1'}, {'start': 200,
-                                   'end': 201,
-                                   'pnjs': [
-                                       'Gardien '
-                                       'du '
-                                       'cimetière'], 'nom': 'E023-3 - Choix de la faux par la nouvelle tueuse - 1'},
-
-                  {'start': 194, 'end': 195, 'pnjs': ['Gardien du cimetière'],
-                   'nom': 'E023-1 - Rencontre Gage vs Gardienne - 1'},
-                  {'start': 256, 'end': 257, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E025-1 - Le Club de Science - 1'},
-                  {'start': 264, 'end': 265, 'pnjs': ['PNJ MESSAGE - ubiquité 1'], 'nom': 'E031-1 - Club des arts - 1'},
-                  {'start': 272, 'end': 273, 'pnjs': ['PNJ torrance 1 - ubiquité 7', 'PNJ Torrance 2'],
-                   'nom': 'E014-1 - Attaque de l’équipe pendant le dogball - 1'},
-                  {'start': 0, 'end': 1, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E013-1 - Peter Clarner devient Crochet - 1'},
-                  {'start': 236, 'end': 237, 'pnjs': ['PNJ MESSAGE'],
-                   'nom': 'E100-8 - Arrivée des élèves pour les cours - 1'},
-                  {'start': 276, 'end': 277, 'pnjs': ['Snyder - Magnet'], 'nom': 'E100-10 - La soirée d’adieu - 1'},
-                  {'start': 244, 'end': 245, 'pnjs': ['Eleonore Abernathy. la Vieille  aux chats'],
-                   'nom': 'E048-1 - Eleonore Abernaty is back - 1'},
-                  {'start': 282, 'end': 283, 'pnjs': ['Jackson Hunt - Magnet'],
-                   'nom': 'E017-2 - Mon père, ce héros Reprise - 1'},
-                  {'start': 270, 'end': 271, 'pnjs': ['PNJ torrance 1 - ubiquité 1', 'PNJ torrance 1 - ubiquité 2'],
-                   'nom': 'E035-3- Vengeance du lycée de Torrance - 1'},
-
-                  {'start': 270, 'end': 271, 'pnjs': ['PNJ torrance 1 - ubiquité 3', 'PNJ torrance 1 - ubiquité 4'],
-                   'nom': 'E035-3- Vengeance du lycée de Torrance - 2'},
-                  {'start': 236, 'end': 237, 'pnjs': ['Foster - Magnet', 'Joy Bennet'],
-                   'nom': "E034-1 - Sélection des pompoms de l'année prochaine - 1"},
-                  {'start': 191, 'end': 192, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E010-1 - Effets secondaires Larry - 1'},
-                  {'start': 194, 'end': 195, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E006-1 -  Cauchemar Wendell - 1'},
-                  {'start': 200, 'end': 201, 'pnjs': ['clown de Zoé'], 'nom': 'E005-1 - la fuite du clown de Zoé - 1'},
-                  {'start': 200, 'end': 201, 'pnjs': ['Vendeur de bananes de Larry'],
-                   'nom': 'E005-2 - la fuite du marchand de bananes de Larry - 1'},
-                  {'start': 292, 'end': 293, 'pnjs': ['Aradia - Intrigue 006 - La vigilante Malgrès elle'],
-                   'nom': "E006-3 - Sortie d'Aradia Rituel - 1"}, {'start': 204, 'end': 205, 'pnjs': ['Aradia - '
-                                                                                                      'Intrigue 006 -'
-                                                                                                      ' La vigilante '
-                                                                                                      'Malgrès elle',
-                                                                                                      'PNJ MESSAGE'],
-                                                                   'nom': "E006-3 - Sortie d'Aradia Rituel - 2"},
-                  {'start': 264, 'end': 265, 'pnjs': ['Snyder - Magnet - ubiquité 1'],
-                   'nom': 'E026-3 - Annonce à Snyder des résultats du meilleur projet caritatif - 1'},
-                  {'start': 240, 'end': 241, 'pnjs': ['PNJ MESSAGE'],
-                   'nom': 'E026-1 - Vote pour le meilleur projet caritatif - 1'},
-                  {'start': 180, 'end': 181, 'pnjs': ['Snyder - Magnet'], 'nom': 'E048-2 - Tags du lycée - 1'},
-                  {'start': 238, 'end': 239, 'pnjs': ['Snyder - Magnet'],
-                   'nom': 'E100-9 - Discour de Snyder - Matinée - 1'},
-                  {'start': 156, 'end': 157, 'pnjs': ['PNJ MESSAGE'],
-                   'nom': "E100-3 - Début d'arrivée des PJ /Parking et placement en chambre / Brief individuel - 1"},
-                  {'start': 194, 'end': 195, 'pnjs': ['Le Maître'],
-                   'nom': 'E046-1 Cauchemar “rencontre avec le Maître” - 1'},
-                  {'start': 232, 'end': 233, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E046-3 - Lettre du père Lancaster - 1'},
-                  {'start': 236, 'end': 237, 'pnjs': ['Snyder - Magnet'],
-                   'nom': 'E037 - Annonce de la mort de Cordélia - 1'},
-                  {'start': 200, 'end': 201, 'pnjs': ['Ellen Brooks'],
-                   'nom': 'E061-2 - Séance de spiritisme Ellen Brooks - 1'},
-                  {'start': 257, 'end': 258, 'pnjs': ['Ellen Brooks'],
-                   'nom': 'E061-1 - Intervention d’Ellen Brooks - 1'},
-                  {'start': 255, 'end': 256, 'pnjs': ['Infirmier 1'], 'nom': 'E070-3 - Infirmiers en collecte - 1'},
-                  {'start': 240, 'end': 241, 'pnjs': ['Ruth Greeliegh - Infirmière - Magnet - ubiquité 1'],
-                   'nom': 'E070-2 - Collecte de sang - 1'},
-                  {'start': 240, 'end': 241, 'pnjs': ['Ruth Greeliegh - Infirmière - Magnet - ubiquité 2'],
-                   'nom': 'E070-2 - Collecte de sang - 2'}, {'start': 240, 'end': 241, 'pnjs': ['Snyder - Magnet'],
-                                                             'nom': 'E070-1- Annonce que la collecte de sang est '
-                                                                    'ouverte - 1'},
-                  {'start': 264, 'end': 265,
-                   'pnjs': ['Snyder - Magnet - ubiquité 2', 'Max Miller', 'PNJ MESSAGE - ubiquité 2'],
-                   'nom': 'E002-5 - Interrogatoire sur le Sunnycola - 1'},
-                  {'start': 258, 'end': 259, 'pnjs': ['PNJ MESSAGE'],
-                   'nom': 'E002-4 - Intervention de la brigade sanitaire - 1'},
-                  {'start': 244, 'end': 245, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E002-3 - Livraison de Sunnycola - 1'},
-                  {'start': 188, 'end': 189, 'pnjs': ['Snyder - Magnet'],
-                   'nom': 'E002-2 - Dépouillement et annonce des résultats - 1'},
-                  {'start': 190, 'end': 191, 'pnjs': ['Max Miller'],
-                   'nom': 'E002-2 - Dépouillement et annonce des résultats - 2'},
-                  {'start': 176, 'end': 177, 'pnjs': ['PNJ MESSAGE'],
-                   'nom': 'E002-1 - Vote pour le mannequin vedette Sunnycola - 1'},
-                  {'start': 308, 'end': 309, 'pnjs': ['Le Maître', 'Ruth Greeliegh - Infirmière - Magnet'],
-                   'nom': 'E046-4 - Appel du Maitre - 1'},
-                  {'start': 195, 'end': 196, 'pnjs': ['Ruth Greeliegh - Infirmière - Magnet'],
-                   'nom': 'E046-2 - Cauchemar Bonus Holly - 1'},
-                  {'start': 275, 'end': 276, 'pnjs': ['PNJ torrance 1', 'PNJ Torrance 2'],
-                   'nom': 'E014-2 -Echanges des trophées - 1'},
-                  {'start': 192, 'end': 193, 'pnjs': ['Jackson Hunt - Magnet'],
-                   'nom': 'E017-1 - Mon père, ce héros - 1'},
-                  {'start': 192, 'end': 193, 'pnjs': ['Gardien du cimetière'],
-                   'nom': 'E003-1 - Hommage au Professeur Baird - 1'},
-                  {'start': 260, 'end': 261, 'pnjs': ['Ignace'], 'nom': "E007-1 - Convocation de l'UAI - 1"}
-                  ]
+    # evenements = [
+    #               # {'start': 260, 'end': 261, 'pnjs': ['Foster - Magnet'], 'nom': 'E027 - Fête des sports - 1'},
+    #               # {'start': 248, 'end': 249, 'pnjs': ['Ms. Beakman'], 'nom': 'E004-1 - coup de fil de mr wang - 1'},
+    #               # {'start': 260, 'end': 261, 'pnjs': ['Snyder - Magnet'], 'nom': 'E029 - Le conseil des élèves - 1'},
+    #               # {'start': 200, 'end': 201, 'pnjs': ['Charlie - Magnet', 'Ruth Greeliegh - Infirmière - Magnet'],
+    #               #  'nom': 'E015-1- Il faut sauver Charlie - 1'},
+    #               {'start': 235, 'end': 236, 'pnjs': ['PNJ Statue', 'PNJ Statue'], 'nom': 'E008-1 - appel du conseil '
+    #                                                                                       'des observateurs - 1'},
+    #               # {'start': 234, 'end': 235, 'pnjs': ['Première tueuse'], 'nom': 'E022-1 - La nouvelle tueuse - 1'},
+    #               # {'start': 272, 'end': 273, 'pnjs': ['PNJ torrance 1 - ubiquité 1', 'PNJ torrance 1 - ubiquité 2',
+    #               #                                     'PNJ torrance 1 - ubiquité 3', 'PNJ torrance 1 - ubiquité 4',
+    #               #                                     'PNJ torrance 1 - ubiquité 5', 'PNJ torrance 1 - ubiquité 6'],
+    #               #  'nom': 'E035-4 - Echange d’objets avec le lycée de Torrance - 1'},
+    #               #
+    #               # {'start': 257, 'end': 258,
+    #               #  'pnjs': ['Snyder - Magnet'],
+    #               #  'nom': 'E020 - Convocation des '
+    #               #         'Cordettes chez Snyder '
+    #               #         '- 1'}, {'start': 200,
+    #               #                  'end': 201,
+    #               #                  'pnjs': [
+    #               #                      'Gardien '
+    #               #                      'du '
+    #               #                      'cimetière'], 'nom': 'E023-3 - Choix de la faux par la nouvelle tueuse - 1'},
+    #               #
+    #               # {'start': 194, 'end': 195, 'pnjs': ['Gardien du cimetière'],
+    #               #  'nom': 'E023-1 - Rencontre Gage vs Gardienne - 1'},
+    #               # {'start': 256, 'end': 257, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E025-1 - Le Club de Science - 1'},
+    #               # {'start': 264, 'end': 265, 'pnjs': ['PNJ MESSAGE - ubiquité 1'], 'nom': 'E031-1 - Club des arts - 1'},
+    #               # {'start': 272, 'end': 273, 'pnjs': ['PNJ torrance 1 - ubiquité 7', 'PNJ Torrance 2'],
+    #               #  'nom': 'E014-1 - Attaque de l’équipe pendant le dogball - 1'},
+    #               # {'start': 0, 'end': 1, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E013-1 - Peter Clarner devient Crochet - 1'},
+    #               # {'start': 236, 'end': 237, 'pnjs': ['PNJ MESSAGE'],
+    #               #  'nom': 'E100-8 - Arrivée des élèves pour les cours - 1'},
+    #               # {'start': 276, 'end': 277, 'pnjs': ['Snyder - Magnet'], 'nom': 'E100-10 - La soirée d’adieu - 1'},
+    #               # {'start': 244, 'end': 245, 'pnjs': ['Eleonore Abernathy. la Vieille  aux chats'],
+    #               #  'nom': 'E048-1 - Eleonore Abernaty is back - 1'},
+    #               # {'start': 282, 'end': 283, 'pnjs': ['Jackson Hunt - Magnet'],
+    #               #  'nom': 'E017-2 - Mon père, ce héros Reprise - 1'},
+    #               # {'start': 270, 'end': 271, 'pnjs': ['PNJ torrance 1 - ubiquité 1', 'PNJ torrance 1 - ubiquité 2'],
+    #               #  'nom': 'E035-3- Vengeance du lycée de Torrance - 1'},
+    #               #
+    #               # {'start': 270, 'end': 271, 'pnjs': ['PNJ torrance 1 - ubiquité 3', 'PNJ torrance 1 - ubiquité 4'],
+    #               #  'nom': 'E035-3- Vengeance du lycée de Torrance - 2'},
+    #               # {'start': 236, 'end': 237, 'pnjs': ['Foster - Magnet', 'Joy Bennet'],
+    #               #  'nom': "E034-1 - Sélection des pompoms de l'année prochaine - 1"},
+    #               # {'start': 191, 'end': 192, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E010-1 - Effets secondaires Larry - 1'},
+    #               # {'start': 194, 'end': 195, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E006-1 -  Cauchemar Wendell - 1'},
+    #               # {'start': 200, 'end': 201, 'pnjs': ['clown de Zoé'], 'nom': 'E005-1 - la fuite du clown de Zoé - 1'},
+    #               # {'start': 200, 'end': 201, 'pnjs': ['Vendeur de bananes de Larry'],
+    #               #  'nom': 'E005-2 - la fuite du marchand de bananes de Larry - 1'},
+    #               # {'start': 292, 'end': 293, 'pnjs': ['Aradia - Intrigue 006 - La vigilante Malgrès elle'],
+    #               #  'nom': "E006-3 - Sortie d'Aradia Rituel - 1"}, {'start': 204, 'end': 205, 'pnjs': ['Aradia - '
+    #               #                                                                                     'Intrigue 006 -'
+    #               #                                                                                     ' La vigilante '
+    #               #                                                                                     'Malgrès elle',
+    #               #                                                                                     'PNJ MESSAGE'],
+    #               #                                                  'nom': "E006-3 - Sortie d'Aradia Rituel - 2"},
+    #               # {'start': 264, 'end': 265, 'pnjs': ['Snyder - Magnet - ubiquité 1'],
+    #               #  'nom': 'E026-3 - Annonce à Snyder des résultats du meilleur projet caritatif - 1'},
+    #               # {'start': 240, 'end': 241, 'pnjs': ['PNJ MESSAGE'],
+    #               #  'nom': 'E026-1 - Vote pour le meilleur projet caritatif - 1'},
+    #               # {'start': 180, 'end': 181, 'pnjs': ['Snyder - Magnet'], 'nom': 'E048-2 - Tags du lycée - 1'},
+    #               # {'start': 238, 'end': 239, 'pnjs': ['Snyder - Magnet'],
+    #               #  'nom': 'E100-9 - Discour de Snyder - Matinée - 1'},
+    #               # {'start': 156, 'end': 157, 'pnjs': ['PNJ MESSAGE'],
+    #               #  'nom': "E100-3 - Début d'arrivée des PJ /Parking et placement en chambre / Brief individuel - 1"},
+    #               # {'start': 194, 'end': 195, 'pnjs': ['Le Maître'],
+    #               #  'nom': 'E046-1 Cauchemar “rencontre avec le Maître” - 1'},
+    #               # {'start': 232, 'end': 233, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E046-3 - Lettre du père Lancaster - 1'},
+    #               # {'start': 236, 'end': 237, 'pnjs': ['Snyder - Magnet'],
+    #               #  'nom': 'E037 - Annonce de la mort de Cordélia - 1'},
+    #               # {'start': 200, 'end': 201, 'pnjs': ['Ellen Brooks'],
+    #               #  'nom': 'E061-2 - Séance de spiritisme Ellen Brooks - 1'},
+    #               # {'start': 257, 'end': 258, 'pnjs': ['Ellen Brooks'],
+    #               #  'nom': 'E061-1 - Intervention d’Ellen Brooks - 1'},
+    #               # {'start': 255, 'end': 256, 'pnjs': ['Infirmier 1'], 'nom': 'E070-3 - Infirmiers en collecte - 1'},
+    #               # {'start': 240, 'end': 241, 'pnjs': ['Ruth Greeliegh - Infirmière - Magnet - ubiquité 1'],
+    #               #  'nom': 'E070-2 - Collecte de sang - 1'},
+    #               # {'start': 240, 'end': 241, 'pnjs': ['Ruth Greeliegh - Infirmière - Magnet - ubiquité 2'],
+    #               #  'nom': 'E070-2 - Collecte de sang - 2'}, {'start': 240, 'end': 241, 'pnjs': ['Snyder - Magnet'],
+    #               #                                            'nom': 'E070-1- Annonce que la collecte de sang est '
+    #               #                                                   'ouverte - 1'},
+    #               # {'start': 264, 'end': 265,
+    #               #  'pnjs': ['Snyder - Magnet - ubiquité 2', 'Max Miller', 'PNJ MESSAGE - ubiquité 2'],
+    #               #  'nom': 'E002-5 - Interrogatoire sur le Sunnycola - 1'},
+    #               # {'start': 258, 'end': 259, 'pnjs': ['PNJ MESSAGE'],
+    #               #  'nom': 'E002-4 - Intervention de la brigade sanitaire - 1'},
+    #               # {'start': 244, 'end': 245, 'pnjs': ['PNJ MESSAGE'], 'nom': 'E002-3 - Livraison de Sunnycola - 1'},
+    #               # {'start': 188, 'end': 189, 'pnjs': ['Snyder - Magnet'],
+    #               #  'nom': 'E002-2 - Dépouillement et annonce des résultats - 1'},
+    #               # {'start': 190, 'end': 191, 'pnjs': ['Max Miller'],
+    #               #  'nom': 'E002-2 - Dépouillement et annonce des résultats - 2'},
+    #               # {'start': 176, 'end': 177, 'pnjs': ['PNJ MESSAGE'],
+    #               #  'nom': 'E002-1 - Vote pour le mannequin vedette Sunnycola - 1'},
+    #               # {'start': 308, 'end': 309, 'pnjs': ['Le Maître', 'Ruth Greeliegh - Infirmière - Magnet'],
+    #               #  'nom': 'E046-4 - Appel du Maitre - 1'},
+    #               # {'start': 195, 'end': 196, 'pnjs': ['Ruth Greeliegh - Infirmière - Magnet'],
+    #               #  'nom': 'E046-2 - Cauchemar Bonus Holly - 1'},
+    #               # {'start': 275, 'end': 276, 'pnjs': ['PNJ torrance 1', 'PNJ Torrance 2'],
+    #               #  'nom': 'E014-2 -Echanges des trophées - 1'},
+    #               # {'start': 192, 'end': 193, 'pnjs': ['Jackson Hunt - Magnet'],
+    #               #  'nom': 'E017-1 - Mon père, ce héros - 1'},
+    #               # {'start': 192, 'end': 193, 'pnjs': ['Gardien du cimetière'],
+    #               #  'nom': 'E003-1 - Hommage au Professeur Baird - 1'},
+    #               # {'start': 260, 'end': 261, 'pnjs': ['Ignace'], 'nom': "E007-1 - Convocation de l'UAI - 1"}
+    #               ]
 
     # evenements = [{'start': 60, 'end': 61, 'pnjs': [], 'nom': 'E027 - Fête des sports - 1'},
     #               {'start': 48, 'end': 49, 'pnjs': ['Ms. Beakman'], 'nom': 'E004-1 - coup de fil de mr wang - 1'},
@@ -628,7 +630,7 @@ def main():
 
     print(table_planning)
 
-    table_planning_csv = ';'.join(table_planning[0])
+    table_planning_csv = ';'.join(table_planning[0]) + ';\n'
     for ligne in table_planning[1:]:
         # if sum(len(x) for x in ligne[2:]) == len(ligne[2:]):
         if len(ligne[1]) < 1:
