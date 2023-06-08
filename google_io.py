@@ -287,7 +287,7 @@ def is_item_not_modified(item, dict_ids):
     if item['id'] not in dict_ids:
         return False
 
-    last_processed_time = dict_ids[item['id']].lastProcessing
+    last_processed_time = dict_ids[item['id']].get_last_processing()
     item_modified_time = datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')
     return last_processed_time >= item_modified_time
 
