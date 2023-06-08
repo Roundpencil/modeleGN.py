@@ -622,7 +622,6 @@ def main():
 
     # table_planning = construire_timing_pnjs()
 
-
     table_planning = recherche_dichotomique_aides(evenements, min_aides=1, max_aides=30,
                                                   consever_liens_aides_pnjs=False)
 
@@ -652,11 +651,6 @@ def main():
     # )
     print(table_planning_csv)
 
-
-# todo : préparation des données :
-#  ajouter une fonction pour détecter qu'un pnj est à deux endroits à la fois en parvourant toutes ses interventions et en lui construirant un tableau de type cumul par heure
-#  détecter les PNJs en double dans leur évènement
-#  lors de la restitution, sauter les lignes vides
 
 if __name__ == '__main__':
     main()

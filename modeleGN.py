@@ -49,28 +49,45 @@ def string_type_pj(type_pj: TypePerso):
     return grille_pj.get(type_pj, f"Type de PJ inconnu ({type_pj})")
 
 
+class FichierGoogle:
+    def __init__(self, id_url, last_file_edit=None, last_processing=None):
+
+        self.last_file_edit = last_file_edit or (datetime.datetime.now() - datetime.timedelta(days=500 * 365))
+        self.modifie_par = ""
+        self.id_url = id_url
+        self.last_processing = last_processing or datetime.datetime.now() - datetime.timedelta(days=500 * 365)
+
+    def get_last_processing(self):
+        return self.last_processing
+
+    def set_last_processing(self, valeur):
+        self.last_processing = valeur
+
+
+
 # une superclasse qui représente un fichier qui content des scènes, avec les rôles associés
 # donc y compris les propriétés du fichier où elle se trouve (notamment date de changement)
 # Attention, personnage hérite de cette classe, et contient donc deu types de rôles :
 # ceux qui sont liés aux personnes (roles)
 # et la contenance de ceux qui sont associés à ses propres scènes (via cette classe, donc)
-class ConteneurDeScene:
+class ConteneurDeScene(FichierGoogle):
     def __init__(self, derniere_edition_fichier, last_processing, url):
+        super(ConteneurDeScene, self).__init__(last_file_edit=derniere_edition_fichier,
+                                               last_processing=last_processing, url=url)
         self.scenes = set()
         self.rolesContenus = {}  # nom, rôle
         self.error_log = ErreurManager()
-        self.lastFileEdit = derniere_edition_fichier
-        self.modifie_par = ""
-        self.url = url
+        # self.lastFileEdit = derniere_edition_fichier
+        # self.modifie_par = ""
+        # self.url = url
         self.nom = "Conteneur sans nom"
 
-        self.lastProcessing = last_processing or datetime.datetime.now() - datetime.timedelta(days=500 * 365)
-
-    def get_last_processing(self):
-        return self.lastProcessing
-
-    def set_last_processing(self, valeur):
-        self.lastProcessing = valeur
+    #
+    # def get_last_processing(self):
+    #     return self.lastProcessing
+    #
+    # def set_last_processing(self, valeur):
+    #     self.lastProcessing = valeur
 
     def texte_error_log(self):
         return str(self.error_log)
@@ -1602,6 +1619,11 @@ class GN:
     #     if not hasattr(objet_de_reference, 'objets_dans_evenements'):
     #         objet_de_reference.objets_dans_evenements = set()
 
+    # todo : conteneur de scène
+    #  > renommer lastfileedit en last_file_edit
+    #  > renommer lastProcessing en last_processing
+    #  > renommer url en id_url
+
     def mettre_a_jour_champs(self):
         # nouvelle méthode : déclaration du dictionnaire de renommage
         renommages = {GN:
@@ -1741,7 +1763,7 @@ class ErreurManager:
             self.erreurs = temp
 
 
-class Evenement:
+class Evenement(FichierGoogle):
     def __init__(
             self,
             id_url="",
@@ -1758,8 +1780,12 @@ class Evenement:
             consequences_evenement="",
             synopsis="",
             derniere_edition_date=None,
-            derniere_edition_par=""
+            derniere_edition_par="",
+            last_processing=None
     ):
+        super(Evenement, self).__init__(last_file_edit=derniere_edition_date,
+                                               last_processing=last_processing, url=id_url)
+
         self.nom_evenement = nom_evenement
         self.id_url = id_url
         self.derniere_edition_date = derniere_edition_date
@@ -1780,18 +1806,18 @@ class Evenement:
         self.intervenants_evenement = {}  # nom, intervenant
         self.pjs_concernes_evenement = {}  # nom, pj_concerné
         self.infos_factions = []
-        if derniere_edition_date is None:
-            derniere_edition_date = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
-        self.lastProcessing = derniere_edition_date
+        # if derniere_edition_date is None:
+        #     derniere_edition_date = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
+        # self.lastProcessing = derniere_edition_date
         self.erreur_manager = ErreurManager()
         self.intrigue = None
         self.objets = set()
 
-    def get_last_processing(self):
-        return self.lastProcessing
-
-    def set_last_processing(self, valeur):
-        self.lastProcessing = valeur
+    # def get_last_processing(self):
+    #     return self.lastProcessing
+    #
+    # def set_last_processing(self, valeur):
+    #     self.lastProcessing = valeur
 
     def get_noms_pnjs(self):
         return list(self.intervenants_evenement.keys())
@@ -1918,7 +1944,7 @@ class Commentaire:
         self.destinataires = set(destinataires)
 
 
-class ObjetDeReference:
+class ObjetDeReference(FichierGoogle):
     def __init__(
             self,
             id_url="",
@@ -1936,7 +1962,9 @@ class ObjetDeReference:
             ajoute_via_forcage=False,
             last_processing=None
     ):
-        self.id_url = id_url
+        super(ObjetDeReference, self).__init__(last_file_edit=derniere_edition_date,
+                                               last_processing=last_processing,
+                                               url=id_url)
         self.nom_objet = nom_objet
         self.code_objet = code_objet
         self.referent = referent
@@ -1951,13 +1979,13 @@ class ObjetDeReference:
         self.objets_dans_evenements = set()
         self.ajoute_via_forcage = ajoute_via_forcage
         self.effets_speciaux = effets_speciaux
-        self.last_processing = last_processing or datetime.datetime.now() - datetime.timedelta(days=500 * 365)
+        # self.last_processing = last_processing or datetime.datetime.now() - datetime.timedelta(days=500 * 365)
 
-    def get_last_processing(self):
-        return self.last_processing
-
-    def set_last_processing(self, valeur):
-        self.last_processing = valeur
+    # def get_last_processing(self):
+    #     return self.last_processing
+    #
+    # def set_last_processing(self, valeur):
+    #     self.last_processing = valeur
 
     def clear(self):
         for objet in self.objets_dans_intrigues:
