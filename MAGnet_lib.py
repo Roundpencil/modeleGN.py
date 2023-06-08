@@ -983,7 +983,8 @@ def generer_table_objets_uniques(mon_gn):
         liste_noms_evenements = [o.evenement.nom_evenement for o in objet_ref.objets_dans_evenements if
                                  o.evenement is not None]
         evenements = '\n'.join(liste_noms_evenements)
-        fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
+        fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else lien_vers_hyperlink(objet_ref.get_full_url())
+        # fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
         to_return.append([f"{code if len(code) > 1 else 'Pas de code'}",
                           f"{nom}",
                           f"{intrigues}",
@@ -993,6 +994,10 @@ def generer_table_objets_uniques(mon_gn):
 
     return to_return
 
+def lien_vers_hyperlink(lien: str, texte_lien = None):
+    if texte_lien is None:
+        texte_lien = lien
+    return f'=HYPERLINK(\"{lien}\"; \"{texte_lien}\")'
 
 def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.get_dossier_outputs_drive()
@@ -1153,7 +1158,8 @@ def generer_table_chrono_scenes(mon_gn: GN):
     for scene in toutes_scenes:
         to_return.append([
             scene.get_formatted_date(mon_gn.get_date_gn()),
-            scene.conteneur.nom,
+            # scene.conteneur.nom
+            lien_vers_hyperlink(scene.conteneur.get_full_url(), scene.conteneur.nom),
             scene.titre,
             # ', '.join([role.personnage.nom for role in scene.roles if role is not None and role.est_un_pj()]),
             # ', '.join([role.personnage.nom for role in scene.roles if role is not None and role.est_un_pnj()]),
@@ -1359,16 +1365,22 @@ def generer_table_commentaires(gn: GN, prefixe=None):
             dict_auteur_intrigues[commentaire.auteur][intrigue].add(commentaire)
             destinataires.update(commentaire.destinataires)
 
-            if intrigue.nom not in dict_intrigues_destinataires:
-                dict_intrigues_destinataires[intrigue.nom] = set()
-            dict_intrigues_destinataires[intrigue.nom].update(commentaire.destinataires)
+            valeur_nom = lien_vers_hyperlink(intrigue.get_full_url(), intrigue.nom)
+            if valeur_nom not in dict_intrigues_destinataires:
+                dict_intrigues_destinataires[valeur_nom] = set()
+            dict_intrigues_destinataires[valeur_nom].update(commentaire.destinataires)
+            # if intrigue.nom not in dict_intrigues_destinataires:
+            #     dict_intrigues_destinataires[intrigue.nom] = set()
+            # dict_intrigues_destinataires[intrigue.nom].update(commentaire.destinataires)
 
     dict_auteurs_tableaux = {auteur: [["Intrigue"] + list(destinataires)] for auteur in dict_auteur_intrigues}
 
     # Formatter, pour chaque auteur, un tableau des intrigues où il a écrit des commentaires
     for auteur in dict_auteur_intrigues:
         for intrigue in dict_auteur_intrigues[auteur]:
-            row = [intrigue.nom] + [""] * len(destinataires)
+            valeur_nom_intrigue = lien_vers_hyperlink(intrigue.get_full_url(), intrigue.nom)
+            row = [valeur_nom_intrigue] + [""] * len(destinataires)
+            # row = [intrigue.nom] + [""] * len(destinataires)
             # for commentaire in intrigue.commentaires:
             for commentaire in dict_auteur_intrigues[auteur][intrigue]:
                 # if auteur != commentaire.auteur:
@@ -1378,7 +1390,7 @@ def generer_table_commentaires(gn: GN, prefixe=None):
                     row[column_index + 1] = "x"
             dict_auteurs_tableaux[auteur].append(row)
 
-    # Formatter un talbeua global intrigues > commentaires pour qui
+    # Formatter un talbeau global intrigues > commentaires pour qui
     tableau_global = [["Intrigue"] + list(destinataires)]
     for nom_intrigue in dict_intrigues_destinataires:
         row = [nom_intrigue] + [""] * len(destinataires)

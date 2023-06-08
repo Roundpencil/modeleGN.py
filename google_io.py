@@ -267,7 +267,7 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
                     visualisation(pas_visualisation * (nb_items - i))
                     m_print(f"et il n'a pas changé (dernier changement : "
                             f"{datetime.datetime.strptime(item['modifiedTime'][:-5], '%Y-%m-%dT%H:%M:%S')}) "
-                            f"depuis le dernier passage ({dict_ids[item['id']].lastProcessing})")
+                            f"depuis le dernier passage ({dict_ids[item['id']].get_last_processing()})")
                     break
 
             objet_de_reference = dict_ids.pop(item_id, None)
@@ -330,7 +330,7 @@ def extraire_elements_de_document(document, item, dict_reference: dict, fonction
     # on enregistre la date de dernière mise à jour
 
     if mon_objet is not None and save_last_change:
-        mon_objet.lastProcessing = datetime.datetime.now()
+        mon_objet.set_last_processing(datetime.datetime.now())
     # print(f'url intrigue = {mon_objet.url}')
     # print(f"intrigue {mon_objet.nom}, date de modification : {item['modifiedTime']}")
 
@@ -2007,7 +2007,7 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
             ma_methode(texte, objet_en_cours, label.value)
 
     # et on enregistre la date de dernière mise à jour de l'intrigue
-    objet_en_cours.lastProcessing = datetime.datetime.now()
+    objet_en_cours.set_last_processing(datetime.datetime.now())
     return objet_en_cours
 
 
@@ -2385,7 +2385,13 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
             valueInputOption='RAW', body=body).execute()
 
 
-def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id, feuille=None):
+def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id, feuille=None, avec_formules=True):
+    if avec_formules:
+        ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, feuille=feuille)
+    else:
+        ecrire_table_google_sheets_sans_formules(api_sheets, table, spreadsheet_id, feuille=feuille)
+
+def ecrire_table_google_sheets_sans_formules(api_sheets, table, spreadsheet_id, feuille=None):
     ma_range = 'A1'
     if feuille is not None:
         try:
@@ -2425,6 +2431,165 @@ def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id, feuille=None):
         print(f'An error occurred: {error}')
         result = None
     return result
+
+def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, feuille=None):
+    if feuille is not None:
+        try:
+            api_sheets.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={
+                "requests": [
+                    {
+                        "addSheet": {
+                            "properties": {
+                                "title": feuille
+                            }
+                        }
+                    }
+                ]
+            }).execute()
+        except HttpError as error:
+            print(f'An error occurred: {error}')
+
+    # Get the list of sheets in the spreadsheet
+    sheets = api_sheets.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()['sheets']
+
+    # Find the sheetId of the sheet we're writing to
+    sheetId = None
+    for sheet in sheets:
+        if sheet['properties']['title'] == feuille:
+            sheetId = sheet['properties']['sheetId']
+            break
+
+    if sheetId is None:
+        print(f"Sheet '{feuille}' not found")
+        return None
+
+    requests = []
+
+    for i, row in enumerate(table):
+        for j, cell in enumerate(row):
+            if isinstance(cell, str) and cell.startswith('='):
+                # This cell contains a formula
+                requests.append({
+                    "repeatCell": {
+                        "range": {
+                            "sheetId": sheetId,
+                            "startRowIndex": i,
+                            "endRowIndex": i + 1,
+                            "startColumnIndex": j,
+                            "endColumnIndex": j + 1
+                        },
+                        "cell": {
+                            "userEnteredValue": {
+                                "formulaValue": cell
+                            }
+                        },
+                        "fields": "userEnteredValue"
+                    }
+                })
+            else:
+                # This cell contains regular text
+                requests.append({
+                    "repeatCell": {
+                        "range": {
+                            "sheetId": sheetId,
+                            "startRowIndex": i,
+                            "endRowIndex": i + 1,
+                            "startColumnIndex": j,
+                            "endColumnIndex": j + 1
+                        },
+                        "cell": {
+                            "userEnteredValue": {
+                                "stringValue": str(cell)
+                            }
+                        },
+                        "fields": "userEnteredValue"
+                    }
+                })
+
+    try:
+        result = api_sheets.spreadsheets().batchUpdate(
+            spreadsheetId=spreadsheet_id,
+            body={"requests": requests}
+        ).execute()
+
+    except HttpError as error:
+        print(f'An error occurred: {error}')
+        result = None
+    return result
+
+
+# def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, feuille=None):
+#     ma_range = 'A1'
+#     if feuille is not None:
+#         try:
+#             ma_range = f'{feuille}!A1'
+#             api_sheets.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={
+#                 "requests": [
+#                     {
+#                         "addSheet": {
+#                             "properties": {
+#                                 "title": feuille
+#                             }
+#                         }
+#                     }
+#                 ]
+#             }).execute()
+#         except HttpError as error:
+#             print(f'An error occurred: {error}')
+#
+#     requests = []
+#
+#     for i, row in enumerate(table):
+#         for j, cell in enumerate(row):
+#             if isinstance(cell, str) and cell.startswith('='):
+#                 # This cell contains a formula
+#                 requests.append({
+#                     "repeatCell": {
+#                         "range": {
+#                             "sheetId": 0,  # replace with your sheetId
+#                             "startRowIndex": i,
+#                             "endRowIndex": i + 1,
+#                             "startColumnIndex": j,
+#                             "endColumnIndex": j + 1
+#                         },
+#                         "cell": {
+#                             "userEnteredValue": {
+#                                 "formulaValue": cell
+#                             }
+#                         },
+#                         "fields": "userEnteredValue"
+#                     }
+#                 })
+#             else:
+#                 # This cell contains regular text
+#                 requests.append({
+#                     "repeatCell": {
+#                         "range": {
+#                             "sheetId": 0,  # replace with your sheetId
+#                             "startRowIndex": i,
+#                             "endRowIndex": i + 1,
+#                             "startColumnIndex": j,
+#                             "endColumnIndex": j + 1
+#                         },
+#                         "cell": {
+#                             "userEnteredValue": {
+#                                 "stringValue": str(cell)
+#                             }
+#                         },
+#                         "fields": "userEnteredValue"
+#                     }
+#                 })
+#
+#     try:
+#         result = api_sheets.spreadsheets().batchUpdate(
+#             spreadsheetId=spreadsheet_id,
+#             body={"requests": requests}
+#         ).execute()
+#
+#     except HttpError as error:
+#         print(f'An error occurred: {error}')
+#         result = None
+#     return result
 
 
 def formatter_fichier_erreurs(api_doc, doc_id):

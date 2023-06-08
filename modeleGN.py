@@ -13,7 +13,7 @@ from fuzzywuzzy import process
 import sys
 from packaging import version
 
-VERSION = "1.1.20230509"
+VERSION = "1.1.20230608"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -48,11 +48,6 @@ def string_type_pj(type_pj: TypePerso):
                  TypePerso.EST_PNJ_TEMPORAIRE: "PNJ Temporaire"}
     return grille_pj.get(type_pj, f"Type de PJ inconnu ({type_pj})")
 
-class ElementAvecFichier:
-    def __init__(self, derniere_edition_fichier, last_processing, url):
-        if last_processing is None:
-            last_processing = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
-        self.lastProcessing = last_processing
 
 # une superclasse qui représente un fichier qui content des scènes, avec les rôles associés
 # donc y compris les propriétés du fichier où elle se trouve (notamment date de changement)
@@ -68,9 +63,14 @@ class ConteneurDeScene:
         self.modifie_par = ""
         self.url = url
         self.nom = "Conteneur sans nom"
-        if last_processing is None:
-            last_processing = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
-        self.lastProcessing = last_processing
+
+        self.lastProcessing = last_processing or datetime.datetime.now() - datetime.timedelta(days=500 * 365)
+
+    def get_last_processing(self):
+        return self.lastProcessing
+
+    def set_last_processing(self, valeur):
+        self.lastProcessing = valeur
 
     def texte_error_log(self):
         return str(self.error_log)
@@ -196,7 +196,6 @@ class Personnage(ConteneurDeScene):
         self.groupes = []
         self.datesClefs = dates_clefs
         self.textesAnnexes = textes_annexes
-        # self.lastProcessing = last_change
         self.forced = forced
         self.commentaires = []
         self.informations_evenements = set()
@@ -1788,6 +1787,12 @@ class Evenement:
         self.intrigue = None
         self.objets = set()
 
+    def get_last_processing(self):
+        return self.lastProcessing
+
+    def set_last_processing(self, valeur):
+        self.lastProcessing = valeur
+
     def get_noms_pnjs(self):
         return list(self.intervenants_evenement.keys())
 
@@ -1880,7 +1885,7 @@ def _heure_formattee(heure, defaut_si_ko=None):
 
 
 class Intervention:
-    def __init__(self, evenement: Evenement=None, jour=None, heure_debut=None, heure_fin=None, description=""):
+    def __init__(self, evenement: Evenement = None, jour=None, heure_debut=None, heure_fin=None, description=""):
         self.jour = jour
         self.heure_debut = heure_debut
         self.heure_fin = heure_fin
@@ -1929,7 +1934,7 @@ class ObjetDeReference:
             derniere_edition_date=None,
             derniere_edition_par="",
             ajoute_via_forcage=False,
-            last_processing = None
+            last_processing=None
     ):
         self.id_url = id_url
         self.nom_objet = nom_objet
@@ -1947,6 +1952,12 @@ class ObjetDeReference:
         self.ajoute_via_forcage = ajoute_via_forcage
         self.effets_speciaux = effets_speciaux
         self.last_processing = last_processing or datetime.datetime.now() - datetime.timedelta(days=500 * 365)
+
+    def get_last_processing(self):
+        return self.last_processing
+
+    def set_last_processing(self, valeur):
+        self.last_processing = valeur
 
     def clear(self):
         for objet in self.objets_dans_intrigues:
