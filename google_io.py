@@ -345,7 +345,7 @@ def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_e
     # texteIntrigue = texteIntrigue.replace('\v', '\n')
     # print("*****************************")
     current_intrigue = Intrigue(nom=nom_intrigue, url=id_url, derniere_edition_fichier=last_file_edit)
-    current_intrigue.modifie_par = derniere_modification_par
+    current_intrigue.derniere_edition_par = derniere_modification_par
     dict_intrigues[id_url] = current_intrigue
 
     # noms_persos = gn.liste_noms_pjs()
@@ -1093,7 +1093,7 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, table
 
         titre_scene = scene.splitlines()[0].strip()
         scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
-        scene_a_ajouter.modifie_par = conteneur.modifie_par
+        scene_a_ajouter.derniere_edition_par = conteneur.derniere_edition_par
 
         balises = re.findall(r'##.*', scene)
         for balise in balises:
@@ -1783,7 +1783,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
     perso_en_cours = Personnage(nom=nom_perso_en_cours, url=id_url, derniere_edition_fichier=last_file_edit, pj=pj)
-    perso_en_cours.modifie_par = derniere_modification_par
+    perso_en_cours.derniere_edition_par = derniere_modification_par
     dict_pj_pnj[id_url] = perso_en_cours
 
     texte_persos_low = texte_persos.lower()  # on passe en minuscule pour mieux trouver les chaines

@@ -13,7 +13,7 @@ from fuzzywuzzy import process
 import sys
 from packaging import version
 
-VERSION = "1.1.20230608"
+VERSION = "1.1.20230609"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -51,9 +51,8 @@ def string_type_pj(type_pj: TypePerso):
 
 class FichierGoogle:
     def __init__(self, id_url, last_file_edit=None, last_processing=None):
-
         self.last_file_edit = last_file_edit or (datetime.datetime.now() - datetime.timedelta(days=500 * 365))
-        self.modifie_par = ""
+        self.derniere_edition_par = ""
         self.id_url = id_url
         self.last_processing = last_processing or datetime.datetime.now() - datetime.timedelta(days=500 * 365)
 
@@ -63,6 +62,20 @@ class FichierGoogle:
     def set_last_processing(self, valeur):
         self.last_processing = valeur
 
+    def get_last_file_edit(self):
+        return self.last_file_edit
+
+    def set_last_file_edit(self, valeur):
+        self.last_file_edit = valeur
+
+    def get_id_url(self):
+        return self.id_url
+
+    def get_derniere_edition_par(self):
+        return self.derniere_edition_par
+
+    def set_derniere_edition_par(self, valeur):
+        self.derniere_edition_par = valeur
 
 
 # une superclasse qui représente un fichier qui content des scènes, avec les rôles associés
@@ -73,7 +86,7 @@ class FichierGoogle:
 class ConteneurDeScene(FichierGoogle):
     def __init__(self, derniere_edition_fichier, last_processing, url):
         super(ConteneurDeScene, self).__init__(last_file_edit=derniere_edition_fichier,
-                                               last_processing=last_processing, url=url)
+                                               last_processing=last_processing, id_url=url)
         self.scenes = set()
         self.rolesContenus = {}  # nom, rôle
         self.error_log = ErreurManager()
@@ -173,7 +186,7 @@ class ConteneurDeScene(FichierGoogle):
                         # print(f"dernières mises à jour : ma_scene : {ma_scene.derniere_mise_a_jour} /
                         # sa_scène : {sa_scene.derniere_mise_a_jour}")
                         ma_scene.derniere_mise_a_jour = sa_scene.derniere_mise_a_jour
-                        ma_scene.modifie_par = sa_scene.modifie_par
+                        ma_scene.derniere_edition_par = sa_scene.derniere_edition_par
                         # print(f"et, après update : ma_scene : {ma_scene.derniere_mise_a_jour}
                         # / sa_scène : {sa_scene.derniere_mise_a_jour}")
                     elif verbal:
@@ -1630,11 +1643,25 @@ class GN:
                           {'objets': 'objets_de_reference'},
                       Personnage:
                           {"orgaReferent": "orga_referent",
-                           "joueurs": "interpretes"},
+                           "joueurs": "interpretes",
+                           "lastFileEdit": "last_file_edit",
+                           "modifie_par": "derniere_edition_par",
+                           "url": "id_url",
+                           "lastProcessing": "last_processing"},
                       Intrigue:
-                          {'orgaReferent': 'orga_referent'},
+                          {'orgaReferent': 'orga_referent',
+                           "lastFileEdit": "last_file_edit",
+                           "modifie_par": "derniere_edition_par",
+                           "url": "id_url",
+                           "lastProcessing": "last_processing"},
                       Intervention:
-                          {'heure': 'heure_debut'}
+                          {'heure': 'heure_debut'},
+                      Evenement:
+                          {"derniere_edition_date": "last_file_edit",
+                           "lastProcessing": "last_processing"
+                           },
+                      ObjetDeReference:
+                          {"derniere_edition_date": "last_file_edit",}
                       }
 
         # déclaration de la méthode de mise à jour
@@ -1784,7 +1811,7 @@ class Evenement(FichierGoogle):
             last_processing=None
     ):
         super(Evenement, self).__init__(last_file_edit=derniere_edition_date,
-                                               last_processing=last_processing, url=id_url)
+                                        last_processing=last_processing, id_url=id_url)
 
         self.nom_evenement = nom_evenement
         self.id_url = id_url
@@ -1964,7 +1991,7 @@ class ObjetDeReference(FichierGoogle):
     ):
         super(ObjetDeReference, self).__init__(last_file_edit=derniere_edition_date,
                                                last_processing=last_processing,
-                                               url=id_url)
+                                               id_url=id_url)
         self.nom_objet = nom_objet
         self.code_objet = code_objet
         self.referent = referent

@@ -646,9 +646,9 @@ def split_text_reverse(text: str, taille_chunk: int):
 
 def ajouter_champs_modifie_par(mon_gn: GN, nom_fichier=None):
     for conteneur in list(mon_gn.intrigues.values()) + list(mon_gn.dictPJs.values()):
-        conteneur.modifie_par = ""
+        conteneur.derniere_edition_par = ""
         for scene in conteneur.scenes:
-            scene.modifie_par = ""
+            scene.derniere_edition_par = ""
 
     if nom_fichier is not None:
         mon_gn.save(nom_fichier)

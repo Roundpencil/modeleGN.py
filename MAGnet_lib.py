@@ -614,7 +614,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
     for ma_scene in toutes_les_scenes:
         dict_scene = {'nom_scene': ma_scene.titre,
                       'date': ma_scene.derniere_mise_a_jour.strftime("%Y-%m-%d %H:%M:%S"),
-                      'qui': ma_scene.modifie_par, 'document': ma_scene.conteneur.get_full_url()
+                      'qui': ma_scene.derniere_edition_par, 'document': ma_scene.conteneur.get_full_url()
                       }
         dict_orgas = {}
         # dict_scene['dict_orgas'] = dict_orgas
@@ -648,7 +648,7 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
             intrigue.nom,
             len(intrigue.scenes),
             intrigue.lastFileEdit.strftime("%Y-%m-%d %H:%M:%S"),
-            intrigue.modifie_par,
+            intrigue.derniere_edition_par,
             intrigue.orga_referent,
             intrigue.questions_ouvertes,
             intrigue.error_log.nb_erreurs(),
