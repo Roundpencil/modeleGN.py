@@ -2384,13 +2384,43 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
             spreadsheetId=spreadsheet_id, range=f'{orga}!A1',
             valueInputOption='RAW', body=body).execute()
 
+def expand_grid(api_sheets, spreadsheet_id, sheet_id, table):
+    new_rows = len(table)
+    new_cols = max(len(row) for row in table)
 
+
+    try:
+        api_sheets.spreadsheets().batchUpdate(
+            spreadsheetId=spreadsheet_id,
+            body={
+                "requests": [
+                    {
+                        "updateSheetProperties": {
+                            "properties": {
+                                "sheetId": sheet_id,
+                                "gridProperties": {
+                                    "rowCount": new_rows,
+                                    "columnCount": new_cols
+                                }
+                            },
+                            "fields": "gridProperties(rowCount,columnCount)"
+                        }
+                    }
+                ]
+            }
+        ).execute()
+    except HttpError as error:
+        print(f'An error occurred: {error}')
+
+# def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id, feuille="Feuille 1", avec_formules=True):
 def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id, feuille=None, avec_formules=True):
-    if avec_formules:
-        ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, feuille=feuille)
-    else:
-        ecrire_table_google_sheets_sans_formules(api_sheets, table, spreadsheet_id, feuille=feuille)
+    #
+    # if avec_formules:
+    #     ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, feuille=feuille)
+    # else:
+    #     ecrire_table_google_sheets_sans_formules(api_sheets, table, spreadsheet_id, feuille=feuille)
 
+    ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, feuille=feuille)
 def ecrire_table_google_sheets_sans_formules(api_sheets, table, spreadsheet_id, feuille=None):
     ma_range = 'A1'
     if feuille is not None:
@@ -2432,97 +2462,9 @@ def ecrire_table_google_sheets_sans_formules(api_sheets, table, spreadsheet_id, 
         result = None
     return result
 
-def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, feuille=None):
-    if feuille is not None:
-        try:
-            api_sheets.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={
-                "requests": [
-                    {
-                        "addSheet": {
-                            "properties": {
-                                "title": feuille
-                            }
-                        }
-                    }
-                ]
-            }).execute()
-        except HttpError as error:
-            print(f'An error occurred: {error}')
-
-    # Get the list of sheets in the spreadsheet
-    sheets = api_sheets.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()['sheets']
-
-    # Find the sheetId of the sheet we're writing to
-    sheetId = None
-    for sheet in sheets:
-        if sheet['properties']['title'] == feuille:
-            sheetId = sheet['properties']['sheetId']
-            break
-
-    if sheetId is None:
-        print(f"Sheet '{feuille}' not found")
-        return None
-
-    requests = []
-
-    for i, row in enumerate(table):
-        for j, cell in enumerate(row):
-            if isinstance(cell, str) and cell.startswith('='):
-                # This cell contains a formula
-                requests.append({
-                    "repeatCell": {
-                        "range": {
-                            "sheetId": sheetId,
-                            "startRowIndex": i,
-                            "endRowIndex": i + 1,
-                            "startColumnIndex": j,
-                            "endColumnIndex": j + 1
-                        },
-                        "cell": {
-                            "userEnteredValue": {
-                                "formulaValue": cell
-                            }
-                        },
-                        "fields": "userEnteredValue"
-                    }
-                })
-            else:
-                # This cell contains regular text
-                requests.append({
-                    "repeatCell": {
-                        "range": {
-                            "sheetId": sheetId,
-                            "startRowIndex": i,
-                            "endRowIndex": i + 1,
-                            "startColumnIndex": j,
-                            "endColumnIndex": j + 1
-                        },
-                        "cell": {
-                            "userEnteredValue": {
-                                "stringValue": str(cell)
-                            }
-                        },
-                        "fields": "userEnteredValue"
-                    }
-                })
-
-    try:
-        result = api_sheets.spreadsheets().batchUpdate(
-            spreadsheetId=spreadsheet_id,
-            body={"requests": requests}
-        ).execute()
-
-    except HttpError as error:
-        print(f'An error occurred: {error}')
-        result = None
-    return result
-
-
 # def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, feuille=None):
-#     ma_range = 'A1'
 #     if feuille is not None:
 #         try:
-#             ma_range = f'{feuille}!A1'
 #             api_sheets.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={
 #                 "requests": [
 #                     {
@@ -2537,6 +2479,33 @@ def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, 
 #         except HttpError as error:
 #             print(f'An error occurred: {error}')
 #
+#     # Get the list of sheets in the spreadsheet
+#     sheets = api_sheets.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()['sheets']
+#
+#     # Find the sheetId of the sheet we're writing to
+#     # sheetId = None
+#     # for sheet in sheets:
+#     #     if sheet['properties']['title'] == feuille:
+#     #         sheetId = sheet['properties']['sheetId']
+#     #         break
+#
+#     # if sheetId is None:
+#     #     print(f"Sheet '{feuille}' not found")
+#     #     return None
+#     #
+#     sheetId = None
+#
+#     for i, sheet in enumerate(sheets):
+#         # Store the ID of the first sheet
+#         if i == 0:
+#             sheetId = sheet['properties']['sheetId']
+#
+#         if sheet['properties']['title'] == feuille:
+#             sheetId = sheet['properties']['sheetId']
+#             break
+#
+#
+#
 #     requests = []
 #
 #     for i, row in enumerate(table):
@@ -2546,7 +2515,7 @@ def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, 
 #                 requests.append({
 #                     "repeatCell": {
 #                         "range": {
-#                             "sheetId": 0,  # replace with your sheetId
+#                             "sheetId": sheetId,
 #                             "startRowIndex": i,
 #                             "endRowIndex": i + 1,
 #                             "startColumnIndex": j,
@@ -2565,7 +2534,7 @@ def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, 
 #                 requests.append({
 #                     "repeatCell": {
 #                         "range": {
-#                             "sheetId": 0,  # replace with your sheetId
+#                             "sheetId": sheetId,
 #                             "startRowIndex": i,
 #                             "endRowIndex": i + 1,
 #                             "startColumnIndex": j,
@@ -2590,6 +2559,100 @@ def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, 
 #         print(f'An error occurred: {error}')
 #         result = None
 #     return result
+
+def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, feuille=None):
+    if feuille is not None:
+        try:
+            api_sheets.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={
+                "requests": [
+                    {
+                        "addSheet": {
+                            "properties": {
+                                "title": feuille
+                            }
+                        }
+                    }
+                ]
+            }).execute()
+        except HttpError as error:
+            print(f'An error occurred: {error}')
+
+    # Get the list of sheets in the spreadsheet
+    sheets = api_sheets.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()['sheets']
+
+    sheetId = None
+
+    for i, sheet in enumerate(sheets):
+        # Store the ID of the first sheet
+        if i == 0:
+            sheetId = sheet['properties']['sheetId']
+
+        if sheet['properties']['title'] == feuille:
+            sheetId = sheet['properties']['sheetId']
+            break
+
+    expand_grid(api_sheets, spreadsheet_id, sheetId, table)
+
+    requests = []
+
+    for i, row in enumerate(table):
+        for j, cell in enumerate(row):
+            if isinstance(cell, str) and cell.startswith('='):
+                # This cell contains a formula
+                requests.append({
+                    "updateCells": {
+                        "range": {
+                            "sheetId": sheetId,
+                            "startRowIndex": i,
+                            "endRowIndex": i + 1,
+                            "startColumnIndex": j,
+                            "endColumnIndex": j + 1
+                        },
+                        "rows": [{
+                            "values": [{
+                                "userEnteredValue": {
+                                    "formulaValue": cell
+                                }
+                            }]
+                        }],
+                        "fields": "userEnteredValue"
+                    }
+                })
+            else:
+                # This cell contains regular text
+                requests.append({
+                    "updateCells": {
+                        "range": {
+                            "sheetId": sheetId,
+                            "startRowIndex": i,
+                            "endRowIndex": i + 1,
+                            "startColumnIndex": j,
+                            "endColumnIndex": j + 1
+                        },
+                        "rows": [{
+                            "values": [{
+                                "userEnteredValue": {
+                                    "stringValue": str(cell)
+                                }
+                            }]
+                        }],
+                        "fields": "userEnteredValue"
+                    }
+                })
+
+    try:
+        result = api_sheets.spreadsheets().batchUpdate(
+            spreadsheetId=spreadsheet_id,
+            body={"requests": requests}
+        ).execute()
+
+    except HttpError as error:
+        print(f'An error occurred: {error}')
+        result = None
+    return result
+
+
+
 
 
 def formatter_fichier_erreurs(api_doc, doc_id):
