@@ -930,7 +930,8 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
             fx = objet.specialEffect.replace('\n', '\v')
             debuteou = objet.emplacementDebut.replace('\n', '\v')
             fournipar = objet.fourniParJoueur.replace('\n', '\v')
-            intrigue = objet.intrigue
+            # intrigue = objet.intrigue
+            intrigue = lien_vers_hyperlink(objet.intrigue.url, objet.intrigue.nom)
             evenement = ""
             fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
             to_return.append([f"{code}",
@@ -979,6 +980,8 @@ def generer_table_objets_uniques(mon_gn):
         else:
             nom = list(objet_ref.objets_dans_evenements)[0].description
         liste_noms_intrigues = [o.intrigue.nom for o in objet_ref.objets_dans_intrigues if o.intrigue is not None]
+        # liste_noms_intrigues = [lien_vers_hyperlink(o.intrigue.get_full_url(), o.intrigue.nom)
+        #                         for o in objet_ref.objets_dans_intrigues if o.intrigue is not None]
         intrigues = '\n'.join(liste_noms_intrigues)
         liste_noms_evenements = [o.evenement.nom_evenement for o in objet_ref.objets_dans_evenements if
                                  o.evenement is not None]
