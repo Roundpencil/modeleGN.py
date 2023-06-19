@@ -1190,7 +1190,8 @@ def generer_tableau_recap_persos(gn: GN):
     # to_return = []
     to_return = [["Nom Perso", "Orga Référent", "Points", "Intrigues"]]
     for perso in gn.get_dict_pj().values():
-        table_perso = [role.conteneur.nom for role in perso.roles]
+        # table_perso = [role.conteneur.nom for role in perso.roles]
+        table_perso = [lien_vers_hyperlink(role.conteneur.get_full_url(), role.conteneur.nom) for role in perso.roles]
         # for role in perso.roles:
         #     table_perso += [role.conteneur.nom]
         table_perso = sorted(table_perso)
