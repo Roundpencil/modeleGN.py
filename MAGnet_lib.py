@@ -1033,21 +1033,6 @@ def generer_table_chrono_condensee_raw(gn: GN):
 
 
 def generer_table_chrono_condensee(tableau_raw, date_gn):
-    # tableau_formatte = []
-    # for ligne in tableau_raw:
-    #     tableau_formatte += [ligne[0]] + [[f"{event[0]} - {event[1]}"] for event in ligne[1:]]
-    #
-    # # mettre tous les noms dans une matrice et remplir les moins longs par ""
-    # # find the length of the longest list
-    # max_len = max(len(lst) for lst in tableau_formatte)
-    # print(f"tableau formatté = {tableau_formatte}")
-    #
-    # # pad the shorter lists with zeros
-    # matrice = [lst + [""] * (max_len - len(lst)) for lst in tableau_formatte]
-    #
-    # # transpose the list of lists
-    # to_return = [list(row) for row in zip(*matrice)]
-    # return to_return
 
     # Get the maximum number of events among all stories
     max_len = max(len(story) - 1 for story in tableau_raw)
@@ -1069,7 +1054,8 @@ def generer_table_chrono_condensee(tableau_raw, date_gn):
                 date = story[i + 1].get_formatted_date(date_gn=date_gn)
                 event = f"{story[i + 1].titre} \n ({story[i + 1].conteneur.nom})"
                 # event = story[i + 1].titre
-                row.append(f"{date} - {event}")
+                # row.append(f"{date} - {event}")
+                row.append(lien_vers_hyperlink(story[i + 1].conteneur.get_full_url(), f"{date} - {event}"))
             # Otherwise, add an empty string
             else:
                 row.append("")
@@ -1142,6 +1128,10 @@ def generer_table_chrono_complete(table_raw, date_gn):
         for event in story[1:]:
             i = date_to_index[event.get_formatted_date(date_gn=date_gn)]
             matrix[i + 1][j + 1] = '\n'.join([matrix[i + 1][j + 1], f"{event.titre} \n ({event.conteneur.nom})"])
+            # hyperlinks impossibles car potentiellement plusieurs liens dans la meme case
+            # matrix[i + 1][j + 1] = '\n'.join([matrix[i + 1][j + 1],
+            #                                   lien_vers_hyperlink(event.conteneur.get_full_url(),
+            #                                                       f"{event.titre} \n ({event.conteneur.nom})")])
 
     return matrix
 
