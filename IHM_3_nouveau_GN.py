@@ -173,14 +173,14 @@ class WizzardGN(ttk.Frame):
         # print(f"nib i = {nb_intrigues}")
         for i in range(nb_intrigues):
             if creer_fichier:
-                current_dossier = g_io.creer_dossier(self.api_drive, nom_parent, f"Intrigues {i + 1}")
+                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent, f"Intrigues {i + 1}")
                 dict_essentiels[f"id_dossier_intrigues_{i + 1}"] = current_dossier
                 g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_intrigue, current_dossier)
             else:
                 dict_essentiels[f"id_dossier_intrigues_{i + 1}"] = ""
 
         if creer_fichier:
-            dict_essentiels['dossier_output_squelettes_pjs'] = g_io.creer_dossier(self.api_drive, nom_parent, "Output")
+            dict_essentiels['dossier_output_squelettes_pjs'] = g_io.creer_dossier_drive(self.api_drive, nom_parent, "Output")
         else:
             dict_essentiels['dossier_output_squelettes_pjs'] = ""
         dict_essentiels['mode_association'] = self.mode_association_var.get()
@@ -190,7 +190,7 @@ class WizzardGN(ttk.Frame):
         for i in range(nb_evenements):
             current_dossier = ""
             if creer_fichier:
-                current_dossier = g_io.creer_dossier(self.api_drive, nom_parent, f"Evènements {i + 1}")
+                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent, f"Evènements {i + 1}")
                 g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_evenement, current_dossier)
             dict_optionnels[f"id_dossier_evenements_{i + 1}"] = current_dossier
 
@@ -198,7 +198,7 @@ class WizzardGN(ttk.Frame):
         for i in range(nb_objets):
             current_dossier = ""
             if creer_fichier:
-                current_dossier = g_io.creer_dossier(self.api_drive, nom_parent, f"Objets {i + 1}")
+                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent, f"Objets {i + 1}")
                 g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_objet, current_dossier)
             dict_optionnels[f"id_dossier_objets_{i + 1}"] = current_dossier
 
@@ -206,7 +206,7 @@ class WizzardGN(ttk.Frame):
         for i in range(nb_pjs):
             current_dossier = ""
             if creer_fichier:
-                current_dossier = g_io.creer_dossier(self.api_drive, nom_parent, f"Fiches PJs {i + 1}")
+                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent, f"Fiches PJs {i + 1}")
                 g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_perso, current_dossier)
             dict_optionnels[f"id_dossier_pjs_{i + 1}"] = current_dossier
 
@@ -214,7 +214,7 @@ class WizzardGN(ttk.Frame):
         for i in range(nb_pnjs):
             current_dossier = ""
             if creer_fichier:
-                current_dossier = g_io.creer_dossier(self.api_drive, nom_parent, f"Fiches PNJs {i + 1}")
+                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent, f"Fiches PNJs {i + 1}")
                 g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_perso, current_dossier)
             dict_optionnels[f"id_dossier_pnjs_{i + 1}"] = current_dossier
 

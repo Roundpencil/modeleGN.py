@@ -344,7 +344,7 @@ def reverse_generer_squelettes_dans_drive(mon_GN: GN, api_doc, api_drive):
     for nom_perso in d:
         # créer le fichier et récupérer l'ID
         nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
-        id = google_io.add_doc(api_drive, nom_fichier, mon_GN.dossier_outputs_drive)
+        id = google_io.creer_google_doc(api_drive, nom_fichier, mon_GN.dossier_outputs_drive)
 
         # ajouter le texte de l'intro
         texte_intro = d[nom_perso]["intro"]

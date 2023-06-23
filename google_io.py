@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import configparser
 from enum import Enum
+from typing import Optional
 
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
@@ -2167,23 +2168,7 @@ def is_document_being_edited(service, file_id):
         return None
 
 
-def add_doc(service, nom_fichier, parent, m_print=print):
-    try:
-        # create the metadata for the new document
-        file_metadata = {
-            'name': nom_fichier,
-            'parents': [parent],
-            'mimeType': 'application/vnd.google-apps.document'
-        }
 
-        # create the document
-        file = service.files().create(body=file_metadata, fields='id').execute()
-        m_print(f'File ID pour {nom_fichier}: {file.get("id")}')
-        return file.get("id")
-
-    except HttpError as error:
-        print(F'An error occurred: {error}')
-        file = None
 
 
 def write_to_doc(service, file_id, text, titre=False):
@@ -2271,31 +2256,82 @@ def formatter_titres_scenes_dans_squelettes(service, file_id):
         return None
 
 
-def creer_dossier(service_drive, id_dossier_parent, nom_dossier):
-    # print(f"debug : {id_dossier_parent}, {nom_dossier}")
+
+
+
+def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: str, m_print=print) -> Optional[str]:
+    """Crée un fichier dans Google Drive avec un type MIME spécifique."""
     try:
-        # Création de l'objet dossier
-        nouveau_dossier = {'name': nom_dossier, 'parents': [id_dossier_parent],
-                           'mimeType': 'application/vnd.google-apps.folder'}
-        # Ajout du nouveau dossier
-        dossier_cree = service_drive.files().create(body=nouveau_dossier, fields='id').execute()
-        # Récupération de l'id du nouveau dossier
-        id_dossier = dossier_cree.get('id')
-        return id_dossier
-    except HttpError as error:
-        print(F'An error occurred: {error}')
+        metadonnees_fichier = {
+            'name': nom_fichier,
+            'parents': [id_parent],
+            'mimeType': type_mime
+        }
+        fichier = service_drive.files().create(body=metadonnees_fichier, fields='id').execute()
+        m_print(f'ID du fichier pour {nom_fichier}: {fichier.get("id")}')
+        return fichier.get("id")
+    except HttpError as erreur:
+        print(f'Une erreur est survenue : {erreur}')
+        print(f'Contenu de l\'erreur : {erreur.content}')
         return None
 
+def creer_dossier(service_drive, id_parent: str, nom_dossier: str, m_print=print) -> Optional[str]:
+    """Crée un dossier dans Google Drive."""
+    TYPE_MIME_DOSSIER = 'application/vnd.google-apps.folder'
+    return creer_fichier(service_drive, nom_dossier, id_parent, TYPE_MIME_DOSSIER)
 
-def creer_google_sheet(api_drive, nom_sheet: str, parent_folder_id: str):
-    # Create a new document
-    body = {
-        'name': nom_sheet,
-        'parents': [parent_folder_id],
-        'mimeType': 'application/vnd.google-apps.spreadsheet'
-    }
-    new_doc = api_drive.files().create(body=body).execute()
-    return new_doc.get("id")
+def creer_google_sheet(service_drive, nom_feuille: str, id_dossier_parent: str, m_print=print) -> Optional[str]:
+    """Crée un document Google Sheets dans Google Drive."""
+    TYPE_MIME_FEUILLE = 'application/vnd.google-apps.spreadsheet'
+    return creer_fichier(service_drive, nom_feuille, id_dossier_parent, TYPE_MIME_FEUILLE)
+
+def creer_google_doc(service_drive, nom_fichier: str, id_parent: str, m_print=print) -> Optional[str]:
+    """Crée un document Google Docs dans Google Drive."""
+    TYPE_MIME_DOCUMENT = 'application/vnd.google-apps.document'
+    return creer_fichier(service_drive, nom_fichier, id_parent, TYPE_MIME_DOCUMENT)
+
+# def creer_dossier_drive(service_drive, id_dossier_parent, nom_dossier):
+#     # print(f"debug : {id_dossier_parent}, {nom_dossier}")
+#     try:
+#         # Création de l'objet dossier
+#         nouveau_dossier = {'name': nom_dossier, 'parents': [id_dossier_parent],
+#                            'mimeType': 'application/vnd.google-apps.folder'}
+#         # Ajout du nouveau dossier
+#         dossier_cree = service_drive.files().create(body=nouveau_dossier, fields='id').execute()
+#         # Récupération de l'id du nouveau dossier
+#         id_dossier = dossier_cree.get('id')
+#         return id_dossier
+#     except HttpError as error:
+#         print(F'An error occurred: {error}')
+#         return None
+
+# def creer_google_doc(service, nom_fichier, parent, m_print=print):
+#     try:
+#         # create the metadata for the new document
+#         file_metadata = {
+#             'name': nom_fichier,
+#             'parents': [parent],
+#             'mimeType': 'application/vnd.google-apps.document'
+#         }
+#
+#         # create the document
+#         file = service.files().create(body=file_metadata, fields='id').execute()
+#         m_print(f'File ID pour {nom_fichier}: {file.get("id")}')
+#         return file.get("id")
+#
+#     except HttpError as error:
+#         print(F'An error occurred: {error}')
+#         file = None
+
+# def creer_google_sheet(api_drive, nom_sheet: str, parent_folder_id: str):
+#     # Create a new document
+#     body = {
+#         'name': nom_sheet,
+#         'parents': [parent_folder_id],
+#         'mimeType': 'application/vnd.google-apps.spreadsheet'
+#     }
+#     new_doc = api_drive.files().create(body=body).execute()
+#     return new_doc.get("id")
 
 
 # tableau_scene_orgas, id, dict_orgas_persos, api_sheets
