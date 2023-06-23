@@ -462,7 +462,8 @@ def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, parent, 
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Listes des erreurs dans les tableaux des persos'
-    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent)
+    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
+                                   id_dossier_archive=mon_gn.get_id_dossier_archive())
     if g_io.write_to_doc(
             api_doc, mon_id, texte_erreurs
     ):
@@ -474,7 +475,8 @@ def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent,
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Listes des erreurs dans les évènements'
-    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent)
+    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
+                                   id_dossier_archive=mon_gn.get_id_dossier_archive())
     if g_io.write_to_doc(
             api_doc, mon_id, texte_erreurs
     ):
@@ -694,7 +696,8 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
         m_print(f'{prefixe} : {nom_perso}')
         visualisation(pas_visualisation)
 
-        file_id = g_io.creer_google_doc(api_drive, nom_fichier, nouveau_dossier)
+        file_id = g_io.creer_google_doc(api_drive, nom_fichier, nouveau_dossier,
+                                   id_dossier_archive=mon_gn.get_id_dossier_archive())
         g_io.write_to_doc(api_doc, file_id, texte, titre=nom_fichier)
         g_io.formatter_titres_scenes_dans_squelettes(api_doc, file_id)
 
@@ -1339,7 +1342,8 @@ def ecrire_texte_info(mon_gn: GN, api_doc, api_drive):
     texte = generer_textes_infos(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- données pour aides de jeu'
-    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent)
+    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
+                                   id_dossier_archive=mon_gn.get_id_dossier_archive())
     g_io.write_to_doc(
         api_doc, mon_id, texte
     )
@@ -1433,7 +1437,8 @@ def ecrire_table_commentaires(gn: GN, api_drive, api_doc, api_sheets):
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- commentaires ouverts dans les documents'
-    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent)
+    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
+                                   id_dossier_archive=mon_gn.get_id_dossier_archive())
     g_io.write_to_doc(
         api_doc, mon_id, texte
     )

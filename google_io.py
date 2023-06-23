@@ -2261,7 +2261,10 @@ def formatter_titres_scenes_dans_squelettes(service, file_id):
 
 def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: str, m_print=print, id_dossier_archive = None) -> Optional[str]:
     """Crée un fichier dans Google Drive avec un type MIME spécifique."""
+
+    print(f"DEBUG  : fichier archive : {id_dossier_archive}")
     if id_dossier_archive:
+        print("DEBUG  : fichier archive trouvé")
         archiver_fichiers_existants(service_drive, nom_fichier, id_parent, id_dossier_archive, considerer_supprime=False)
     try:
         metadonnees_fichier = {
@@ -2313,8 +2316,11 @@ def archiver_fichiers_existants(service, nom_fichier, id_dossier_parent, id_doss
         resultats = service.files().list(
             q=f"'{id_dossier_parent}' in parents and name contains '{label}'{query_supprime}",
             fields="nextPageToken, files(id, name)").execute()
+        print(f"DEBUG : RESULTATS dans archiver = {resultats}")
 
         items = resultats.get('files', [])
+
+        print(f"DEBUG : nb items  dans archiver = {len(items)}")
 
         # Vérifier s'il y a des fichiers avec le label spécifié
         if items:
@@ -3209,7 +3215,7 @@ def verifier_config_parser(api_drive, config):
     fichier_output['liste_noms_pjs'] = config.get('Optionnels', 'noms_persos', fallback=None)
 
     # ajouter le dossier archive
-    fichier_output['id_dossier_archive'] = config.get('Optionnels', 'id_dossier_archive ', fallback=None)
+    fichier_output['id_dossier_archive'] = config.get('Optionnels', 'id_dossier_archive', fallback=None)
 
     # a ce stade là on a :
     # 1. intégré tous les paramètres au fichier de sortie
