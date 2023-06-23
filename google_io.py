@@ -2259,8 +2259,10 @@ def formatter_titres_scenes_dans_squelettes(service, file_id):
 
 
 
-def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: str, m_print=print) -> Optional[str]:
+def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: str, m_print=print, id_dossier_archive = None) -> Optional[str]:
     """Crée un fichier dans Google Drive avec un type MIME spécifique."""
+    if id_dossier_archive:
+        archiver_fichiers_existants(service_drive, nom_fichier, id_parent, id_dossier_archive, considerer_supprime=False)
     try:
         metadonnees_fichier = {
             'name': nom_fichier,
@@ -2275,20 +2277,64 @@ def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: st
         print(f'Contenu de l\'erreur : {erreur.content}')
         return None
 
-def creer_dossier(service_drive, id_parent: str, nom_dossier: str, m_print=print) -> Optional[str]:
+def creer_dossier_drive(service_drive, id_parent: str, nom_dossier: str, m_print=print, id_dossier_archive = None) -> Optional[str]:
     """Crée un dossier dans Google Drive."""
     TYPE_MIME_DOSSIER = 'application/vnd.google-apps.folder'
-    return creer_fichier(service_drive, nom_dossier, id_parent, TYPE_MIME_DOSSIER)
+    return creer_fichier(service_drive, nom_dossier, id_parent, TYPE_MIME_DOSSIER, id_dossier_archive=id_dossier_archive)
 
-def creer_google_sheet(service_drive, nom_feuille: str, id_dossier_parent: str, m_print=print) -> Optional[str]:
+def creer_google_sheet(service_drive, nom_feuille: str, id_dossier_parent: str, m_print=print, id_dossier_archive = None) -> Optional[str]:
     """Crée un document Google Sheets dans Google Drive."""
     TYPE_MIME_FEUILLE = 'application/vnd.google-apps.spreadsheet'
-    return creer_fichier(service_drive, nom_feuille, id_dossier_parent, TYPE_MIME_FEUILLE)
+    return creer_fichier(service_drive, nom_feuille, id_dossier_parent, TYPE_MIME_FEUILLE, id_dossier_archive=id_dossier_archive)
 
-def creer_google_doc(service_drive, nom_fichier: str, id_parent: str, m_print=print) -> Optional[str]:
+def creer_google_doc(service_drive, nom_fichier: str, id_parent: str, m_print=print, id_dossier_archive = None) -> Optional[str]:
     """Crée un document Google Docs dans Google Drive."""
     TYPE_MIME_DOCUMENT = 'application/vnd.google-apps.document'
-    return creer_fichier(service_drive, nom_fichier, id_parent, TYPE_MIME_DOCUMENT)
+    return creer_fichier(service_drive, nom_fichier, id_parent, TYPE_MIME_DOCUMENT, id_dossier_archive=id_dossier_archive)
+
+
+def archiver_fichiers_existants(service, nom_fichier, id_dossier_parent, id_dossier_archive, considerer_supprime=False):
+    """
+    Vérifie si des fichiers avec le même label existent et, le cas échéant, les déplace dans un dossier d'archives.
+
+    Args:
+        service (Resource): Le service Google Drive API.
+        nom_fichier (str): Le nom du fichier à créer.
+        id_dossier_parent (str): L'ID du dossier où chercher les fichiers.
+        id_dossier_archive (str): L'ID du dossier où les fichiers seront archivés.
+        considerer_supprime (bool): Si True, considère également les fichiers supprimés.
+    """
+    # Extraire la date-heure et le label du fichier
+    date_heure, label = nom_fichier.split(' - ')
+    query_supprime = ' and trashed = false' if not considerer_supprime else ''
+
+    try:
+        # Appel de l'API Drive v3 pour lister tous les fichiers
+        resultats = service.files().list(
+            q=f"'{id_dossier_parent}' in parents and name contains '{label}'{query_supprime}",
+            fields="nextPageToken, files(id, name)").execute()
+
+        items = resultats.get('files', [])
+
+        # Vérifier s'il y a des fichiers avec le label spécifié
+        if items:
+            for item in items:
+                # Déplacer le fichier vers le dossier d'archive
+                id_fichier = item['id']
+                fichier = service.files().get(fileId=id_fichier,
+                                              fields='parents').execute()
+                parents_precedents = ",".join(fichier.get('parents'))
+                fichier = service.files().update(fileId=id_fichier,
+                                                 addParents=id_dossier_archive,
+                                                 removeParents=parents_precedents,
+                                                 fields='id, parents').execute()
+    except HttpError as erreur:
+        # journal.error(f'Une erreur HTTP est survenue: {erreur}')
+        print(f'Une erreur HTTP est survenue: {erreur}')
+    except Exception as e:
+        # journal.error(f'Une erreur inattendue est survenue: {e}')
+        print(f'Une erreur inattendue est survenue: {e}')
+
 
 # def creer_dossier_drive(service_drive, id_dossier_parent, nom_dossier):
 #     # print(f"debug : {id_dossier_parent}, {nom_dossier}")
@@ -3065,10 +3111,11 @@ def verifier_config_parser(api_drive, config):
         resultats.append(
             ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de dossier de sortie trouvé"])
         test_global_reussi = False
-    # intégration des dossiers ingrigues et vérifications
+
+    # intégration des dossiers intrigues et vérifications
     fichier_output['dossiers_intrigues'] = []
-    clefs_pjs = [key for key in config.options("Essentiels") if key.startswith("id_dossier_intrigues")]
-    for clef in clefs_pjs:
+    clefs_intrigues = [key for key in config.options("Essentiels") if key.startswith("id_dossier_intrigues")]
+    for clef in clefs_intrigues:
         valeur = config.get("Essentiels", clef)
         dossiers_a_verifier.append([clef, valeur])
         fichier_output['dossiers_intrigues'].append(valeur)
@@ -3130,6 +3177,7 @@ def verifier_config_parser(api_drive, config):
         valeur = config.get("Optionnels", clef)
         dossiers_a_verifier.append([clef, valeur])
         fichier_output['dossiers_objets'].append(valeur)
+
     # intégration du fichier des factions
     id_factions = config.get('Optionnels', 'id_factions', fallback=None)
     fichier_output['id_factions'] = id_factions
@@ -3159,6 +3207,10 @@ def verifier_config_parser(api_drive, config):
     fichier_output['prefixe_PNJs'] = config.get('Optionnels', 'prefixe_PNJs', fallback="N")
     fichier_output['prefixe_objets'] = config.get('Optionnels', 'prefixe_objets', fallback="O")
     fichier_output['liste_noms_pjs'] = config.get('Optionnels', 'noms_persos', fallback=None)
+
+    # ajouter le dossier archive
+    fichier_output['id_dossier_archive'] = config.get('Optionnels', 'id_dossier_archive ', fallback=None)
+
     # a ce stade là on a :
     # 1. intégré tous les paramètres au fichier de sortie
     # 2. fait les premiers tests sur les fichiers essentiels

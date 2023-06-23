@@ -763,6 +763,9 @@ class GN:
     def get_id_factions(self):
         return self.dict_config.get('id_factions', None)
 
+    def get_id_dossier_archive(self):
+        return self.dict_config.get('id_dossier_archive', None)
+
     def get_dossiers_pnjs(self):
         return self.dict_config.get('dossiers_pnjs', None)
 
