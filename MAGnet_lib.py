@@ -1430,9 +1430,9 @@ def generer_texte_commentaires(dict_auteur_intrigues):
     return to_return
 
 
-def ecrire_table_commentaires(gn: GN, api_drive, api_doc, api_sheets):
-    parent = gn.get_dossier_outputs_drive()
-    dict_auteurs_tableaux, dict_auteur_intrigues, tableau_global = generer_table_commentaires(gn)
+def ecrire_table_commentaires(mon_gn: GN, api_drive, api_doc, api_sheets):
+    parent = mon_gn.get_dossier_outputs_drive()
+    dict_auteurs_tableaux, dict_auteur_intrigues, tableau_global = generer_table_commentaires(mon_gn)
     texte = generer_texte_commentaires(dict_auteur_intrigues)
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
@@ -1447,7 +1447,7 @@ def ecrire_table_commentaires(gn: GN, api_drive, api_doc, api_sheets):
                   f'- table des commentaires'
 
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
-                                     id_dossier_archive=gn.get_id_dossier_archive())
+                                      id_dossier_archive=mon_gn.get_id_dossier_archive())
     for auteur in dict_auteurs_tableaux:
         g_io.ecrire_table_google_sheets(api_sheets, dict_auteurs_tableaux[auteur], file_id,
                                         feuille=auteur)

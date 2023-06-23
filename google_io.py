@@ -2308,7 +2308,9 @@ def archiver_fichiers_existants(service, nom_fichier, id_dossier_parent, id_doss
         considerer_supprime (bool): Si True, considère également les fichiers supprimés.
     """
     # Extraire la date-heure et le label du fichier
-    date_heure, label = nom_fichier.split(' - ')
+    # date_heure, label = nom_fichier.split(' - ')
+    parties_nom_fichier = nom_fichier.split(' - ')
+    label = ''.join(parties_nom_fichier[1:])
     query_supprime = ' and trashed = false' if not considerer_supprime else ''
 
     try:
