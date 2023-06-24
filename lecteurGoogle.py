@@ -29,6 +29,21 @@ FIN_LIGNE = SEPARATEUR_COLONNES + SEPARATEUR_LIGNES
 
 # crée deux lecteurs, api_doc et ApiDoc, pour pouvoir lire plus facilement les fichiers par la suite
 def creer_lecteurs_google_apis():
+    """
+    Crée et renvoie des instances des services Google Drive, Docs et Sheets.
+
+    Cette fonction gère l'authentification et la création des services Google.
+    Elle utilise un fichier token.json pour stocker les tokens d'accès et de rafraîchissement de l'utilisateur.
+    Si le fichier token.json n'existe pas ou si les tokens ne sont pas valides, la fonction guide l'utilisateur
+    à travers le flux d'autorisation.
+
+    En cas d'erreur lors de la création des services, la fonction imprime l'erreur et renvoie None pour chaque service.
+
+    Returns:
+        api_drive: Une instance du service Google Drive.
+        lecteur_doc: Une instance du service Google Docs.
+        lecteur_sheets: Une instance du service Google Sheets.
+    """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first

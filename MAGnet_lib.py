@@ -696,8 +696,9 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
         m_print(f'{prefixe} : {nom_perso}')
         visualisation(pas_visualisation)
 
+        # pas d'archivage car le dossier a déjà été archivé
         file_id = g_io.creer_google_doc(api_drive, nom_fichier, nouveau_dossier,
-                                   id_dossier_archive=mon_gn.get_id_dossier_archive())
+                                   id_dossier_archive=None)
         g_io.write_to_doc(api_doc, file_id, texte, titre=nom_fichier)
         g_io.formatter_titres_scenes_dans_squelettes(api_doc, file_id)
 
@@ -1191,15 +1192,16 @@ def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets):
 
 def generer_tableau_recap_persos(gn: GN):
     # to_return = []
-    to_return = [["Nom Perso", "Orga Référent", "Points", "Intrigues"]]
+    to_return = [["Nom Perso", "Orga Référent", "Points", "Densité d'intrigue", "Intrigues"]]
     for perso in gn.get_dict_pj().values():
         # table_perso = [role.conteneur.nom for role in perso.roles]
         table_perso = [lien_vers_hyperlink(role.conteneur.get_full_url(), role.conteneur.nom) for role in perso.roles]
         # for role in perso.roles:
         #     table_perso += [role.conteneur.nom]
         table_perso = sorted(table_perso)
-
-        table_perso = [perso.nom] + [perso.orga_referent] + [perso.sommer_pip()] + table_perso
+        pip = perso.sommer_pip()
+        densite = pip / len(table_perso) if len(table_perso) > 0 else 0
+        table_perso = [perso.nom] + [perso.orga_referent] + [pip] + [f"{densite:.2f}"]+ table_perso
         to_return.append(table_perso)
 
     return to_return
