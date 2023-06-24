@@ -218,7 +218,7 @@ class Application(ttk.Frame):
 
         fichier_erreurs_intrigues_var = tk.BooleanVar()
         fichier_erreurs_intrigues_var.set(True)
-        fichier_erreurs_check = ttk.Checkbutton(generer_labelframe, text="Fichier erreurs intrigues",
+        fichier_erreurs_check = ttk.Checkbutton(generer_labelframe, text="Récap erreurs persos dans intrigues",
                                                 variable=fichier_erreurs_intrigues_var)
         fichier_erreurs_check.grid(sticky="W", row=106, column=2)
 
@@ -230,7 +230,7 @@ class Application(ttk.Frame):
 
         table_intrigues_var = tk.BooleanVar()
         table_intrigues_var.set(True)
-        table_intrigues_check = ttk.Checkbutton(generer_labelframe, text="Table des intrigues",
+        table_intrigues_check = ttk.Checkbutton(generer_labelframe, text="Etat des intrigues",
                                                 variable=table_intrigues_var)
         table_intrigues_check.grid(sticky="W", row=107, column=0)
 
@@ -242,13 +242,13 @@ class Application(ttk.Frame):
 
         table_chrono_var = tk.BooleanVar()
         table_chrono_var.set(True)
-        table_chrono_check = ttk.Checkbutton(generer_labelframe, text="Chronologie des persos",
+        table_chrono_check = ttk.Checkbutton(generer_labelframe, text="Synthèse chrono",
                                              variable=table_chrono_var)
         table_chrono_check.grid(sticky="W", row=107, column=2)
 
         table_persos_var = tk.BooleanVar()
         table_persos_var.set(True)
-        table_persos_check = ttk.Checkbutton(generer_labelframe, text="Table des persos",
+        table_persos_check = ttk.Checkbutton(generer_labelframe, text="Synthèse des intrigues par personnage",
                                              variable=table_persos_var)
         table_persos_check.grid(sticky="W", row=107, column=3)
 
@@ -260,7 +260,7 @@ class Application(ttk.Frame):
 
         aide_de_jeu_var = tk.BooleanVar()
         aide_de_jeu_var.set(True)
-        aide_de_jeu_check = ttk.Checkbutton(generer_labelframe, text="Inputs aides de jeu",
+        aide_de_jeu_check = ttk.Checkbutton(generer_labelframe, text="Données pour aides de jeu",
                                             variable=aide_de_jeu_var)
         aide_de_jeu_check.grid(sticky="W", row=108, column=1)
 
@@ -284,7 +284,7 @@ class Application(ttk.Frame):
 
         fichier_erreurs_evenements_var = tk.BooleanVar()
         fichier_erreurs_evenements_var.set(True)
-        fichier_erreurs_evenements_check = ttk.Checkbutton(generer_labelframe, text="Fichier erreurs évènements",
+        fichier_erreurs_evenements_check = ttk.Checkbutton(generer_labelframe, text="Récap erreurs évènements",
                                                            variable=fichier_erreurs_evenements_var)
         fichier_erreurs_evenements_check.grid(sticky="W", row=109, column=1)
 

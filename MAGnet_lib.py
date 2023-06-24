@@ -461,7 +461,7 @@ def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, parent, 
     texte_erreurs = generer_texte_erreurs_intrigues(mon_gn, verbal=verbal)
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
-                  f'- Listes des erreurs dans les tableaux des persos'
+                  f'- Récap erreurs persos dans intrigues'
     mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
                                    id_dossier_archive=mon_gn.get_id_dossier_archive())
     if g_io.write_to_doc(
@@ -474,7 +474,7 @@ def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent,
     texte_erreurs = generer_texte_erreurs_evenements(mon_gn, verbal=verbal)
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
-                  f'- Listes des erreurs dans les évènements'
+                  f'- Récap erreurs évènements'
     mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
                                    id_dossier_archive=mon_gn.get_id_dossier_archive())
     if g_io.write_to_doc(
@@ -1611,7 +1611,7 @@ def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets):
     tab_questionnaire = generer_table_questionnaire(gn)
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
-                  f'- table questionnaire'
+                  f'- Fichier questionnaire inscription'
 
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
                                      id_dossier_archive=gn.get_id_dossier_archive())
