@@ -238,6 +238,9 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
 
     visualisation(pas_visualisation)
 
+    # # ajouté pour debug SUPPRIMER IMPERATIVEMENT
+    # mon_gn.save(nom_fichier_sauvegarde)
+
     mon_gn.rebuild_links(verbal)
 
     if sauver_apres_operation:
