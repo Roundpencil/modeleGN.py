@@ -269,7 +269,7 @@ class Personnage(ConteneurDeScene):
         # return self.pj == EST_PJ
         return est_un_pj(self.pj)
 
-    def sommer_pip(self):
+    def sommer_pip_perso(self):
         return sum(role.sommer_pip() for role in self.roles)
 
     def get_tableau_pips(self):
