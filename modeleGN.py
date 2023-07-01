@@ -272,6 +272,9 @@ class Personnage(ConteneurDeScene):
     def sommer_pip(self):
         return sum(role.sommer_pip() for role in self.roles)
 
+    def get_tableau_pips(self):
+        return [role.sommer_pip() for role in self.roles if role.sommer_pip() != 0]
+
     # def string_type_pj(self):
     #     return string_type_pj(self.pj)
 

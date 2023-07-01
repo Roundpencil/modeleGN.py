@@ -7,17 +7,9 @@ from modeleGN import *
 
 # communication :
 
-# documentation
-# todo Prefixes configurables
-#  cf. exemples dans fichiers
-#  ajouter lecture dans les fichiers de paramètres
-#  ajouter les données dans le dictionnaire
-#  prendre en compte les paramètres dans les lecture de fiches
-# todo : ajouter un paramètre pour définir des préfixes favoris
 # interfaces de constructions
 
 # tester
-# todo : # ajoyt d'une fin des evenements dans les fiches évènements
 # todo reprendre message d'error sur l'expiration du token
 # todo : changer tous les paramètres du GN en un dictionnaire qu'il remplace plutot que des masses de varaiables
 #  >>utiliser des focntions get_ pour remplacer tous les appels en dur par une lecture du dictionnaire sur appel
@@ -34,7 +26,6 @@ from modeleGN import *
 
 
 # confort / logique
-# todo : ajouter un paramètre dans le GN pour le nombre de sessions envisagées pour savoir combien de colonnes on lit
 # todo : refaire version console
 
 # fiches de persos
@@ -1202,8 +1193,14 @@ def generer_tableau_recap_persos(gn: GN):
         # for role in perso.roles:
         #     table_perso += [role.conteneur.nom]
         table_perso = sorted(table_perso)
-        pip = perso.sommer_pip()
-        densite = pip / len(table_perso) if len(table_perso) > 0 else 0
+        # pip = perso.sommer_pip()
+        # densite = pip / len(table_perso) if len(table_perso) > 0 else 0
+
+        tableau_pip = perso.get_tableau_pips()
+        pip = sum(tableau_pip)
+        taille_pip = len(tableau_pip)
+
+        densite = pip / taille_pip if taille_pip > 0 else 0
         table_perso = [perso.nom] + [perso.orga_referent] + [pip] + [f"{densite:.2f}"]+ table_perso
         to_return.append(table_perso)
 
