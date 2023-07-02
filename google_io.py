@@ -476,7 +476,9 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         type_perso = grille_types_persos[type_personnage_brut]
 
         # nettoyage du nom
-        nom = nom.split("http")[0].split('aka')[0]
+        nom_et_alias = nom.split("http")[0].split('aka')
+        nom = nom_et_alias[0]
+        alias = nom_et_alias[1] if len(nom_et_alias) > 1 else None
 
         if len(liste_pips := str(pip_globaux).split('/')) == 2:
             pip_globaux = 0

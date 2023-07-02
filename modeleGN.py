@@ -13,7 +13,7 @@ from fuzzywuzzy import process
 import sys
 from packaging import version
 
-VERSION = "1.1.20230702"
+VERSION = "1.1.20230703.1"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -324,7 +324,7 @@ class Personnage(ConteneurDeScene):
 # rôle
 class Role:
 
-    def __init__(self, conteneur: ConteneurDeScene, personnage=None, nom="rôle sans nom", description="", pipi=0,
+    def __init__(self, conteneur: ConteneurDeScene=None, personnage=None, nom="rôle sans nom", description="", pipi=0,
                  pipr=0,
                  genre="i",
                  pj: TypePerso = TypePerso.EST_PJ,
@@ -1657,6 +1657,8 @@ class GN:
 
         for personnage in self.personnages.values():
             maj_classe(personnage)
+            for role in personnage.roles:
+                maj_classe(role)
 
         for faction in self.factions.values():
             maj_classe(faction)
