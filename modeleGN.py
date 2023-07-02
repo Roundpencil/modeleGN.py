@@ -89,6 +89,18 @@ class ConteneurDeScene:
     #  ajouter les alias et et "A aka B" dans la liste pour maximiser les rapprochements
     #  3 utilisations seulement : qui 2 role dans les  scènes, et dans les relations bis
 
+    def get_dico_roles_avec_alias(self):
+        to_return = {}
+        for role in self.rolesContenus.values():
+            to_return[role.nom] = role
+            if role.has_alias():
+                for alias in role.alias_dans_intrigue:
+                    to_return[f"{role.nom} aka {alias}"] = role
+                    to_return[alias] = role
+        return to_return
+        # todo : utiliser ce dico dans qui intrigues plutot qu'une liste de noms
+        #  (et remonter dans les appels de fonctions)
+
 
 
     def get_noms_personnages_depuis_scenes(self):
@@ -387,6 +399,8 @@ class Role:
         to_return += f"niveauImplication : {self.niveauImplication}" + "\n"
         return to_return
 
+    def has_alias(self):
+        return self.alias_dans_intrigue is not None
     def get_noms_role(self):
         return self.nom
 
