@@ -476,9 +476,9 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         type_perso = grille_types_persos[type_personnage_brut]
 
         # nettoyage du nom
-        nom_et_alias = nom.split("http")[0].split('aka')
+        nom_et_alias = nom.split("http")[0].split(' aka ')
         nom = nom_et_alias[0]
-        alias = nom_et_alias[1] if len(nom_et_alias) > 1 else None
+        alias = nom_et_alias[1:] if len(nom_et_alias) > 1 else None
 
         if len(liste_pips := str(pip_globaux).split('/')) == 2:
             pip_globaux = 0
@@ -1199,6 +1199,10 @@ def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, noms_roles_dans_c
         # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
         #                                                                                   conteneur.nom,
         #                                                                                   score))
+
+        # todo : trouver une manière de faire évoluer
+        #  soit les roles contenus
+        #  soit une méthode pour trouver un role à partir de son alias, 'A aka B" ou bien A ou bien B
 
         if score is not None:
             # trouver le rôle à ajouter à la scène en lisant l'intrigue

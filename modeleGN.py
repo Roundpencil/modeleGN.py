@@ -85,6 +85,11 @@ class ConteneurDeScene:
 
     def get_noms_roles(self):
         return self.rolesContenus.keys()
+    # todo : faire évoluer pour permettre de retrouver les AKa :
+    #  ajouter les alias et et "A aka B" dans la liste pour maximiser les rapprochements
+    #  3 utilisations seulement : qui 2 role dans les  scènes, et dans les relations bis
+
+
 
     def get_noms_personnages_depuis_scenes(self):
         to_return = []
@@ -386,10 +391,13 @@ class Role:
         return self.nom
 
     def get_nom_et_alias(self):
+        to_return = f"{self.nom}"
         if self.alias_dans_intrigue:
-            return f"{self.nom} - aka {self.alias_dans_intrigue}"
-        else:
-            return self.nom
+            for alias in self.alias_dans_intrigue:
+                to_return += f"- aka {alias}"
+
+        return to_return
+
 
     def get_nom_affectation(self):
         return self.affectation
