@@ -436,7 +436,7 @@ class Application(ttk.Frame):
     #     self.lire_fichier_config(boutons, display_label, config_file)
 
     def lire_gn_et_injecter_config(self, boutons: list):
-        print(f"dict config au début de la créaation = {self.dict_config}")
+        print(f"dict config au début de la création = {self.dict_config}")
         # try:
         try:
             self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'], dict_config=self.dict_config)

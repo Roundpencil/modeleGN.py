@@ -13,7 +13,7 @@ from fuzzywuzzy import process
 import sys
 from packaging import version
 
-VERSION = "1.1.20230608"
+VERSION = "1.1.20230702"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -329,7 +329,7 @@ class Role:
                  genre="i",
                  pj: TypePerso = TypePerso.EST_PJ,
                  type_intrigue="", niveau_implication="", perimetre_intervention="", issu_dune_faction=False,
-                 pip_globaux=0, affectation=""):
+                 pip_globaux=0, affectation="", alias_dans_intrigue=None):
         self.conteneur = conteneur
         self.personnage = personnage
         self.nom = nom
@@ -363,6 +363,7 @@ class Role:
         self.infos_pj_pour_evenement = {}  # evenement, brief
         self.interventions = {}  # evenement, intervention
         self.affectation = affectation
+        self.alias_dans_intrigue = alias_dans_intrigue
 
     def __str__(self):
         to_return = ""
@@ -383,6 +384,12 @@ class Role:
 
     def get_noms_role(self):
         return self.nom
+
+    def get_nom_et_alias(self):
+        if self.alias_dans_intrigue:
+            return f"{self.nom} - aka {self.alias_dans_intrigue}"
+        else:
+            return self.nom
 
     def get_nom_affectation(self):
         return self.affectation
@@ -632,7 +639,7 @@ class Scene:
                       f"dans la scene {self.titre} / {self.conteneur.nom} "
                       f"est_il est factionneux ? {role.issu_dune_faction}")
             else:
-                str_roles_persos += f" {role.nom} ({role.personnage.nom}) / "
+                str_roles_persos += f" {role.get_nom_et_alias()} ({role.personnage.nom}) / "
         to_return += f"roles  : {str_roles_persos[:-2]} \n"
         to_return += f"provenance : {self.conteneur.nom} \n"
         # to_return += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"

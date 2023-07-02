@@ -497,7 +497,8 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
                               genre=sexe,
                               pip_globaux=pip_globaux,
                               affectation=affectation,
-                              pj=type_perso
+                              pj=type_perso,
+                              alias_dans_intrigue=alias
                               )
         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
