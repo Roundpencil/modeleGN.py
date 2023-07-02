@@ -475,6 +475,9 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         type_personnage_brut = process.extractOne(type_personnage_brut, grille_types_persos.keys())[0]
         type_perso = grille_types_persos[type_personnage_brut]
 
+        # nettoyage du nom
+        nom = nom.split("http")[0].split('aka')[0]
+
         if len(liste_pips := str(pip_globaux).split('/')) == 2:
             pip_globaux = 0
             pipi = liste_pips[0] + pipi
@@ -485,7 +488,7 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         logging.debug(f"lecture associée : "
                       f"{[nom, description, pipi, pipr, sexe, type_intrigue, niveau_implication, pip_globaux, affectation]}")
         role_a_ajouter = Role(current_intrigue,
-                              nom=nom.split("http")[0],
+                              nom=nom,
                               description=description,
                               type_intrigue=type_intrigue,
                               niveau_implication=niveau_implication,
@@ -916,68 +919,68 @@ def extraire_relation_multi(conteneur, tab_relations_multi, verbal=False,
         for role in roles_dans_relation_multi:
             role.relations.add(relation_multi_a_ajouter)
 
-
-def lire_tableau_pj_chalacta(current_intrigue, tableau_pjs):
-    for pj in tableau_pjs:  # on commence en 1 pour éviter de prendre la première ligne
-        # print("taille du prochain PJ : " +str(len(pj)))
-
-        if len(pj) < 4:  # testé pour éviter de se taper les lignes vides après le tableau
-            continue
-
-        role_a_ajouter = Role(current_intrigue,
-                              nom=pj[0].split("http")[0],
-                              description=pj[3],
-                              type_intrigue=pj[2],
-                              niveau_implication=pj[1]
-                              )
-        current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
-
-
-def lire_tableau_pj_5_colonnes(current_intrigue, tableau_pjs):
-    for pj in tableau_pjs:  # on commence en 1 pour éviter de prendre la première ligne
-        # print("taille du prochain PJ : " +str(len(pj)))
-
-        if len(pj) < 5:  # testé pour éviter de se taper les lignes vides après le tableau
-            continue
-
-        liste_pips = pj[1].split('/')
-        if len(liste_pips) == 2:
-            pip_globaux = 0
-            pipi = liste_pips[0]
-            pipr = liste_pips[1]
-        else:
-            pip_globaux = liste_pips[0]
-            pipi = 0
-            pipr = 0
-
-        role_a_ajouter = Role(current_intrigue,
-                              nom=pj[0].split("http")[0],
-                              description=pj[4],
-                              type_intrigue=pj[3],
-                              niveau_implication=pj[2],
-                              pip_globaux=pip_globaux,
-                              pipi=pipi,
-                              pipr=pipr
-                              )
-        current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
-
-
-def lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs):
-    for pj in tableau_pjs:
-        # print("taille du prochain PJ : " + str(len(pj)))
-
-        if len(pj) < 6:  # testé pour éviter de se taper les lignes vides après le tableau
-            continue
-
-        role_a_ajouter = Role(current_intrigue,
-                              nom=pj[0].split("http")[0],
-                              description=pj[5],
-                              type_intrigue=pj[4],
-                              niveau_implication=pj[3],
-                              pipi=pj[1],
-                              pipr=pj[2]
-                              )
-        current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
+# deprecated depuis que le tableau est lu dynamiquement
+# def lire_tableau_pj_chalacta(current_intrigue, tableau_pjs):
+#     for pj in tableau_pjs:  # on commence en 1 pour éviter de prendre la première ligne
+#         # print("taille du prochain PJ : " +str(len(pj)))
+#
+#         if len(pj) < 4:  # testé pour éviter de se taper les lignes vides après le tableau
+#             continue
+#
+#         role_a_ajouter = Role(current_intrigue,
+#                               nom=pj[0].split("http")[0],
+#                               description=pj[3],
+#                               type_intrigue=pj[2],
+#                               niveau_implication=pj[1]
+#                               )
+#         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
+#
+#
+# def lire_tableau_pj_5_colonnes(current_intrigue, tableau_pjs):
+#     for pj in tableau_pjs:  # on commence en 1 pour éviter de prendre la première ligne
+#         # print("taille du prochain PJ : " +str(len(pj)))
+#
+#         if len(pj) < 5:  # testé pour éviter de se taper les lignes vides après le tableau
+#             continue
+#
+#         liste_pips = pj[1].split('/')
+#         if len(liste_pips) == 2:
+#             pip_globaux = 0
+#             pipi = liste_pips[0]
+#             pipr = liste_pips[1]
+#         else:
+#             pip_globaux = liste_pips[0]
+#             pipi = 0
+#             pipr = 0
+#
+#         role_a_ajouter = Role(current_intrigue,
+#                               nom=pj[0].split("http")[0],
+#                               description=pj[4],
+#                               type_intrigue=pj[3],
+#                               niveau_implication=pj[2],
+#                               pip_globaux=pip_globaux,
+#                               pipi=pipi,
+#                               pipr=pipr
+#                               )
+#         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
+#
+#
+# def lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs):
+#     for pj in tableau_pjs:
+#         # print("taille du prochain PJ : " + str(len(pj)))
+#
+#         if len(pj) < 6:  # testé pour éviter de se taper les lignes vides après le tableau
+#             continue
+#
+#         role_a_ajouter = Role(current_intrigue,
+#                               nom=pj[0].split("http")[0],
+#                               description=pj[5],
+#                               type_intrigue=pj[4],
+#                               niveau_implication=pj[3],
+#                               pipi=pj[1],
+#                               pipr=pj[2]
+#                               )
+#         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
 # def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
