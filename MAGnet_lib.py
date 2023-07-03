@@ -509,7 +509,9 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     # pour chaque nom dans une scène, trouver le personnage correspondant
     for nom in tous_les_noms_lus_dans_scenes:
         # print(str(nom))
-        score_perso = process.extractOne(str(nom), noms_personnages)
+        nom_sans_alias = nom.split(' aka ')[0]
+        score_perso = process.extractOne(nom_sans_alias, noms_personnages)
+        # score_perso = process.extractOne(str(nom), noms_personnages)
         if score_perso[0] in noms_roles_dans_tableau_intrigue:
             prefixe = "[OK]"
         else:
