@@ -1159,6 +1159,14 @@ def extraire_qui_scene(liste_noms, conteneur, scene_a_ajouter, verbal=True, seui
                     print(warning_text)
 
 
+def generer_permutations_alias(nom_du_role: str):
+    noms_et_alias = nom_du_role.split(' aka ')
+    to_return = [noms_et_alias[0]]
+    for alias in noms_et_alias[1:]:
+        to_return.append(f'{to_return} aka {alias}')
+        to_return.append(alias)
+    return to_return
+
 def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, avec_tableau_des_persos: bool = True):
     to_return = []  # nom, role,score
     # print("rôles trouvés en lecture brute : " + str(roles))
@@ -1184,28 +1192,45 @@ def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, avec_tableau_des_
         # et on s'arrête là
         return to_return
 
-    # dans ce cas, on prend les noms du tableau, qui font fois, et on s'en sert pour identifier
+    # Sinon, on a un tableau des persos : la liste des noms possible est finie
+    # dans ce cas, on prend les noms du tableau, qui font foi, et on s'en sert pour identifier
     # les noms de la scène
+    dico_noms_avec_alias = conteneur.get_dico_roles_avec_alias()
+    noms_roles_dans_conteneur = list(dico_noms_avec_alias.keys())
+
     for nom_du_role in roles:
         if len(nom_du_role) < 2:
             continue
 
-        # Sinon, il faut normaliser et extraire les rôles
-        # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
-        dico_noms_avec_alias = conteneur.get_dico_roles_avec_alias()
-        noms_roles_dans_conteneur = list(dico_noms_avec_alias.keys())
-        score = process.extractOne(nom_du_role.strip(), noms_roles_dans_conteneur)
+        noms_a_tester = generer_permutations_alias(nom_du_role.strip())
+        scores = []
+        for nom in noms_a_tester:
+            # Sinon, il faut normaliser et extraire les rôles. on commence par tester tous ses alias
+            # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
+            if score := process.extractOne(nom, noms_roles_dans_conteneur):
+                scores.append(score)
+
+        # A ce stade on a , pour chaque alias, un score
+
+        if scores:
+            # si on a au moins un résultat
+            meilleur_score = max(scores, key=lambda x: x[1])
+            mon_role = dico_noms_avec_alias[meilleur_score[0]]
+            to_return.append([nom_du_role, mon_role, meilleur_score[1]])
+        else:
+            to_return.append([nom_du_role, None, 0])
+
         # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
         #                                                                                   conteneur.nom,
         #                                                                                   score))
 
-        if score is not None:
-            # trouver le rôle à ajouter à la scène en lisant l'intrigue
-            # mon_role = conteneur.rolesContenus[score[0]]
-            mon_role = dico_noms_avec_alias[score[0]]
-            to_return.append([nom_du_role, mon_role, score[1]])
-        else:
-            to_return.append([nom_du_role, None, 0])
+        # if score is not None:
+        #     # trouver le rôle à ajouter à la scène en lisant l'intrigue
+        #     # mon_role = conteneur.rolesContenus[score[0]]
+        #     mon_role = dico_noms_avec_alias[score[0]]
+        #     to_return.append([nom_du_role, mon_role, score[1]])
+        # else:
+        #     to_return.append([nom_du_role, None, 0])
 
     return to_return
 

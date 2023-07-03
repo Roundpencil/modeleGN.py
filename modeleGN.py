@@ -85,9 +85,7 @@ class ConteneurDeScene:
 
     def get_noms_roles(self):
         return self.rolesContenus.keys()
-    # todo : faire évoluer pour permettre de retrouver les AKa :
-    #  ajouter les alias et et "A aka B" dans la liste pour maximiser les rapprochements
-    #  3 utilisations seulement : qui 2 role dans les  scènes, et dans les relations bis
+
 
     def get_dico_roles_avec_alias(self):
         to_return = {}
