@@ -873,7 +873,6 @@ def extraire_relations_bi(conteneur: ConteneurDeScene, tab_relations_bi: list[[s
         tab_retour = qui_2_roles(
             [ligne_relation_bi[0], ligne_relation_bi[1]],
             conteneur,
-            conteneur.get_noms_roles(),
             avec_tableau_des_persos=avec_tableau_persos
         )
         perso_a = tab_retour[0][1]
