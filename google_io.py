@@ -891,8 +891,9 @@ def extraire_relation_multi(conteneur, tab_relations_multi, verbal=False,
     for ligne_relation_muti in tab_relations_multi:
         noms_roles = ligne_relation_muti[0].split(', ')
         description_relation_multi = ligne_relation_muti[1]
-        tab_retour_multi = qui_2_roles(noms_roles, conteneur,
-                                       conteneur.get_noms_roles(), avec_tableau_des_persos)
+        # tab_retour_multi = qui_2_roles(noms_roles, conteneur,
+        #                                conteneur.get_noms_roles(), avec_tableau_des_persos)
+        tab_retour_multi = qui_2_roles(noms_roles, conteneur, avec_tableau_des_persos)
         roles_dans_relation_multi = []
         for correspondance in tab_retour_multi:
             nom, role, score = correspondance
@@ -921,6 +922,7 @@ def extraire_relation_multi(conteneur, tab_relations_multi, verbal=False,
                                                                          )
         for role in roles_dans_relation_multi:
             role.relations.add(relation_multi_a_ajouter)
+
 
 # deprecated depuis que le tableau est lu dynamiquement
 # def lire_tableau_pj_chalacta(current_intrigue, tableau_pjs):
@@ -1065,7 +1067,7 @@ def extraire_relation_multi(conteneur, tab_relations_multi, verbal=False,
 #
 #         scene_a_ajouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
 #         # print("texte de la scene apres insertion : " + scene_a_ajouter.description)
-def extraire_balise(balise, scene_a_ajouter, conteneur, noms_roles, tableau_roles_existant=True):
+def extraire_balise(balise, scene_a_ajouter, conteneur, tableau_roles_existant=True):
     balise_lower = balise.lower()
     if balise_lower.startswith('## quand?') or balise_lower.startswith('## quand ?'):
         extraire_date_scene(balise.split("?", 1)[1], scene_a_ajouter)
@@ -1075,7 +1077,7 @@ def extraire_balise(balise, scene_a_ajouter, conteneur, noms_roles, tableau_role
             '## date?'):
         extraire_date_absolue(balise.split(":", 1)[1], scene_a_ajouter)
     elif balise_lower.startswith('## qui?') or balise_lower.startswith('## qui ?'):
-        extraire_qui_scene(balise.split("?", 1)[1], conteneur, noms_roles, scene_a_ajouter,
+        extraire_qui_scene(balise.split("?", 1)[1], conteneur, scene_a_ajouter,
                            avec_tableau_des_persos=tableau_roles_existant)
     elif balise_lower.startswith('## niveau :'):
         scene_a_ajouter.niveau = balise[11:].strip()
@@ -1092,7 +1094,6 @@ def extraire_balise(balise, scene_a_ajouter, conteneur, noms_roles, tableau_role
 
 
 def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
-    noms_roles = conteneur.get_noms_roles()
     scenes = texte_scenes.split("###")
 
     for scene in scenes:
@@ -1105,7 +1106,7 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, table
 
         balises = re.findall(r'##.*', scene)
         for balise in balises:
-            if not extraire_balise(balise, scene_a_ajouter, conteneur, noms_roles, tableau_roles_existant):
+            if not extraire_balise(balise, scene_a_ajouter, conteneur, tableau_roles_existant):
                 texte_erreur = f"balise inconnue : {balise} dans le conteneur {nom_conteneur}"
                 print(texte_erreur)
                 scene_a_ajouter.description += balise
@@ -1128,12 +1129,12 @@ def extraire_infos_scene(texte_lu: str, scene: Scene):
             scene.infos.add(section.strip())
 
 
-def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verbal=True, seuil=80,
+def extraire_qui_scene(liste_noms, conteneur, scene_a_ajouter, verbal=True, seuil=80,
                        avec_tableau_des_persos: bool = True):
     roles = [r.strip() for r in liste_noms.split(",") if len(r.strip()) > 0]
     scene_a_ajouter.noms_roles_lus = roles
 
-    tab_corr = qui_2_roles(roles, conteneur, noms_roles, avec_tableau_des_persos)
+    tab_corr = qui_2_roles(roles, conteneur, avec_tableau_des_persos)
     logging.debug(f"a partir de la liste de noms : {roles} j'ai généré : \n {tab_corr}")
     for element in tab_corr:
         nom_du_role, role_a_ajouter, score = element
@@ -1159,14 +1160,11 @@ def extraire_qui_scene(liste_noms, conteneur, noms_roles, scene_a_ajouter, verba
                     print(warning_text)
 
 
-def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, noms_roles_dans_conteneur: list[str],
-                avec_tableau_des_persos: bool = True):
+def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, avec_tableau_des_persos: bool = True):
     to_return = []  # nom, role,score
     # print("rôles trouvés en lecture brute : " + str(roles))
 
     if not avec_tableau_des_persos:
-        # todo : remplacer l'ajout systématique de perso par une recherche avec processone et un ajout si KO
-
         # SI NomsRoles est None, ca veut dire qu'on travaille sans tableau de référence des rôles
         # > on les crée sans se poser de questions
 
@@ -1195,18 +1193,17 @@ def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, noms_roles_dans_c
 
         # Sinon, il faut normaliser et extraire les rôles
         # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
+        dico_noms_avec_alias = conteneur.get_dico_roles_avec_alias()
+        noms_roles_dans_conteneur = list(dico_noms_avec_alias.keys())
         score = process.extractOne(nom_du_role.strip(), noms_roles_dans_conteneur)
         # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
         #                                                                                   conteneur.nom,
         #                                                                                   score))
 
-        # todo : trouver une manière de faire évoluer
-        #  soit les roles contenus
-        #  soit une méthode pour trouver un role à partir de son alias, 'A aka B" ou bien A ou bien B
-
         if score is not None:
             # trouver le rôle à ajouter à la scène en lisant l'intrigue
-            mon_role = conteneur.rolesContenus[score[0]]
+            # mon_role = conteneur.rolesContenus[score[0]]
+            mon_role = dico_noms_avec_alias[score[0]]
             to_return.append([nom_du_role, mon_role, score[1]])
         else:
             to_return.append([nom_du_role, None, 0])
@@ -1789,7 +1786,6 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     if len(texte_persos) < 800:
         print(f"fiche {nom_doc} avec {len(texte_persos)} caractères est vide")
         # return  # dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
-        # todo : si bug dans la lecture c'est lié à ici, pour accélérer la lecture
 
     nom_perso_en_cours = re.sub(r"^\d+\s*-", '', nom_doc).strip()
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
@@ -1880,6 +1876,7 @@ def personnage_interprete(texte: str, perso_en_cours: Personnage, text_label: st
     if match := re.match(pattern, texte):
         session_id, interprete_session = match.group(1).strip(), match.group(2).strip()
         perso_en_cours.interpretes[session_id] = interprete_session
+
 
 # def personnage_joueurv2(texte: str, perso_en_cours: Personnage, text_label: str):
 #     perso_en_cours.joueurs['V2'] = retirer_label(texte, text_label)
@@ -2178,9 +2175,6 @@ def is_document_being_edited(service, file_id):
         return None
 
 
-
-
-
 def write_to_doc(service, file_id, text, titre=False):
     try:
         requests = [{
@@ -2266,16 +2260,15 @@ def formatter_titres_scenes_dans_squelettes(service, file_id):
         return None
 
 
-
-
-
-def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: str, m_print=print, id_dossier_archive = None) -> Optional[str]:
+def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: str, m_print=print,
+                  id_dossier_archive=None) -> Optional[str]:
     """Crée un fichier dans Google Drive avec un type MIME spécifique."""
 
     print(f"DEBUG  : fichier archive : {id_dossier_archive}")
     if id_dossier_archive:
         print("DEBUG  : fichier archive trouvé")
-        archiver_fichiers_existants(service_drive, nom_fichier, id_parent, id_dossier_archive, considerer_supprime=False)
+        archiver_fichiers_existants(service_drive, nom_fichier, id_parent, id_dossier_archive,
+                                    considerer_supprime=False)
     try:
         metadonnees_fichier = {
             'name': nom_fichier,
@@ -2290,20 +2283,29 @@ def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: st
         print(f'Contenu de l\'erreur : {erreur.content}')
         return None
 
-def creer_dossier_drive(service_drive, id_parent: str, nom_dossier: str, m_print=print, id_dossier_archive = None) -> Optional[str]:
+
+def creer_dossier_drive(service_drive, id_parent: str, nom_dossier: str, m_print=print, id_dossier_archive=None) -> \
+Optional[str]:
     """Crée un dossier dans Google Drive."""
     TYPE_MIME_DOSSIER = 'application/vnd.google-apps.folder'
-    return creer_fichier(service_drive, nom_dossier, id_parent, TYPE_MIME_DOSSIER, id_dossier_archive=id_dossier_archive)
+    return creer_fichier(service_drive, nom_dossier, id_parent, TYPE_MIME_DOSSIER,
+                         id_dossier_archive=id_dossier_archive)
 
-def creer_google_sheet(service_drive, nom_feuille: str, id_dossier_parent: str, m_print=print, id_dossier_archive = None) -> Optional[str]:
+
+def creer_google_sheet(service_drive, nom_feuille: str, id_dossier_parent: str, m_print=print,
+                       id_dossier_archive=None) -> Optional[str]:
     """Crée un document Google Sheets dans Google Drive."""
     TYPE_MIME_FEUILLE = 'application/vnd.google-apps.spreadsheet'
-    return creer_fichier(service_drive, nom_feuille, id_dossier_parent, TYPE_MIME_FEUILLE, id_dossier_archive=id_dossier_archive)
+    return creer_fichier(service_drive, nom_feuille, id_dossier_parent, TYPE_MIME_FEUILLE,
+                         id_dossier_archive=id_dossier_archive)
 
-def creer_google_doc(service_drive, nom_fichier: str, id_parent: str, m_print=print, id_dossier_archive = None) -> Optional[str]:
+
+def creer_google_doc(service_drive, nom_fichier: str, id_parent: str, m_print=print, id_dossier_archive=None) -> \
+Optional[str]:
     """Crée un document Google Docs dans Google Drive."""
     TYPE_MIME_DOCUMENT = 'application/vnd.google-apps.document'
-    return creer_fichier(service_drive, nom_fichier, id_parent, TYPE_MIME_DOCUMENT, id_dossier_archive=id_dossier_archive)
+    return creer_fichier(service_drive, nom_fichier, id_parent, TYPE_MIME_DOCUMENT,
+                         id_dossier_archive=id_dossier_archive)
 
 
 def archiver_fichiers_existants(service, nom_fichier, id_dossier_parent, id_dossier_archive, considerer_supprime=False):
@@ -2485,10 +2487,10 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
             spreadsheetId=spreadsheet_id, range=f'{orga}!A1',
             valueInputOption='RAW', body=body).execute()
 
+
 def expand_grid(api_sheets, spreadsheet_id, sheet_id, table):
     new_rows = len(table)
     new_cols = max(len(row) for row in table)
-
 
     try:
         api_sheets.spreadsheets().batchUpdate(
@@ -2513,6 +2515,7 @@ def expand_grid(api_sheets, spreadsheet_id, sheet_id, table):
     except HttpError as error:
         print(f'An error occurred: {error}')
 
+
 # def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id, feuille="Feuille 1", avec_formules=True):
 def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id, feuille=None, avec_formules=True):
     #
@@ -2522,6 +2525,8 @@ def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id, feuille=None, 
     #     ecrire_table_google_sheets_sans_formules(api_sheets, table, spreadsheet_id, feuille=feuille)
 
     ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, feuille=feuille)
+
+
 def ecrire_table_google_sheets_sans_formules(api_sheets, table, spreadsheet_id, feuille=None):
     ma_range = 'A1'
     if feuille is not None:
@@ -2562,6 +2567,7 @@ def ecrire_table_google_sheets_sans_formules(api_sheets, table, spreadsheet_id, 
         print(f'An error occurred: {error}')
         result = None
     return result
+
 
 # def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, feuille=None):
 #     if feuille is not None:
@@ -2751,9 +2757,6 @@ def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, 
         print(f'An error occurred: {error}')
         result = None
     return result
-
-
-
 
 
 def formatter_fichier_erreurs(api_doc, doc_id):
@@ -2997,6 +3000,7 @@ def lire_gspread_pj_pnjs(api_sheets, sheet_id):
     # except HttpError as error:
     #     print(f"An error occurred: {error}")
     #     return None
+
 
 def mettre_sheet_dans_dictionnaires(api_sheets, sheet_id, sheet_name):
     """
