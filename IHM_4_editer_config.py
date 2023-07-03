@@ -213,6 +213,7 @@ class PremierPanneau(ttk.Frame):
         }
 
         self.optional_params = {
+            "id_dossier_archive" : "Dossier Archivage",
             "id_factions": "ID Factions",
             "id_pjs_et_pnjs": "ID PJs et PNJs",
             "nom_fichier_pnjs": "Nom Fichier PNJs",
@@ -314,6 +315,7 @@ class PremierPanneau(ttk.Frame):
             # #     tuples.append((key, entry.get()))
             # dict_optionnels[key] = entry.get()
             entry = self.optionals_frame.nametowidget(f'{key}_entry')
+            print(f"DEBUG pour la clef {key}, le state était {entry['state']}")
             if entry['state'] == 'normal':
                 dict_optionnels[key] = entry.get()
 

@@ -1565,7 +1565,7 @@ def generer_table_evenements(gn: GN):
             else f"Pas d'intrigue pour l'évènement {intervention.evenement.code_evenement}"
 
         ligne = [intervention.evenement.code_evenement,
-                 intervention.jour,
+                 intervention.jour_formatte(),
                  intervention.heure_debut_formattee(),
                  intervention.evenement.lieu,
                  intervention.description,

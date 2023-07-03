@@ -1945,6 +1945,8 @@ class Intervention:
         #     return "00h00" if defaut_si_ko is None else self.heure_debut
         return _heure_formattee(self.heure_fin, defaut_si_ko)
 
+    def jour_formatte(self):
+        return f"J{self.jour}" if self.jour.isdigit() else self.jour
 
 class Commentaire:
     def __init__(self, texte: str, auteur: str, destinataires: list[str]):
