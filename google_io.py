@@ -476,9 +476,11 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         type_perso = grille_types_persos[type_personnage_brut]
 
         # nettoyage du nom
-        nom_et_alias = nom.split("http")[0].split(' aka ')
-        nom = nom_et_alias[0]
-        alias = nom_et_alias[1:] if len(nom_et_alias) > 1 else None
+        # nom_et_alias = nom.split("http")[0].split(' aka ')
+        # nom = nom_et_alias[0]
+        # alias = nom_et_alias[1:] if len(nom_et_alias) > 1 else None
+        nom, alias = separer_nom_et_alias(nom.split("http")[0])
+
 
         if len(liste_pips := str(pip_globaux).split('/')) == 2:
             pip_globaux = 0
@@ -655,6 +657,8 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str, seui
             type_personnage = score_type_perso[0]
             type_perso = grille_types_persos[type_personnage]
 
+        nom, alias = separer_nom_et_alias(nom.split("http")[0])
+
         pnj_a_ajouter = Role(current_intrigue,
                              nom=nom,
                              description=description,
@@ -662,10 +666,18 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str, seui
                              niveau_implication=implication,
                              perimetre_intervention=type_personnage_brut,
                              genre=genre,
-                             affectation=affectation)
+                             affectation=affectation,
+                             alias_dans_intrigue=alias)
 
         # du coup, on peut l'ajouter aux intrigues
         current_intrigue.rolesContenus[pnj_a_ajouter.nom] = pnj_a_ajouter
+
+
+def separer_nom_et_alias(nom):
+    nom_et_alias = nom.split(' aka ')
+    nom = nom_et_alias[0]
+    alias = nom_et_alias[1:] if len(nom_et_alias) > 1 else None
+    return nom, alias
 
 
 def intrigue_rerolls(texte: str, current_intrigue: Intrigue, texte_label: str):
@@ -723,8 +735,9 @@ def intrigue_rerolls(texte: str, current_intrigue: Intrigue, texte_label: str):
         logging.debug(f"ligne = {ligne}")
         logging.debug(f"lecture associée : "
                       f"{[nom, description, pipi, pipr, sexe, type_intrigue, niveau_implication, pip_globaux, affectation]}")
+        nom, alias = separer_nom_et_alias(nom.split("http")[0])
         role_a_ajouter = Role(current_intrigue,
-                              nom=nom.split("http")[0],
+                              nom=nom,
                               description=description,
                               type_intrigue=type_intrigue,
                               niveau_implication=niveau_implication,
@@ -733,7 +746,8 @@ def intrigue_rerolls(texte: str, current_intrigue: Intrigue, texte_label: str):
                               genre=sexe,
                               pip_globaux=pip_globaux,
                               affectation=affectation,
-                              pj=TypePerso.EST_REROLL
+                              pj=TypePerso.EST_REROLL,
+                              alias_dans_intrigue=alias
                               )
         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
