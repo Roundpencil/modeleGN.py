@@ -306,7 +306,7 @@ class Personnage(ConteneurDeScene):
 
             dict_tmp = {
                 'nom_conteneur': role.conteneur.nom,
-                'url_conteneur': role.conteneur.url,
+                'url_conteneur': role.conteneur.get_full_url(),
                 'description': role.description,
                 'pips': role.sommer_pip(),
             }
