@@ -298,6 +298,30 @@ class Personnage(ConteneurDeScene):
         toutes = [role.conteneur.nom for role in self.roles]
         return ', '.join(toutes)
 
+    def str_recap_intrigues(self):
+        tab_intrigues = []
+        for role in self.roles:
+            if isinstance(role.conteneur, Personnage):
+                continue
+
+            dict_tmp = {
+                'nom_conteneur': role.conteneur.nom,
+                'url_conteneur': role.conteneur.url,
+                'description': role.description,
+                'pips': role.sommer_pip(),
+            }
+            tab_intrigues.append(dict_tmp)
+
+        tab_intrigues = sorted(tab_intrigues, key=lambda x: x['pips'], reverse=True)
+
+        to_return = "Implications dans les intrigues : \n"
+        for intrigue in tab_intrigues:
+            to_return += f"{intrigue['nom_conteneur']} ({intrigue['url_conteneur']}) \n"
+            to_return += f"{intrigue['pips']} points \n"
+            to_return += f"{intrigue['description']} \n\n"
+
+        return to_return
+
     def str_relations(self):
         to_return = ""
         for role in self.roles:
@@ -1014,7 +1038,8 @@ class GN:
 
         logging.debug("Fin de l'association automatique des rôles aux persos")
 
-    def associer_roles_issus_dintrigues(self, dict_noms_persos, nom_association, critere_des_roles, seuil_alerte, verbal):
+    def associer_roles_issus_dintrigues(self, dict_noms_persos, nom_association, critere_des_roles, seuil_alerte,
+                                        verbal):
         noms_persos = list(dict_noms_persos.keys())
 
         logging.debug(f"liste des noms sur lesquels sera basée l'association {noms_persos}")
