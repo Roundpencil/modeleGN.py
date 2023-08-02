@@ -788,7 +788,7 @@ def generer_liste_pnj_dedup_avec_perso(mon_gn, threshold=89, verbal=False):
     dict_nom_role_nom_pnj = {}
     for intrigue in mon_gn.intrigues.values():
         for role in intrigue.rolesContenus.values():
-            if role.est_un_pnj():
+            if role.est_un_pnj() or role.est_un_reroll():
                 dict_nom_role_nom_pnj[role.nom] = role.personnage.nom if role.personnage is not None else "aucun perso"
 
     dict_nom_brief_nom_pnj = {}

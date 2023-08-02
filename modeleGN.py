@@ -39,6 +39,10 @@ def est_un_pj(niveau_pj):
     return niveau_pj == TypePerso.EST_PJ
 
 
+def est_un_reroll(niveau_pj):
+    return niveau_pj == TypePerso.EST_REROLL
+
+
 def string_type_pj(type_pj: TypePerso):
     grille_pj = {TypePerso.EST_PJ: "PJ",
                  TypePerso.EST_REROLL: "Reroll",
@@ -86,7 +90,6 @@ class ConteneurDeScene:
     def get_noms_roles(self):
         return self.rolesContenus.keys()
 
-
     def get_dico_roles_avec_alias(self):
         to_return = {}
         for role in self.rolesContenus.values():
@@ -98,8 +101,6 @@ class ConteneurDeScene:
         return to_return
         # todo : utiliser ce dico dans qui intrigues plutot qu'une liste de noms
         #  (et remonter dans les appels de fonctions)
-
-
 
     def get_noms_personnages_depuis_scenes(self):
         to_return = []
@@ -339,7 +340,7 @@ class Personnage(ConteneurDeScene):
 # rôle
 class Role:
 
-    def __init__(self, conteneur: ConteneurDeScene=None, personnage=None, nom="rôle sans nom", description="", pipi=0,
+    def __init__(self, conteneur: ConteneurDeScene = None, personnage=None, nom="rôle sans nom", description="", pipi=0,
                  pipr=0,
                  genre="i",
                  pj: TypePerso = TypePerso.EST_PJ,
@@ -399,6 +400,7 @@ class Role:
 
     def has_alias(self):
         return self.alias_dans_intrigue is not None
+
     def get_noms_role(self):
         return self.nom
 
@@ -409,7 +411,6 @@ class Role:
                 to_return += f"- aka {alias}"
 
         return to_return
-
 
     def get_nom_affectation(self):
         return self.affectation
@@ -427,6 +428,9 @@ class Role:
 
     def est_un_pj(self):
         return est_un_pj(self.pj)
+
+    def est_un_reroll(self):
+        return est_un_reroll(self.pj)
 
     def sommer_pip(self):
         # print(f"je suis en train de sommer {self.nom}")
@@ -961,14 +965,29 @@ class GN:
         #     return self.noms_pnjs()
 
     def associer_pnj_a_roles(self, seuil_alerte=70, verbal=False):
-        self.associer_pjpnj_a_roles(pj=False, seuil_alerte=seuil_alerte, verbal=verbal)
+        self.associer_pjpnjrerolls_a_roles(pj="pnj", seuil_alerte=seuil_alerte, verbal=verbal)
 
     def associer_pj_a_roles(self, seuil_alerte=70, verbal=False):
-        self.associer_pjpnj_a_roles(pj=True, seuil_alerte=seuil_alerte, verbal=verbal)
+        self.associer_pjpnjrerolls_a_roles(pj="pj", seuil_alerte=seuil_alerte, verbal=verbal)
 
-    def associer_pjpnj_a_roles(self, pj: bool, seuil_alerte=70, verbal=False):
+    def associer_reroll_a_roles(self, seuil_alerte=70, verbal=False):
+        self.associer_pjpnjrerolls_a_roles(pj="reroll", seuil_alerte=seuil_alerte, verbal=verbal)
+
+    def associer_pjpnjrerolls_a_roles(self, pj: str, seuil_alerte=70, verbal=False):
         logging.debug(f"Début de l'association automatique des rôles aux persos. PJ = {pj}")
-        dict_reference = self.get_dict_pj() if pj else self.get_dict_pnj()
+
+        if pj == "pj":
+            dict_reference = self.get_dict_pj()
+            critere_des_roles = est_un_pj
+        elif pj == "pnj":
+            dict_reference = self.get_dict_pnj()
+            critere_des_roles = est_un_pnj
+        elif pj == "reroll":
+            dict_reference = self.get_dict_pnj()
+            critere_des_roles = est_un_reroll
+        else:
+            raise ValueError(
+                f"type pj inconnu : {pj}. Le paramètrea attendu est 'pj', 'pnj', ou 'reroll'.")
 
         if verbal:
             print(f"pj? {pj}, noms persos = {dict_reference.keys()}")
@@ -990,20 +1009,21 @@ class GN:
             print("Erreur de mode association")
             return -1
 
-        self.associer_roles_issus_dintrigues(dict_noms_persos, nom_association, pj, seuil_alerte, verbal)
+        logging.debug(f"debut de l'association pour {pj}")
+        self.associer_roles_issus_dintrigues(dict_noms_persos, nom_association, critere_des_roles, seuil_alerte, verbal)
 
         logging.debug("Fin de l'association automatique des rôles aux persos")
 
-    def associer_roles_issus_dintrigues(self, dict_noms_persos, nom_association, pj, seuil_alerte, verbal):
+    def associer_roles_issus_dintrigues(self, dict_noms_persos, nom_association, critere_des_roles, seuil_alerte, verbal):
         noms_persos = list(dict_noms_persos.keys())
-        critere = est_un_pj if pj else est_un_pnj
-        logging.debug(f"liste des noms sur lesquels sera basée l'association de {pj} : {noms_persos}")
+
+        logging.debug(f"liste des noms sur lesquels sera basée l'association {noms_persos}")
         # pour chaque role contenu dans chaque intrigue, retrouver le nom du pj correspondant
         for intrigue in self.intrigues.values():
             for role in intrigue.rolesContenus.values():
                 # on cherche les persos qui correspondent au critère,
                 # mais aussi qui ne viennent pas d'une faction : ceux-ci arrivent déjà associés
-                if critere(role.pj) and not role.issu_dune_faction and len(nom_association(role)) > 1:
+                if critere_des_roles(role.pj) and not role.issu_dune_faction and len(nom_association(role)) > 1:
                     # print(f"nom du role testé = {role.nom}")
                     # print(f"debug : nom assocaition = {repr(nom_association(role))} pour {repr(role.nom)}")
                     # print(f"debug : nom assoce / noms = {nom_association(role)} / {noms_persos}")
@@ -1078,6 +1098,7 @@ class GN:
         self.ajouter_roles_issus_de_factions()
         self.associer_pnj_a_roles()
         self.associer_pj_a_roles()
+        self.associer_reroll_a_roles()
         self.ajouter_roles_issues_des_factions_dans_evenement()
         self.associer_pjs_a_evenements()
         self.associer_pnjs_a_evenements()
@@ -1947,6 +1968,7 @@ class Intervention:
 
     def jour_formatte(self):
         return f"J{self.jour}" if self.jour.isdigit() else self.jour
+
 
 class Commentaire:
     def __init__(self, texte: str, auteur: str, destinataires: list[str]):
