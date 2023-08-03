@@ -198,7 +198,8 @@ class Application(ttk.Frame):
                     table_commentaires_var,
                     table_evenements_var,
                     table_relations_var,
-                    fichier_questionnaire_inscription_var
+                    fichier_questionnaire_inscription_var,
+                    resume_par_perso_var
                     ]
 
             for checkbox in args:
@@ -295,6 +296,13 @@ class Application(ttk.Frame):
                                                                   variable=fichier_questionnaire_inscription_var)
         fichier_questionnaire_inscription_check.grid(sticky="W", row=109, column=2)
 
+        resume_par_perso_var = tk.BooleanVar()
+        resume_par_perso_var.set(True)
+        resume_par_perso_var_check = ttk.Checkbutton(generer_labelframe,
+                                                                  text="Résumé des intrigues par perso",
+                                                                  variable=resume_par_perso_var)
+        resume_par_perso_var_check.grid(sticky="W", row=109, column=3)
+
         # Buttons
         # cancel_button = ttk.Button(generer_labelframe, text="Quitter", command=regen_window.destroy)
         # cancel_button.grid(row=200, column=0, pady=(0, 10))
@@ -370,6 +378,7 @@ class Application(ttk.Frame):
                                  table_relations=table_relations_var.get(),
                                  table_evenements=table_evenements_var.get(),
                                  table_questionnaire=fichier_questionnaire_inscription_var.get(),
+                                 resume_par_perso=resume_par_perso_var.get(),
                                  visualisation=faire_evoluer_barre,
                                  m_print=afficher_message_statut
                                  )

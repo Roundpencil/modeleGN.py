@@ -314,7 +314,8 @@ class Personnage(ConteneurDeScene):
 
         tab_intrigues = sorted(tab_intrigues, key=lambda x: x['pips'], reverse=True)
 
-        to_return = "Implications dans les intrigues : \n"
+        # to_return = "Implications dans les intrigues : \n"
+        to_return = ""
         for intrigue in tab_intrigues:
             to_return += f"{intrigue['nom_conteneur']} ({intrigue['url_conteneur']}) \n"
             to_return += f"{intrigue['pips']} points \n"

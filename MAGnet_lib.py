@@ -72,7 +72,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
                          table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
                          table_commentaires: bool = True, table_relations: bool = True, table_evenements: bool = True,
-                         table_questionnaire: bool = True,
+                         table_questionnaire: bool = True, resume_par_perso = True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, fast_pnjs=True, fast_evenements=True,
                          fast_objets=True,
@@ -240,14 +240,14 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     # visualisation(25)
 
     m_print("****** fin de la lecture du drive *********")
-    pas_visualisation = 25.0 / 12.0
+    pas_visualisation = 25.0 / 13.0
     m_print("*******************************************")
     m_print("*******************************************")
     # prefixe_fichiers = str(datetime.date.today())
     m_print("* génération du fichier des erreurs intrigues * ")
     if fichier_erreurs_intrigues:
         # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
-        ecrire_erreurs_intrigues_dans_drive(mon_gn, api_doc, api_drive, mon_gn.get_dossier_outputs_drive())
+        ecrire_erreurs_intrigues_dans_drive(mon_gn, api_doc, api_drive)
 
     visualisation(pas_visualisation)
 
@@ -334,6 +334,14 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
         ecrire_table_questionnaire(mon_gn, api_drive, api_sheets)
 
     visualisation(pas_visualisation)
+
+    if resume_par_perso:
+        m_print("******* resume des intrigues par perso ******************")
+        ecrire_resume_intrigues_persos(mon_gn, api_doc, api_drive)
+
+    visualisation(pas_visualisation)
+
+
 
     m_print("******* fin de la génération  ****************\n\n\n\n")
     visualisation(1000)
@@ -451,8 +459,42 @@ def generer_texte_erreurs_evenements(mon_gn, verbal=False):
 
     return log_erreur
 
+def generer_texte_resume_intrigues_persos(mon_gn: GN, verbal=False):
+    tab_brut = [
+        {'orga' : perso.orga_referent,
+         'nom_perso' : perso.nom,
+         'texte_recap' : perso.str_recap_intrigues()
+         }
+        for perso in mon_gn.get_dict_pj().values()
+    ]
 
-def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, parent, verbal=False):
+    tab_tri = sorted(tab_brut, key=lambda x: (x['orga'], x['nom_perso']))
+
+    to_return = ""
+    orga_en_cours = "drgrsdgegerg"
+
+    for perso in tab_tri:
+        if orga_en_cours != perso['orga']:
+            orga_en_cours = perso["orga"]
+            to_return += f'********** Personnages de {orga_en_cours} : ********** \n'
+
+        to_return += f'***** {perso["nom_perso"]} : ***** \n'
+        to_return += perso['texte_recap']
+
+    return to_return
+
+def ecrire_resume_intrigues_persos(mon_gn: GN, api_doc, api_drive, verbal=False):
+    parent = mon_gn.get_dossier_outputs_drive()
+    texte_resume = generer_texte_resume_intrigues_persos(mon_gn, verbal)
+
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- Implications par persos dans intrigues'
+    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
+                                   id_dossier_archive=mon_gn.get_id_dossier_archive())
+    g_io.write_to_doc(api_doc, mon_id, texte_resume)
+
+def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, verbal=False):
+    parents = mon_gn.get_dossier_outputs_drive()
     texte_erreurs = generer_texte_erreurs_intrigues(mon_gn, verbal=verbal)
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
