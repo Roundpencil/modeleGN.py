@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Optional
 
 import fuzzywuzzy.process
+import validators as validators
 from googleapiclient.errors import HttpError
 
 import lecteurGoogle
@@ -2213,7 +2214,57 @@ def is_document_being_edited(service, file_id):
         return None
 
 
-def write_to_doc(service, file_id, text, titre=False):
+def write_to_doc(service, file_id, text: str, titre=False):
+    # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
+    formatting_requests = []
+    # index = 1
+    #
+    # lignes = text.split('\n')
+    # for ligne in lignes:
+    #     words = ligne.split()
+    #     for word in words:
+    #         # Use validators library for robust url validation
+    #         if validators.url(word):
+    #             formatting_requests.append({
+    #                 'updateTextStyle': {
+    #                     'range': {
+    #                         'startIndex': index,
+    #                         'endIndex': index + len(word),
+    #                     },
+    #                     'textStyle': {
+    #                         'link': {
+    #                             'url': word
+    #                         }
+    #                     },
+    #                     'fields': 'link'
+    #                 }
+    #             })
+    #         index += len(word) + 1
+    #     index += 1
+
+    url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+
+    for match in re.finditer(url_pattern, text):
+        url = match.group()
+        start = match.start()
+        end = match.end()
+
+        formatting_requests.append({
+            'updateTextStyle': {
+                'range': {
+                    'startIndex': start,
+                    'endIndex': end,
+                },
+                'textStyle': {
+                    'link': {
+                        'url': url
+                    }
+                },
+                'fields': 'link'
+            }
+        })
+
+    # l'ancien code, fonctionnel
     try:
         requests = [{
             'insertText': {
@@ -2223,6 +2274,10 @@ def write_to_doc(service, file_id, text, titre=False):
                 'text': text
             }
         }]
+
+        # ajouter le formattage à la requete d'insert
+        requests += formatting_requests
+
         # Execute the request.
         result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
         return result
@@ -2302,9 +2357,9 @@ def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: st
                   id_dossier_archive=None) -> Optional[str]:
     """Crée un fichier dans Google Drive avec un type MIME spécifique."""
 
-    print(f"DEBUG  : fichier archive : {id_dossier_archive}")
+    # print(f"DEBUG  : fichier archive : {id_dossier_archive}")
     if id_dossier_archive:
-        print("DEBUG  : fichier archive trouvé")
+        # print("DEBUG  : fichier archive trouvé")
         archiver_fichiers_existants(service_drive, nom_fichier, id_parent, id_dossier_archive,
                                     considerer_supprime=False)
     try:
@@ -2368,11 +2423,11 @@ def archiver_fichiers_existants(service, nom_fichier, id_dossier_parent, id_doss
         resultats = service.files().list(
             q=f"'{id_dossier_parent}' in parents and name contains '{label}'{query_supprime}",
             fields="nextPageToken, files(id, name)").execute()
-        print(f"DEBUG : RESULTATS dans archiver = {resultats}")
+        # print(f"DEBUG : RESULTATS dans archiver = {resultats}")
 
         items = resultats.get('files', [])
 
-        print(f"DEBUG : nb items  dans archiver = {len(items)}")
+        # print(f"DEBUG : nb items  dans archiver = {len(items)}")
 
         # Vérifier s'il y a des fichiers avec le label spécifié
         if items:

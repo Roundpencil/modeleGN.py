@@ -421,6 +421,7 @@ def generer_texte_erreurs_intrigues(mon_gn, verbal=False):
 
         if intrigue.error_log.nb_erreurs() > 0:
             log_erreur += f"Pour {intrigue.nom} : \n" \
+                          f"Url : {intrigue.get_full_url()} \n" \
                           f"{intrigue.error_log} \n"
             log_erreur += suggerer_tableau_persos(mon_gn, intrigue)
             log_erreur += "\n \n"
