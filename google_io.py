@@ -2252,8 +2252,8 @@ def write_to_doc(service, file_id, text: str, titre=False):
         formatting_requests.append({
             'updateTextStyle': {
                 'range': {
-                    'startIndex': start,
-                    'endIndex': end,
+                    'startIndex': start+1,
+                    'endIndex': end+1,
                 },
                 'textStyle': {
                     'link': {
