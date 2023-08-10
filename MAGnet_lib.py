@@ -494,7 +494,7 @@ def ecrire_resume_intrigues_persos(mon_gn: GN, api_doc, api_drive, verbal=False)
     g_io.write_to_doc(api_doc, mon_id, texte_resume)
 
 def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, verbal=False):
-    parents = mon_gn.get_dossier_outputs_drive()
+    parent = mon_gn.get_dossier_outputs_drive()
     texte_erreurs = generer_texte_erreurs_intrigues(mon_gn, verbal=verbal)
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
