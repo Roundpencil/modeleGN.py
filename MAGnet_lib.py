@@ -744,7 +744,6 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
         texte = d[nom_perso]
         nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
 
-
         # pas d'archivage car le dossier a déjà été archivé
         file_id = g_io.creer_google_doc(api_drive, nom_fichier, nouveau_dossier,
                                    id_dossier_archive=None)
