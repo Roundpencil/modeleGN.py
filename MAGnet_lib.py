@@ -1,5 +1,6 @@
 import csv
 import os
+from calendar import month
 
 import google_io as g_io
 from modeleGN import *
@@ -486,38 +487,49 @@ def generer_texte_resume_intrigues_persos(mon_gn: GN, verbal=False):
 def ecrire_resume_intrigues_persos(mon_gn: GN, api_doc, api_drive, verbal=False):
     parent = mon_gn.get_dossier_outputs_drive()
     texte_resume = generer_texte_resume_intrigues_persos(mon_gn, verbal)
+    titre = 'Implications par persos dans intrigues'
+    ecrire_contenu_dans_nouveau_doc(api_doc, api_drive, mon_gn, texte_resume, titre)
 
-    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
-                  f'- Implications par persos dans intrigues'
-    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
-                                   id_dossier_archive=mon_gn.get_id_dossier_archive())
-    g_io.write_to_doc(api_doc, mon_id, texte_resume)
+    # nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+    #               f'- Implications par persos dans intrigues'
+    # mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
+    #                                id_dossier_archive=mon_gn.get_id_dossier_archive())
+    # g_io.write_to_doc(api_doc, mon_id, texte_resume)
 
 def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, verbal=False):
     parent = mon_gn.get_dossier_outputs_drive()
     texte_erreurs = generer_texte_erreurs_intrigues(mon_gn, verbal=verbal)
-
-    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
-                  f'- Récap erreurs persos dans intrigues'
-    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
-                                   id_dossier_archive=mon_gn.get_id_dossier_archive())
-    if g_io.write_to_doc(
-            api_doc, mon_id, texte_erreurs
-    ):
+    titre = 'Récap erreurs persos dans intrigues'
+    id_si_ok : ecrire_contenu_dans_nouveau_doc(api_doc, api_drive, mon_gn, texte_erreurs, titre)
+    if id_si_ok:
         g_io.formatter_fichier_erreurs(api_doc, mon_id)
+
+    #
+    # nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+    #               f'- Récap erreurs persos dans intrigues'
+    # mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
+    #                                id_dossier_archive=mon_gn.get_id_dossier_archive())
+    # if g_io.write_to_doc(
+    #         api_doc, mon_id, texte_erreurs
+    # ):
+    #     g_io.formatter_fichier_erreurs(api_doc, mon_id)
 
 
 def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent, verbal=False):
     texte_erreurs = generer_texte_erreurs_evenements(mon_gn, verbal=verbal)
+    titre = 'Récap erreurs évènements'
+    id_si_ok = ecrire_contenu_dans_nouveau_doc(api_doc, api_drive, mon_gn, texte_erreurs, titre)
+    if id_si_ok:
+        g_io.formatter_fichier_erreurs(api_doc, id_si_ok)
 
-    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
-                  f'- Récap erreurs évènements'
-    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
-                                   id_dossier_archive=mon_gn.get_id_dossier_archive())
-    if g_io.write_to_doc(
-            api_doc, mon_id, texte_erreurs
-    ):
-        g_io.formatter_fichier_erreurs(api_doc, mon_id)
+    # nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+    #               f'- Récap erreurs évènements'
+    # mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
+    #                                id_dossier_archive=mon_gn.get_id_dossier_archive())
+    # if g_io.write_to_doc(
+    #         api_doc, mon_id, texte_erreurs
+    # ):
+    #     g_io.formatter_fichier_erreurs(api_doc, mon_id)
 
 
 def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
@@ -725,15 +737,13 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
     for index, nom_perso in enumerate(d, start=1):
         prefixe = f"Écriture des fichiers des {pj_pnj} dans drive ({index}/{nb_persos_source})"
 
-        # créer le fichier et récupérer l'ID
-        nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
-        texte = d[nom_perso]
-
-        # extraireTexteDeGoogleDoc.inserer_squelettes_dans_drive(nouveau_dossier,
-        # api_doc, api_drive, texte, nom_fichier,prefixe)
-
         m_print(f'{prefixe} : {nom_perso}')
         visualisation(pas_visualisation)
+
+        # créer le fichier et récupérer l'ID
+        texte = d[nom_perso]
+        nom_fichier = f'{nom_perso} - squelette au {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'
+
 
         # pas d'archivage car le dossier a déjà été archivé
         file_id = g_io.creer_google_doc(api_drive, nom_fichier, nouveau_dossier,
@@ -1387,17 +1397,23 @@ def generer_textes_infos(gn: GN):
 
 
 def ecrire_texte_info(mon_gn: GN, api_doc, api_drive):
-    parent = mon_gn.get_dossier_outputs_drive()
-
     texte = generer_textes_infos(mon_gn)
+    titre = 'données pour aides de jeu'
+
+    ecrire_contenu_dans_nouveau_doc(api_doc, api_drive, mon_gn, texte, titre)
+
+
+def ecrire_contenu_dans_nouveau_doc(api_doc, api_drive, mon_gn: GN, texte: str, titre: str):
+    parent = mon_gn.get_dossier_outputs_drive()
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
-                  f'- données pour aides de jeu'
+                  f'- {titre}'
     mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
                                    id_dossier_archive=mon_gn.get_id_dossier_archive())
-    g_io.write_to_doc(
+    succes = g_io.write_to_doc(
         api_doc, mon_id, texte
     )
 
+    return mon_id if succes else None
 
 def generer_table_commentaires(gn: GN, prefixe=None):
     # Get a list of all unique authors and destinataires

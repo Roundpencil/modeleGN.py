@@ -2215,32 +2215,30 @@ def is_document_being_edited(service, file_id):
 
 
 def write_to_doc(service, file_id, text: str, titre=False):
+    """
+    Ajoute du texte à un document Google Docs et formate les URLs présentes
+    dans le texte en tant que liens cliquables.
+
+    Paramètres:
+    - service (object): L'instance du client de l'API Google Docs.
+    - file_id (str): L'ID du document Google Docs à mettre à jour.
+    - text (str): Le texte à ajouter au document.
+    - titre (bool): Indicateur pour ajouter le texte comme titre. Actuellement non utilisé dans la fonction.
+
+    Retours:
+    - dict: Une réponse de l'API Google Docs contenant des informations sur l'exécution de la demande.
+            Si une erreur se produit, retourne `None`.
+
+    Exemples d'erreurs:
+    En cas d'erreur `HttpError`, la méthode affichera l'erreur et retournera `None`.
+
+    Remarques:
+    Cette méthode utilise l'API Google Docs pour insérer du texte et formater les URLs.
+    Elle repose sur une expression régulière pour identifier les URLs dans le texte.
+    """
+
     # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
     formatting_requests = []
-    # index = 1
-    #
-    # lignes = text.split('\n')
-    # for ligne in lignes:
-    #     words = ligne.split()
-    #     for word in words:
-    #         # Use validators library for robust url validation
-    #         if validators.url(word):
-    #             formatting_requests.append({
-    #                 'updateTextStyle': {
-    #                     'range': {
-    #                         'startIndex': index,
-    #                         'endIndex': index + len(word),
-    #                     },
-    #                     'textStyle': {
-    #                         'link': {
-    #                             'url': word
-    #                         }
-    #                     },
-    #                     'fields': 'link'
-    #                 }
-    #             })
-    #         index += len(word) + 1
-    #     index += 1
 
     url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
