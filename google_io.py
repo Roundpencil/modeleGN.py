@@ -1,12 +1,14 @@
 from __future__ import print_function
 
 import configparser
+import os
 from enum import Enum
 from typing import Optional
 
 import fuzzywuzzy.process
 import validators as validators
 from googleapiclient.errors import HttpError
+from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 import lecteurGoogle
 from modeleGN import *
@@ -481,7 +483,6 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         # nom = nom_et_alias[0]
         # alias = nom_et_alias[1:] if len(nom_et_alias) > 1 else None
         nom, alias = separer_nom_et_alias(nom.split("http")[0])
-
 
         if len(liste_pips := str(pip_globaux).split('/')) == 2:
             pip_globaux = 0
@@ -1181,6 +1182,7 @@ def generer_permutations_alias(nom_du_role: str):
         to_return.append(f'{to_return} aka {alias}')
         to_return.append(alias)
     return to_return
+
 
 def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, avec_tableau_des_persos: bool = True):
     to_return = []  # nom, role,score
@@ -2250,8 +2252,8 @@ def write_to_doc(service, file_id, text: str, titre=False):
         formatting_requests.append({
             'updateTextStyle': {
                 'range': {
-                    'startIndex': start+1,
-                    'endIndex': end+1,
+                    'startIndex': start + 1,
+                    'endIndex': end + 1,
                 },
                 'textStyle': {
                     'link': {
@@ -2376,7 +2378,7 @@ def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: st
 
 
 def creer_dossier_drive(service_drive, id_parent: str, nom_dossier: str, m_print=print, id_dossier_archive=None) -> \
-Optional[str]:
+        Optional[str]:
     """Crée un dossier dans Google Drive."""
     TYPE_MIME_DOSSIER = 'application/vnd.google-apps.folder'
     return creer_fichier(service_drive, nom_dossier, id_parent, TYPE_MIME_DOSSIER,
@@ -2392,7 +2394,7 @@ def creer_google_sheet(service_drive, nom_feuille: str, id_dossier_parent: str, 
 
 
 def creer_google_doc(service_drive, nom_fichier: str, id_parent: str, m_print=print, id_dossier_archive=None) -> \
-Optional[str]:
+        Optional[str]:
     """Crée un document Google Docs dans Google Drive."""
     TYPE_MIME_DOCUMENT = 'application/vnd.google-apps.document'
     return creer_fichier(service_drive, nom_fichier, id_parent, TYPE_MIME_DOCUMENT,
@@ -3456,3 +3458,55 @@ def extraire_id_google_si_possible(user_text):
     # If neither a URL nor an ID, return None
     else:
         return user_text, False
+
+
+def normaliser_nom_gn(nom_archive: str):
+    if nom_archive.endswith('.mgn'):
+        return nom_archive
+    return nom_archive + 'mgn'
+
+
+def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_file_name):
+    save_file_name = normaliser_nom_gn(save_file_name)
+    # Find the most recent save file
+    # results = service.files().list(q=f"'{source_folder_id}' in parents",
+    #                                orderBy="modifiedTime desc",
+    #                                pageSize=1).execute()
+    results = api_drive.files().list(q=f"'{source_folder_id}' in parents and name contains '{save_file_name}'",
+                                     orderBy="modifiedTime desc",
+                                     pageSize=1).execute()
+
+    items = results.get('files', [])
+
+    if items:
+        file_id = items[0]['id']
+        request = api_drive.files().get_media(fileId=file_id)
+        # local_path = f"{dest_folder}/{items[0]['name']}"
+        local_path = f"{dest_folder}/{save_file_name}"
+        with io.FileIO(local_path, 'wb') as file:
+            downloader = MediaIoBaseDownload(file, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+        return local_path
+    else:
+        print('No files found.')
+        return None
+
+
+def uploader_archive(file_path, folder_id, api_drive):
+    # Upload the updated file with a new date indication
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    new_filename = f"{current_date}_{os.path.basename(file_path)}"
+    new_filename = normaliser_nom_gn(new_filename)
+
+    file_metadata = {
+        'name': new_filename,
+        'parents': [folder_id]
+    }
+    media = MediaFileUpload(file_path,
+                            mimetype='application/octet-stream',
+                            resumable=True)
+    file = api_drive.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    return file.get('id')

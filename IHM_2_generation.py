@@ -449,108 +449,20 @@ class Application(ttk.Frame):
         # try:
         try:
             self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'], dict_config=self.dict_config)
-            # self.gn.injecter_config(dossiers_evenements=self.dict_config['dossiers_evenements'],
-            #                         dossiers_intrigues=self.dict_config['dossiers_intrigues'],
-            #                         dossier_output=self.dict_config['dossier_output'],
-            #                         mode_association=self.dict_config['mode_association'],
-            #                         dossiers_pj=self.dict_config.get('dossiers_pjs'),
-            #                         dossiers_pnj=self.dict_config.get('dossiers_pnjs'),
-            #                         id_factions=self.dict_config.get('id_factions'),
-            #                         dossiers_objets=self.dict_config.get('dossiers_objets'),
-            #                         date_gn=self.dict_config.get('date_gn'),
-            #                         id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
-            #                         fichier_pnjs=self.dict_config.get('fichier_noms_pnjs')
-            #                         )
-            # print(f"après injection, nous avons : "
-            #       f"dossiers_intrigues={self.dict_config['dossiers_intrigues'],}"
-            #       f"dossier_output= {self.dict_config['dossier_output']},"
-            #       f"association_auto= {self.dict_config['association_auto']},"
-            #       f"dossiers_pj= {self.dict_config.get('dossiers_pjs')},"
-            #       f"dossiers_pnj= {self.dict_config.get('dossiers_pnjs')},"
-            #       f"id_factions= {self.dict_config.get('id_factions')}")
 
         except Exception as f:
             # print(traceback.format_exc())
             print(f"une erreur est survenue qui a conduit à re-créer un fichier de sauvegarde : {f}")
             print(
                 f"le fichier de sauvegarde {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
-            # self.gn = GN(dossiers_intrigues=self.dict_config['dossiers_intrigues'],
-            #              dossier_output=self.dict_config['dossier_output'],
-            #              mode_association=self.dict_config['mode_association'],
-            #              dossiers_pj=self.dict_config.get('dossiers_pjs'),
-            #              dossiers_pnj=self.dict_config.get('dossiers_pjs'),
-            #              id_factions=self.dict_config.get('id_factions'),
-            #              id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
-            #              dossiers_evenements=self.dict_config.get('dossiers_evenements')
-            #              )
             self.gn = GN(dict_config=self.dict_config, ma_version=VERSION)
 
-
-
         # except Exception as e:
-        #     if "Token has been expired or revoked." in str(e):
-        #         # if token has been expired or revoked, show a popup with a specific error message
-        #         messagebox.showerror("Expirations des droits",
-        #                              "Le fichier token.json a expiré. \n"
-        #                              "Pas de panique ! \n\n"
-        #                              "1. Supprimez-le \n"
-        #                              "2. Rechargez le fichier de paramètres \n"
-        #                              "3. Suivez les instructions sur la page web google qui s'affiche "
-        #                              "pour vous ré-authentifier \n\n"
-        #                              "Pour plus d'informations sur cette erreur liée à google, consulter le manuel")
-        #         print(f"une erreur RefreshError est survenue pendant la lecture du fichier ini : {e}")
-        #
-        #     elif "The OAuth client was deleted." in str(e):
-        #         # if OAuth client was deleted, show a popup with a specific error message
-        #         messagebox.showerror("Cette version de MAGnet a expiré",
-        #                              "Cette version de MAGnet a expiré. '\n'"
-        #                              "pour continuer à l'utiliser, merci de télécharger la dernière version")
-        #
-        #     else:
-        #         # if other RefreshError is raised, show a popup with a generic error message
-        #         messagebox.showerror("Error", f"Erreur inattendue : {e}")
-        #         logging.debug(f"Erreur inattendue dans la lecture du fichier de configuration : {e}")
+        #     print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")
+        #     traceback.print_exc()
+        #     self.dict_config = None
+        #     self.updater_boutons_disponibles(False, boutons)
 
-        # traceback.print_exc()
-        # self.dict_config = None
-        # self.updater_boutons_disponibles(False, boutons)
-
-        except Exception as e:
-            print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")
-            traceback.print_exc()
-            self.dict_config = None
-            self.updater_boutons_disponibles(False, boutons)
-
-    # def afficher_resultats(self, resultats, test_global_reussi):
-    #     fenetre_wizard = tk.Tk()
-    #
-    #     if test_global_reussi:
-    #         fenetre_wizard.title("Tests Réussis")
-    #         # fenetre_wizard.iconbitmap("success_icon.ico")  # Remplacez par le chemin vers l'icône de succès
-    #     else:
-    #         fenetre_wizard.title("Tests Échoués")
-    #         # fenetre_wizard.iconbitmap("failure_icon.ico")  # Remplacez par le chemin vers l'icône d'échec
-    #
-    #     tree = ttk.Treeview(fenetre_wizard, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
-    #
-    #     tree.heading("#0", text="")
-    #     tree.column("#0", width=0, minwidth=0, stretch=tk.NO)
-    #
-    #     tree.heading("Paramètre", text="Nom du paramètre")
-    #     tree.column("Paramètre", anchor=tk.W)
-    #
-    #     tree.heading("Nom du fichier lu", text="Nom du fichier lu")
-    #     tree.column("Nom du fichier lu", anchor=tk.W)
-    #
-    #     tree.heading("Résultat du test", text="Résultat du test")
-    #     tree.column("Résultat du test", anchor=tk.W)
-    #
-    #     for res in resultats:
-    #         tree.insert('', tk.END, values=(res[0], res[1], res[2]))
-    #
-    #     tree.pack(padx=10, pady=10)
-    #
-    #     fenetre_wizard.mainloop()
 
     def afficher_resultats(self, resultats, test_global_reussi):
         afficher_resultats_test_config(self.master, resultats, test_global_reussi)
