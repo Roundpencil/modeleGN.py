@@ -13,7 +13,7 @@ from fuzzywuzzy import process
 import sys
 from packaging import version
 
-VERSION = "1.1.20230803"
+VERSION = "1.1.20230812"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -1041,6 +1041,8 @@ class GN:
 
     def associer_roles_issus_dintrigues(self, dict_noms_persos, nom_association, critere_des_roles, seuil_alerte,
                                         verbal):
+        # #horrible debug
+        # verbal = True
         noms_persos = list(dict_noms_persos.keys())
 
         logging.debug(f"liste des noms sur lesquels sera basée l'association {noms_persos}")
