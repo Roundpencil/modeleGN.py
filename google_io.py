@@ -1102,6 +1102,8 @@ def extraire_balise(balise, scene_a_ajouter, conteneur, tableau_roles_existant=T
         extraire_factions_scene(balise.split(":", 1)[1], scene_a_ajouter)
     elif balise_lower.startswith('## info :') or balise_lower.startswith('## info:'):
         extraire_infos_scene(balise.split(":", 1)[1], scene_a_ajouter)
+    elif balise_lower.startswith('## heure :') or balise_lower.startswith('## heure:'):
+        scene_a_ajouter.heure_debut = balise.split(":", 1)[1]
     else:
         return False
     return True

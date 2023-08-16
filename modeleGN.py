@@ -577,7 +577,8 @@ class Relation:
 
 # Scènes
 class Scene:
-    def __init__(self, conteneur, titre, date="TBD", pitch="Pas de description simple", date_absolue: datetime = None,
+    def __init__(self, conteneur, titre, date="TBD", heure_debut=None,
+                 pitch="Pas de description simple", date_absolue: datetime = None,
                  description="Pas de description complète",
                  actif=True):
         self.conteneur = conteneur
@@ -595,6 +596,7 @@ class Scene:
         self.noms_roles_lus = None
         self.derniere_mise_a_jour = datetime.datetime.now()
         self.modifie_par = ""
+        self.heure_debut = heure_debut
         # print(f"Je viens de créer la scène {self.titre}, avec en entrée la date {date}")
 
     def get_date(self):
@@ -679,7 +681,8 @@ class Scene:
     def str_pour_squelette(self, date_gn=None):
         to_return = ""
 
-        to_return += f"titre scène : {self.titre} - date  : {self.get_formatted_date(date_gn)} \n"
+        heure = f'- heure = {self.heure_debut}' if self.heure_debut else ''
+        to_return += f"titre scène : {self.titre} - date  : {self.get_formatted_date(date_gn)} {heure}\n"
         str_roles_persos = 'Roles (Perso) : '
         for role in self.roles:
             if role.personnage is None:
@@ -693,7 +696,7 @@ class Scene:
         to_return += f"provenance : {self.conteneur.nom} \n"
         # to_return += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
         to_return += f"dernières éditions : intrigue : {self.conteneur.lastFileEdit}  " \
-                     f"/ scène : {self.derniere_mise_a_jour} \n"
+                         f"/ scène : {self.derniere_mise_a_jour} \n"
         to_return += f"url intrigue : {self.conteneur.get_full_url()} \n"
         # to_return += f"pitch  : {self.pitch} \n"
         # to_return += f"description : \n {self.description} \n"
