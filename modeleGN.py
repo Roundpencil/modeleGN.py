@@ -753,7 +753,7 @@ class Scene:
     # en cas d'absence, complète avec des valeurs par défaut
     # en cas de comparaison, met le texte en premier, puis les dates en il y a, puis les dates absolues
     def clef_tri(self, date_gn=None):
-        return [self.get_date_absolue(date_gn), self.get_date_jours(), str(self.date)]
+        return [self.get_date_absolue(date_gn), self.get_date_jours(), str(self.date), str(self.get_heure_debut())]
 
     @staticmethod
     def trier_scenes(scenes_a_trier, date_gn=None):
