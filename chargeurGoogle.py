@@ -118,7 +118,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue):
 
             balises = re.findall(r'##.*', section)
             for balise in balises:
-                print("balise : " + balise)
+                print("input_balise : " + balise)
                 if balise[0:9] == '## Quand?':
                     sceneAAjouter.date = balise[10:].strip()
                     print("date de la scène : " + sceneAAjouter.date)
@@ -134,7 +134,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue):
                     sceneAAjouter.resume = balise[12:0].strip()
                     pass
                 else:
-                    print("balise inconnue : " + balise)
+                    print("input_balise inconnue : " + balise)
 
 
             sceneAAjouter.description = ''.join(section.splitlines(keepends=True)[1+len(balises):])

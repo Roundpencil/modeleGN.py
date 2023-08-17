@@ -579,7 +579,7 @@ class Relation:
 class Scene:
     def __init__(self, conteneur=None, titre="scene sans titre", date="TBD", heure_debut=None,
                  pitch="Pas de description simple", date_absolue: datetime = None,
-                 description="Pas de description complète", lieu = None,
+                 description="Pas de description complète", lieu=None,
                  actif=True):
         self.conteneur = conteneur
         self.date = date  # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
@@ -600,8 +600,23 @@ class Scene:
         self.lieu = lieu
         # print(f"Je viens de créer la scène {self.titre}, avec en entrée la date {date}")
 
+    def get_heure_debut(self):
+        if self.heure_debut:
+            return self.heure_debut
+        if self.date_absolue:
+            return self.date_absolue.strftime('%H:%M:%S')
+        return None
+
+    #todo : ajouter dans les tri des scène le paramètre heure s'il existe
+
     def get_date(self):
         return self.date
+
+    def set_heure_debut(self, heure_debut):
+        self.heure_debut = heure_debut
+
+    def set_lieu(self, lieu):
+        self.lieu = lieu
 
     def effacer_roles_issus_de_factions(self):
         # print(f"debug : {self.titre} avant effaçage de mes roles, j'avais : {list(self.roles)} ")
@@ -613,7 +628,7 @@ class Scene:
     def get_liste_noms_roles(self):
         return [r.nom for r in self.roles]
 
-    def get_formatted_date(self, date_gn=None, jours_semaine=False):
+    def get_formatted_date(self, date_gn=None, jours_semaine=False, avec_heure=True):
         # print(f"debut du débug affichage dates pour la scène {self.titre}, clef de tri = {self.clef_tri(date_gn)}")
         # print(f"date relative = {self.date}")
         # print(f" date absolue sans prise en compte date gn : {self.get_date_absolue()}")
@@ -638,9 +653,11 @@ class Scene:
                           f"{date_absolue_calculee.day} " \
                           f"{months[date_absolue_calculee.month - 1]} " \
                           f"{date_absolue_calculee.year}"
-        time_string = f"{date_absolue_calculee.hour}h{date_absolue_calculee.minute}"
-
-        return f"{date_string}, {time_string}"
+        if avec_heure:
+            time_string = f"{date_absolue_calculee.hour}h{date_absolue_calculee.minute}"
+            return f"{date_string}, {time_string}"
+        else:
+            return f"{date_string}"
 
     def get_formatted_il_y_a(self):
         # print("date/type > {0}/{1}".format(self.date, type(self.date)))
@@ -682,8 +699,8 @@ class Scene:
     def str_pour_squelette(self, date_gn=None):
         to_return = ""
 
-        heure = f'- heure = {self.heure_debut}' if self.heure_debut else ''
-        to_return += f"titre scène : {self.titre} - date  : {self.get_formatted_date(date_gn)} {heure}\n"
+        heure = f'- heure = {self.get_heure_debut()}' if self.get_heure_debut() else ''
+        to_return += f"titre scène : {self.titre} - date  : {self.get_formatted_date(date_gn, avec_heure=False)} {heure}\n"
         if self.lieu:
             to_return += f"lieu : {self.lieu} \n"
         str_roles_persos = 'Roles (Perso) : '
@@ -699,7 +716,7 @@ class Scene:
         to_return += f"provenance : {self.conteneur.nom} \n"
         # to_return += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
         to_return += f"dernières éditions : intrigue : {self.conteneur.lastFileEdit}  " \
-                         f"/ scène : {self.derniere_mise_a_jour} \n"
+                     f"/ scène : {self.derniere_mise_a_jour} \n"
         to_return += f"url intrigue : {self.conteneur.get_full_url()} \n"
         # to_return += f"pitch  : {self.pitch} \n"
         # to_return += f"description : \n {self.description} \n"

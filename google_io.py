@@ -937,193 +937,73 @@ def extraire_relation_multi(conteneur, tab_relations_multi, verbal=False,
             role.relations.add(relation_multi_a_ajouter)
 
 
-# deprecated depuis que le tableau est lu dynamiquement
-# def lire_tableau_pj_chalacta(current_intrigue, tableau_pjs):
-#     for pj in tableau_pjs:  # on commence en 1 pour éviter de prendre la première ligne
-#         # print("taille du prochain PJ : " +str(len(pj)))
-#
-#         if len(pj) < 4:  # testé pour éviter de se taper les lignes vides après le tableau
-#             continue
-#
-#         role_a_ajouter = Role(current_intrigue,
-#                               nom=pj[0].split("http")[0],
-#                               description=pj[3],
-#                               type_intrigue=pj[2],
-#                               niveau_implication=pj[1]
-#                               )
-#         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
-#
-#
-# def lire_tableau_pj_5_colonnes(current_intrigue, tableau_pjs):
-#     for pj in tableau_pjs:  # on commence en 1 pour éviter de prendre la première ligne
-#         # print("taille du prochain PJ : " +str(len(pj)))
-#
-#         if len(pj) < 5:  # testé pour éviter de se taper les lignes vides après le tableau
-#             continue
-#
-#         liste_pips = pj[1].split('/')
-#         if len(liste_pips) == 2:
-#             pip_globaux = 0
-#             pipi = liste_pips[0]
-#             pipr = liste_pips[1]
-#         else:
-#             pip_globaux = liste_pips[0]
-#             pipi = 0
-#             pipr = 0
-#
-#         role_a_ajouter = Role(current_intrigue,
-#                               nom=pj[0].split("http")[0],
-#                               description=pj[4],
-#                               type_intrigue=pj[3],
-#                               niveau_implication=pj[2],
-#                               pip_globaux=pip_globaux,
-#                               pipi=pipi,
-#                               pipr=pipr
-#                               )
-#         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
-#
-#
-# def lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs):
-#     for pj in tableau_pjs:
-#         # print("taille du prochain PJ : " + str(len(pj)))
-#
-#         if len(pj) < 6:  # testé pour éviter de se taper les lignes vides après le tableau
-#             continue
-#
-#         role_a_ajouter = Role(current_intrigue,
-#                               nom=pj[0].split("http")[0],
-#                               description=pj[5],
-#                               type_intrigue=pj[4],
-#                               niveau_implication=pj[3],
-#                               pipi=pj[1],
-#                               pipr=pj[2]
-#                               )
-#         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
-
-
-# def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
-#     # à ce stade là on a et les PJs et les PNJs > on peut générer le tableau de référence des noms dans l'intrigue
-#     noms_roles = conteneur.get_noms_roles()
-#     # print(f"pour {currentIntrigue.nom}, noms_roles =  {noms_roles}")
-#
-#     # print(f"Texte section scène : {texteScenes}")
-#     scenes = texte_scenes.split("###")
-#     for scene in scenes:
-#         # print("taille de la scène : " + str(len(scene)))
-#         if len(scene) < 10:
-#             continue
-#
-#         titre_scene = scene.splitlines()[0].strip()
-#         scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
-#         scene_a_ajouter.modifie_par = conteneur.modifie_par
-#         # print("titre de la scène ajoutée : " + scene_a_ajouter.titre)
-#         # print(f"Pour sandrine : extraction des balises pour l'intrigue {conteneur.nom}")
-#         balises = re.findall(r'##.*', scene)
-#         for balise in balises:
-#             # print("balise : " + balise)
-#             if balise[:9].lower() == '## quand?':
-#                 extraire_date_scene(balise[10:], scene_a_ajouter)
-#             elif balise[:10].lower() == '## quand ?':
-#                 extraire_date_scene(balise[11:], scene_a_ajouter)
-#                 # scene_a_ajouter.date = balise[11:].strip()
-#                 # # print("date de la scène : " + scene_a_ajouter.date)
-#             elif balise[:9].lower() == '## il y a':
-#                 extraire_il_y_a_scene(balise[10:], scene_a_ajouter)
-#             elif balise[:9].lower() == '## date :':
-#                 extraire_date_absolue(balise[10:], scene_a_ajouter)
-#             elif balise[:8].lower() == '## date:':
-#                 extraire_date_absolue(balise[9:], scene_a_ajouter)
-#             elif balise[:8].lower() == '## date?':
-#                 extraire_date_absolue(balise[9:], scene_a_ajouter)
-#             elif balise[:7].lower() == '## qui?':
-#                 extraire_qui_scene(balise[8:], conteneur, noms_roles, scene_a_ajouter,
-#                                    avec_tableau_des_persos=tableau_roles_existant)
-#
-#             elif balise[:8].lower() == '## qui ?':
-#                 extraire_qui_scene(balise[9:], conteneur, noms_roles, scene_a_ajouter,
-#                                    avec_tableau_des_persos=tableau_roles_existant)
-#
-#             elif balise[:11].lower() == '## niveau :':
-#                 scene_a_ajouter.niveau = balise[12:].strip()
-#
-#             elif balise[:11].lower() == '## résumé :':
-#                 scene_a_ajouter.resume = balise[12:].strip()
-#
-#             elif balise[:10].lower() == '## résumé:':
-#                 scene_a_ajouter.resume = balise[11:].strip()
-#
-#             elif balise[:13].lower() == '## factions :':
-#                 extraire_factions_scene(balise[14:], scene_a_ajouter)
-#
-#             elif balise[:12].lower() == '## faction :':
-#                 extraire_factions_scene(balise[13:], scene_a_ajouter)
-#
-#             elif balise[:12].lower() == '## factions:':
-#                 # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[13:].split(',')])
-#                 extraire_factions_scene(balise[13:], scene_a_ajouter)
-#             elif balise[:11].lower() == '## faction:':
-#                 # scene_a_ajouter.nom_factions.add([f.strip() for f in balise[12:].split(',')])
-#                 extraire_factions_scene(balise[12:], scene_a_ajouter)
-#             elif balise[:9].lower() == '## info :':
-#                 extraire_infos_scene(balise[10:], scene_a_ajouter)
-#                 # scene_a_ajouter.infos.add(tuple([f.strip() for f in .split(',')]))
-#             elif balise[:8].lower() == '## info:':
-#                 # scene_a_ajouter.infos.add([f.strip() for f in balise[9:].split(',')])
-#                 extraire_infos_scene(balise[9:], scene_a_ajouter)
-#             else:
-#                 texte_erreur = f"balise inconnue : {balise} dans le conteneur {nom_conteneur}"
-#                 print(texte_erreur)
-#                 scene_a_ajouter.description += balise
-#                 conteneur.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
-#                                                    texte_erreur,
-#                                                    ErreurManager.ORIGINES.SCENE)
-#
-#         scene_a_ajouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
-#         # print("texte de la scene apres insertion : " + scene_a_ajouter.description)
-def extraire_balise(balise, scene_a_ajouter, conteneur, tableau_roles_existant=True):
-    balise_lower = balise.lower()
-
-    class balises(Enum):
+def extraire_balise(input_balise: str, scene_a_ajouter: Scene, conteneur: ConteneurDeScene,
+                    tableau_roles_existant: bool = True):
+    class Balises(Enum):
         QUAND = r"^##\s*quand\s*[:?]"
-        IL_Y_A = r"^##\s*quand\s*[:?]"
+        IL_Y_A = r"^##\s*il y a\s*"
         DATE = r"^##\s*date\s*[:?]"
         QUI = r"^##\s*qui\s*[:?]"
         NIVEAU = r"^##\s*niveau\s*[:?]"
         RESUME = r"^##\s*résumé\s*[:?]"
-        FACTIONS = r"^##\s*(faction[factions)\s*[:?]"
+        FACTIONS = r"^##\s*(faction|factions)\s*[:?]"
         INFOS = r"^##\s*(info|infos)\s*[:?]"
         HEURE = r"^##\s*heure\s*[:?]"
         OU = r"^##\s*(ou|où)\s*[:?]"
 
+    dict_methodes = {
+        Balises.QUAND: lambda x: extraire_date_scene(x, scene_a_ajouter),
+        Balises.IL_Y_A: lambda x: extraire_il_y_a_scene(x, scene_a_ajouter),
+        Balises.DATE: lambda x: extraire_date_absolue(x, scene_a_ajouter),
+        Balises.QUI: lambda x: extraire_qui_scene(x, conteneur, scene_a_ajouter,
+                                                  avec_tableau_des_persos=tableau_roles_existant),
+        # Balises.RESUME:lambda x :None,
+        Balises.FACTIONS: lambda x: extraire_factions_scene(x, scene_a_ajouter),
+        Balises.INFOS: lambda x: extraire_infos_scene(x, scene_a_ajouter),
+        Balises.HEURE: lambda x: scene_a_ajouter.set_heure_debut(x),
+        Balises.OU: lambda x: scene_a_ajouter.set_lieu(x)
+    }
 
-    if balise_lower.startswith('## quand?') or balise_lower.startswith('## quand ?'):
-        extraire_date_scene(balise.split("?", 1)[1], scene_a_ajouter)
-    elif balise_lower.startswith('## il y a'):
-        extraire_il_y_a_scene(balise[9:], scene_a_ajouter)
-    elif balise_lower.startswith('## date :') or balise_lower.startswith('## date:') or balise_lower.startswith(
-            '## date?'):
-        extraire_date_absolue(balise.split(":", 1)[1], scene_a_ajouter)
-    elif balise_lower.startswith('## qui?') or balise_lower.startswith('## qui ?'):
-        extraire_qui_scene(balise.split("?", 1)[1], conteneur, scene_a_ajouter,
-                           avec_tableau_des_persos=tableau_roles_existant)
-    elif balise_lower.startswith('## niveau :'):
-        scene_a_ajouter.niveau = balise[11:].strip()
-    elif balise_lower.startswith('## résumé :') or balise_lower.startswith('## résumé:'):
-        scene_a_ajouter.resume = balise.split(":", 1)[1].strip()
-    elif balise_lower.startswith('## factions :') or balise_lower.startswith('## factions:') or balise_lower.startswith(
-            '## faction :') or balise_lower.startswith('## faction:'):
-        extraire_factions_scene(balise.split(":", 1)[1], scene_a_ajouter)
-    elif balise_lower.startswith('## info :') or balise_lower.startswith('## info:'):
-        extraire_infos_scene(balise.split(":", 1)[1], scene_a_ajouter)
-    elif balise_lower.startswith('## heure :') or balise_lower.startswith('## heure:'):
-        scene_a_ajouter.heure_debut = balise.split(":", 1)[1]
-    elif balise_lower.startswith('## où?') or balise_lower.startswith('## où ?') or \
-            balise_lower.startswith('## ou?') or balise_lower.startswith('## ou ?'):
-        scene_a_ajouter.lieu = balise.split(":", 1)[1]
+    for balise in Balises:
+        if match := re.search(balise.value, input_balise, re.IGNORECASE):
+            end_pos = match.end()
+            texte_balise = input_balise[end_pos:]
+            methode_a_utiliser = dict_methodes[balise]
+            methode_a_utiliser(texte_balise)
+            return True
 
-    else:
-        return False
-    return True
+    return False
+
+    # balise_lower = input_balise.lower()
+    #
+    # if balise_lower.startswith('## quand?') or balise_lower.startswith('## quand ?'):
+    #     extraire_date_scene(input_balise.split("?", 1)[1], scene_a_ajouter)
+    # elif balise_lower.startswith('## il y a'):
+    #     extraire_il_y_a_scene(input_balise[9:], scene_a_ajouter)
+    # elif balise_lower.startswith('## date :') or balise_lower.startswith('## date:') or balise_lower.startswith(
+    #         '## date?'):
+    #     extraire_date_absolue(input_balise.split(":", 1)[1], scene_a_ajouter)
+    # elif balise_lower.startswith('## qui?') or balise_lower.startswith('## qui ?'):
+    #     extraire_qui_scene(input_balise.split("?", 1)[1], conteneur, scene_a_ajouter,
+    #                        avec_tableau_des_persos=tableau_roles_existant)
+    # elif balise_lower.startswith('## niveau :'):
+    #     scene_a_ajouter.niveau = input_balise[11:].strip()
+    # elif balise_lower.startswith('## résumé :') or balise_lower.startswith('## résumé:'):
+    #     scene_a_ajouter.resume = input_balise.split(":", 1)[1].strip()
+    # elif balise_lower.startswith('## factions :') or balise_lower.startswith('## factions:') or balise_lower.startswith(
+    #         '## faction :') or balise_lower.startswith('## faction:'):
+    #     extraire_factions_scene(input_balise.split(":", 1)[1], scene_a_ajouter)
+    # elif balise_lower.startswith('## info :') or balise_lower.startswith('## info:'):
+    #     extraire_infos_scene(input_balise.split(":", 1)[1], scene_a_ajouter)
+    # elif balise_lower.startswith('## heure :') or balise_lower.startswith('## heure:'):
+    #     scene_a_ajouter.heure_debut = input_balise.split(":", 1)[1]
+    # elif balise_lower.startswith('## où?') or balise_lower.startswith('## où ?') or \
+    #         balise_lower.startswith('## ou?') or balise_lower.startswith('## ou ?'):
+    #     scene_a_ajouter.lieu = input_balise.split(":", 1)[1]
+    #
+    # else:
+    #     return False
+    # return True
 
 
 def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
@@ -1272,7 +1152,6 @@ def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, avec_tableau_des_
 
 def extraire_date_scene(balise_date, scene_a_ajouter):
     # réécrite pour merger les fonctions il y a et quand :
-    # réécrite pour merger les fonctions il y a et quand :
 
     # est-ce que la date est écrite au format quand ? il y a ?
     if balise_date.strip().lower()[:6] == 'il y a':
@@ -1284,7 +1163,7 @@ def extraire_date_scene(balise_date, scene_a_ajouter):
 
 
 def extraire_il_y_a_scene(balise_date, scene_a_ajouter):
-    # print("balise date : " + balise_date)
+    # print("input_balise date : " + balise_date)
     # print(f" pour sandrine : nom_scene avec il y a  : {scene_a_ajouter.titre}")
     # trouver s'il y a un nombre a[ns]
     date_en_jours = calculer_jours_il_y_a(balise_date)
@@ -1301,13 +1180,13 @@ def extraire_date_absolue(texte_brut: str, scene_a_ajouter: Scene):
 
 
 def calculer_jours_il_y_a(balise_date):
-    # print(f"balise date il y a en entrée {balise_date}")
+    # print(f"input_balise date il y a en entrée {balise_date}")
     balise_date = balise_date.lower()
     try:
         ma_date = balise_date
         # print(f"ma date avant stripping : {ma_date}")
         # print(balise_date.strip().lower()[0:6])
-        # #si il y a un "il y a" dans la balise, il faut le virer
+        # #si il y a un "il y a" dans la input_balise, il faut le virer
         # if balise_date.strip().lower()[0:6] == 'il y a':
         #     ma_date = balise_date[7:]
         # print(f"ma date après stripping : {balise_date} > {ma_date}")
@@ -1349,7 +1228,7 @@ def calculer_jours_il_y_a(balise_date):
         # print(f"{ma_date} > ans/jours/mois = {ans}/{mois}/{jours}")
 
         date_en_jours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(semaines) * 7 + float(jours))
-        # print(f"balise date il y a en sortie {date_en_jours}")
+        # print(f"input_balise date il y a en sortie {date_en_jours}")
 
         return date_en_jours
     except ValueError:
