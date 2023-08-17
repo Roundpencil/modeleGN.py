@@ -13,7 +13,7 @@ from fuzzywuzzy import process
 import sys
 from packaging import version
 
-VERSION = "1.1.20230812"
+VERSION = "1.1.20230816"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -577,7 +577,7 @@ class Relation:
 
 # Scènes
 class Scene:
-    def __init__(self, conteneur, titre, date="TBD", heure_debut=None,
+    def __init__(self, conteneur=None, titre="scene sans titre", date="TBD", heure_debut=None,
                  pitch="Pas de description simple", date_absolue: datetime = None,
                  description="Pas de description complète",
                  actif=True):
@@ -1737,6 +1737,9 @@ class GN:
 
         for intrigue in self.intrigues.values():
             maj_classe(intrigue)
+            for scene in intrigue.scenes:
+                maj_classe(scene)
+                print(f'heure de la scène {scene.titre} : {scene.heure_debut}')
 
         for evenement in self.evenements.values():
             maj_classe(evenement)
