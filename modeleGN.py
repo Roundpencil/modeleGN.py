@@ -13,7 +13,7 @@ from fuzzywuzzy import process
 import sys
 from packaging import version
 
-VERSION = "1.1.20230816"
+VERSION = "1.1.20230817"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -579,7 +579,7 @@ class Relation:
 class Scene:
     def __init__(self, conteneur=None, titre="scene sans titre", date="TBD", heure_debut=None,
                  pitch="Pas de description simple", date_absolue: datetime = None,
-                 description="Pas de description complète",
+                 description="Pas de description complète", lieu = None,
                  actif=True):
         self.conteneur = conteneur
         self.date = date  # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
@@ -597,6 +597,7 @@ class Scene:
         self.derniere_mise_a_jour = datetime.datetime.now()
         self.modifie_par = ""
         self.heure_debut = heure_debut
+        self.lieu = lieu
         # print(f"Je viens de créer la scène {self.titre}, avec en entrée la date {date}")
 
     def get_date(self):
@@ -683,6 +684,8 @@ class Scene:
 
         heure = f'- heure = {self.heure_debut}' if self.heure_debut else ''
         to_return += f"titre scène : {self.titre} - date  : {self.get_formatted_date(date_gn)} {heure}\n"
+        if self.lieu:
+            to_return += f"lieu : {self.lieu} \n"
         str_roles_persos = 'Roles (Perso) : '
         for role in self.roles:
             if role.personnage is None:
@@ -1729,6 +1732,8 @@ class GN:
 
         for personnage in self.personnages.values():
             maj_classe(personnage)
+            for scene in personnage.scenes:
+                maj_classe(scene)
             for role in personnage.roles:
                 maj_classe(role)
 

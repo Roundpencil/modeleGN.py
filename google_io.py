@@ -482,7 +482,6 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
         # alias = nom_et_alias[1:] if len(nom_et_alias) > 1 else None
         nom, alias = separer_nom_et_alias(nom.split("http")[0])
 
-
         if len(liste_pips := str(pip_globaux).split('/')) == 2:
             pip_globaux = 0
             pipi = liste_pips[0] + pipi
@@ -1083,6 +1082,20 @@ def extraire_relation_multi(conteneur, tab_relations_multi, verbal=False,
 #         # print("texte de la scene apres insertion : " + scene_a_ajouter.description)
 def extraire_balise(balise, scene_a_ajouter, conteneur, tableau_roles_existant=True):
     balise_lower = balise.lower()
+
+    class balises(Enum):
+        QUAND = r"^##\s*quand\s*[:?]"
+        IL_Y_A = r"^##\s*quand\s*[:?]"
+        DATE = r"^##\s*date\s*[:?]"
+        QUI = r"^##\s*qui\s*[:?]"
+        NIVEAU = r"^##\s*niveau\s*[:?]"
+        RESUME = r"^##\s*résumé\s*[:?]"
+        FACTIONS = r"^##\s*(faction[factions)\s*[:?]"
+        INFOS = r"^##\s*(info|infos)\s*[:?]"
+        HEURE = r"^##\s*heure\s*[:?]"
+        OU = r"^##\s*(ou|où)\s*[:?]"
+
+
     if balise_lower.startswith('## quand?') or balise_lower.startswith('## quand ?'):
         extraire_date_scene(balise.split("?", 1)[1], scene_a_ajouter)
     elif balise_lower.startswith('## il y a'):
@@ -1104,6 +1117,10 @@ def extraire_balise(balise, scene_a_ajouter, conteneur, tableau_roles_existant=T
         extraire_infos_scene(balise.split(":", 1)[1], scene_a_ajouter)
     elif balise_lower.startswith('## heure :') or balise_lower.startswith('## heure:'):
         scene_a_ajouter.heure_debut = balise.split(":", 1)[1]
+    elif balise_lower.startswith('## où?') or balise_lower.startswith('## où ?') or \
+            balise_lower.startswith('## ou?') or balise_lower.startswith('## ou ?'):
+        scene_a_ajouter.lieu = balise.split(":", 1)[1]
+
     else:
         return False
     return True
@@ -1183,6 +1200,7 @@ def generer_permutations_alias(nom_du_role: str):
         to_return.append(f'{to_return} aka {alias}')
         to_return.append(alias)
     return to_return
+
 
 def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, avec_tableau_des_persos: bool = True):
     to_return = []  # nom, role,score
@@ -2254,8 +2272,8 @@ def write_to_doc(service, file_id, text: str, titre=False):
         formatting_requests.append({
             'updateTextStyle': {
                 'range': {
-                    'startIndex': start+1,
-                    'endIndex': end+1,
+                    'startIndex': start + 1,
+                    'endIndex': end + 1,
                 },
                 'textStyle': {
                     'link': {
@@ -2380,7 +2398,7 @@ def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: st
 
 
 def creer_dossier_drive(service_drive, id_parent: str, nom_dossier: str, m_print=print, id_dossier_archive=None) -> \
-Optional[str]:
+        Optional[str]:
     """Crée un dossier dans Google Drive."""
     TYPE_MIME_DOSSIER = 'application/vnd.google-apps.folder'
     return creer_fichier(service_drive, nom_dossier, id_parent, TYPE_MIME_DOSSIER,
@@ -2396,7 +2414,7 @@ def creer_google_sheet(service_drive, nom_feuille: str, id_dossier_parent: str, 
 
 
 def creer_google_doc(service_drive, nom_fichier: str, id_parent: str, m_print=print, id_dossier_archive=None) -> \
-Optional[str]:
+        Optional[str]:
     """Crée un document Google Docs dans Google Drive."""
     TYPE_MIME_DOCUMENT = 'application/vnd.google-apps.document'
     return creer_fichier(service_drive, nom_fichier, id_parent, TYPE_MIME_DOCUMENT,
