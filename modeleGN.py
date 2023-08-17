@@ -607,8 +607,6 @@ class Scene:
             return self.date_absolue.strftime('%H:%M:%S')
         return None
 
-    #todo : ajouter dans les tri des scène le paramètre heure s'il existe
-
     def get_date(self):
         return self.date
 
