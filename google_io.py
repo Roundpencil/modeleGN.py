@@ -944,12 +944,12 @@ def extraire_balise(input_balise: str, scene_a_ajouter: Scene, conteneur: Conten
         IL_Y_A = r"^##\s*il y a\s*"
         DATE = r"^##\s*date\s*[:?]"
         QUI = r"^##\s*qui\s*[:?]"
-        NIVEAU = r"^##\s*niveau\s*[:?]"
-        RESUME = r"^##\s*résumé\s*[:?]"
+        # NIVEAU = r"^##\s*niveau\s*[:?]"
+        # RESUME = r"^##\s*résumé\s*[:?]"
         FACTIONS = r"^##\s*(faction|factions)\s*[:?]"
         INFOS = r"^##\s*(info|infos)\s*[:?]"
         HEURE = r"^##\s*heure\s*[:?]"
-        OU = r"^##\s*(ou|où)\s*[:?]"
+        OU = r"^##\s*(ou|où|lieu)\s*[:?]"
 
     dict_methodes = {
         Balises.QUAND: lambda x: extraire_date_scene(x, scene_a_ajouter),
