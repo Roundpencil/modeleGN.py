@@ -3357,3 +3357,55 @@ def extraire_id_google_si_possible(user_text):
     # If neither a URL nor an ID, return None
     else:
         return user_text, False
+
+
+def normaliser_nom_gn(nom_archive: str):
+    if nom_archive.endswith('.mgn'):
+        return nom_archive
+    return nom_archive + 'mgn'
+
+
+def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_file_name):
+    save_file_name = normaliser_nom_gn(save_file_name)
+    # Find the most recent save file
+    # results = service.files().list(q=f"'{source_folder_id}' in parents",
+    #                                orderBy="modifiedTime desc",
+    #                                pageSize=1).execute()
+    results = api_drive.files().list(q=f"'{source_folder_id}' in parents and name contains '{save_file_name}'",
+                                     orderBy="modifiedTime desc",
+                                     pageSize=1).execute()
+
+    items = results.get('files', [])
+
+    if items:
+        file_id = items[0]['id']
+        request = api_drive.files().get_media(fileId=file_id)
+        # local_path = f"{dest_folder}/{items[0]['name']}"
+        local_path = f"{dest_folder}/{save_file_name}"
+        with io.FileIO(local_path, 'wb') as file:
+            downloader = MediaIoBaseDownload(file, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+        return local_path
+    else:
+        print('No files found.')
+        return None
+
+
+def uploader_archive(file_path, folder_id, api_drive):
+    # Upload the updated file with a new date indication
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    new_filename = f"{current_date}_{os.path.basename(file_path)}"
+    new_filename = normaliser_nom_gn(new_filename)
+
+    file_metadata = {
+        'name': new_filename,
+        'parents': [folder_id]
+    }
+    media = MediaFileUpload(file_path,
+                            mimetype='application/octet-stream',
+                            resumable=True)
+    file = api_drive.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    return file.get('id')
