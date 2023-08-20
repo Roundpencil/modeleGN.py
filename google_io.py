@@ -3425,7 +3425,7 @@ def uploader_archive(file_path, folder_id, api_drive):
 
 
 def charger_gn(dict_config: dict, api_drive=None):
-    nom_archive = dict_config['nom_fichier_sauvegarde']
+    nom_archive = normaliser_nom_gn(dict_config['nom_fichier_sauvegarde'])
     dest_folder = dict_config['dossier_local_fichier_sauvegarde']
     chemin_archive = os.path.join(dest_folder, nom_archive)
 
