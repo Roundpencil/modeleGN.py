@@ -448,26 +448,8 @@ class Application(ttk.Frame):
         print(f"dict config au début de la création = {self.dict_config}")
         # try:
         try:
-            self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'], dict_config=self.dict_config)
-            # self.gn.injecter_config(dossiers_evenements=self.dict_config['dossiers_evenements'],
-            #                         dossiers_intrigues=self.dict_config['dossiers_intrigues'],
-            #                         dossier_output=self.dict_config['dossier_output'],
-            #                         mode_association=self.dict_config['mode_association'],
-            #                         dossiers_pj=self.dict_config.get('dossiers_pjs'),
-            #                         dossiers_pnj=self.dict_config.get('dossiers_pnjs'),
-            #                         id_factions=self.dict_config.get('id_factions'),
-            #                         dossiers_objets=self.dict_config.get('dossiers_objets'),
-            #                         date_gn=self.dict_config.get('date_gn'),
-            #                         id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
-            #                         fichier_pnjs=self.dict_config.get('fichier_noms_pnjs')
-            #                         )
-            # print(f"après injection, nous avons : "
-            #       f"dossiers_intrigues={self.dict_config['dossiers_intrigues'],}"
-            #       f"dossier_output= {self.dict_config['dossier_output']},"
-            #       f"association_auto= {self.dict_config['association_auto']},"
-            #       f"dossiers_pj= {self.dict_config.get('dossiers_pjs')},"
-            #       f"dossiers_pnj= {self.dict_config.get('dossiers_pnjs')},"
-            #       f"id_factions= {self.dict_config.get('id_factions')}")
+            self.gn = g_io.charger_gn(api_drive=self.api_drive,dict_config=self.dict_config)
+            # self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'], dict_config=self.dict_config)
 
         except Exception as f:
             # print(traceback.format_exc())

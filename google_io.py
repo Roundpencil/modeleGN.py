@@ -1,12 +1,14 @@
 from __future__ import print_function
 
 import configparser
+import io
+import os
 from enum import Enum
 from typing import Optional
 
 import fuzzywuzzy.process
-import validators as validators
 from googleapiclient.errors import HttpError
+from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 
 import lecteurGoogle
 from modeleGN import *
@@ -3159,10 +3161,20 @@ def verifier_config_parser(api_drive, config):
     except configparser.NoOptionError:
         resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de fichier de sauvegarde"])
         test_global_reussi = False
+
+
     # intégration d'une ligne de bilan des tests essentiels
     if test_global_reussi:
         resultats.append(["Paramètre Essentiels", "Présence des champs", "Test Réussi"])
+
     # *** intégration des fichiers optionnels
+    # création du paramètre fichier local sauvegarde, par défaut ou tel que lu
+    try:
+        nom_dossier_sauvegarde = config.get('Optionnels', 'nom_fichier_sauvegarde')
+        fichier_output['dossier_local_fichier_sauvegarde'] = os.path.join(os.path.curdir, nom_dossier_sauvegarde)
+    except configparser.NoOptionError:
+        fichier_output['dossier_local_fichier_sauvegarde'] = os.path.curdir
+
     # intégration des dossiers PJs
     fichier_output['dossiers_pjs'] = []
     clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_pjs")]
@@ -3381,7 +3393,8 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
         file_id = items[0]['id']
         request = api_drive.files().get_media(fileId=file_id)
         # local_path = f"{dest_folder}/{items[0]['name']}"
-        local_path = f"{dest_folder}/{save_file_name}"
+        # local_path = f"{dest_folder}/{save_file_name}"
+        local_path = os.path.join(dest_folder, save_file_name)
         with io.FileIO(local_path, 'wb') as file:
             downloader = MediaIoBaseDownload(file, request)
             done = False
@@ -3409,3 +3422,15 @@ def uploader_archive(file_path, folder_id, api_drive):
                             resumable=True)
     file = api_drive.files().create(body=file_metadata, media_body=media, fields='id').execute()
     return file.get('id')
+
+
+def charger_gn(dict_config: dict, api_drive=None):
+    nom_archive = dict_config['nom_fichier_sauvegarde']
+    dest_folder = dict_config['dossier_local_fichier_sauvegarde']
+    chemin_archive = os.path.join(dest_folder, nom_archive)
+
+    if api_drive:
+        source_folder_id = dict_config.get('dossier_output_squelettes_pjs')
+        telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, nom_archive)
+
+    return GN.load(chemin_archive, dict_config=dict_config)
