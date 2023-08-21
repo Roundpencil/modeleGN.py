@@ -62,7 +62,8 @@ def lire_fichier_pnjs(nom_fichier: str):
     return to_return
 
 
-def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier_sauvegarde: str,
+def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets,
+                         # nom_fichier_sauvegarde: str,
                          sans_chargement_fichier=False,
                          sauver_apres_operation=True,
                          # liste_noms_pjs=None,  # noms_pnjs=None,
@@ -235,7 +236,9 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets, nom_fichier
     mon_gn.rebuild_links(verbal)
 
     if sauver_apres_operation:
-        mon_gn.save(nom_fichier_sauvegarde)
+        # mon_gn.save(nom_fichier_sauvegarde)
+        # mon_gn.save()
+        g_io.sauvegarder_et_uploader_gn(mon_gn, api_drive)
 
     # visualisation(25)
 

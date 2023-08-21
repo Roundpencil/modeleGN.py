@@ -3162,7 +3162,6 @@ def verifier_config_parser(api_drive, config):
         resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de fichier de sauvegarde"])
         test_global_reussi = False
 
-
     # intégration d'une ligne de bilan des tests essentiels
     if test_global_reussi:
         resultats.append(["Paramètre Essentiels", "Présence des champs", "Test Réussi"])
@@ -3374,7 +3373,7 @@ def extraire_id_google_si_possible(user_text):
 def normaliser_nom_gn(nom_archive: str):
     if nom_archive.endswith('.mgn'):
         return nom_archive
-    return nom_archive + 'mgn'
+    return nom_archive + '.mgn'
 
 
 def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_file_name):
@@ -3395,6 +3394,7 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
         # local_path = f"{dest_folder}/{items[0]['name']}"
         # local_path = f"{dest_folder}/{save_file_name}"
         local_path = os.path.join(dest_folder, save_file_name)
+        print(f"telechargement en cours vers {local_path}")
         with io.FileIO(local_path, 'wb') as file:
             downloader = MediaIoBaseDownload(file, request)
             done = False
@@ -3410,7 +3410,7 @@ def uploader_archive(file_path, folder_id, api_drive):
     # Upload the updated file with a new date indication
     current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    new_filename = f"{current_date}_{os.path.basename(file_path)}"
+    new_filename = f"{current_date} - {os.path.basename(file_path)}"
     new_filename = normaliser_nom_gn(new_filename)
 
     file_metadata = {
@@ -3429,16 +3429,21 @@ def charger_gn(dict_config: dict, api_drive=None):
     dest_folder = dict_config['dossier_local_fichier_sauvegarde']
     chemin_archive = os.path.join(dest_folder, nom_archive)
 
+    print(f"DEBUG : dict_config = {dict_config}")
+
     if api_drive:
-        source_folder_id = dict_config.get('dossier_output_squelettes_pjs')
+        source_folder_id = dict_config.get('dossier_output')
         telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, nom_archive)
 
     return GN.load(chemin_archive, dict_config=dict_config)
 
-def sauvegarder_et_uploader_gn(mon_gn : GN, api_drive = None):
-    mon_gn.save()
+
+def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None):
+    path = mon_gn.save()
 
     if api_drive:
-        uploader_archive(file_path, folder_id, api_drive)
-
-    pass
+        nom_archive = os.path.basename(path)
+        dossier_upload = mon_gn.get_dossier_outputs_drive()
+        if id_archive := mon_gn.get_id_dossier_archive():
+            archiver_fichiers_existants(api_drive, nom_archive, dossier_upload, id_archive)
+        uploader_archive(path, dossier_upload, api_drive)

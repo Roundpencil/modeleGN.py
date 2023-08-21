@@ -354,8 +354,8 @@ class Application(ttk.Frame):
                                  # liste_noms_pjs=self.dict_config.get(
                                  #     'liste_noms_pjs'),
                                  # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
-                                 nom_fichier_sauvegarde=self.dict_config[
-                                     'nom_fichier_sauvegarde'],
+                                 # nom_fichier_sauvegarde=self.dict_config[
+                                 #     'nom_fichier_sauvegarde'],
                                  fichier_erreurs_intrigues=fichier_erreurs_intrigues_var.get(),
                                  fichier_erreurs_evenements=fichier_erreurs_evenements_var.get(),
                                  generer_fichiers_pjs=generer_fichiers_pj_var.get(),

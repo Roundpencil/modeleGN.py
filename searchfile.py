@@ -13,6 +13,7 @@ SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
 
 folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"
 
+
 def main():
     """Shows basic usage of the Drive v3 API.
     Prints the names and ids of the first 10 files the user has access to.
@@ -40,10 +41,11 @@ def main():
 
         # Call the Drive v3 API
         results = service.files().list(
-            #pageSize=10, fields="nextPageToken, files(id, name)").execute()
-            #pageSize = 10, q = dossier_intrigues + " in parents", fields = "nextPageToken, files(id, name)").execute()
-            pageSize = 100, q = "'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents", fields = "nextPageToken, files(id, name)").execute()
-            #pageSize = 10, fields = "*").execute()
+            # pageSize=10, fields="nextPageToken, files(id, name)").execute()
+            # pageSize = 10, q = dossier_intrigues + " in parents", fields = "nextPageToken, files(id, name)").execute()
+            pageSize=100, q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents",
+            fields="nextPageToken, files(id, name)").execute()
+        # pageSize = 10, fields = "*").execute()
         items = results.get('files', [])
 
         if not items:
@@ -51,7 +53,7 @@ def main():
             return
         for item in items:
             print(u'{0} ({1})'.format(item['name'], item['id']))
-            #print(item.items())
+            # print(item.items())
     except HttpError as error:
         # (developer) - Handle errors from drive API.
         print(f'An error occurred: {error}')

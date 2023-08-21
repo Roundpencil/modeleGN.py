@@ -1,18 +1,16 @@
-import os.path
-import traceback
-
-from unidecode import unidecode
 import contextlib
-import logging
-import pickle
 import datetime
-from enum import IntEnum
+import logging
+import os.path
+import pickle
 import re
+import sys
+from enum import IntEnum
 
 import dateparser
 from fuzzywuzzy import process
-import sys
 from packaging import version
+from unidecode import unidecode
 
 VERSION = "1.1.20230817"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
@@ -604,9 +602,7 @@ class Scene:
     def get_heure_debut(self):
         if self.heure_debut:
             return self.heure_debut
-        if self.date_absolue:
-            return self.date_absolue.strftime('%H:%M:%S')
-        return None
+        return self.date_absolue.strftime('%H:%M:%S') if self.date_absolue else None
 
     def get_date(self):
         return self.date
@@ -699,7 +695,8 @@ class Scene:
         to_return = ""
 
         heure = f'- heure = {self.get_heure_debut()}' if self.get_heure_debut() else ''
-        to_return += f"titre scène : {self.titre} - date  : {self.get_formatted_date(date_gn, avec_heure=False)} {heure}\n"
+        to_return += f"titre scène : {self.titre} " \
+                     f"- date  : {self.get_formatted_date(date_gn, avec_heure=False)} {heure}\n"
         if self.lieu:
             to_return += f"lieu : {self.lieu} \n"
         str_roles_persos = 'Roles (Perso) : '
@@ -990,11 +987,13 @@ class GN:
             # print(f"oldestdate pj : {self.oldestUpdatePJ} ")
             self.oldestUpdatedPJ = pairesDatesIdPJ[self.oldestUpdatePJ]
 
-    def save(self, filename = None):
+    def save(self, filename=None):
+        sys.setrecursionlimit(5000)
         if not filename:
             filename = self.get_chemin_local_archive()
         with open(filename, "wb") as filehandler:
             pickle.dump(self, filehandler)
+        return filename
 
     def noms_pjs(self):
         # return self.dictPJs.keys()
@@ -1465,8 +1464,10 @@ class GN:
         Args:
             dicts_perso_lu (list[dict]): Liste de dictionnaires représentant les personnages à importer.
             pj (bool): Indique si les personnages sont des PJs (True) ou des PNJs (False).
-            suffixe (str, optional): Un suffixe à ajouter au nom du personnage lors de l'importation. Par défaut "_imported".
-            verbal (bool, optional): Si True, imprime des messages détaillant le processus d'importation. Par défaut False.
+            suffixe (str, optional): Un suffixe à ajouter au nom du personnage lors de l'importation.
+            Par défaut "_imported".
+            verbal (bool, optional): Si True, imprime des messages détaillant le processus d'importation.
+            Par défaut False.
 
         Returns:
             None
@@ -1780,16 +1781,15 @@ class GN:
     def get_chemin_local_archive(self, complet=True):
         nom_archive = self.get_nom_fichier_sauvegarde()
         dest_folder = self.get_dossier_local_fichier_sauvegarde()
-        chemin_archive = os.path.join(dest_folder, nom_archive)
+        # chemin_archive = os.path.join(dest_folder, nom_archive)
 
         if complet:
             return os.path.join(dest_folder, nom_archive)
         else:
             return os.path.join(dest_folder)
 
-
     def get_dossier_local_fichier_sauvegarde(self):
-        return  self.dict_config['dossier_local_fichier_sauvegarde']
+        return self.dict_config['dossier_local_fichier_sauvegarde']
 
 
 # if hasattr(personnage, "orgaReferent"):

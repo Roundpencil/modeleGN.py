@@ -12,8 +12,8 @@ from MAGnet_lib import *
 
 
 def main():
-    sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
-
+    # sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
+    #
     parser = argparse.ArgumentParser()
 
     group1 = parser.add_mutually_exclusive_group()
