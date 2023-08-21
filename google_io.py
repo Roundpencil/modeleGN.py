@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import configparser
 import io
+import logging
 import os
 from enum import Enum
 from typing import Optional
@@ -2313,6 +2314,13 @@ def archiver_fichiers_existants(service, nom_fichier, id_dossier_parent, id_doss
         id_dossier_archive (str): L'ID du dossier où les fichiers seront archivés.
         considerer_supprime (bool): Si True, considère également les fichiers supprimés.
     """
+    if nom_fichier is None or id_dossier_parent is None or id_dossier_archive is None:
+        logging.debug("un paramètre de archiver fichiers existants est Null : "
+                      "nom_fichier = {nom_fichier}, "
+                      "id_dossier_parent = {id_dossier_parent}, "
+                      "id_dossier_archive = {id_dossier_archive}")
+        return
+
     # Extraire la date-heure et le label du fichier
     # date_heure, label = nom_fichier.split(' - ')
     parties_nom_fichier = nom_fichier.split(' - ')
