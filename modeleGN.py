@@ -1,3 +1,4 @@
+import os.path
 import traceback
 
 from unidecode import unidecode
@@ -989,7 +990,9 @@ class GN:
             # print(f"oldestdate pj : {self.oldestUpdatePJ} ")
             self.oldestUpdatedPJ = pairesDatesIdPJ[self.oldestUpdatePJ]
 
-    def save(self, filename):
+    def save(self, filename = None):
+        if not filename:
+            filename = self.get_chemin_local_archive()
         with open(filename, "wb") as filehandler:
             pickle.dump(self, filehandler)
 
@@ -1770,6 +1773,23 @@ class GN:
             maj_classe(objet)
 
         self.version = VERSION
+
+    def get_nom_fichier_sauvegarde(self):
+        return self.dict_config['nom_fichier_sauvegarde']
+
+    def get_chemin_local_archive(self, complet=True):
+        nom_archive = self.get_nom_fichier_sauvegarde()
+        dest_folder = self.get_dossier_local_fichier_sauvegarde()
+        chemin_archive = os.path.join(dest_folder, nom_archive)
+
+        if complet:
+            return os.path.join(dest_folder, nom_archive)
+        else:
+            return os.path.join(dest_folder)
+
+
+    def get_dossier_local_fichier_sauvegarde(self):
+        return  self.dict_config['dossier_local_fichier_sauvegarde']
 
 
 # if hasattr(personnage, "orgaReferent"):

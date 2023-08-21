@@ -3434,3 +3434,11 @@ def charger_gn(dict_config: dict, api_drive=None):
         telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, nom_archive)
 
     return GN.load(chemin_archive, dict_config=dict_config)
+
+def sauvegarder_et_uploader_gn(mon_gn : GN, api_drive = None):
+    mon_gn.save()
+
+    if api_drive:
+        uploader_archive(file_path, folder_id, api_drive)
+
+    pass
