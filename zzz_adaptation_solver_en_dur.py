@@ -1,4 +1,4 @@
-## dernière version fonctionnelle !!
+## dernière version fonctionnelle !! (avant création du créateur de plannings)
 
 
 from ortools.sat.python import cp_model

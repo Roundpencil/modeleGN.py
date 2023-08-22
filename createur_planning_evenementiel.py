@@ -237,6 +237,20 @@ def trouver_premiere_derniere_heure_en_pas(evenements):
 
 
 def generer_tableau_aide(nb_aides, aides_connus=None):
+    """
+    Génère une liste de joueurs jouant des PNJs (des "aides").
+
+    Génère une liste d'aide en fonction du nombre d'aides spécifié.
+    Si une liste d'aides est connue, la fonction essaiera de les utiliser,
+    et si des aides supplémentaires sont nécessaires, elles seront ajoutées séquentiellement.
+
+    Args:
+        nb_aides (int): Le nombre total d'éléments d'aide requis.
+        aides_connus (list, optionnel) : Liste d'éléments d'aide connus. Par défaut, None.
+
+    Returns:
+        list: Une liste d'aides, contenant 'nb_aides' éléments ou plus si disponibles.
+    """
     if aides_connus is None:
         aides_connus = []
     aides_a_ajouter = max(nb_aides - len(aides_connus), 0)
@@ -256,6 +270,9 @@ def recherche_dichotomique_aides(evenements, min_aides=0, max_aides=100, aides_c
             max_aides = milieu
         else:
             min_aides = milieu + 1
+
+    # si on est bons à la fin de la recherche dichotomique, on retourne le résultat,
+    # sinon le résultat avec une aide de plus
     if table_planning:
         return table_planning
     else:
@@ -432,15 +449,35 @@ def main():
     # print(table_planning_csv)
 
 
-def creer_planning_evenementiel(gn: GN, pas=None, avec_corrections=True):
+def creer_planning_evenementiel(gn: GN, pas=None,
+                                avec_corrections=True,
+                                conserver_liens_aides_pnjs=True,
+                                respecter_nb_aides=True,
+                                utiliser_affectations_predefinies=True,
+                                session=None,
+                                ):
     evenements, pas, texte_erreurs = preparer_donnees_pour_ortools(gn, pas=pas, avec_corrections=avec_corrections)
     print(f'DEBUG : {evenements}')
     logging.debug('erreurs dans la préparation des évènements pour la création de planning : ')
     logging.debug(texte_erreurs)
     print(f"DEBUG : erreurs evenements pre ORTOOLS : {texte_erreurs}")
-    table_planning = recherche_dichotomique_aides(evenements, min_aides=1, max_aides=30)
-    # table_planning = recherche_dichotomique_aides(evenements, min_aides=1, max_aides=30,
-    #                                               consever_liens_aides_pnjs=False)
+
+    # ajouter les affectations prédéfinies et en déduire les aides connus
+    # modele affectations_predefinies = pnj > personne
+
+    if session and utiliser_affectations_predefinies:
+            affectations_predefinies = {pnj.nom: pnj.interpretes[session]
+                                        for pnj in gn.get_dict_pnj().values()
+                                        if pnj.interpretes.get(session)}
+            aides_connus = list(set(affectations_predefinies.values()))
+    else:
+        affectations_predefinies = None
+        aides_connus = None
+
+    table_planning = recherche_dichotomique_aides(evenements, min_aides=1, max_aides=30,
+                                                  consever_liens_aides_pnjs=conserver_liens_aides_pnjs,
+                                                  affectations_predefinies=affectations_predefinies,
+                                                  aides_connus=aides_connus)
     # on retire les lignes vides
     table_planning = [row for row in table_planning if any(cell != '' for cell in row[1:])]
     # on re_converti les pas en Jours et heures
@@ -450,9 +487,10 @@ def creer_planning_evenementiel(gn: GN, pas=None, avec_corrections=True):
 
 
 # todo : préparation des données :
-#  remettre les affectations_predefinies à prtir des anciens code et les appeler en appelant la méthode
-#  permettre d'intégrer un paramètre du GN avec le nombre d'aides pour éviter d'utiliser recherche dychotomique si spécifié
-#  permettre au GN de spécifier le pas via un paramètre, et dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
+#  detecter quand il n'y a pas de solutions a la sortie du solveur dichotomique, puis libérer les contraintes
+#  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
+#  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
+#  nouvel onglet dans les fichiers de castings : aides par sessions (plutot que de prendre les pré-affectation) et les utiliser
 #  réintégrer dans le code, ajouter un bouton dans l'interface graphique, vériier ce qu'il se passe dans un gn sans évènements
 
 if __name__ == '__main__':
