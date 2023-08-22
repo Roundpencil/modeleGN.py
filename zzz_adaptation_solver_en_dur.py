@@ -1,7 +1,11 @@
+## dernière version fonctionnelle !!
+
+
 from ortools.sat.python import cp_model
 
 from modeleGN import *
 
+MULTIPLICATEURS_MINUTES = 10000
 
 ## Code création données de test :
 #
@@ -343,8 +347,10 @@ def identifier_erreurs_cumul(evenements: list, pas):
 
 def pas_2_h(heure_en_pas, pas):
     heure_en_pas = int(heure_en_pas)
-    jour = heure_en_pas // 100
-    minutes = (heure_en_pas % 100) * pas
+    jour = heure_en_pas // MULTIPLICATEURS_MINUTES
+    minutes = (heure_en_pas % MULTIPLICATEURS_MINUTES) * pas
+    # jour = heure_en_pas // 100
+    # minutes = (heure_en_pas % 100) * pas
     return f"J{jour} - {minutes // 60}h{minutes % 60}"
 
 
@@ -357,8 +363,10 @@ def evenements_2_dict_ortools(liste_evenements: list[Evenement], pas, texte_erre
             jour_nombre = ''.join(chiffre for chiffre in evenement.date if chiffre.isdigit())
             jour_nombre = int(jour_nombre) if jour_nombre else 0
 
-            heure_debut = heure_en_pas(intervention.heure_debut, pas) + jour_nombre * 100
-            heure_fin = heure_en_pas(intervention.heure_fin, pas) + jour_nombre * 100
+            heure_debut = heure_en_pas(intervention.heure_debut, pas) + jour_nombre * MULTIPLICATEURS_MINUTES
+            heure_fin = heure_en_pas(intervention.heure_fin, pas) + jour_nombre * MULTIPLICATEURS_MINUTES
+            # heure_debut = heure_en_pas(intervention.heure_debut, pas) + jour_nombre * 100
+            # heure_fin = heure_en_pas(intervention.heure_fin, pas) + jour_nombre * 100
             nom_intervention = f"{evenement.nom_evenement} - {i}"
 
             if heure_fin <= heure_debut:
@@ -388,8 +396,12 @@ def heure_en_pas(heure_en_texte: str, pas: int):
 
 
 def main():
-    gn = GN.load('GN Buffy')
-    evenements, pas, texte_erreurs = preparer_donnees_pour_ortools(gn)
+    # gn = GN.load('GN Buffy')
+    # evenements, pas, texte_erreurs = preparer_donnees_pour_ortools(gn)
+
+    gn = GN.load('archive Chalacta')
+    evenements, pas, texte_erreurs = preparer_donnees_pour_ortools(gn, pas=1)
+
 
     print(evenements)
 
@@ -654,9 +666,12 @@ def main():
 
 
 # todo : préparation des données :
-#  ajouter une fonction pour détecter qu'un pnj est à deux endroits à la fois en parvourant toutes ses interventions et en lui construirant un tableau de type cumul par heure
-#  détecter les PNJs en double dans leur évènement
 #  lors de la restitution, sauter les lignes vides
+#  permettre d'intégrer un paramètre du GN avec le nombre d'aides pour éviter d'utiliser recherche dychotomique si spécifié
+#  réintégrer dans le code, ajouter un bouton dans l'interface graphique, vériier ce qu'il se passe dans un gn sans évènements
+
+# normalement done : ajouter une fonction pour détecter qu'un pnj est à deux endroits à la fois en parvourant toutes ses interventions et en lui construirant un tableau de type cumul par heure
+# normalement done : détecter les PNJs en double dans leur évènement
 
 if __name__ == '__main__':
     main()

@@ -1,4 +1,8 @@
+# code en dur pour créer des tests - vieux
+
 # Définition des variables et des données d'exemple
+from ortools.sat.python import cp_model
+
 nb_pnj = 6
 nb_personnes = 4
 evenements = [
