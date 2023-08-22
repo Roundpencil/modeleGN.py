@@ -668,6 +668,7 @@ def main():
 # todo : préparation des données :
 #  lors de la restitution, sauter les lignes vides
 #  permettre d'intégrer un paramètre du GN avec le nombre d'aides pour éviter d'utiliser recherche dychotomique si spécifié
+#  permettre au GN de spécifier le pas via un paramètre, et dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
 #  réintégrer dans le code, ajouter un bouton dans l'interface graphique, vériier ce qu'il se passe dans un gn sans évènements
 
 # normalement done : ajouter une fonction pour détecter qu'un pnj est à deux endroits à la fois en parvourant toutes ses interventions et en lui construirant un tableau de type cumul par heure
