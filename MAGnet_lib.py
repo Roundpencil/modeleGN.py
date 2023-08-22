@@ -4,26 +4,29 @@ import os
 import google_io as g_io
 from modeleGN import *
 
-
 # communication :
 
 # interfaces de constructions
 
 # tester
 # todo reprendre message d'error sur l'expiration du token
-# todo : changer tous les paramètres du GN en un dictionnaire qu'il remplace plutot que des masses de varaiables
-#  >>utiliser des focntions get_ pour remplacer tous les appels en dur par une lecture du dictionnaire sur appel
 
 # bugs
 # todo : comprendre ce qu'il se passe avec les fiches des PJs et PNJs qui lisent tout qu'il arrive
 #  >> est-ce qu'il n'y a pas une erreur sur la boucle ou il s'arrete a la fin du premier fichier?
 
-# à tester
-
 # à faire - rapide
+# todo :
+#  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
+#  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
+#  nouvel onglet dans les fichiers de castings : aides par sessions (plutot que de prendre les pré-affectation) et les utiliser
 
 # à faire - plus long
-
+# todo : charger direment les fichiers mgn (et pas uniquement les fichiers de config)
+# todo : faire quelque part une liste de tous les dossiers ou se trouvent des *.mng
+#  vérifier auxquels a acces l'utilisateur quand il lance le programme, puis lui proposer de télécahrger les siens.
+#  objectifs : se oasser et du fichier de config, et de la nécessité de télécharger un mgn
+# todo : changer tous les paramètres de MAGnet_lib par une classe ou un dictionnaire pour accelérer le design
 
 # confort / logique
 # todo : refaire version console
@@ -42,7 +45,6 @@ from modeleGN import *
 
 def print_progress(v: float):
     print(f"La génération a progressé de {v}%")
-
 
 def lire_fichier_pnjs(nom_fichier: str):
     to_return = []

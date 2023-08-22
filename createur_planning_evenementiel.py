@@ -7,6 +7,7 @@ from modeleGN import *
 
 MULTIPLICATEURS_MINUTES = 10000
 
+
 ## Code création données de test :
 #
 # from zz_futur__tables_internvetions_PNJS import *
@@ -34,7 +35,7 @@ MULTIPLICATEURS_MINUTES = 10000
 # nb_pnjs_necessaires = max([cumul[t] for t in range(mini, maxi + 1)])
 
 def construire_timing_pnjs(evenements, aides: list[str], affectations_predefinies=None,
-                           consever_liens_aides_pnjs=True, verbal = False):
+                           consever_liens_aides_pnjs=True, verbal=False):
     if affectations_predefinies is None:
         affectations_predefinies = {}
     pnjs = {pnj for evenement in evenements for pnj in evenement['pnjs']}
@@ -149,7 +150,6 @@ def construire_timing_pnjs(evenements, aides: list[str], affectations_predefinie
                         print(f"Personne {p} joue le PNJ {pnj} lors de l'événement {evt_id}")
                     # else:
                     #     print("Pas de solution trouvée.")
-
 
     #################################################################"
 
@@ -417,6 +417,10 @@ def creer_planning_evenementiel(gn: GN, pas=None,
                                 utiliser_affectations_predefinies=True,
                                 session=None,
                                 ):
+
+    if not len(gn.evenements.values()):
+        return [['aucun évènement dans le GN']]
+
     evenements, pas, texte_erreurs = preparer_donnees_pour_ortools(gn, pas=pas, avec_corrections=avec_corrections)
     print(f'DEBUG : {evenements}')
     logging.debug('erreurs dans la préparation des évènements pour la création de planning : ')
@@ -427,17 +431,19 @@ def creer_planning_evenementiel(gn: GN, pas=None,
     # modele affectations_predefinies = pnj > personne
 
     if session and utiliser_affectations_predefinies:
-            affectations_predefinies = {pnj.nom: pnj.interpretes[session]
-                                        for pnj in gn.get_dict_pnj().values()
-                                        if pnj.interpretes.get(session)}
-            aides_connus = list(set(affectations_predefinies.values()))
+        affectations_predefinies = {pnj.nom: pnj.interpretes[session]
+                                    for pnj in gn.get_dict_pnj().values()
+                                    if pnj.interpretes.get(session)}
+        aides_connus = list(set(affectations_predefinies.values()))
     else:
         affectations_predefinies = None
         aides_connus = None
 
     table_planning = None
     if nb_aides_predefinis:
-        faire une truc
+        table_planning = construire_timing_pnjs(evenements, generer_tableau_aide(nb_aides_predefinis, aides_connus),
+                                                consever_liens_aides_pnjs=conserver_liens_aides_pnjs,
+                                                affectations_predefinies=affectations_predefinies)
 
     if not table_planning:
         table_planning = recherche_dichotomique_aides(evenements, min_aides=1, max_aides=30,
@@ -479,11 +485,7 @@ def creer_planning_evenementiel(gn: GN, pas=None,
 
 
 # todo :
-#  detecter quand il n'y a pas de solutions a la sortie du solveur dichotomique, puis libérer les contraintes
-#  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
-#  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
-#  nouvel onglet dans les fichiers de castings : aides par sessions (plutot que de prendre les pré-affectation) et les utiliser
-#  réintégrer dans le code, ajouter un bouton dans l'interface graphique, vériier ce qu'il se passe dans un gn sans évènements
+#  réintégrer dans le code, ajouter un bouton dans l'interface graphique
 
 if __name__ == '__main__':
     main()
