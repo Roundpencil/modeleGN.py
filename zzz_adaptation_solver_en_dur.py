@@ -398,9 +398,11 @@ def heure_en_pas(heure_en_texte: str, pas: int):
 def main():
     # gn = GN.load('GN Buffy')
     # evenements, pas, texte_erreurs = preparer_donnees_pour_ortools(gn)
-
-    gn = GN.load('archive Chalacta')
-    evenements, pas, texte_erreurs = preparer_donnees_pour_ortools(gn, pas=1)
+    nom_gn = 'archive Chalacta'
+    gn = GN.load(nom_gn)
+    pas = None
+    avec_corrections = True
+    evenements, pas, texte_erreurs = preparer_donnees_pour_ortools(gn, pas=pas, avec_corrections=avec_corrections)
 
 
     print(evenements)
