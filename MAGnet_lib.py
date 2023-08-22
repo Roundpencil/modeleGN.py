@@ -1695,7 +1695,7 @@ def verifier_derniere_version(api_doc):
                 version_lue = version.parse(ligne)
                 if last_version is None:
                     last_version = version_lue
-                if version_lue == ma_version:
+                if version_lue <= ma_version:
                     break
             except version.InvalidVersion:
                 pass
