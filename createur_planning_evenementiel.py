@@ -133,12 +133,13 @@ def construire_timing_pnjs(evenements, aides: list[str], affectations_predefinie
     # Afficher les résultats
     if status not in [cp_model.FEASIBLE, cp_model.OPTIMAL]:
         return None
-    # if status == cp_model.OPTIMAL:
-    print("Temps total par personne :")
-    for i, p in enumerate(aides):
-        print(f"Personne {p}: {solver.Value(temps_total_par_personne[i])} unités de temps")
 
     if verbal:
+        # if status == cp_model.OPTIMAL:
+        print("Temps total par personne :")
+        for i, p in enumerate(aides):
+            print(f"Personne {p}: {solver.Value(temps_total_par_personne[i])} unités de temps")
+
         print("\nPlanning des interventions :")
         for evt in evenements:
             evt_id = evt['nom']
@@ -149,23 +150,9 @@ def construire_timing_pnjs(evenements, aides: list[str], affectations_predefinie
                     # else:
                     #     print("Pas de solution trouvée.")
 
-    # # Afficher les résultats
-    # if status in [cp_model.FEASIBLE, cp_model.OPTIMAL]:
-    #     # if status == cp_model.OPTIMAL:
-    #     print("Temps total par personne :")
-    #     for i, p in enumerate(aides):
-    #         print(f"Personne {p}: {solver.Value(temps_total_par_personne[i])} minutes")
-    #
-    #     print("\nPlanning des interventions :")
-    #     for evt in evenements:
-    #         evt_id = evt['nom']
-    #         for pnj in evt["pnjs"]:
-    #             for p in aides:
-    #                 if solver.Value(interventions[f"evt_{evt_id}_pnj_{pnj}_p_{p}"]) == 1:
-    #                     print(f"Personne {p} joue le PNJ {pnj} lors de l'événement {evt_id}")
-    #                 # else:
-    #                 #     print("Pas de solution trouvée.")
-    #
+
+    #################################################################"
+
     # Trouver la dernière heure de fin des événements
     premiere_heure, derniere_heure = trouver_premiere_derniere_heure_en_pas(evenements)
 
@@ -202,32 +189,6 @@ def construire_timing_pnjs(evenements, aides: list[str], affectations_predefinie
         table_planning.append(current_ligne)
 
     return table_planning
-    #
-    # # Afficher l'en-tête du planning
-    # print("Heure", end=";")
-    # for p in aides:
-    #     print(f"{p}", end=";")
-    # print()
-    #
-    # # Afficher les lignes du planning pour chaque heure
-    # for t in range(premiere_heure, derniere_heure):
-    #     print(t, end=";")
-    #     for p in aides:
-    #         pnj_et_evt = None
-    #         for evt in evenements:
-    #             evt_id = evt['nom']
-    #             for pnj in evt["pnjs"]:
-    #                 if evt["start"] <= t < evt["end"] and solver.Value(interventions[f"evt_{evt_id}_pnj_{pnj}_p_{p}"]) == 1:
-    #                     pnj_et_evt = f"{pnj} ({evt_id})"
-    #                     break
-    #             if pnj_et_evt:
-    #                 break
-    #
-    #         if pnj_et_evt:
-    #             print(f"\t{pnj_et_evt}", end=";")
-    #         else:
-    #             print("-", end=";")
-    #     print()
 
 
 def trouver_premiere_derniere_heure_en_pas(evenements):
@@ -452,7 +413,7 @@ def main():
 def creer_planning_evenementiel(gn: GN, pas=None,
                                 avec_corrections=True,
                                 conserver_liens_aides_pnjs=True,
-                                respecter_nb_aides=True,
+                                nb_aides_predefinis=None,
                                 utiliser_affectations_predefinies=True,
                                 session=None,
                                 ):
@@ -474,10 +435,41 @@ def creer_planning_evenementiel(gn: GN, pas=None,
         affectations_predefinies = None
         aides_connus = None
 
-    table_planning = recherche_dichotomique_aides(evenements, min_aides=1, max_aides=30,
-                                                  consever_liens_aides_pnjs=conserver_liens_aides_pnjs,
-                                                  affectations_predefinies=affectations_predefinies,
-                                                  aides_connus=aides_connus)
+    table_planning = None
+    if nb_aides_predefinis:
+        faire une truc
+
+    if not table_planning:
+        table_planning = recherche_dichotomique_aides(evenements, min_aides=1, max_aides=30,
+                                                      consever_liens_aides_pnjs=conserver_liens_aides_pnjs,
+                                                      affectations_predefinies=affectations_predefinies,
+                                                      aides_connus=aides_connus)
+
+    # si ca ne marche pas on rentente avec les affectations prédéfinies en moins
+    if not table_planning and affectations_predefinies:
+        affectations_predefinies = None
+        logging.debug("pas de solution possible pour l'évènementiel "
+                      "en respectant les choix d'afectaction prédéfini pour les PNJs ")
+        table_planning = recherche_dichotomique_aides(evenements, min_aides=1, max_aides=30,
+                                                      consever_liens_aides_pnjs=conserver_liens_aides_pnjs,
+                                                      affectations_predefinies=affectations_predefinies,
+                                                      aides_connus=aides_connus)
+
+    # si ca ne marche pas on libère les contraintes à nouveau en supprimant les liens aides-PNJ
+    if not table_planning and conserver_liens_aides_pnjs:
+        conserver_liens_aides_pnjs = False
+        logging.debug("pas de solution possible pour l'évènementiel "
+                      "en conservaant les mêmes aides pour les mêmes PNJs durant tout le jeu")
+
+        table_planning = recherche_dichotomique_aides(evenements, min_aides=1, max_aides=30,
+                                                      consever_liens_aides_pnjs=conserver_liens_aides_pnjs,
+                                                      affectations_predefinies=affectations_predefinies,
+                                                      aides_connus=aides_connus)
+    if not table_planning:
+        logging.debug("pas de solution possible pour l'évènementiel "
+                      "y compris en supprimant toutes les contraintes")
+        return [['pas de résultats']]
+
     # on retire les lignes vides
     table_planning = [row for row in table_planning if any(cell != '' for cell in row[1:])]
     # on re_converti les pas en Jours et heures
@@ -486,7 +478,7 @@ def creer_planning_evenementiel(gn: GN, pas=None,
     return table_planning
 
 
-# todo : préparation des données :
+# todo :
 #  detecter quand il n'y a pas de solutions a la sortie du solveur dichotomique, puis libérer les contraintes
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
 #  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
