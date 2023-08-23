@@ -26,8 +26,15 @@ class Application(ttk.Frame):
         self.derniere_version = None
 
         # objets liés au jeu en cours
-        self.gn = None
-        self.dict_config = None
+        # self.gn = None
+        # self.dict_config = None
+
+        # variables pour remplacer les précédentes
+        # todo : finir le remplacement
+        #  réécrire le fonction qui charge et vérifie pour la séparer en deux
+        #  remplacer les appels à la vérification apr un simple oui / non et stoquer dans config_ok
+        #  mettre à jour config_ok comme faux à chaque chargement
+        self.config_ok = False
 
         # variables pour avoir des lecteurs à disposition
         self.api_drive = api_drive
@@ -61,7 +68,7 @@ class Application(ttk.Frame):
         v_config_button.grid(row=1, column=0, pady=(10, 10), padx=(10, 10))
 
         # Create the label
-        current_file_label = ttk.Label(ini_labelframe, text="Fichier ini actuel : Aucun")
+        current_file_label = ttk.Label(ini_labelframe, text="Fichier ini actuel : Aucun", name='fichier_en_cours')
         current_file_label.grid(row=0, column=1, columnspan=3, sticky='w')
 
         v_config_label = tk.Label(ini_labelframe, text="Fichier de configuration non vérifié")
@@ -414,6 +421,9 @@ class Application(ttk.Frame):
         # else:
         #     self.updater_boutons_disponibles(False, boutons)
 
+    def get_fichier_en_cours(self):
+        return self.nametowidget('fichier_en_cours')
+
     def updater_boutons_disponibles(self, on: bool, boutons: list):
         to_set = "normal" if on else "disabled"
         for bouton in boutons:
@@ -421,7 +431,9 @@ class Application(ttk.Frame):
 
     def change_config_file(self, boutons: list, display_label, v_config_label):
         config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
-                                                 filetypes=(("ini files", "*.ini"), ("all files", "*.*")))
+                                                 filetypes=(("ini files", "*.ini"),
+                                                            ('fichiers MAGnet', '*.mgn'),
+                                                            ("all files", "*.*")))
         display_label.config(text=config_file)
         self.lire_verifier_config_updater_gui(boutons, display_label, v_config_label)
 
@@ -464,46 +476,7 @@ class Application(ttk.Frame):
             print(f"une erreur est survenue qui a conduit à re-créer un fichier de sauvegarde : {f}")
             print(
                 f"le fichier de sauvegarde {self.dict_config['nom_fichier_sauvegarde']} n'existe pas, j'en crée un nouveau")
-            # self.gn = GN(dossiers_intrigues=self.dict_config['dossiers_intrigues'],
-            #              dossier_output=self.dict_config['dossier_output'],
-            #              mode_association=self.dict_config['mode_association'],
-            #              dossiers_pj=self.dict_config.get('dossiers_pjs'),
-            #              dossiers_pnj=self.dict_config.get('dossiers_pjs'),
-            #              id_factions=self.dict_config.get('id_factions'),
-            #              id_pjs_et_pnjs=self.dict_config.get('id_pjs_et_pnjs'),
-            #              dossiers_evenements=self.dict_config.get('dossiers_evenements')
-            #              )
             self.gn = GN(dict_config=self.dict_config, ma_version=VERSION)
-
-
-
-        # except Exception as e:
-        #     if "Token has been expired or revoked." in str(e):
-        #         # if token has been expired or revoked, show a popup with a specific error message
-        #         messagebox.showerror("Expirations des droits",
-        #                              "Le fichier token.json a expiré. \n"
-        #                              "Pas de panique ! \n\n"
-        #                              "1. Supprimez-le \n"
-        #                              "2. Rechargez le fichier de paramètres \n"
-        #                              "3. Suivez les instructions sur la page web google qui s'affiche "
-        #                              "pour vous ré-authentifier \n\n"
-        #                              "Pour plus d'informations sur cette erreur liée à google, consulter le manuel")
-        #         print(f"une erreur RefreshError est survenue pendant la lecture du fichier ini : {e}")
-        #
-        #     elif "The OAuth client was deleted." in str(e):
-        #         # if OAuth client was deleted, show a popup with a specific error message
-        #         messagebox.showerror("Cette version de MAGnet a expiré",
-        #                              "Cette version de MAGnet a expiré. '\n'"
-        #                              "pour continuer à l'utiliser, merci de télécharger la dernière version")
-        #
-        #     else:
-        #         # if other RefreshError is raised, show a popup with a generic error message
-        #         messagebox.showerror("Error", f"Erreur inattendue : {e}")
-        #         logging.debug(f"Erreur inattendue dans la lecture du fichier de configuration : {e}")
-
-        # traceback.print_exc()
-        # self.dict_config = None
-        # self.updater_boutons_disponibles(False, boutons)
 
         except Exception as e:
             print(f"une erreur est survenue pendant la lecture du fichier ini : {e}")
