@@ -12,11 +12,10 @@ from modeleGN import *
 # todo reprendre message d'error sur l'expiration du token
 
 # bugs
-# todo : comprendre ce qu'il se passe avec les fiches des PJs et PNJs qui lisent tout qu'il arrive
-#  >> est-ce qu'il n'y a pas une erreur sur la boucle ou il s'arrete a la fin du premier fichier?
 
 # à faire - rapide
 # todo :
+#  faire du ménage dans les logs > vérifier ce qu'on stoque et pourquoi
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
 #  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
 #  nouvel onglet dans les fichiers de castings : aides par sessions (plutot que de prendre les pré-affectation) et les utiliser

@@ -11,6 +11,7 @@ from IHM_2_generation import *
 def main():
     logging.basicConfig(filename='fichier_log.log', encoding='utf-8', level=logging.DEBUG,
                         format='%(asctime)s %(message)s')
+
     sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
 
     # lecture des paramètres

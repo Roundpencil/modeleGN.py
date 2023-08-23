@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import configparser
 import io
-import logging
 import os
 from enum import Enum
 from typing import Optional
@@ -2303,7 +2302,10 @@ def creer_google_doc(service_drive, nom_fichier: str, id_parent: str, m_print=pr
                          id_dossier_archive=id_dossier_archive)
 
 
-def archiver_fichiers_existants(service, nom_fichier, id_dossier_parent, id_dossier_archive, considerer_supprime=False):
+def archiver_fichiers_existants(service, nom_fichier, id_dossier_parent, id_dossier_archive,
+                                considerer_supprime=False,
+                                fichier_pre_date=True,
+                                verbal = False):
     """
     Vérifie si des fichiers avec le même label existent et, le cas échéant, les déplace dans un dossier d'archives.
 
@@ -2313,6 +2315,7 @@ def archiver_fichiers_existants(service, nom_fichier, id_dossier_parent, id_doss
         id_dossier_parent (str): L'ID du dossier où chercher les fichiers.
         id_dossier_archive (str): L'ID du dossier où les fichiers seront archivés.
         considerer_supprime (bool): Si True, considère également les fichiers supprimés.
+        fichier_pre_date (bool): Si true, on considère que le nom du fichier en entrée commence par une date et un ' - '
     """
     if nom_fichier is None or id_dossier_parent is None or id_dossier_archive is None:
         logging.debug("un paramètre de archiver fichiers existants est Null : "
@@ -2321,22 +2324,34 @@ def archiver_fichiers_existants(service, nom_fichier, id_dossier_parent, id_doss
                       "id_dossier_archive = {id_dossier_archive}")
         return
 
+    if verbal:
+        print(f"DEBUG : nom fichier en input requete d'archivage : {nom_fichier}")
+
     # Extraire la date-heure et le label du fichier
     # date_heure, label = nom_fichier.split(' - ')
-    parties_nom_fichier = nom_fichier.split(' - ')
-    label = ''.join(parties_nom_fichier[1:])
-    query_supprime = ' and trashed = false' if not considerer_supprime else ''
+    if fichier_pre_date:
+        parties_nom_fichier = nom_fichier.split(' - ')
+        label = ''.join(parties_nom_fichier[1:])
+    else:
+        label = nom_fichier
+    query_supprime = '' if considerer_supprime else ' and trashed = false'
+
+    if verbal:
+        print(f"DEBUG : nom fichier dans requete d'archivage : {label}")
 
     try:
         # Appel de l'API Drive v3 pour lister tous les fichiers
         resultats = service.files().list(
             q=f"'{id_dossier_parent}' in parents and name contains '{label}'{query_supprime}",
             fields="nextPageToken, files(id, name)").execute()
-        # print(f"DEBUG : RESULTATS dans archiver = {resultats}")
+
+        if verbal:
+            print(f"DEBUG : RESULTATS dans archiver = {resultats}")
 
         items = resultats.get('files', [])
 
-        # print(f"DEBUG : nb items  dans archiver = {len(items)}")
+        if verbal:
+            print(f"DEBUG : nb items  dans archiver = {len(items)}")
 
         # Vérifier s'il y a des fichiers avec le label spécifié
         if items:
@@ -3378,12 +3393,6 @@ def extraire_id_google_si_possible(user_text):
         return user_text, False
 
 
-def normaliser_nom_gn(nom_archive: str):
-    if nom_archive.endswith('.mgn'):
-        return nom_archive
-    return nom_archive + '.mgn'
-
-
 def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_file_name):
     save_file_name = normaliser_nom_gn(save_file_name)
     # Find the most recent save file
@@ -3453,5 +3462,5 @@ def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None):
         nom_archive = os.path.basename(path)
         dossier_upload = mon_gn.get_dossier_outputs_drive()
         if id_archive := mon_gn.get_id_dossier_archive():
-            archiver_fichiers_existants(api_drive, nom_archive, dossier_upload, id_archive)
+            archiver_fichiers_existants(api_drive, nom_archive, dossier_upload, id_archive, fichier_pre_date=False)
         uploader_archive(path, dossier_upload, api_drive)

@@ -52,6 +52,10 @@ def string_type_pj(type_pj: TypePerso):
     return grille_pj.get(type_pj, f"Type de PJ inconnu ({type_pj})")
 
 
+def normaliser_nom_gn(nom_archive: str):
+    return nom_archive if nom_archive.endswith('.mgn') else f'{nom_archive}.mgn'
+
+
 # une superclasse qui représente un fichier qui content des scènes, avec les rôles associés
 # donc y compris les propriétés du fichier où elle se trouve (notamment date de changement)
 # Attention, personnage hérite de cette classe, et contient donc deu types de rôles :
@@ -1776,7 +1780,8 @@ class GN:
         self.version = VERSION
 
     def get_nom_fichier_sauvegarde(self):
-        return self.dict_config['nom_fichier_sauvegarde']
+        nom_brut = self.dict_config['nom_fichier_sauvegarde']
+        return normaliser_nom_gn(nom_brut)
 
     def get_chemin_local_archive(self, complet=True):
         nom_archive = self.get_nom_fichier_sauvegarde()
