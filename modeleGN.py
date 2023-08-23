@@ -288,6 +288,9 @@ class Personnage(ConteneurDeScene):
         # return self.pj == EST_PJ
         return est_un_pj(self.pj)
 
+    def est_un_reroll(self):
+        return est_un_reroll(self.pj)
+
     def sommer_pip_perso(self):
         return sum(role.sommer_pip() for role in self.roles)
 
@@ -831,11 +834,6 @@ class GN:
             if not isinstance(self.dict_config.get(dossier, []), list):
                 self.dict_config[dossier] = [self.dict_config[dossier]]
 
-        # self.injecter_config(dossiers_intrigues, dossier_output, mode_association, dossiers_pj=dossiers_pj,
-        #                      dossiers_evenements=dossiers_evenements, dossiers_objets=dossiers_objets,
-        #                      dossiers_pnj=dossiers_pnj, id_factions=id_factions, date_gn=date_gn,
-        #                      id_pjs_et_pnjs=id_pjs_et_pnjs, fichier_pnjs=fichier_pnjs)
-
     def get_dossier_outputs_drive(self):
         return self.dict_config['dossier_output']
 
@@ -901,56 +899,6 @@ class GN:
         AUTO = 0
         MANUEL_VIA_FICHES = 1
 
-    # def injecter_config(self,
-    #                     dossiers_intrigues, dossier_output, mode_association=None,
-    #                     dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None, dossiers_objets=None,
-    #                     id_factions=None,
-    #                     date_gn=None, id_pjs_et_pnjs=None, fichier_pnjs=None):
-    #
-    #     mode_association = mode_association if mode_association is not None else self.ModeAssociation.AUTO
-    #     self.mode_association = mode_association
-    #     self.id_pjs_et_pnjs = id_pjs_et_pnjs
-    #     self.fichier_pnjs = fichier_pnjs
-    #     # # self.liste_noms_pjs = liste_noms_pjs
-    #     # self.liste_noms_pnjs = noms_pnjs
-    #     if isinstance(dossiers_intrigues, list):
-    #         self.dossiers_intrigues = dossiers_intrigues
-    #     else:
-    #         self.dossiers_intrigues = [dossiers_intrigues]
-    #
-    #     if dossiers_pj is None:
-    #         self.dossiers_pjs = None
-    #     elif isinstance(dossiers_pj, list):
-    #         self.dossiers_pjs = dossiers_pj
-    #     else:
-    #         self.dossiers_pjs = [dossiers_pj]
-    #
-    #     if dossiers_pnj is None:
-    #         self.dossiers_pnjs = None
-    #     elif isinstance(dossiers_pnj, list):
-    #         self.dossiers_pnjs = dossiers_pnj
-    #     else:
-    #         self.dossiers_pnjs = [dossiers_pnj]
-    #
-    #     if dossiers_evenements is None:
-    #         self.dossiers_evenements = None
-    #     elif isinstance(dossiers_evenements, list):
-    #         self.dossiers_evenements = dossiers_evenements
-    #     else:
-    #         self.dossiers_evenements = [dossiers_evenements]
-    #
-    #     if dossiers_objets is None:
-    #         self.dossiers_objets = None
-    #     elif isinstance(dossiers_objets, list):
-    #         self.dossiers_objets = dossiers_objets
-    #     else:
-    #         self.dossiers_objets = [dossiers_objets]
-    #
-    #     self.id_factions = id_factions
-    #     self.dossier_outputs_drive = dossier_output
-    #
-    #     self.date_gn = date_gn
-
     def get_dict_pj(self):
         return {key: self.personnages[key] for key in self.personnages if self.personnages[key].est_un_pj()}
 
@@ -965,12 +913,6 @@ class GN:
 
     def ajouter_faction(self, faction: Faction):
         self.factions[faction.nom] = faction
-
-    # def rechercher_faction(self, nom: str) -> Faction:
-    #     if nom in self.factions:
-    #         return self.factions[nom]
-    #     else:
-    #         raise ValueError(f"La faction {nom} n'a pas été trouvée")
 
     def effacer_personnages_forces(self):
         for key_personnage in list(self.personnages.keys()):
@@ -1015,6 +957,12 @@ class GN:
 
     def noms_personnages(self):
         return [x.nom for x in self.personnages.values()]
+
+    def get_dict_noms_persos(self, pnjs=False, pjs=False, rerolls=False):
+        return {perso.nom: perso for perso in self.personnages.values()
+                if perso.est_un_pj() and pjs
+                or perso.est_un_pnj() and pnjs
+                or perso.est_un_reroll() and rerolls}
 
     def noms_pjpnjs(self, pj: bool):
         return self.noms_pjs() if pj else self.noms_pnjs()
@@ -1483,13 +1431,6 @@ class GN:
         Returns:
             None
         """
-        # on commence par reconstruire la table des référents et l'ajuster si nécessaire
-        # if table_orgas_referent is None:
-        #     table_orgas_referent = []
-        #
-        # if len(noms_persos) > len(table_orgas_referent):
-        #     table_orgas_referent.extend([None] * (len(noms_persos) - len(table_orgas_referent)))
-        #     # table_orgas_referent = [None for _ in range(len(noms_persos))]
         logging.debug("début de l'ajout des personnages sans fiche")
         # nomsLus = [x.nom for x in self.dictPJs.values()]
 
@@ -1497,7 +1438,10 @@ class GN:
         #     dict_actif = self.dictPJs
         # else:
         #     dict_actif = self.dictPNJs
+
         noms_deja_presents = self.noms_pjpnjs(pj)
+        dict_noms_persos = self.get_dict_noms_persos(pjs=pj, pnjs=not pj)
+
         logging.debug(f"noms présents avant forçage dans le GN = {noms_deja_presents} pour pj = {pj}")
         # pour chaque personnage de ma liste :
         # SI son nom est dans les persos > ne rien faire
@@ -1509,27 +1453,35 @@ class GN:
             if 'pj' not in dict_perso:
                 dict_perso['pj'] = valeur_pj
 
+            personnage_sheets_en_cours = Personnage.perso_depuis_dico(dict_perso)
+
             nom_perso = dict_perso["Nom"]
             # for nom_perso, orga_referent in zip(dicts_perso_lu, table_orgas_referent):
             # print(f"personnage zippé = {nom_perso}, orgazippé = {orga_referent}")
-            if nom_perso in noms_deja_presents and verbal:
-                print(f"le personnage {nom_perso} a une correspondance dans les persos déjà présents")
+            if nom_perso in noms_deja_presents:
+                if verbal:
+                    print(f"le personnage {nom_perso} a une correspondance dans les persos déjà présents")
+                perso_existant = dict_noms_persos[nom_perso]
+                if personnage_sheets_en_cours.orga_referent:
+                    perso_existant.orga_referent = personnage_sheets_en_cours.orga_referent
+                if len(personnage_sheets_en_cours.interpretes) > 0:
+                    perso_existant.interpretes = personnage_sheets_en_cours.interpretes
             else:
                 score_proche = process.extractOne(nom_perso, noms_deja_presents)
                 # print(f"avant association, {personnage} correspond à {score_proche[0]} à {score_proche[1]}%")
                 if score_proche is not None and score_proche[1] >= 75:
                     if verbal:
                         print(f"{nom_perso} correspond à {score_proche[0]} à {score_proche[1]}%")
-                    # donc on ne fait rien
+                    # donc on met à jour orga référent et interpetes
+                    perso_existant = dict_noms_persos[score_proche[0]]
+                    if personnage_sheets_en_cours.orga_referent:
+                        perso_existant.orga_referent = personnage_sheets_en_cours.orga_referent
+                    if len(personnage_sheets_en_cours.interpretes) > 0:
+                        perso_existant.interpretes = personnage_sheets_en_cours.interpretes
                 else:
                     if verbal:
                         print(f"{nom_perso} a été créé (coquille vide)")
-                    # self.personnages[nom_perso + suffixe] = Personnage(nom=nom_perso,
-                    #                                                    pj=valeur_pj,
-                    #                                                    forced=True,
-                    #                                                    orga_referent=dict_perso.get("Orga référent", None)
-                    #                                                    )
-                    self.personnages[nom_perso + suffixe] = Personnage.perso_depuis_dico(dict_perso)
+                    self.personnages[nom_perso + suffixe] = personnage_sheets_en_cours
                     # on met son nom en clef pour se souvenir qu'il a été généré
 
     def lister_tous_les_persos(self):

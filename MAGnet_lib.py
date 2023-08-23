@@ -89,17 +89,6 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets,
     if sans_chargement_fichier:
         m_print("recréation d'un GN from scratch")
         new_gn = GN(dict_config=mon_gn.dict_config, ma_version=mon_gn.version)
-        # new_gn = GN(
-        #     dossiers_intrigues=mon_gn.dossiers_intrigues,
-        #     dossier_output=mon_gn.dossier_outputs_drive,
-        #     mode_association=mon_gn.mode_association,
-        #     dossiers_pj=mon_gn.dossiers_pjs,
-        #     dossiers_pnj=mon_gn.dossiers_pnjs,
-        #     id_factions=mon_gn.id_factions,
-        #     fichier_pnjs=mon_gn.fichier_pnjs,
-        #     id_pjs_et_pnjs=mon_gn.id_pjs_et_pnjs,
-        #     dossiers_evenements=mon_gn.dossiers_evenements
-        # )
         mon_gn = new_gn
     else:
         mon_gn.effacer_personnages_forces()
@@ -1094,6 +1083,9 @@ def generer_table_chrono_condensee_raw(gn: GN):
 def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive):
     # identifier toutes les sessions
     sessions = mon_gn.get_liste_sessions()
+    # faire un premier onglet sans session
+    # faire un onglet par session
+    #voir si on ne peut pas chopper le paramètre des sessions qu'on veut explorer (sera utile aussi pour les squelettes)
     pass
 
 
