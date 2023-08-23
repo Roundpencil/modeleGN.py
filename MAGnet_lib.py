@@ -15,6 +15,7 @@ from modeleGN import *
 
 # à faire - rapide
 # todo :
+#  refaire une passe sur les personnages déclarés en durs pour les ajuster avec les interpretes déclarés dans les tableaux
 #  faire du ménage dans les logs > vérifier ce qu'on stoque et pourquoi
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
 #  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
@@ -74,7 +75,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
                          table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
                          table_commentaires: bool = True, table_relations: bool = True, table_evenements: bool = True,
-                         table_questionnaire: bool = True, resume_par_perso = True,
+                         table_questionnaire: bool = True, resume_par_perso = True, solveur_planning=True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, fast_pnjs=True, fast_evenements=True,
                          fast_objets=True,
@@ -240,7 +241,7 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets,
     # visualisation(25)
 
     m_print("****** fin de la lecture du drive *********")
-    pas_visualisation = 25.0 / 13.0
+    pas_visualisation = 25.0 / 14.0
     m_print("*******************************************")
     m_print("*******************************************")
     # prefixe_fichiers = str(datetime.date.today())
@@ -338,6 +339,12 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets,
     if resume_par_perso:
         m_print("******* resume des intrigues par perso ******************")
         ecrire_resume_intrigues_persos(mon_gn, api_doc, api_drive)
+
+    visualisation(pas_visualisation)
+
+    if solveur_planning:
+        m_print("******* génération du planning évènementiel ******************")
+        ecrire_solveur_planning_dans_drive(mon_gn, api_sheets, api_drive)
 
     visualisation(pas_visualisation)
 
@@ -1084,6 +1091,12 @@ def generer_table_chrono_condensee_raw(gn: GN):
     return tableau_sortie
 
 
+def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive):
+    # identifier toutes les sessions
+    sessions = mon_gn.get_liste_sessions()
+    pass
+
+
 def generer_table_chrono_condensee(tableau_raw, date_gn):
 
     # Get the maximum number of events among all stories
@@ -1712,169 +1725,3 @@ def verifier_derniere_version(api_doc):
         logging.debug(f"Une erreur est survenue pendant la lecture du fichier de version {e}")
         return True, [e], None
 
-# def mettre_a_jour_champs(gn: GN):
-# # #mise à jour des errors logs
-# # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
-# #     conteneur.error_log.clear()
-# #     print(f"pour le conteneur {conteneur}, errorlog = {conteneur.error_log}")
-#
-# # mise à jour des formats de date et des factions
-# if not hasattr(gn, 'date_gn'):
-#     gn.date_gn = None
-# if not hasattr(gn, 'factions'):
-#     gn.factions = {}
-# if not hasattr(gn, 'id_factions'):
-#     gn.id_factions = None
-# if hasattr(gn, 'liste_noms_pjs'):
-#     delattr(gn, 'liste_noms_pjs')
-# if hasattr(gn, 'liste_noms_pnjs'):
-#     delattr(gn, 'liste_noms_pnjs')
-# if not hasattr(gn, 'id_pjs_et_pnjs'):
-#     gn.id_pjs_et_pnjs = None
-# if not hasattr(gn, 'evenements'):
-#     gn.evenements = {}
-# if not hasattr(gn, 'dossiers_evenements'):
-#     gn.dossiers_evenements = []
-# if hasattr(gn, 'dossier_evenements'):
-#     delattr(gn, 'dossier_evenements')
-# if not hasattr(gn, 'objets'):
-#     gn.objets = {}
-# if hasattr(gn, 'association_auto'):
-#     delattr(gn, 'association_auto')
-# if not hasattr(gn, 'mode_association'):
-#     gn.mode_association = GN.ModeAssociation.AUTO
-# if hasattr(gn, 'dictPJs') and hasattr(gn, 'dictPNJs'):
-#     gn.personnages = gn.dictPJs | gn.dictPNJs
-#     delattr(gn, 'dictPJs')
-#     delattr(gn, 'dictPNJs')
-# if not hasattr(gn, 'version'):
-#     gn.version = VERSION
-# if hasattr(gn, 'fichier_pnjs'):
-#     delattr(gn, 'fichier_pnjs')
-#
-# for scene in gn.lister_toutes_les_scenes():
-#     if not hasattr(scene, 'date_absolue'):
-#         scene.date_absolue = None
-#     # print(f"la scène {scene.titre}, dateba absolue = {scene.date_absolue}")
-#     if hasattr(scene, 'niveau'):
-#         delattr(scene, 'niveau')
-#
-# for intrigue in gn.intrigues.values():
-#     for objet in intrigue.objets:
-#         if not hasattr(objet, 'code'):
-#             objet.code = ""
-#         if hasattr(objet, 'rfid'):
-#             delattr(objet, 'rfid')
-#         if hasattr(objet, 'commentaires'):
-#             delattr(objet, 'commentaires')
-#         if hasattr(objet, 'objet_de_reference'):
-#             delattr(objet, 'objet_de_reference')
-#         if not hasattr(objet, 'intrigue'):
-#             objet.intrigue = None
-#         if hasattr(objet, 'inIntrigues'):
-#             if len(objet.inIntrigues) > 0:
-#                 objet.intrigue = list(objet.inIntrigues)[0]
-#             delattr(objet, 'inIntrigues')
-#
-#     if not hasattr(intrigue, 'commentaires'):
-#         intrigue.commentaires = []
-#     if not hasattr(intrigue, 'codes_evenements_raw'):
-#         intrigue.codes_evenements_raw = []
-#     if not hasattr(intrigue, 'evenements'):
-#         intrigue.evenements = set()
-#     if not hasattr(intrigue, 'questionnaire'):
-#         intrigue.questionnaire = []
-#     if isinstance(intrigue.questionnaire, str):
-#         intrigue.questionnaire = []
-#
-# # for conteneur in list(gn.dictPJs.values()) + list(gn.dictPNJs.values()) + list(gn.intrigues.values()):
-# #     for role in conteneur.rolesContenus.values():
-# for role in gn.lister_tous_les_roles():
-#     print(f"clefs (2) pour {role.nom} = {vars(role).keys()}")
-#     if not hasattr(role, 'affectation'):
-#         role.affectation = ""
-#     if hasattr(role, 'perimetreIntervention'):
-#         if not hasattr(role, 'perimetre_intervention'):
-#             role.perimetre_intervention = role.perimetreIntervention
-#         delattr(role, 'perimetreIntervention')
-#         # print(f"PerimetreIntervention supprimé pour {role.nom}")
-#
-#     if hasattr(role, 'perimetre_Intervention'):
-#         if not hasattr(role, 'perimetre_intervention'):
-#             role.perimetre_intervention = role.perimetre_Intervention
-#         delattr(role, 'perimetre_Intervention')
-#     if not hasattr(role, 'relations'):
-#         role.relations = set()
-#     if not hasattr(role, 'personnage'):
-#         if hasattr(role, 'perso'):
-#             role.personnage = role.perso
-#             delattr(role, 'perso')
-#         else:
-#             role.personnage = None
-#     if not hasattr(role, 'affectation'):
-#         role.affectation = None
-#
-# for scene in gn.lister_toutes_les_scenes():
-#     if not hasattr(scene, 'infos'):
-#         scene.infos = set()
-#
-# # for pnj in gn.dictPNJs.values():
-# #     if not hasattr(pnj, 'commentaires'):
-# #         pnj.commentaires = []
-# #
-# # for pj in gn.dictPJs.values():
-# #     if not hasattr(pj, 'commentaires'):
-# #         pj.commentaires = []
-#
-# for p in gn.personnages.values():
-#     if not hasattr(p, 'commentaires'):
-#         p.commentaires = []
-#
-# for evenement in gn.evenements.values():
-#     for intervention in evenement.interventions:
-#         if not hasattr(intervention, "liste_pnjs_impliques"):
-#             intervention.liste_pnjs_impliques = set()
-#
-#         if not hasattr(intervention, 'liste_pjs_impliques'):
-#             intervention.liste_pjs_impliques = set()
-#
-#         if hasattr(intervention, 'noms_pj_impliques'):
-#             intervention.noms_pjs_impliques = intervention.pj_impliques
-#             delattr(intervention, 'pj_impliques')
-#
-#         if hasattr(intervention, 'heure'):
-#             intervention.heure_debut = intervention.heure
-#             delattr(intervention, 'heure')
-#         if not hasattr(intervention, 'heure_fin'):
-#             intervention.heure_fin = None
-#
-#     if not hasattr(evenement, 'objets'):
-#         evenement.objets = set()
-#     if not hasattr(evenement, 'heure_de_fin'):
-#         evenement.heure_de_fin = ""
-#
-# # for pj in gn.dictPJs:
-# #     if pj in gn.dictPNJs:
-# #         gn.dictPJs.pop(pj)
-# #         print(f"le personnage {gn.dictPJs[pj].name} a été retiré car c'était un pnj")
-#
-# for personnage in list(gn.personnages.values()):
-#     if not hasattr(personnage, 'informations_evenements'):
-#         personnage.informations_evenements = set()
-#     if not hasattr(personnage, 'intervient_comme'):
-#         personnage.intervient_comme = set()
-#     if hasattr(personnage, 'factions'):
-#         personnage.groupes = []
-#         personnage.groupes.extend(personnage.factions)
-#         delattr(personnage, 'factions')
-#
-# for objet_de_reference in gn.objets.values():
-#     if not hasattr(objet_de_reference, 'ajoute_via_forcage'):
-#         objet_de_reference.ajoute_via_forcage = True
-#
-#     if not hasattr(objet_de_reference, 'objets_dans_evenements'):
-#         objet_de_reference.objets_dans_evenements = set()
-#
-#
-#
-# gn.version = VERSION

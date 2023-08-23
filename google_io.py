@@ -3444,16 +3444,18 @@ def uploader_archive(file_path, folder_id, api_drive):
     return file.get('id')
 
 
-def charger_gn(dict_config: dict, api_drive=None):
+def charger_gn(dict_config: dict, api_drive=None, m_print=print):
     nom_archive = normaliser_nom_gn(dict_config['nom_fichier_sauvegarde'])
     dest_folder = dict_config['dossier_local_fichier_sauvegarde']
     chemin_archive = os.path.join(dest_folder, nom_archive)
 
-    print(f"DEBUG : dict_config = {dict_config}")
+    # print(f"DEBUG : dict_config = {dict_config}")
 
     if api_drive:
+        m_print("téléchargement de la dernière version de l'archive...")
         source_folder_id = dict_config.get('dossier_output')
         telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, nom_archive)
+        m_print("téléchargement terminé")
 
     return GN.load(chemin_archive, dict_config=dict_config)
 

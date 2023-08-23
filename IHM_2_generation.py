@@ -303,6 +303,13 @@ class Application(ttk.Frame):
                                                                   variable=resume_par_perso_var)
         resume_par_perso_var_check.grid(sticky="W", row=109, column=3)
 
+        solveur_planning_var = tk.BooleanVar()
+        solveur_planning_var.set(True)
+        solveur_planning_var_check = ttk.Checkbutton(generer_labelframe,
+                                                                  text="Générateur de planning évènementiel",
+                                                                  variable=solveur_planning_var)
+        resume_par_perso_var_check.grid(sticky="W", row=110, column=0)
+
         # Buttons
         # cancel_button = ttk.Button(generer_labelframe, text="Quitter", command=regen_window.destroy)
         # cancel_button.grid(row=200, column=0, pady=(0, 10))
@@ -363,6 +370,7 @@ class Application(ttk.Frame):
                                  changelog=changelog_var.get(),
                                  table_intrigues=table_intrigues_var.get(),
                                  table_objets=table_objets_var.get(),
+                                 solveur_planning=solveur_planning_var.get(),
                                  table_chrono=table_chrono_var.get(),
                                  table_persos=table_persos_var.get(),
                                  table_pnjs=table_pnjs_var.get(),
@@ -444,11 +452,11 @@ class Application(ttk.Frame):
     #                                              filetypes=(("ini files", "*.ini"), ("all files", "*.*")))
     #     self.lire_fichier_config(boutons, display_label, config_file)
 
-    def lire_gn_et_injecter_config(self, boutons: list):
+    def lire_gn_et_injecter_config(self, boutons: list, m_print=print):
         print(f"dict config au début de la création = {self.dict_config}")
         # try:
         try:
-            self.gn = g_io.charger_gn(api_drive=self.api_drive,dict_config=self.dict_config)
+            self.gn = g_io.charger_gn(api_drive=self.api_drive,dict_config=self.dict_config, m_print=m_print)
             # self.gn = GN.load(self.dict_config['nom_fichier_sauvegarde'], dict_config=self.dict_config)
 
         except Exception as f:

@@ -890,6 +890,13 @@ class GN:
     def get_prefixe_objets(self):
         return self.dict_config['prefixe_objets']
 
+    def get_liste_sessions(self):
+        liste_sessions = []
+        for perso in self.personnages.values():
+            liste_sessions.extend(list(perso.interpretes.keys()))
+        print(list(set(liste_sessions)))
+        return list(set(liste_sessions))
+
     class ModeAssociation(IntEnum):
         AUTO = 0
         MANUEL_VIA_FICHES = 1
