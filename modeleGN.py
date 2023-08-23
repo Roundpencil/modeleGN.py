@@ -12,7 +12,7 @@ from fuzzywuzzy import process
 from packaging import version
 from unidecode import unidecode
 
-VERSION = "1.1.20230817"
+VERSION = "1.1.20230823"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
