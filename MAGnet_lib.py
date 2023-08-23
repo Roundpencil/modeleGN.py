@@ -103,14 +103,10 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets,
     else:
         mon_gn.effacer_personnages_forces()
 
-    for perso in mon_gn.personnages.values():
-        logging.debug(f"nom du personnage = {perso.nom} / {perso.forced}")
-    logging.debug(f"noms persos = {mon_gn.noms_pjs()}")
-
-    # for perso in mon_gn.dictPJs.values():
+    # for perso in mon_gn.personnages.values():
     #     logging.debug(f"nom du personnage = {perso.nom} / {perso.forced}")
-    # logging.debug(f"noms persos = {mon_gn.noms_pjs()}")
-    #
+    # logging.debug(f"noms pjs dans le GN  = {mon_gn.noms_pjs()}")
+
     # for perso in mon_gn.dictPNJs.values():
     #     logging.debug(f"nom du pnj = {perso.nom} / {perso.forced}")
     # logging.debug(f"noms pnjs = {mon_gn.noms_pnjs()}")
@@ -198,8 +194,8 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets,
         # liste_noms_pnjs = g_io.lire_gspread_pnj(api_sheets, sheet_id)
         # liste_noms_pjs, liste_orgas = g_io.lire_gspread_pj(api_sheets, sheet_id)
         pjs_lus, pnjs_lus = g_io.lire_gspread_pj_pnjs(api_sheets, sheet_id)
-        logging.debug(f"liste_noms_pnjs = {pjs_lus}")
-        logging.debug(f"liste_noms_pjs = {pnjs_lus}")
+        # logging.debug(f"liste_noms_pnjs = {pjs_lus}")
+        # logging.debug(f"liste_noms_pjs = {pnjs_lus}")
         # logging.debug(f"liste_orgas = {liste_orgas}")
     else:
         if (nom_fichier_pnjs := mon_gn.get_fichier_pnjs()) is not None:
@@ -382,7 +378,7 @@ def retirer_elements_supprimes(ids_lus: list[str], dict_reference: dict):
     for id_lu in ids_a_supprimer:
         a_supprimer = dict_reference.pop(id_lu)
         # print(f"debug : intrigue en cours de suppression {a_supprimer.nom}")
-        logging.debug(f"l'objet {a_supprimer} a été identifié comme à supprimer (id = {id_lu})")
+        # logging.debug(f"l'objet {a_supprimer} a été identifié comme à supprimer (id = {id_lu})")
         if a_supprimer is not None:
             a_supprimer.clear()
             logging.debug("et il a été supprimé)")
