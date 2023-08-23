@@ -3399,7 +3399,10 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
     # results = service.files().list(q=f"'{source_folder_id}' in parents",
     #                                orderBy="modifiedTime desc",
     #                                pageSize=1).execute()
-    results = api_drive.files().list(q=f"'{source_folder_id}' in parents and name contains '{save_file_name}'",
+
+    query = f"'{source_folder_id}' in parents and name contains '{save_file_name}'"
+    print(f"DEBUG : query telechargement archive = {query}")
+    results = api_drive.files().list(q=query,
                                      orderBy="modifiedTime desc",
                                      pageSize=1).execute()
 
@@ -3419,7 +3422,7 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
                 status, done = downloader.next_chunk()
         return local_path
     else:
-        print('No files found.')
+        print('aucune archive en ligne trouvée')
         return None
 
 
