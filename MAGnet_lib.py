@@ -64,7 +64,9 @@ def lire_fichier_pnjs(nom_fichier: str):
     return to_return
 
 
-def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets,
+def lire_et_recharger_gn(fichier_gn: str,
+                         # mon_gn: GN,
+                         api_drive, api_doc, api_sheets,
                          # nom_fichier_sauvegarde: str,
                          sans_chargement_fichier=False,
                          sauver_apres_operation=True,
@@ -82,6 +84,10 @@ def lire_et_recharger_gn(mon_gn: GN, api_drive, api_doc, api_sheets,
                          verbal: bool = False, visualisation=print_progress, m_print=print):
     visualisation(-100)
     pas_visualisation = 50 / 6.0
+
+    # todo : intégrer le chargement du GN soit depuis un fichier INI, soit depuis un mgn au début de la méthode
+    #  faire évoluer pas de visualisation pour intégrer le téléchargement des fichiers
+    #  et la vérification si nécessaire
 
     # if api_doc is None or api_sheets is None or api_drive is None:
     #     api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()

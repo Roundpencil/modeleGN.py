@@ -358,18 +358,14 @@ class Application(ttk.Frame):
                 continuer = self.lire_verifier_config_updater_gui(boutons, current_file_label, v_config_label, False)
                 if not continuer:
                     return
+                # todo : dans les fichiers par défaut identifier s'il exsite un seul fichier mgn
 
             print(f"fict config ay début de la régénération : {self.dict_config} / {type(self)}")
-            lire_et_recharger_gn(mon_gn=self.gn,
+            lire_et_recharger_gn(fichier_gn=self.get_fichier_en_cours(),
                                  api_drive=self.api_drive,
                                  api_doc=self.api_doc,
                                  api_sheets=self.api_sheets,
                                  aides_de_jeu=aide_de_jeu_var.get(),
-                                 # liste_noms_pjs=self.dict_config.get(
-                                 #     'liste_noms_pjs'),
-                                 # noms_pnjs=self.dict_config.get('liste_noms_pnjs'),
-                                 # nom_fichier_sauvegarde=self.dict_config[
-                                 #     'nom_fichier_sauvegarde'],
                                  fichier_erreurs_intrigues=fichier_erreurs_intrigues_var.get(),
                                  fichier_erreurs_evenements=fichier_erreurs_evenements_var.get(),
                                  generer_fichiers_pjs=generer_fichiers_pj_var.get(),
@@ -435,7 +431,7 @@ class Application(ttk.Frame):
                                                             ('fichiers MAGnet', '*.mgn'),
                                                             ("all files", "*.*")))
         display_label.config(text=config_file)
-        self.lire_verifier_config_updater_gui(boutons, display_label, v_config_label)
+        # self.lire_verifier_config_updater_gui(boutons, display_label, v_config_label)
 
     def lire_verifier_config_updater_gui(self, boutons: list, display_label, v_config_label, afficher=False):
         config_file = display_label['text']
