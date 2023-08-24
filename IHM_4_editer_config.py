@@ -9,6 +9,7 @@ import lecteurGoogle
 
 from tkinter import messagebox
 
+
 class FenetreEditionConfig(ttk.Frame):
     def __init__(self, master, api_drive, config_parser=configparser.ConfigParser(), nom_fichier_ini=None):
         super().__init__(master)
@@ -213,7 +214,7 @@ class PremierPanneau(ttk.Frame):
         }
 
         self.optional_params = {
-            "id_dossier_archive" : "Dossier Archivage",
+            "id_dossier_archive": "Dossier Archivage",
             "id_factions": "ID Factions",
             "id_pjs_et_pnjs": "ID PJs et PNJs",
             "nom_fichier_pnjs": "Nom Fichier PNJs",

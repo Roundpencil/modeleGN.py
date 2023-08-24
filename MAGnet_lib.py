@@ -15,9 +15,10 @@ from modeleGN import *
 # bugs
 
 # à faire - rapide
-# todo : faire évoluer la GUI 4 qui s'apuyait sur la vérification de fichier.
-#  Faire de meme avec le bouton du l'ihm 2
+# todo : faire évoluer la GUI 4 qui s'apuyait sur la vérification de fichier et sur la méthode d'affichage de IHM2.
 #   vérifier l'usage de la GUI 3 qui utilise can write
+
+# todo : finir la génération des planning evènementtiels dans lib (appel des méthodes)
 
 # todo :
 #  retrouver où on créeit un GN quand il n'existait pas, et le re-créer
@@ -30,7 +31,6 @@ from modeleGN import *
 #  nouveau paramètre à ajouter : sessions_à_generer pour savoir quels casting on affiche, et quel génération on fait
 
 # à faire - plus long
-# todo : charger direment les fichiers mgn (et pas uniquement les fichiers de config)
 # todo : faire quelque part une liste de tous les dossiers ou se trouvent des *.mng (cf. chat gpt)
 #  vérifier auxquels a acces l'utilisateur quand il lance le programme, puis lui proposer de télécahrger les siens.
 #  objectifs : se passer et du fichier de config, et de la nécessité de télécharger un mgn
@@ -110,7 +110,9 @@ def lire_et_recharger_gn(fichier_gn: str,
         new_gn = GN(dict_config=mon_gn.dict_config, ma_version=mon_gn.version)
         mon_gn = new_gn
     else:
-        mon_gn = g_io.charger_gn_from_dict(dict_config, api_drive, m_print=m_print, updater_dict_config=False)
+        # si c'ets un fichier ini qui a été founi en entrée, on pudate le GN, sinon on garde la config
+        mon_gn = g_io.charger_gn_from_dict(dict_config, api_drive, m_print=m_print,
+                                           updater_dict_config=fichier_gn.endswith('.ini'))
         mon_gn.effacer_personnages_forces()
 
     for perso in mon_gn.personnages.values():
