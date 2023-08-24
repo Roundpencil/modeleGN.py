@@ -81,10 +81,11 @@ class Application(ttk.Frame):
         lecture_label = ttk.Label(diagnostic_labelframe, text="Options de lecture")
         lecture_label.grid(row=50, column=0, columnspan=3)
 
-        forcer_update_gn_button = ttk.Button(diagnostic_labelframe, text="Vérifier le modèle \nde la sauvegarde",
-                                             command=lambda: self.gn.mettre_a_jour_champs)
-        forcer_update_gn_button.grid(row=50, column=3, rowspan=2, columnspan=2,
-                                     sticky="ne")  # , sticky="nsew"
+        # retiré le 24/08/2023 par manque d'utilité à voir si nécessaire de ré-intégrer
+        # forcer_update_gn_button = ttk.Button(diagnostic_labelframe, text="Vérifier le modèle \nde la sauvegarde",
+        #                                      command=lambda: self.gn.mettre_a_jour_champs)
+        # forcer_update_gn_button.grid(row=50, column=3, rowspan=2, columnspan=2,
+        #                              sticky="ne")  # , sticky="nsew"
 
         verbal_var = tk.BooleanVar()
         verbal_var.set(False)
@@ -315,7 +316,7 @@ class Application(ttk.Frame):
         solveur_planning_var_check = ttk.Checkbutton(generer_labelframe,
                                                      text="Générateur de planning évènementiel",
                                                      variable=solveur_planning_var)
-        resume_par_perso_var_check.grid(sticky="W", row=110, column=0)
+        solveur_planning_var_check.grid(sticky="W", row=110, column=0)
 
         # Buttons
         # cancel_button = ttk.Button(generer_labelframe, text="Quitter", command=regen_window.destroy)
@@ -398,7 +399,8 @@ class Application(ttk.Frame):
                                )
 
         ok_button.grid(row=200, column=1, pady=(0, 10))
-        boutons = [ok_button, forcer_update_gn_button]
+        boutons = [ok_button]
+        # boutons = [ok_button, forcer_update_gn_button]
         config_button.config(command=lambda: self.change_config_file(boutons, current_file_label, v_config_label))
         v_config_button.config(command=lambda: self.verifier_configuration(current_file_label,
                                                                            v_config_label, afficher=True))
@@ -421,5 +423,48 @@ class Application(ttk.Frame):
         display_label.config(text=config_file)
         self.config_ok = False
 
-    def verifier_configuration(self,current_file_label,v_config_label,afficher=True):
-        pass
+    def verifier_configuration(self, current_file_label, v_config_label, afficher=True):
+        test_ok, resultats, _ = g_io.verifier_fichier_gn_et_fournir_dict_config(self.get_fichier_en_cours(),
+                                                                                self.api_drive)
+
+        # print(f"param GN = {param_gn}")
+        if test_ok:
+            # dans ce cas on a réussi à charger et les tests sont ok
+            v_config_label.config(text="Vérification fichier de configuration ok")
+        else:
+            v_config_label.config(text="Verifications fichier de configuration ko : corrigez les et re-vérifiez")
+
+        if afficher:
+            self.afficher_resultats(resultats, test_ok)
+
+    def afficher_resultats_test_config(self, resultats, test_global_reussi):
+        def close_popup():
+            popup.destroy()
+
+        master = self.master
+
+        popup = tk.Toplevel(master)
+        if test_global_reussi:
+            popup.title("Tests Réussis")
+            # popup.iconbitmap("success_icon.ico")  # Replace with the path to the success icon
+        else:
+            popup.title("Tests Échoués")
+            # popup.iconbitmap("failure_icon.ico")  # Replace with the path to the failure icon
+        tree = ttk.Treeview(popup, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
+        tree.heading("#0", text="")
+        tree.column("#0", width=0, minwidth=0, stretch=tk.NO)
+        tree.heading("Paramètre", text="Nom du paramètre")
+        tree.column("Paramètre", anchor=tk.W)
+        tree.heading("Nom du fichier lu", text="Nom du fichier lu")
+        tree.column("Nom du fichier lu", anchor=tk.W)
+        tree.heading("Résultat du test", text="Résultat du test")
+        tree.column("Résultat du test", anchor=tk.W)
+        for res in resultats:
+            tree.insert('', tk.END, values=(res[0], res[1], res[2]))
+        tree.pack(padx=10, pady=10)
+        # Create an "OK" button to close the popup
+        ok_button = tk.Button(popup, text="OK", command=close_popup)
+        ok_button.pack(pady=10)
+        popup.transient(master)
+        popup.grab_set()
+        master.wait_window(popup)

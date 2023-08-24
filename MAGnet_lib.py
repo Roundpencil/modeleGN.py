@@ -15,7 +15,12 @@ from modeleGN import *
 # bugs
 
 # à faire - rapide
+# todo : faire évoluer la GUI 4 qui s'apuyait sur la vérification de fichier.
+#  Faire de meme avec le bouton du l'ihm 2
+#   vérifier l'usage de la GUI 3 qui utilise can write
+
 # todo :
+#  retrouver où on créeit un GN quand il n'existait pas, et le re-créer
 #  lorsqu'on sauve un gn, lui mettre une propriété last_save qui donne sa date de changment? L'utiliser pour le timestap du fichier. Ne télécharge le fichier que si la version en ligne ets plus récente
 #  ajuster la fonctiond e loading : si la version du fichier est inférieure à celle du GN, on ne peut bosser avec.
 #  Créer une version du modele comme sous version pour faire la vérification?
@@ -28,7 +33,7 @@ from modeleGN import *
 # todo : charger direment les fichiers mgn (et pas uniquement les fichiers de config)
 # todo : faire quelque part une liste de tous les dossiers ou se trouvent des *.mng (cf. chat gpt)
 #  vérifier auxquels a acces l'utilisateur quand il lance le programme, puis lui proposer de télécahrger les siens.
-#  objectifs : se oasser et du fichier de config, et de la nécessité de télécharger un mgn
+#  objectifs : se passer et du fichier de config, et de la nécessité de télécharger un mgn
 # todo : changer tous les paramètres de MAGnet_lib par une classe ou un dictionnaire pour accelérer le design
 
 # confort / logique
@@ -86,43 +91,37 @@ def lire_et_recharger_gn(fichier_gn: str,
                          fast_objets=True,
                          verbal: bool = False, visualisation=print_progress, m_print=print):
     visualisation(-100)
-    pas_visualisation = 50 / 6.0
+    pas_visualisation = 50 / 7.0
 
-    # todo : intégrer le chargement du GN soit depuis un fichier INI, soit depuis un mgn au début de la méthode
-    #  faire évoluer pas de visualisation pour intégrer le téléchargement des fichiers
-    #  et la vérification si nécessaire
+    # todo : faire évoluer pas de visualisation pour intégrer le téléchargement des fichiers
 
-    # if api_doc is None or api_sheets is None or api_drive is None:
-    #     api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
-    if fichier_gn.endswith('.ini'):
-        #todo
-        # décrypter le fichier e un dict config
-        # vérifier le dict config
-        # charger le GN
-        pass
-    elif fichier_gn.endswith('.mgn'):
-        mon_gn = GN.load(fichier_gn)
-        # todo vérifier le dict config
-        mon_gn = g_io.charger_gn_from_dict(mon_gn.dict_config, api_drive, m_print=m_print, updater_dict_config=False)
-    else:
-        m_print(f"ERREUR : Format du fichier ko non pris en charge : {fichier_gn}")
+    # Verification des fichiers d'entrée et chargement du fichier de config
+    test_ok, _, dict_config = g_io.verifier_fichier_gn_et_fournir_dict_config(fichier_gn, api_drive)
+
+    if not test_ok:
+        m_print("Erreur dans le fichier de configuration")
+        m_print("Vérifiez les erreurs et recommencez")
         return
 
+    m_print("Configuration du GN ok")
+    visualisation(pas_visualisation)
 
+    # commencer le traitement
     if sans_chargement_fichier:
         m_print("recréation d'un GN from scratch")
         new_gn = GN(dict_config=mon_gn.dict_config, ma_version=mon_gn.version)
         mon_gn = new_gn
     else:
+        mon_gn = g_io.charger_gn_from_dict(dict_config, api_drive, m_print=m_print, updater_dict_config=False)
         mon_gn.effacer_personnages_forces()
 
-    # for perso in mon_gn.personnages.values():
-    #     logging.debug(f"nom du personnage = {perso.nom} / {perso.forced}")
-    # logging.debug(f"noms pjs dans le GN  = {mon_gn.noms_pjs()}")
+    for perso in mon_gn.personnages.values():
+        logging.debug(f"nom du personnage = {perso.nom} / {perso.forced}")
+    logging.debug(f"noms pjs dans le GN  = {mon_gn.noms_pjs()}")
 
-    # for perso in mon_gn.dictPNJs.values():
-    #     logging.debug(f"nom du pnj = {perso.nom} / {perso.forced}")
-    # logging.debug(f"noms pnjs = {mon_gn.noms_pnjs()}")
+    for perso in mon_gn.dictPNJs.values():
+        logging.debug(f"nom du pnj = {perso.nom} / {perso.forced}")
+    logging.debug(f"noms pnjs = {mon_gn.noms_pnjs()}")
 
     ids_lus = g_io.extraire_intrigues(mon_gn,
                                       api_drive=api_drive,
