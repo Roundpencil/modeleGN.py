@@ -3587,7 +3587,7 @@ def extraire_id_google_si_possible(user_text):
         return user_text, False
 
 
-def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_file_name):
+def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_file_name, last_save_connu = None):
     save_file_name = normaliser_nom_gn(save_file_name)
     # Find the most recent save file
     # results = service.files().list(q=f"'{source_folder_id}' in parents",
@@ -3598,11 +3598,18 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
     print(f"DEBUG : query telechargement archive = {query}")
     results = api_drive.files().list(q=query,
                                      orderBy="modifiedTime desc",
+                                     fields = "files(id, name)",
                                      pageSize=1).execute()
-
     items = results.get('files', [])
 
     if items:
+        if last_save_connu:
+            nom = items[0]['name']
+            last_save_online = nom.split(' - ')[0]
+            if last_save_online <= last_save_connu:
+                return None
+            #todo : tester que les noms marchent biens et qu'on choppe bien la dernière version
+
         file_id = items[0]['id']
         request = api_drive.files().get_media(fileId=file_id)
         # local_path = f"{dest_folder}/{items[0]['name']}"
@@ -3620,9 +3627,7 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
         return None
 
 
-def uploader_archive(file_path, folder_id, api_drive):
-    # Upload the updated file with a new date indication
-    current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+def uploader_archive(file_path, folder_id, api_drive, current_date):
 
     new_filename = f"{current_date} - {os.path.basename(file_path)}"
     new_filename = normaliser_nom_gn(new_filename)
@@ -3639,7 +3644,7 @@ def uploader_archive(file_path, folder_id, api_drive):
 
 
 def charger_gn(nom_archive: str, source_folder_id: str, dest_folder: str, api_drive=None, m_print=print,
-               dict_config=None):
+               dict_config=None, last_save_connu=None):
     nom_archive = normaliser_nom_gn(nom_archive)
     chemin_archive = os.path.join(dest_folder, nom_archive)
 
@@ -3647,21 +3652,34 @@ def charger_gn(nom_archive: str, source_folder_id: str, dest_folder: str, api_dr
 
     if api_drive:
         m_print("téléchargement de la dernière version de l'archive...")
-        telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, nom_archive)
+        telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, nom_archive, last_save_connu)
         m_print("téléchargement terminé")
 
     return GN.load(chemin_archive, dict_config=dict_config)
 
 
-def charger_gn_from_dict(dict_config: dict, api_drive=None, m_print=print, updater_dict_config=True):
+def charger_gn_from_dict(dict_config: dict, api_drive=None, m_print=print, updater_dict_config=True, last_save_connu=None):
     nom_archive = normaliser_nom_gn(dict_config['nom_fichier_sauvegarde'])
     dest_folder = dict_config['dossier_local_fichier_sauvegarde']
     source_folder_id = dict_config.get('dossier_output')
     return charger_gn(nom_archive, source_folder_id, dest_folder, api_drive, m_print=m_print,
-                      dict_config=dict_config if updater_dict_config else None)
+                      dict_config=dict_config if updater_dict_config else None,
+                      last_save_connu=last_save_connu)
+
+def charger_gn_from_gn(mon_gn: GN,api_drive, m_print=print, updater_dict_config=None):
+    nom_archive = mon_gn.get_nom_fichier_sauvegarde()
+    dest_folder = mon_gn.get_dossier_local_fichier_sauvegarde()
+    source_folder_id = mon_gn.get_dossier_outputs_drive()
+    last_save_connu = mon_gn.get_last_save()
+    return charger_gn(nom_archive, source_folder_id, dest_folder, api_drive, m_print=m_print,
+                      dict_config=mon_gn.dict_config if updater_dict_config else None,
+                      last_save_connu=last_save_connu)
 
 
 def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None):
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    mon_gn.set_last_save(current_date)
+
     path = mon_gn.save()
 
     if api_drive:
@@ -3669,4 +3687,4 @@ def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None):
         dossier_upload = mon_gn.get_dossier_outputs_drive()
         if id_archive := mon_gn.get_id_dossier_archive():
             archiver_fichiers_existants(api_drive, nom_archive, dossier_upload, id_archive, fichier_pre_date=False)
-        uploader_archive(path, dossier_upload, api_drive)
+        uploader_archive(path, dossier_upload, api_drive, current_date=current_date)

@@ -34,7 +34,7 @@ from modeleGN import *
 # todo : faire quelque part une liste de tous les dossiers ou se trouvent des *.mng (cf. chat gpt)
 #  vérifier auxquels a acces l'utilisateur quand il lance le programme, puis lui proposer de télécahrger les siens.
 #  objectifs : se passer et du fichier de config, et de la nécessité de télécharger un mgn
-# todo : changer tous les paramètres de MAGnet_lib par une classe ou un dictionnaire pour accelérer le design
+#  quand on vérifie la validité du dict config du fichier GN, en profiter pour le loader et séparer les fcontions selon si on a utilisé .ini ou .mgn
 
 # confort / logique
 # todo : refaire version console
@@ -50,6 +50,7 @@ from modeleGN import *
 # utilité du code
 # todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
 # todo : regarder s'il faut virer  les last modfied dans le GN
+# todo : changer tous les paramètres de MAGnet_lib par une classe ou un dictionnaire pour accelérer le design
 
 def print_progress(v: float):
     print(f"La génération a progressé de {v}%")
@@ -111,8 +112,15 @@ def lire_et_recharger_gn(fichier_gn: str,
         mon_gn = new_gn
     else:
         # si c'ets un fichier ini qui a été founi en entrée, on pudate le GN, sinon on garde la config
-        mon_gn = g_io.charger_gn_from_dict(dict_config, api_drive, m_print=m_print,
-                                           updater_dict_config=fichier_gn.endswith('.ini'))
+        if fichier_gn.endswith('.mgn'):
+            mon_gn = GN.load(fichier_gn)
+            mon_gn = g_io.charger_gn_from_gn(mon_gn,api_drive, m_print=m_print,
+                                               updater_dict_config=None)
+        else:
+            mon_gn = g_io.charger_gn_from_dict(dict_config, api_drive, m_print=m_print,
+                                               updater_dict_config=dict_config,
+                                               last_save_connu=None)
+
         mon_gn.effacer_personnages_forces()
 
     for perso in mon_gn.personnages.values():

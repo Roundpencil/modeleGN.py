@@ -788,6 +788,7 @@ class GN:
         #              id_pjs_et_pnjs=None, fichier_pnjs=None, ma_version="0.0.0"):
 
         # création des objets nécessaires
+        self.last_save = datetime.datetime.min.strftime("%Y-%m-%d %H:%M")
         if dict_config is None:
             dict_config = {}
         # self.dictPJs = {}  # idgoogle, personnage
@@ -1754,6 +1755,12 @@ class GN:
 
     def get_dossier_local_fichier_sauvegarde(self):
         return self.dict_config['dossier_local_fichier_sauvegarde']
+
+    def set_last_save(self, current_date):
+        self.last_save = current_date
+
+    def get_last_save(self):
+        return self.last_save
 
 
 # if hasattr(personnage, "orgaReferent"):
