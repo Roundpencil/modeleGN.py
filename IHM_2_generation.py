@@ -104,7 +104,7 @@ class Application(ttk.Frame):
         ttk.Label(diagnostic_labelframe, text="Fiches PNJs").grid(row=53, column=0)
         ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_fiches_pnjs, value=True).grid(row=53,
                                                                                                               column=1)
-        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_fiches_pnjs, value=False)\
+        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_fiches_pnjs, value=False) \
             .grid(row=53, column=2)
 
         # Evenements Line
@@ -418,36 +418,35 @@ class Application(ttk.Frame):
             v_config_label.config(text="Verifications fichier de configuration ko : corrigez les et re-vérifiez")
 
         if afficher:
-            self.afficher_resultats_test_config(resultats, test_ok)
+            afficher_resultats_test_config(self.master, resultats, test_ok)
 
-    def afficher_resultats_test_config(self, resultats, test_global_reussi):
-        def close_popup():
-            popup.destroy()
 
-        master = self.master
+def afficher_resultats_test_config(master, resultats, test_global_reussi):
+    def close_popup():
+        popup.destroy()
 
-        popup = tk.Toplevel(master)
-        if test_global_reussi:
-            popup.title("Tests Réussis")
-            # popup.iconbitmap("success_icon.ico")  # Replace with the path to the success icon
-        else:
-            popup.title("Tests Échoués")
-            # popup.iconbitmap("failure_icon.ico")  # Replace with the path to the failure icon
-        tree = ttk.Treeview(popup, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
-        tree.heading("#0", text="")
-        tree.column("#0", width=0, minwidth=0, stretch=tk.NO)
-        tree.heading("Paramètre", text="Nom du paramètre")
-        tree.column("Paramètre", anchor=tk.W)
-        tree.heading("Nom du fichier lu", text="Nom du fichier lu")
-        tree.column("Nom du fichier lu", anchor=tk.W)
-        tree.heading("Résultat du test", text="Résultat du test")
-        tree.column("Résultat du test", anchor=tk.W)
-        for res in resultats:
-            tree.insert('', tk.END, values=(res[0], res[1], res[2]))
-        tree.pack(padx=10, pady=10)
-        # Create an "OK" button to close the popup
-        ok_button = tk.Button(popup, text="OK", command=close_popup)
-        ok_button.pack(pady=10)
-        popup.transient(master)
-        popup.grab_set()
-        master.wait_window(popup)
+    popup = tk.Toplevel(master)
+    if test_global_reussi:
+        popup.title("Tests Réussis")
+        # popup.iconbitmap("success_icon.ico")  # Replace with the path to the success icon
+    else:
+        popup.title("Tests Échoués")
+        # popup.iconbitmap("failure_icon.ico")  # Replace with the path to the failure icon
+    tree = ttk.Treeview(popup, columns=("Paramètre", "Nom du fichier lu", "Résultat du test"))
+    tree.heading("#0", text="")
+    tree.column("#0", width=0, minwidth=0, stretch=tk.NO)
+    tree.heading("Paramètre", text="Nom du paramètre")
+    tree.column("Paramètre", anchor=tk.W)
+    tree.heading("Nom du fichier lu", text="Nom du fichier lu")
+    tree.column("Nom du fichier lu", anchor=tk.W)
+    tree.heading("Résultat du test", text="Résultat du test")
+    tree.column("Résultat du test", anchor=tk.W)
+    for res in resultats:
+        tree.insert('', tk.END, values=(res[0], res[1], res[2]))
+    tree.pack(padx=10, pady=10)
+    # Create an "OK" button to close the popup
+    ok_button = tk.Button(popup, text="OK", command=close_popup)
+    ok_button.pack(pady=10)
+    popup.transient(master)
+    popup.grab_set()
+    master.wait_window(popup)

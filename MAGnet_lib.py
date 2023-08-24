@@ -16,9 +16,6 @@ from modeleGN import *
 # bugs
 
 # à faire - rapide
-# todo : faire évoluer la GUI 4 qui s'apuyait sur la vérification de fichier et sur la méthode d'affichage de IHM2.
-#   vérifier l'usage de la GUI 3 qui utilise can write
-
 # todo : finir la génération des planning evènementtiels dans lib (appel des méthodes)
 
 # todo :
@@ -53,6 +50,8 @@ from modeleGN import *
 # todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
 # todo : regarder s'il faut virer  les last modfied dans le GN
 # todo : changer tous les paramètres de MAGnet_lib par une classe ou un dictionnaire pour accelérer le design
+#   vérifier l'usage de la GUI 3 qui utilise can write
+
 
 def print_progress(v: float):
     print(f"La génération a progressé de {v}%")

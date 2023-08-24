@@ -3259,6 +3259,10 @@ def preparer_tests_dict_config(dict_config: dict):
 
     for meta_valeur in ['dossiers_intrigues', 'dossiers_pjs', 'dossiers_pnjs', 'dossiers_evenements',
                         'dossiers_objets']:
+        longueur_supp = len(dict_config[f'{meta_valeur}']) - len(dict_config[f'nom_{meta_valeur}'])
+        if longueur_supp > 0:
+            dict_config[f'nom_{meta_valeur}'].extend([meta_valeur] * longueur_supp)
+
         dossiers_a_verifier.extend(
             [clef, valeur]
             for clef, valeur in zip(
@@ -3528,6 +3532,13 @@ def verifier_fichier_gn_et_fournir_dict_config(nom_fichier: str, api_drive, m_pr
 
     test_ok, commentaires = verifier_dict_config(dict_config, api_drive)
     return test_ok, commentaires, dict_config
+
+def verifier_config_parser(api_drive, config: configparser.ConfigParser):
+    dict_config, test_global_reussi, resultats = creer_dict_config(config)
+    if not test_global_reussi:
+        return test_global_reussi, resultats
+    test_ok, commentaires = verifier_dict_config(dict_config, api_drive)
+    return test_ok, commentaires
 
 
 # todo : voir si pas de redondance avec le teste effectué dans le fichier de config

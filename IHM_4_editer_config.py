@@ -162,9 +162,9 @@ class FenetreEditionConfig(ttk.Frame):
             self.bouton_save['state'] = 'normal'
 
     def verifier_config_parser(self):
-        config = self.generer_configparser()
-        param, resultat = g_io.verifier_config_parser(self.api_drive, config)
-        IHM_2_generation.afficher_resultats_test_config(self.master, resultat, param is None)
+        ma_config = self.generer_configparser()
+        test_ok, resultat = g_io.verifier_config_parser(self.api_drive, ma_config)
+        IHM_2_generation.afficher_resultats_test_config(self.master, resultat, test_ok)
 
     def generer_configparser(self):
         dict_essentiel, dict_optionnel = self.mes_panneaux['premier panneau'].generer_dictionnaires_parametres()
@@ -195,8 +195,8 @@ class FenetreEditionConfig(ttk.Frame):
             config_.set("Optionnels", param, dict_optionnel[param])
         return config_
 
-    def retirer_clefs_vides(self, d: dict):
-        return {key: value for key, value in d.items() if value != ''}
+    # def retirer_clefs_vides(self, d: dict):
+    #     return {key: value for key, value in d.items() if value != ''}
 
 
 class PremierPanneau(ttk.Frame):
