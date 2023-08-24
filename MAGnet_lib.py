@@ -11,6 +11,7 @@ from modeleGN import *
 # tester
 # todo reprendre message d'error sur l'expiration du token
 #  faire du ménage dans les logs > vérifier ce qu'on stoque et pourquoi
+#  lorsqu'on sauve un gn, lui mettre une propriété last_save qui donne sa date de changment? L'utiliser pour le timestap du fichier. Ne télécharge le fichier que si la version en ligne ets plus récente
 
 # bugs
 
@@ -22,9 +23,10 @@ from modeleGN import *
 
 # todo :
 #  retrouver où on créeit un GN quand il n'existait pas, et le re-créer
-#  lorsqu'on sauve un gn, lui mettre une propriété last_save qui donne sa date de changment? L'utiliser pour le timestap du fichier. Ne télécharge le fichier que si la version en ligne ets plus récente
 #  ajuster la fonctiond e loading : si la version du fichier est inférieure à celle du GN, on ne peut bosser avec.
 #  Créer une version du modele comme sous version pour faire la vérification?
+
+# todo :
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
 #  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
 #  nouvel onglet dans les fichiers de castings : aides par sessions (plutot que de prendre les pré-affectation) et les utiliser
