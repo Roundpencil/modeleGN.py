@@ -1,14 +1,10 @@
 import threading
 import tkinter as tk
-import traceback
 import webbrowser
 from tkinter import filedialog, ttk
 from tkinter.ttk import Progressbar
 
 from MAGnet_lib import *
-from modeleGN import GN
-
-import google_io as g_io
 
 
 class Application(ttk.Frame):
@@ -20,21 +16,10 @@ class Application(ttk.Frame):
                  mode_leger=True):
         super().__init__(master)
 
-        # variables pour gérer l'apparition ou non du popup versions
-        self.maj_versions = None
-        self.url_derniere_version = None
-        self.derniere_version = None
-
-        # objets liés au jeu en cours
-        # self.gn = None
-        # self.dict_config = None
-
-        # variables pour remplacer les précédentes
-        # todo : finir le remplacement
-        #  réécrire le fonction qui charge et vérifie pour la séparer en deux
-        #  remplacer les appels à la vérification apr un simple oui / non et stoquer dans config_ok
-        #  mettre à jour config_ok comme faux à chaque chargement
-        self.config_ok = False
+        # # variables pour gérer l'apparition ou non du popup versions
+        # self.maj_versions = None
+        # self.url_derniere_version = None
+        # self.derniere_version = None
 
         # variables pour avoir des lecteurs à disposition
         self.api_drive = api_drive
@@ -119,8 +104,8 @@ class Application(ttk.Frame):
         ttk.Label(diagnostic_labelframe, text="Fiches PNJs").grid(row=53, column=0)
         ttk.Radiobutton(diagnostic_labelframe, text="Rapide", variable=var_fast_fiches_pnjs, value=True).grid(row=53,
                                                                                                               column=1)
-        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_fiches_pnjs, value=False).grid(row=53,
-                                                                                                                column=2)
+        ttk.Radiobutton(diagnostic_labelframe, text="Complet", variable=var_fast_fiches_pnjs, value=False)\
+            .grid(row=53, column=2)
 
         # Evenements Line
         ttk.Label(diagnostic_labelframe, text="Evenements").grid(row=54, column=0)
@@ -399,9 +384,8 @@ class Application(ttk.Frame):
                                )
 
         ok_button.grid(row=200, column=1, pady=(0, 10))
-        boutons = [ok_button]
         # boutons = [ok_button, forcer_update_gn_button]
-        config_button.config(command=lambda: self.change_config_file(boutons, current_file_label, v_config_label))
+        config_button.config(command=lambda: self.change_config_file(current_file_label))
         v_config_button.config(command=lambda: self.verifier_configuration(current_file_label,
                                                                            v_config_label, afficher=True))
 
@@ -411,17 +395,16 @@ class Application(ttk.Frame):
     def get_fichier_en_cours(self):
         return self.nametowidget('ini_labelframe').nametowidget('fichier_en_cours')['text']
 
-    def updater_boutons_disponibles(self, on: bool, boutons: list):
-        to_set = "normal" if on else "disabled"
-        for bouton in boutons:
-            bouton.config(state=to_set)
+    # def updater_boutons_disponibles(self, on: bool, boutons: list):
+    #     to_set = "normal" if on else "disabled"
+    #     for bouton in boutons:
+    #         bouton.config(state=to_set)
 
-    def change_config_file(self, boutons: list, display_label, v_config_label):
+    def change_config_file(self, display_label):
         config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
                                                  filetypes=(('fichiers MAGnet', '*.ini; *.mgn'),
                                                             ("all files", "*.*")))
         display_label.config(text=config_file)
-        self.config_ok = False
 
     def verifier_configuration(self, current_file_label, v_config_label, afficher=True):
         test_ok, resultats, _ = g_io.verifier_fichier_gn_et_fournir_dict_config(self.get_fichier_en_cours(),

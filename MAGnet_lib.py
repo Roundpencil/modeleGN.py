@@ -93,8 +93,6 @@ def lire_et_recharger_gn(fichier_gn: str,
     visualisation(-100)
     pas_visualisation = 50 / 7.0
 
-    # todo : faire évoluer pas de visualisation pour intégrer le téléchargement des fichiers
-
     # Verification des fichiers d'entrée et chargement du fichier de config
     test_ok, _, dict_config = g_io.verifier_fichier_gn_et_fournir_dict_config(fichier_gn, api_drive)
 
