@@ -3148,6 +3148,7 @@ def charger_fichier_config(fichier_ini: str):
     return config, None
 
 
+#todo : à réécrire
 def charger_et_verifier_fichier_config(fichier_ini: str, api_drive):
     config, erreurs_loading = charger_fichier_config(fichier_ini)
     if erreurs_loading:
@@ -3155,8 +3156,39 @@ def charger_et_verifier_fichier_config(fichier_ini: str, api_drive):
     return verifier_config_parser(api_drive, config)
 
 
+#todo : à intégrer dans la logique en 3 temps
+def preparer_tests_dict_config(dict_config: dict):
+    dossiers_a_verifier = []
+    google_docs_a_verifier = []
+    google_sheets_a_verifier = []
+
+    for meta_valeur in ['dossiers_intrigues', 'dossiers_pjs', 'dossiers_pnjs', 'dossiers_evenements',
+                        'dossiers_objets']:
+        dossiers_a_verifier.extend(
+            [clef, valeur]
+            for clef, valeur in zip(
+                dict_config[f'nom_{meta_valeur}'], dict_config[meta_valeur]
+            )
+        )
+    if id_archive := dict_config.get('id_dossier_archive'):
+        dossiers_a_verifier.extend(['fichier_archive', id_archive])
+
+    # intégration du fichier des factions
+    if id_factions := dict_config.get('id_factions'):
+        google_docs_a_verifier.append(["id_factions", id_factions])
+
+    # intégration du fichier des ids pjs_pnjs
+    if id_pjs_et_pnjs := dict_config.get('id_pjs_et_pnjs'):
+        google_sheets_a_verifier.append(["id_pjs_et_pnjs", id_pjs_et_pnjs])
+
+    id_output = dict_config['dossier_output']
+
+    return dossiers_a_verifier, google_docs_a_verifier, google_sheets_a_verifier, id_output
+
+
 #todo : finir la réécriture une fois quele fichier qui fournira les tests à faire sera ok
-def verifier_config_parser(api_drive, dossiers_a_verifier, google_docs_a_verifier, google_sheets_a_verifier):
+# faire évoluer la GUI 4
+def verifier_config_parser(api_drive, dossiers_a_verifier, google_docs_a_verifier, google_sheets_a_verifier, id_output):
     resultats = []
     # a ce stade là on a :
     # 1. intégré tous les paramètres au fichier de sortie
@@ -3202,7 +3234,7 @@ def verifier_config_parser(api_drive, dossiers_a_verifier, google_docs_a_verifie
             logging.debug(f"Erreur durant la vérification du fichier {sheet_id} : {error}")
             test_global_reussi = False
     # Vérification des droits d'écriture dans le dossier de sortie
-    dossier_output_id = fichier_output['dossier_output']
+    dossier_output_id = id_output
     try:
         permissions = api_drive.permissions().list(fileId=dossier_output_id).execute()
         droit_ecriture = any(

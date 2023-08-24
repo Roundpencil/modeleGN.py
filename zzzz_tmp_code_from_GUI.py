@@ -83,48 +83,6 @@ def afficher_resultats_test_config(master, resultats, test_global_reussi):
 
 
 
-def preparer_tests_dict_config(dict_config: dict):
-    dossiers_a_verifier = []
-    google_docs_a_verifier = []
-    google_sheets_a_verifier = []
-
-
-    dossiers_a_verifier.append([clef, valeur])
-    clef_valeurs='dossiers_intrigues',
-                   clef_nom='nom_dossiers_intrigues',
-
-
-    decouper_clefs(clef_valeurs='dossiers_pjs',
-       # intégration des dossiers PNJs
-       decouper_clefs(clef_valeurs='dossiers_pnjs',
-                      prefixe_param="id_dossier_pnjs",
-                      essentiel=False)
-    # intégration des dossiers Evenements
-    decouper_clefs(clef_valeurs='dossiers_evenements',
-                   prefixe_param="id_dossier_evenements",
-                   essentiel=False)
-# intégration des dossiers objets
-    decouper_clefs(clef_valeurs='dossiers_objets',
-                   prefixe_param="id_dossier_objets",
-                   essentiel=False)
-
-    # intégration du fichier des factions
-    dict_config['id_factions'] = id_factions
-    if id_factions:
-        google_docs_a_verifier.append(["id_factions", id_factions])
-    # intégration du fichier des ids pjs_pnjs
-    if id_pjs_et_pnjs:
-        dict_config['id_pjs_et_pnjs'] = id_pjs_et_pnjs
-    google_sheets_a_verifier.append(["id_pjs_et_pnjs", id_pjs_et_pnjs])
-
-    dict_config['id_dossier_archive'] = config.get('Optionnels', 'id_dossier_archive', fallback=None)
-
-
-def tester_dict_config(dict_config: dict):
-    pass
 
 
 
-def charger_parser_et_preparer_verification(config: configparser.ConfigParser):
-    return dict_config, test_global_reussi, resultats, \
-        dossiers_a_verifier, google_docs_a_verifier, google_sheets_a_verifier
