@@ -435,7 +435,7 @@ class Application(ttk.Frame):
             v_config_label.config(text="Verifications fichier de configuration ko : corrigez les et re-vérifiez")
 
         if afficher:
-            self.afficher_resultats(resultats, test_ok)
+            self.afficher_resultats_test_config(resultats, test_ok)
 
     def afficher_resultats_test_config(self, resultats, test_global_reussi):
         def close_popup():
