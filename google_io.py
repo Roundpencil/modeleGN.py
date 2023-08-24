@@ -3652,8 +3652,10 @@ def charger_gn(nom_archive: str, source_folder_id: str, dest_folder: str, api_dr
 
     if api_drive:
         m_print("téléchargement de la dernière version de l'archive...")
-        telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, nom_archive, last_save_connu)
-        m_print("téléchargement terminé")
+        if telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, nom_archive, last_save_connu):
+            m_print("téléchargement terminé")
+        else:
+            m_print("Aucun téléchargement effectué")
 
     return GN.load(chemin_archive, dict_config=dict_config)
 
@@ -3678,9 +3680,8 @@ def charger_gn_from_gn(mon_gn: GN,api_drive, m_print=print, updater_dict_config=
 
 def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None):
     current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    mon_gn.set_last_save(current_date)
 
-    path = mon_gn.save()
+    path = mon_gn.save(last_save=current_date)
 
     if api_drive:
         nom_archive = os.path.basename(path)

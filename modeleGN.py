@@ -941,7 +941,9 @@ class GN:
             # print(f"oldestdate pj : {self.oldestUpdatePJ} ")
             self.oldestUpdatedPJ = pairesDatesIdPJ[self.oldestUpdatePJ]
 
-    def save(self, filename=None):
+    def save(self, filename=None, last_save=None):
+        if last_save:
+            self.set_last_save(last_save)
         sys.setrecursionlimit(5000)
         if not filename:
             filename = self.get_chemin_local_archive()
