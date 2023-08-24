@@ -1,4 +1,5 @@
 import argparse
+from logging.handlers import RotatingFileHandler
 from tkinter import messagebox
 
 import IHM_1_main
@@ -9,10 +10,27 @@ from IHM_2_generation import *
 # from maGNette import console_magnet
 
 def main():
-    logging.basicConfig(filename='fichier_log.log', encoding='utf-8', level=logging.DEBUG,
-                        format='%(asctime)s %(message)s')
+    # logging.basicConfig(filename='fichier_log.log', encoding='utf-8', level=logging.DEBUG,
+    #                     format='%(asctime)s %(message)s')
 
-    sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
+    # Define parameters for log rotation
+    log_file = 'fichier_log.log'
+    max_log_size = 5 * 1024 * 1024  # Set max log file size to 5 MB
+    backup_count = 5  # Keep the last 5 log files
+
+    # Create logger
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)  # Set the logging level to DEBUG
+
+    # Create a rotating file handler
+    handler = RotatingFileHandler(log_file, maxBytes=max_log_size, backupCount=backup_count, encoding='utf-8')
+    formatter = logging.Formatter('%(asctime)s %(message)s')
+    handler.setFormatter(formatter)
+
+    # Add the handler to the logger
+    logger.addHandler(handler)
+
+    # sys.setrecursionlimit(5000)  # mis en place pour prévenir pickle de planter
 
     # lecture des paramètres
 

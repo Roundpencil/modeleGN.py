@@ -10,20 +10,23 @@ from modeleGN import *
 
 # tester
 # todo reprendre message d'error sur l'expiration du token
+#  faire du ménage dans les logs > vérifier ce qu'on stoque et pourquoi
 
 # bugs
 
 # à faire - rapide
 # todo :
-#  refaire une passe sur les personnages déclarés en durs pour les ajuster avec les interpretes déclarés dans les tableaux
-#  faire du ménage dans les logs > vérifier ce qu'on stoque et pourquoi
+#  lorsqu'on sauve un gn, lui mettre une propriété last_save qui donne sa date de changment? L'utiliser pour le timestap du fichier. Ne télécharge le fichier que si la version en ligne ets plus récente
+#  ajuster la fonctiond e loading : si la version du fichier est inférieure à celle du GN, on ne peut bosser avec.
+#  Créer une version du modele comme sous version pour faire la vérification?
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
 #  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
 #  nouvel onglet dans les fichiers de castings : aides par sessions (plutot que de prendre les pré-affectation) et les utiliser
+#  nouveau paramètre à ajouter : sessions_à_generer pour savoir quels casting on affiche, et quel génération on fait
 
 # à faire - plus long
 # todo : charger direment les fichiers mgn (et pas uniquement les fichiers de config)
-# todo : faire quelque part une liste de tous les dossiers ou se trouvent des *.mng
+# todo : faire quelque part une liste de tous les dossiers ou se trouvent des *.mng (cf. chat gpt)
 #  vérifier auxquels a acces l'utilisateur quand il lance le programme, puis lui proposer de télécahrger les siens.
 #  objectifs : se oasser et du fichier de config, et de la nécessité de télécharger un mgn
 # todo : changer tous les paramètres de MAGnet_lib par une classe ou un dictionnaire pour accelérer le design
@@ -91,6 +94,20 @@ def lire_et_recharger_gn(fichier_gn: str,
 
     # if api_doc is None or api_sheets is None or api_drive is None:
     #     api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
+    if fichier_gn.endswith('.ini'):
+        #todo
+        # décrypter le fichier e un dict config
+        # vérifier le dict config
+        # charger le GN
+        pass
+    elif fichier_gn.endswith('.mgn'):
+        mon_gn = GN.load(fichier_gn)
+        # todo vérifier le dict config
+        mon_gn = g_io.charger_gn_from_dict(mon_gn.dict_config, api_drive, m_print=m_print, updater_dict_config=False)
+    else:
+        m_print(f"ERREUR : Format du fichier ko non pris en charge : {fichier_gn}")
+        return
+
 
     if sans_chargement_fichier:
         m_print("recréation d'un GN from scratch")
@@ -1680,9 +1697,8 @@ def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets):
 
 
 def fichier_ini_defaut():
-    ini_files = [f for f in os.listdir('.') if f.endswith('.ini')]
-    return os.path.abspath(ini_files[0]) if len(ini_files) == 1 else "config.ini"
-
+    ini_mgn_files = [f for f in os.listdir('.') if f.endswith('.ini') or f.endswith('.mgn')]
+    return os.path.abspath(ini_files[0]) if len(ini_mgn_files) == 1 else "config.ini"
 
 def verifier_derniere_version(api_doc):
     try:

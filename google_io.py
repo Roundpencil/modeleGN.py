@@ -2305,7 +2305,7 @@ def creer_google_doc(service_drive, nom_fichier: str, id_parent: str, m_print=pr
 def archiver_fichiers_existants(service, nom_fichier, id_dossier_parent, id_dossier_archive,
                                 considerer_supprime=False,
                                 fichier_pre_date=True,
-                                verbal = False):
+                                verbal=False):
     """
     Vérifie si des fichiers avec le même label existent et, le cas échéant, les déplace dans un dossier d'archives.
 
@@ -3121,143 +3121,44 @@ def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):
     return to_return
 
 
-def charger_et_verifier_fichier_config(fichier_init: str, api_drive):
+def charger_fichier_config(fichier_ini: str):
+    """
+    Charge un fichier de configuration INI et retourne l'objet de configuration ainsi qu'une éventuelle erreur.
+
+    Paramètres:
+    - fichier_ini (str) : Chemin d'accès complet du fichier INI à charger.
+
+    Retourne:
+    - tuple: Un tuple contenant deux éléments :
+        1. configparser.ConfigParser: L'objet de configuration chargé à partir du fichier INI. Retourne None si une erreur s'est produite.
+        2. list: Une liste de listes contenant des détails sur l'erreur. Retourne None si le chargement a réussi.
+
+    Notes:
+    - En cas d'erreur lors du chargement, la fonction retourne un objet ConfigParser vide et une liste décrivant l'erreur.
+    - Si le fichier est chargé avec succès, la fonction retourne l'objet de configuration et la valeur None pour l'erreur.
+    """
     try:
         # #création du fichier d'entrée
         # init configuration
         config = configparser.ConfigParser()
-        config.read(fichier_init)
+        config.read(fichier_ini)
     except Exception as e:
         logging.debug(f"Une erreur est survenue en lisant le fichier config : {e}")
         return None, [["Fichier configuration", "Erreur dans la structure du fichier", "Echec du test"]]
+    return config, None
 
+
+def charger_et_verifier_fichier_config(fichier_ini: str, api_drive):
+    config, erreurs_loading = charger_fichier_config(fichier_ini)
+    if erreurs_loading:
+        return config, erreurs_loading
     return verifier_config_parser(api_drive, config)
 
 
-def verifier_config_parser(api_drive, config):
-    resultats = []
-    test_global_reussi = True
-    fichier_output = {}
-
-    dossiers_a_verifier = []
-    google_docs_a_verifier = []
-    google_sheets_a_verifier = []
-    # *** vérification que tous les paramètres Essentiels sont présents
-    # intégration du fichier de sortie
-    try:
-        fichier_output['dossier_output'] = config.get('Essentiels', 'dossier_output_squelettes_pjs')
-    except configparser.NoOptionError:
-        resultats.append(
-            ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de dossier de sortie trouvé"])
-        test_global_reussi = False
-
-    # intégration des dossiers intrigues et vérifications
-    fichier_output['dossiers_intrigues'] = []
-    clefs_intrigues = [key for key in config.options("Essentiels") if key.startswith("id_dossier_intrigues")]
-    for clef in clefs_intrigues:
-        valeur = config.get("Essentiels", clef)
-        dossiers_a_verifier.append([clef, valeur])
-        fichier_output['dossiers_intrigues'].append(valeur)
-    if len(fichier_output.get('dossiers_intrigues', [])) == 0:
-        resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de dossier intrigue"])
-        test_global_reussi = False
-    # intégration du mode association et vérifications
-    try:
-        mode_association_value = int(config.get('Essentiels', 'mode_association', fallback="9")[0])
-        if mode_association_value in [0, 1]:
-            fichier_output['mode_association'] = GN.ModeAssociation(mode_association_value)
-        else:
-            resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Mode association invalide"])
-            test_global_reussi = False
-    except configparser.NoOptionError:
-        resultats.append(
-            ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de mode association trouvé"])
-        test_global_reussi = False
-    except IndexError:
-        resultats.append(
-            ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de mode association trouvé"])
-        test_global_reussi = False
-
-    # intégration du fichier de sauvegarde
-    try:
-        fichier_output['nom_fichier_sauvegarde'] = config.get('Essentiels', 'nom_fichier_sauvegarde')
-    except configparser.NoOptionError:
-        resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de fichier de sauvegarde"])
-        test_global_reussi = False
-
-    # intégration d'une ligne de bilan des tests essentiels
-    if test_global_reussi:
-        resultats.append(["Paramètre Essentiels", "Présence des champs", "Test Réussi"])
-
-    # *** intégration des fichiers optionnels
-    # création du paramètre fichier local sauvegarde, par défaut ou tel que lu
-    try:
-        nom_dossier_sauvegarde = config.get('Optionnels', 'nom_fichier_sauvegarde')
-        fichier_output['dossier_local_fichier_sauvegarde'] = os.path.join(os.path.curdir, nom_dossier_sauvegarde)
-    except configparser.NoOptionError:
-        fichier_output['dossier_local_fichier_sauvegarde'] = os.path.curdir
-
-    # intégration des dossiers PJs
-    fichier_output['dossiers_pjs'] = []
-    clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_pjs")]
-    for clef in clefs_pjs:
-        valeur = config.get("Optionnels", clef)
-        dossiers_a_verifier.append([clef, valeur])
-        fichier_output['dossiers_pjs'].append(valeur)
-    # intégration des dossiers PNJs
-    fichier_output['dossiers_pnjs'] = []
-    clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_pnjs")]
-    for clef in clefs_pjs:
-        valeur = config.get("Optionnels", clef)
-        dossiers_a_verifier.append([clef, valeur])
-        fichier_output['dossiers_pnjs'].append(valeur)
-    # intégration des dossiers Evenements
-    fichier_output['dossiers_evenements'] = []
-    clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_evenements")]
-    for clef in clefs_pjs:
-        valeur = config.get("Optionnels", clef)
-        dossiers_a_verifier.append([clef, valeur])
-        fichier_output['dossiers_evenements'].append(valeur)
-    # intégration des dossiers objets
-    fichier_output['dossiers_objets'] = []
-    clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_objets")]
-    for clef in clefs_pjs:
-        valeur = config.get("Optionnels", clef)
-        dossiers_a_verifier.append([clef, valeur])
-        fichier_output['dossiers_objets'].append(valeur)
-
-    # intégration du fichier des factions
-    id_factions = config.get('Optionnels', 'id_factions', fallback=None)
-    fichier_output['id_factions'] = id_factions
-    if id_factions:
-        google_docs_a_verifier.append(["id_factions", id_factions])
-    # intégration du fichier des ids pjs_pnjs
-    id_pjs_et_pnjs = config.get('Optionnels', 'id_pjs_et_pnjs', fallback=None)
-    if id_pjs_et_pnjs:
-        fichier_output['id_pjs_et_pnjs'] = id_pjs_et_pnjs
-        google_sheets_a_verifier.append(["id_pjs_et_pnjs", id_pjs_et_pnjs])
-    else:
-        logging.debug("Je suis en train de lire le fichier de config et je n'ai pas trouvé d'id pjpnj en ligne")
-        fichier_output['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs', fallback=None)
-        fichier_output['liste_noms_pjs'] = [nom_p.strip()
-                                            for nom_p in
-                                            config.get('Optionnels', 'noms_persos', fallback="").split(',')]
-    # ajout de la date du GN
-    texte_date_gn = config.get('Optionnels', 'date_gn', fallback=None)
-    if texte_date_gn:
-        fichier_output['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
-        logging.debug(f"date_gn formattée = {fichier_output['date_gn']}")
-    else:
-        logging.debug("pour ce GN, date_gn = Pas de date lue")
-    fichier_output['prefixe_intrigues'] = config.get('Optionnels', 'prefixe_intrigues', fallback="I")
-    fichier_output['prefixe_evenements'] = config.get('Optionnels', 'prefixe_evenements', fallback="E")
-    fichier_output['prefixe_PJs'] = config.get('Optionnels', 'prefixe_PJs', fallback="P")
-    fichier_output['prefixe_PNJs'] = config.get('Optionnels', 'prefixe_PNJs', fallback="N")
-    fichier_output['prefixe_objets'] = config.get('Optionnels', 'prefixe_objets', fallback="O")
-    fichier_output['liste_noms_pjs'] = config.get('Optionnels', 'noms_persos', fallback=None)
-
-    # ajouter le dossier archive
-    fichier_output['id_dossier_archive'] = config.get('Optionnels', 'id_dossier_archive', fallback=None)
+def verifier_config_parser(api_drive, config: configparser.ConfigParser):
+    # dossiers_a_verifier, fichier_output, google_docs_a_verifier, google_sheets_a_verifier, resultats, test_global_reussi
+    dict_config, test_global_reussi, resultats, dossiers_a_verifier, google_docs_a_verifier, google_sheets_a_verifier = \
+        charger_parser_et_preparer_verification(config)
 
     # a ce stade là on a :
     # 1. intégré tous les paramètres au fichier de sortie
@@ -3324,7 +3225,129 @@ def verifier_config_parser(api_drive, config):
         logging.debug(f"Pas de dossier d'écriture : {error}")
         test_global_reussi = False
     print(f"{fichier_output if test_global_reussi else None}, {resultats}")
-    return fichier_output if test_global_reussi else None, resultats
+
+    return (fichier_output, [['test OK']]) if test_global_reussi else (None, resultats)
+
+
+def charger_parser_et_preparer_verification(config: configparser.ConfigParser):
+    resultats = []
+    test_global_reussi = True
+
+    dict_config = {}
+    dossiers_a_verifier = []
+    google_docs_a_verifier = []
+    google_sheets_a_verifier = []
+    # *** vérification que tous les paramètres Essentiels sont présents
+    # intégration du fichier de sortie
+    try:
+        dict_config['dossier_output'] = config.get('Essentiels', 'dossier_output_squelettes_pjs')
+    except configparser.NoOptionError:
+        resultats.append(
+            ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de dossier de sortie trouvé"])
+        test_global_reussi = False
+    # intégration des dossiers intrigues et vérifications
+    dict_config['dossiers_intrigues'] = []
+    clefs_intrigues = [key for key in config.options("Essentiels") if key.startswith("id_dossier_intrigues")]
+    for clef in clefs_intrigues:
+        valeur = config.get("Essentiels", clef)
+        dossiers_a_verifier.append([clef, valeur])
+        dict_config['dossiers_intrigues'].append(valeur)
+    if len(dict_config.get('dossiers_intrigues', [])) == 0:
+        resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de dossier intrigue"])
+        test_global_reussi = False
+    # intégration du mode association et vérifications
+    try:
+        mode_association_value = int(config.get('Essentiels', 'mode_association', fallback="9")[0])
+        if mode_association_value in [0, 1]:
+            dict_config['mode_association'] = GN.ModeAssociation(mode_association_value)
+        else:
+            resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Mode association invalide"])
+            test_global_reussi = False
+    except configparser.NoOptionError:
+        resultats.append(
+            ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de mode association trouvé"])
+        test_global_reussi = False
+    except IndexError:
+        resultats.append(
+            ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de mode association trouvé"])
+        test_global_reussi = False
+    # intégration du fichier de sauvegarde
+    try:
+        dict_config['nom_fichier_sauvegarde'] = config.get('Essentiels', 'nom_fichier_sauvegarde')
+    except configparser.NoOptionError:
+        resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de fichier de sauvegarde"])
+        test_global_reussi = False
+    # intégration d'une ligne de bilan des tests essentiels
+    if test_global_reussi:
+        resultats.append(["Paramètre Essentiels", "Présence des champs", "Test Réussi"])
+    # *** intégration des fichiers optionnels
+    # création du paramètre fichier local sauvegarde, par défaut ou tel que lu
+    try:
+        nom_dossier_sauvegarde = config.get('Optionnels', 'nom_fichier_sauvegarde')
+        dict_config['dossier_local_fichier_sauvegarde'] = os.path.join(os.path.curdir, nom_dossier_sauvegarde)
+    except configparser.NoOptionError:
+        dict_config['dossier_local_fichier_sauvegarde'] = os.path.curdir
+    # intégration des dossiers PJs
+    dict_config['dossiers_pjs'] = []
+    clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_pjs")]
+    for clef in clefs_pjs:
+        valeur = config.get("Optionnels", clef)
+        dossiers_a_verifier.append([clef, valeur])
+        dict_config['dossiers_pjs'].append(valeur)
+    # intégration des dossiers PNJs
+    dict_config['dossiers_pnjs'] = []
+    clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_pnjs")]
+    for clef in clefs_pjs:
+        valeur = config.get("Optionnels", clef)
+        dossiers_a_verifier.append([clef, valeur])
+        dict_config['dossiers_pnjs'].append(valeur)
+    # intégration des dossiers Evenements
+    dict_config['dossiers_evenements'] = []
+    clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_evenements")]
+    for clef in clefs_pjs:
+        valeur = config.get("Optionnels", clef)
+        dossiers_a_verifier.append([clef, valeur])
+        dict_config['dossiers_evenements'].append(valeur)
+    # intégration des dossiers objets
+    dict_config['dossiers_objets'] = []
+    clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_objets")]
+    for clef in clefs_pjs:
+        valeur = config.get("Optionnels", clef)
+        dossiers_a_verifier.append([clef, valeur])
+        dict_config['dossiers_objets'].append(valeur)
+    # intégration du fichier des factions
+    id_factions = config.get('Optionnels', 'id_factions', fallback=None)
+    dict_config['id_factions'] = id_factions
+    if id_factions:
+        google_docs_a_verifier.append(["id_factions", id_factions])
+    # intégration du fichier des ids pjs_pnjs
+    id_pjs_et_pnjs = config.get('Optionnels', 'id_pjs_et_pnjs', fallback=None)
+    if id_pjs_et_pnjs:
+        dict_config['id_pjs_et_pnjs'] = id_pjs_et_pnjs
+        google_sheets_a_verifier.append(["id_pjs_et_pnjs", id_pjs_et_pnjs])
+    else:
+        logging.debug("Je suis en train de lire le fichier de config et je n'ai pas trouvé d'id pjpnj en ligne")
+        dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs', fallback=None)
+        dict_config['liste_noms_pjs'] = [nom_p.strip()
+                                            for nom_p in
+                                            config.get('Optionnels', 'noms_persos', fallback="").split(',')]
+    # ajout de la date du GN
+    texte_date_gn = config.get('Optionnels', 'date_gn', fallback=None)
+    if texte_date_gn:
+        dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
+        logging.debug(f"date_gn formattée = {dict_config['date_gn']}")
+    else:
+        logging.debug("pour ce GN, date_gn = Pas de date lue")
+    dict_config['prefixe_intrigues'] = config.get('Optionnels', 'prefixe_intrigues', fallback="I")
+    dict_config['prefixe_evenements'] = config.get('Optionnels', 'prefixe_evenements', fallback="E")
+    dict_config['prefixe_PJs'] = config.get('Optionnels', 'prefixe_PJs', fallback="P")
+    dict_config['prefixe_PNJs'] = config.get('Optionnels', 'prefixe_PNJs', fallback="N")
+    dict_config['prefixe_objets'] = config.get('Optionnels', 'prefixe_objets', fallback="O")
+    dict_config['liste_noms_pjs'] = config.get('Optionnels', 'noms_persos', fallback=None)
+    # ajouter le dossier archive
+    dict_config['id_dossier_archive'] = config.get('Optionnels', 'id_dossier_archive', fallback=None)
+    return dict_config, test_global_reussi, resultats, \
+        dossiers_a_verifier, google_docs_a_verifier, google_sheets_a_verifier
 
 
 # # Utilisation de la méthode
@@ -3444,20 +3467,27 @@ def uploader_archive(file_path, folder_id, api_drive):
     return file.get('id')
 
 
-def charger_gn(dict_config: dict, api_drive=None, m_print=print):
-    nom_archive = normaliser_nom_gn(dict_config['nom_fichier_sauvegarde'])
-    dest_folder = dict_config['dossier_local_fichier_sauvegarde']
+def charger_gn(nom_archive: str, source_folder_id: str, dest_folder: str, api_drive=None, m_print=print,
+               dict_config=None):
+    nom_archive = normaliser_nom_gn(nom_archive)
     chemin_archive = os.path.join(dest_folder, nom_archive)
 
     # print(f"DEBUG : dict_config = {dict_config}")
 
     if api_drive:
         m_print("téléchargement de la dernière version de l'archive...")
-        source_folder_id = dict_config.get('dossier_output')
         telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, nom_archive)
         m_print("téléchargement terminé")
 
     return GN.load(chemin_archive, dict_config=dict_config)
+
+
+def charger_gn_from_dict(dict_config: dict, api_drive=None, m_print=print, updater_dict_config=True):
+    nom_archive = normaliser_nom_gn(dict_config['nom_fichier_sauvegarde'])
+    dest_folder = dict_config['dossier_local_fichier_sauvegarde']
+    source_folder_id = dict_config.get('dossier_output')
+    return charger_gn(nom_archive, source_folder_id, dest_folder, api_drive, m_print=m_print,
+                      dict_config=dict_config if updater_dict_config else None)
 
 
 def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None):
