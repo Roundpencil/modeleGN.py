@@ -3,6 +3,7 @@ import os
 
 import google_io as g_io
 from modeleGN import *
+import createur_planning_evenementiel as cpe
 
 # communication :
 
@@ -99,9 +100,9 @@ def lire_et_recharger_gn(fichier_gn: str,
     if fichier_gn.endswith('.ini'):
         test_ok, _, dict_config = g_io.verifier_fichier_gn_et_fournir_dict_config(fichier_gn, api_drive)
     elif fichier_gn.endswith('.mgn'):
-        mon_gn = GN.load(nom_fichier)
+        mon_gn = GN.load(fichier_gn)
         dict_config = mon_gn.dict_config
-        test_ok, _ = verifier_dict_config(dict_config, api_drive)
+        test_ok, _ = g_io.verifier_dict_config(dict_config, api_drive)
 
     if not test_ok:
         m_print("Erreur dans le fichier de configuration")
@@ -133,8 +134,6 @@ def lire_et_recharger_gn(fichier_gn: str,
         logging.debug(f"nom du personnage = {perso.nom} / {perso.forced}")
     logging.debug(f"noms pjs dans le GN  = {mon_gn.noms_pjs()}")
 
-    for perso in mon_gn.dictPNJs.values():
-        logging.debug(f"nom du pnj = {perso.nom} / {perso.forced}")
     logging.debug(f"noms pnjs = {mon_gn.noms_pnjs()}")
 
     ids_lus = g_io.extraire_intrigues(mon_gn,
@@ -1117,12 +1116,28 @@ def generer_table_chrono_condensee_raw(gn: GN):
 
 
 def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive):
-    # identifier toutes les sessions
-    sessions = mon_gn.get_liste_sessions()
-    # faire un premier onglet sans session
+    tables_planning = generer_tables_planning_evenementiel(mon_gn)
+
     # faire un onglet par session
     #voir si on ne peut pas chopper le paramètre des sessions qu'on veut explorer (sera utile aussi pour les squelettes)
-    pass
+    parent = mon_gn.get_dossier_outputs_drive()
+    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                  f'- planning evènementiel'
+    file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
+                                     id_dossier_archive=mon_gn.get_id_dossier_archive())
+    for session in tables_planning.keys():
+        g_io.ecrire_table_google_sheets(api_sheets, tables_planning[session], file_id, feuille=session)
+    g_io.supprimer_feuille_1(api_sheets, file_id)
+
+def generer_tables_planning_evenementiel(mon_gn: GN):
+    # identifier toutes les sessions
+    sessions = mon_gn.get_liste_sessions_froms_pnjs()
+
+    # faire un premier onglet sans session
+    tables_planning = {'evenementiel générique' : cpe.creer_planning_evenementiel(gn)}
+
+    for session in sessions:
+        tables_planning[session] = cpe.creer_planning_evenementiel(gn, session=session)
 
 
 def generer_table_chrono_condensee(tableau_raw, date_gn):

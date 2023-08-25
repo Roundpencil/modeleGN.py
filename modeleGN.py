@@ -889,9 +889,9 @@ class GN:
     def get_prefixe_objets(self):
         return self.dict_config['prefixe_objets']
 
-    def get_liste_sessions(self):
+    def get_liste_sessions_froms_pnjs(self):
         liste_sessions = []
-        for perso in self.personnages.values():
+        for perso in self.get_dict_pnj().values():
             liste_sessions.extend(list(perso.interpretes.keys()))
         print(list(set(liste_sessions)))
         return list(set(liste_sessions))

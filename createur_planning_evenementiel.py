@@ -483,9 +483,5 @@ def creer_planning_evenementiel(gn: GN, pas=None,
         row[0] = pas_2_h(row[0], pas)
     return table_planning
 
-
-# todo :
-#  réintégrer dans le code, ajouter un bouton dans l'interface graphique
-
 if __name__ == '__main__':
     main()

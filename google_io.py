@@ -3600,7 +3600,8 @@ def extraire_id_google_si_possible(user_text):
         return user_text, False
 
 
-def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_file_name, last_save_connu = None):
+def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_file_name, last_save_connu=None,
+                                 m_print=print):
     save_file_name = normaliser_nom_gn(save_file_name)
     # Find the most recent save file
     # results = service.files().list(q=f"'{source_folder_id}' in parents",
@@ -3620,8 +3621,8 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
             nom = items[0]['name']
             last_save_online = nom.split(' - ')[0]
             if last_save_online <= last_save_connu:
+                m_print("La version locale est la dernière à jour, pas besoin de télécharger")
                 return None
-            #todo : tester que les noms marchent biens et qu'on choppe bien la dernière version
 
         file_id = items[0]['id']
         request = api_drive.files().get_media(fileId=file_id)
@@ -3665,7 +3666,8 @@ def charger_gn(nom_archive: str, source_folder_id: str, dest_folder: str, api_dr
 
     if api_drive:
         m_print("téléchargement de la dernière version de l'archive...")
-        if telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, nom_archive, last_save_connu):
+        if telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, nom_archive, last_save_connu,
+                                        m_print=m_print):
             m_print("téléchargement terminé")
         else:
             m_print("Aucun téléchargement effectué")
