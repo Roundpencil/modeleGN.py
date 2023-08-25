@@ -3525,12 +3525,11 @@ def verifier_fichier_gn_et_fournir_dict_config(nom_fichier: str, api_drive, m_pr
             return False, resultats, None
         dict_config, structure_fichier_ok, details_tests = creer_dict_config(mon_parser)
     elif nom_fichier.endswith('.mgn'):
-        mon_gn = GN.load(nom_fichier)
+        mon_gn = GN.load(nom_fichier, m_print=m_print)
         dict_config = mon_gn.dict_config
     else:
         m_print("Erreur : le fichier fourni n'es pas d'un type reconnu par MAGnet")
-        # todo : fournir un retour cohérent
-        return False, [['Fichier non reconnu']], None
+        return False, [['Fichier non reconnu', '', '']], None
 
     test_ok, commentaires = verifier_dict_config(dict_config, api_drive)
     return test_ok, commentaires, dict_config
@@ -3672,7 +3671,7 @@ def charger_gn(nom_archive: str, source_folder_id: str, dest_folder: str, api_dr
         else:
             m_print("Aucun téléchargement effectué")
 
-    return GN.load(chemin_archive, dict_config=dict_config)
+    return GN.load(chemin_archive, dict_config=dict_config, m_print=m_print)
 
 
 def charger_gn_from_dict(dict_config: dict, api_drive=None, m_print=print, updater_dict_config=True, last_save_connu=None):

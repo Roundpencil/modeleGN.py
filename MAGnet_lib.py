@@ -96,7 +96,9 @@ def lire_et_recharger_gn(fichier_gn: str,
     if fichier_gn.endswith('.ini'):
         test_ok, _, dict_config = g_io.verifier_fichier_gn_et_fournir_dict_config(fichier_gn, api_drive)
     elif fichier_gn.endswith('.mgn'):
-        mon_gn = GN.load(fichier_gn)
+        mon_gn = GN.load(fichier_gn, m_print=m_print)
+        if mon_gn is None:
+            return
         dict_config = mon_gn.dict_config
         test_ok, _ = g_io.verifier_dict_config(dict_config, api_drive)
 
@@ -116,13 +118,15 @@ def lire_et_recharger_gn(fichier_gn: str,
     else:
         # si c'ets un fichier ini qui a été founi en entrée, on pudate le GN, sinon on garde la config
         if fichier_gn.endswith('.mgn'):
-            mon_gn = GN.load(fichier_gn)
+            # mon_gn = GN.load(fichier_gn) # le fichier a déjà été chargé
             mon_gn = g_io.charger_gn_from_gn(mon_gn,api_drive, m_print=m_print,
                                                updater_dict_config=None)
         else:
             mon_gn = g_io.charger_gn_from_dict(dict_config, api_drive, m_print=m_print,
                                                updater_dict_config=dict_config,
                                                last_save_connu=None)
+            if mon_gn is None:
+                return
 
         mon_gn.effacer_personnages_forces()
 

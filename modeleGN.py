@@ -12,7 +12,8 @@ from fuzzywuzzy import process
 from packaging import version
 from unidecode import unidecode
 
-VERSION = "1.1.20230825"
+VERSION = "1.1.20230826"
+VERSION_MODELE = "1.1.20230826"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -779,7 +780,7 @@ class Faction:
 
 
 class GN:
-    def __init__(self, dict_config=None, ma_version="0.0.0"):
+    def __init__(self, dict_config=None, ma_version=VERSION_MODELE):
         # def __init__(self,
         #              dossiers_intrigues, dossier_output: str, mode_association=None,
         #              dossiers_pj=None, dossiers_pnj=None, dossiers_evenements=None,
@@ -1088,14 +1089,21 @@ class GN:
                         print(texte_erreur)
 
     @staticmethod
-    def load(filename, dict_config: dict = None, update_version: bool = True, m_print=print):
+    def load(filename, dict_config: dict = None, update_version: bool = True, m_print=print,
+             ignore_older_version=False):
         try:
             mon_fichier = open(filename, 'rb')
             gn = pickle.load(mon_fichier)
+            # on vérifie si le modele du GN qu'on a chargé n'est pas supérieur à celui de l'application
+            if not ignore_older_version and version.parse(gn.version) > version.parse(VERSION_MODELE):
+                raise ValueError(
+                    f"la version du gn n'est pas prise en charge par cette version de MAGNet {VERSION_MODELE}."
+                    f"Pour continuer, vous devez disposer d'une version supérieure ou égale à {gn.version}")
+
             # on vérifie si la version du Gn est différente de celle du GN, et on update si nécessaire
             if update_version and (
                     not hasattr(gn, "version")
-                    or version.parse(gn.version) < version.parse(VERSION)
+                    or version.parse(gn.version) < version.parse(VERSION_MODELE)
             ):
                 gn.mettre_a_jour_champs()
 
@@ -1116,6 +1124,10 @@ class GN:
                 logging.debug(message)
                 m_print(message)
                 return None
+        except ValueError as v:
+            logging.debug(v)
+            m_print(v)
+            return None
 
     # apres une importation recrée
     # tous les liens entre les PJs,
@@ -1756,7 +1768,7 @@ class GN:
         for objet in self.objets_de_reference.values():
             maj_classe(objet)
 
-        self.version = VERSION
+        self.version = VERSION_MODELE
 
     def get_nom_fichier_sauvegarde(self):
         nom_brut = self.dict_config['nom_fichier_sauvegarde']
