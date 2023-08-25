@@ -442,6 +442,7 @@ def afficher_resultats_test_config(master, resultats, test_global_reussi):
     tree.heading("Résultat du test", text="Résultat du test")
     tree.column("Résultat du test", anchor=tk.W)
     for res in resultats:
+        # print(f'DEBUG : resultat à affichier = {res}')
         tree.insert('', tk.END, values=(res[0], res[1], res[2]))
     tree.pack(padx=10, pady=10)
     # Create an "OK" button to close the popup

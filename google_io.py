@@ -3259,18 +3259,19 @@ def preparer_tests_dict_config(dict_config: dict):
 
     for meta_valeur in ['dossiers_intrigues', 'dossiers_pjs', 'dossiers_pnjs', 'dossiers_evenements',
                         'dossiers_objets']:
+        if f'nom_{meta_valeur}' not in dict_config:
+            dict_config[f'nom_{meta_valeur}'] = []
+
         longueur_supp = len(dict_config[f'{meta_valeur}']) - len(dict_config[f'nom_{meta_valeur}'])
+
         if longueur_supp > 0:
             dict_config[f'nom_{meta_valeur}'].extend([meta_valeur] * longueur_supp)
 
-        dossiers_a_verifier.extend(
-            [clef, valeur]
-            for clef, valeur in zip(
-                dict_config[f'nom_{meta_valeur}'], dict_config[meta_valeur]
-            )
-        )
+        for clef, valeur in zip(dict_config[f'nom_{meta_valeur}'], dict_config[meta_valeur]):
+            dossiers_a_verifier.append([clef, valeur])
+
     if id_archive := dict_config.get('id_dossier_archive'):
-        dossiers_a_verifier.extend(['fichier_archive', id_archive])
+        dossiers_a_verifier.append(['fichier_archive', id_archive])
 
     # intégration du fichier des factions
     if id_factions := dict_config.get('id_factions'):
@@ -3293,6 +3294,7 @@ def mener_tests_config(api_drive, dossiers_a_verifier, google_docs_a_verifier, g
     # 2. fait les premiers tests sur les fichiers essentiels
     # 3. préparé les tableaux à parcourir pour faire les tests d'accès / existence aux dossiers
     # >> on peut lancer les tests
+    # print(f'DEBUG : dossiers à verifier : {dossiers_a_verifier}')
     for parametre, dossier_id in dossiers_a_verifier:
         try:
             # dossier = api_drive.files().get(fileId=dossier_id).execute()
@@ -3353,7 +3355,7 @@ def mener_tests_config(api_drive, dossiers_a_verifier, google_docs_a_verifier, g
         logging.debug(f"Pas de dossier d'écriture : {error}")
         test_global_reussi = False
 
-    return test_global_reussi, [['test OK']] if test_global_reussi else resultats
+    return test_global_reussi, resultats
 
 
 def verifier_dict_config(dict_config: dict, api_drive):
