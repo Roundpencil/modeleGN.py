@@ -17,10 +17,6 @@ import createur_planning_evenementiel as cpe
 # todo : réparation du changelog pour ne pas afficher les intrgues sans effet sur les persos dans les onglets des orgas
 
 # todo :
-#  ajuster la fonctiond e loading : si la version du fichier est inférieure à celle du GN, on ne peut bosser avec.
-#  Créer une version du modele comme sous version pour faire la vérification?
-
-# todo :
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
 #  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
 #  nouvel onglet dans les fichiers de castings : aides par sessions (plutot que de prendre les pré-affectation) et les utiliser
