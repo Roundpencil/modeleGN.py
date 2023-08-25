@@ -892,7 +892,11 @@ class GN:
     def get_liste_sessions_froms_pnjs(self):
         liste_sessions = []
         for perso in self.get_dict_pnj().values():
-            liste_sessions.extend(list(perso.interpretes.keys()))
+            liste_sessions.extend(
+                key
+                for key in perso.interpretes.keys()
+                if len(perso.interpretes[key]) > 1
+            )
         print(list(set(liste_sessions)))
         return list(set(liste_sessions))
 
