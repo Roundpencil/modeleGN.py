@@ -10,9 +10,6 @@ import createur_planning_evenementiel as cpe
 # interfaces de constructions
 
 # tester
-# todo reprendre message d'error sur l'expiration du token
-#  faire du ménage dans les logs > vérifier ce qu'on stoque et pourquoi
-#  lorsqu'on sauve un gn, lui mettre une propriété last_save qui donne sa date de changment? L'utiliser pour le timestap du fichier. Ne télécharge le fichier que si la version en ligne ets plus récente
 
 # bugs
 
@@ -20,7 +17,6 @@ import createur_planning_evenementiel as cpe
 # todo : finir la génération des planning evènementtiels dans lib (appel des méthodes)
 
 # todo :
-#  retrouver où on créeit un GN quand il n'existait pas, et le re-créer
 #  ajuster la fonctiond e loading : si la version du fichier est inférieure à celle du GN, on ne peut bosser avec.
 #  Créer une version du modele comme sous version pour faire la vérification?
 

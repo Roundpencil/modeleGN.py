@@ -1088,21 +1088,34 @@ class GN:
                         print(texte_erreur)
 
     @staticmethod
-    def load(filename, dict_config: dict = None, update_version: bool = True):
-        mon_fichier = open(filename, 'rb')
-        gn = pickle.load(mon_fichier)
-        # on vérifie si la version du Gn est différente de celle du GN, et on update si nécessaire
-        if update_version and (
-                not hasattr(gn, "version")
-                or version.parse(gn.version) < version.parse(VERSION)
-        ):
-            gn.mettre_a_jour_champs()
+    def load(filename, dict_config: dict = None, update_version: bool = True, m_print=print):
+        try:
+            mon_fichier = open(filename, 'rb')
+            gn = pickle.load(mon_fichier)
+            # on vérifie si la version du Gn est différente de celle du GN, et on update si nécessaire
+            if update_version and (
+                    not hasattr(gn, "version")
+                    or version.parse(gn.version) < version.parse(VERSION)
+            ):
+                gn.mettre_a_jour_champs()
 
-        # on met à jour le dictionnaire de configuration s'il est fourni
-        if dict_config:
-            gn.dict_config = dict_config
+            # on met à jour le dictionnaire de configuration s'il est fourni
+            if dict_config:
+                gn.dict_config = dict_config
 
-        return gn
+            return gn
+        except FileNotFoundError as f:
+            if dict_config:
+                message = f"pas de fichier {filename} trouvé, création d'un fichier mgn"
+                logging.debug(message)
+                m_print(message)
+                gn = GN(dict_config=dict_config)
+                return gn
+            else:
+                message = f"pas de fichier {filename} trouvé, et pas de paramètre pour en créer un nouveau. Abandon."
+                logging.debug(message)
+                m_print(message)
+                return None
 
     # apres une importation recrée
     # tous les liens entre les PJs,
