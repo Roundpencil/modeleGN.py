@@ -96,7 +96,12 @@ def lire_et_recharger_gn(fichier_gn: str,
     pas_visualisation = 50 / 7.0
 
     # Verification des fichiers d'entrée et chargement du fichier de config
-    test_ok, _, dict_config = g_io.verifier_fichier_gn_et_fournir_dict_config(fichier_gn, api_drive)
+    if fichier_gn.endswith('.ini'):
+        test_ok, _, dict_config = g_io.verifier_fichier_gn_et_fournir_dict_config(fichier_gn, api_drive)
+    elif fichier_gn.endswith('.mgn'):
+        mon_gn = GN.load(nom_fichier)
+        dict_config = mon_gn.dict_config
+        test_ok, _ = verifier_dict_config(dict_config, api_drive)
 
     if not test_ok:
         m_print("Erreur dans le fichier de configuration")
