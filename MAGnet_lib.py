@@ -1134,10 +1134,12 @@ def generer_tables_planning_evenementiel(mon_gn: GN):
     sessions = mon_gn.get_liste_sessions_froms_pnjs()
 
     # faire un premier onglet sans session
-    tables_planning = {'evenementiel générique' : cpe.creer_planning_evenementiel(gn)}
+    tables_planning = {'evenementiel générique' : cpe.creer_planning_evenementiel(mon_gn)}
 
     for session in sessions:
-        tables_planning[session] = cpe.creer_planning_evenementiel(gn, session=session)
+        tables_planning[session] = cpe.creer_planning_evenementiel(mon_gn, session=session)
+
+    return tables_planning
 
 
 def generer_table_chrono_condensee(tableau_raw, date_gn):
