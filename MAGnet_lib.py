@@ -14,7 +14,7 @@ import createur_planning_evenementiel as cpe
 # bugs
 
 # à faire - rapide
-# todo : finir la génération des planning evènementtiels dans lib (appel des méthodes)
+# todo : réparation du changelog pour ne pas afficher les intrgues sans effet sur les persos dans les onglets des orgas
 
 # todo :
 #  ajuster la fonctiond e loading : si la version du fichier est inférieure à celle du GN, on ne peut bosser avec.
