@@ -1125,8 +1125,8 @@ class GN:
                 m_print(message)
                 return None
         except ValueError as v:
-            logging.debug(v)
-            m_print(v)
+            logging.debug(f'{v}')
+            m_print(f'{v}')
             return None
 
     # apres une importation recrée

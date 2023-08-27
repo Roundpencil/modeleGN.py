@@ -6,6 +6,16 @@ from modeleGN import *
 import createur_planning_evenementiel as cpe
 
 # communication :
+# A venir (prochaine version)
+# Suppression du besoin de télécharger le fichier mgn : l’interface proposera à l’utilisateur une liste des GNs auxquel il a accès et réalisera toutes les opérations.
+# Optimisation de la gestion des factions
+#
+# Nouveaux paramètres pour optimiser la généraition du planning :
+# -Ajout d’un paramètre nb_aides  > si spécifié, tentative de forcer ce nombre d'aides lors de la génération du planning
+# -Ajout d’un paramètre pas_evenement pour déterminer l’unité de temps entre deux évènements (aujourd’hui calculé automatiquement) (plus grand pas > plus grand tableau > plus grande durée de génération du planning)
+# -Ajout d’un nouvel onglet dans les fichiers de casting (joueurs venant aider pour faire PNJ) pour personnaliser les planning PNJs
+# -Ajout d’un paramètre sessions_à_generer pour savoir quels casting on affiche, et quels planning sont à générer si volonté de ne pas tout générer
+# -Ajout d’un paramètre pour prendre en compte le nombre de PNJs si celui-ci est connu
 
 # interfaces de constructions
 
