@@ -3403,6 +3403,7 @@ def creer_dict_config(config: configparser.ConfigParser):
             valeur = config.get(section, clef)
             dict_config[clef_valeurs].append(valeur)
             dict_config[clef_nom].append(clef)
+            #todo : si remise à plat du dictionnaire de paramètres, renvoyer un dictionnaire plutot que deux listes
 
     # intégration des dossiers intrigues et vérifications
 
