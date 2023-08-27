@@ -297,7 +297,7 @@ class Application(ttk.Frame):
         resume_par_perso_var_check.grid(sticky="W", row=109, column=3)
 
         solveur_planning_var = tk.BooleanVar()
-        solveur_planning_var.set(True)
+        solveur_planning_var.set(False)
         solveur_planning_var_check = ttk.Checkbutton(generer_labelframe,
                                                      text="Générateur de planning évènementiel",
                                                      variable=solveur_planning_var)

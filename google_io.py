@@ -2489,12 +2489,22 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
             dict_scene, dict_orgas = scene_orgas
             row = [dict_scene["nom_scene"], dict_scene["date"], dict_scene["qui"], dict_scene["document"]]
 
+            croix = []
             for perso in dict_orgas_persos[orga]:
                 if orga not in dict_orgas or perso not in dict_orgas[orga]:
-                    row.append("")
+                    croix.append("")
                 else:
-                    row.append("x")
-            values.append(row)
+                    croix.append("x")
+            if sum(len(c) for c in croix) > 0:
+                row.extend(croix)
+                values.append(row)
+
+            # for perso in dict_orgas_persos[orga]:
+            #     if orga not in dict_orgas or perso not in dict_orgas[orga]:
+            #         row.append("")
+            #     else:
+            #         row.append("x")
+            # values.append(row)
         body = {
             'range': f'{orga}!A1',
             'values': values,
