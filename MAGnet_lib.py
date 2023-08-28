@@ -24,8 +24,6 @@ import createur_planning_evenementiel as cpe
 # bugs
 
 # à faire - rapide
-# todo : réparation du changelog pour ne pas afficher les intrgues sans effet sur les persos dans les onglets des orgas
-
 # todo :
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
 #  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
