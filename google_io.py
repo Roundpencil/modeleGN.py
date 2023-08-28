@@ -1115,12 +1115,14 @@ def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, avec_tableau_des_
     dico_noms_avec_alias = conteneur.get_dico_roles_avec_alias()
     noms_roles_dans_conteneur = list(dico_noms_avec_alias.keys())
 
+    # pour chaque rôle lu dans la liste des qui
     for nom_du_role in roles:
         if len(nom_du_role) < 2:
             continue
 
         noms_a_tester = generer_permutations_alias(nom_du_role.strip())
         scores = []
+        # tester chacune de ses permutations avec des alias
         for nom in noms_a_tester:
             # Sinon, il faut normaliser et extraire les rôles. on commence par tester tous ses alias
             # pour chaque nom de la liste : retrouver le nom le plus proche dans la liste des noms du GN
