@@ -324,7 +324,7 @@ class Personnage(ConteneurDeScene):
         # to_return = "Implications dans les intrigues : \n"
         to_return = ""
         for intrigue in tab_intrigues:
-            to_return += f"{intrigue['nom_conteneur']} ({intrigue['url_conteneur']}) \n"
+            to_return += f"{intrigue['nom_conteneur']} - {intrigue['url_conteneur']} \n"
             to_return += f"{intrigue['pips']} points \n"
             to_return += f"{intrigue['description']} \n\n"
 
