@@ -42,7 +42,7 @@ class Application(ttk.Frame):
         ini_labelframe = ttk.Labelframe(regen_window, text="Sélection du GN à lire", width=700, name='ini_labelframe')
         ini_labelframe.grid(row=5, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
 
-        config_button = ttk.Button(ini_labelframe, text="Changer fichier de configuration")
+        config_button = ttk.Button(ini_labelframe, text="Changer fichier source du gn (.ini ou .mgn)")
         config_button.grid(row=0, column=0, pady=(10, 10), padx=(10, 10))
 
         # v_config_button = ttk.Button(ini_labelframe, text="Vérifier le fichier de configuration")
