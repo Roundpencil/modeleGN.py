@@ -178,7 +178,7 @@ class Application(ttk.Frame):
         def update_checkboxes(etat_a_forcer):
             args = [generer_fichiers_pj_var,
                     generer_fichiers_pj_var,
-                    generer_fichiers_pnjs_var,
+                    # generer_fichiers_pnjs_var,
                     fichier_erreurs_intrigues_var,
                     fichier_erreurs_evenements_var,
                     changelog_var,
@@ -205,7 +205,7 @@ class Application(ttk.Frame):
         generer_fichiers_drive_check.grid(sticky="W", row=106, column=0)
 
         generer_fichiers_pnjs_var = tk.BooleanVar()
-        generer_fichiers_pnjs_var.set(True)
+        generer_fichiers_pnjs_var.set(False)
         generer_fichiers_pnjs_check = ttk.Checkbutton(generer_labelframe, text="Squelettes PNJs",
                                                       variable=generer_fichiers_pnjs_var)
         generer_fichiers_pnjs_check.grid(sticky="W", row=106, column=1)
