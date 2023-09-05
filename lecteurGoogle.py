@@ -104,7 +104,7 @@ def read_paragraph_element(element):
         hyperlink_info = text_style.get('link')
 
         if hyperlink_info:
-            url = hyperlink_info.get('url')
+            url = f"{hyperlink_info.get('url')} "
             if url:
                 content = ' '.join([content, url])
 

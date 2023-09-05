@@ -121,7 +121,7 @@ def lire_et_recharger_gn(fichier_gn: str,
     # commencer le traitement
     if sans_chargement_fichier:
         m_print("recréation d'un GN from scratch")
-        new_gn = GN(dict_config=mon_gn.dict_config, ma_version=mon_gn.version)
+        new_gn = GN(dict_config=dict_config)
         mon_gn = new_gn
     else:
         # si c'ets un fichier ini qui a été founi en entrée, on pudate le GN, sinon on garde la config

@@ -13,7 +13,7 @@ from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload, MediaIoBa
 import lecteurGoogle
 from modeleGN import *
 
-ID_FICHIER_ARCHIVES = '1xLeis1eOxnYUmINu16kdVAi7CxjuExvY'
+ID_FICHIER_ARCHIVES = '1tEXjKfiU8k_SU_jyVAoUQU1K9Gp77Cv0'
 
 
 def extraire_intrigues(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
@@ -3721,14 +3721,33 @@ def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None, rendre_gn_recherchabl
             archiver_fichiers_existants(api_drive, nom_archive, dossier_upload, id_archive, fichier_pre_date=False)
         uploader_archive(path, dossier_upload, api_drive, current_date=current_date)
         if rendre_gn_recherchable:
-            ajouter_arhive_gn_aux_recherchables(api_drive, dossier_upload)
+            ajouter_archive_gn_aux_recherchables(api_drive, dossier_upload)
 
 
-def ajouter_arhive_gn_aux_recherchables(api_drive, dossier_upload: str, fichier_destination = ID_FICHIER_ARCHIVES):
+def ajouter_archive_gn_aux_recherchables(api_drive, dossier_upload: str, fichier_destination=ID_FICHIER_ARCHIVES):
+    # print(dossier_upload)
+    # print(fichier_destination)
     try:
+        # # # Étape 1: Obtenez le contenu actuel du fichier
+        # # fichier = api_drive.files().get(fileId=fichier_destination, alt='media').execute()
+        # # print(f'{fichier}')
+        # # contenu_fichier = fichier.decode('utf-8')
+        #
+        # # Étape 1: Obtenez le contenu actuel du fichier
+        # request = api_drive.files().get(fileId=fichier_destination, alt='media')
+        # fh = io.BytesIO(request.execute())
+        # contenu_fichier = fh.read().decode('utf-8')
+        # print(f"{contenu_fichier}")
         # Étape 1: Obtenez le contenu actuel du fichier
-        fichier = api_drive.files().get(fileId=fichier_destination, alt='media').execute()
-        contenu_fichier = fichier.decode('utf-8')
+        request = api_drive.files().get_media(fileId=fichier_destination)
+        fh = io.BytesIO()
+        downloader = MediaIoBaseDownload(fh, request)
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+
+        fh.seek(0)
+        contenu_fichier = fh.read().decode('utf-8')
 
         # Étape 2: Vérifiez si dossier_upload est déjà présent dans le fichier
         if dossier_upload in contenu_fichier:
