@@ -27,10 +27,6 @@ import createur_planning_evenementiel as cpe
 
 # bugs
 
-# à faire - cette version
-# todo : 20230905
-#  uploader dans un fichier les ids des dossiers ou on trouve des archives
-
 # à faire - rapide
 # todo :
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
