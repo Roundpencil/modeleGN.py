@@ -20,8 +20,16 @@ import createur_planning_evenementiel as cpe
 # interfaces de constructions
 
 # tester
+# todo : 20230905
+#  uploader dans un fichier les ids des dossiers ou on trouve des archives
+#  déplier les liens internets dans les fichiers de base
+#  débugger les liens qui prennent les parenthèses
 
 # bugs
+
+# à faire - cette version
+# todo : 20230905
+#  uploader dans un fichier les ids des dossiers ou on trouve des archives
 
 # à faire - rapide
 # todo :

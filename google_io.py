@@ -8,10 +8,12 @@ from typing import Optional
 
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
-from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
+from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload, MediaIoBaseUpload
 
 import lecteurGoogle
 from modeleGN import *
+
+ID_FICHIER_ARCHIVES = '1xLeis1eOxnYUmINu16kdVAi7CxjuExvY'
 
 
 def extraire_intrigues(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
@@ -2145,7 +2147,9 @@ def write_to_doc(service, file_id, text: str, titre=False):
     #         index += len(word) + 1
     #     index += 1
 
-    url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+    # url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+    # pattern évolué pour ne plus prendre en compte les parenthèses
+    url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
     for match in re.finditer(url_pattern, text):
         url = match.group()
@@ -3705,7 +3709,7 @@ def charger_gn_from_gn(mon_gn: GN,api_drive, m_print=print, updater_dict_config=
                       last_save_connu=last_save_connu)
 
 
-def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None):
+def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None, rendre_gn_recherchable = True):
     current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
     path = mon_gn.save(last_save=current_date)
@@ -3716,3 +3720,28 @@ def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None):
         if id_archive := mon_gn.get_id_dossier_archive():
             archiver_fichiers_existants(api_drive, nom_archive, dossier_upload, id_archive, fichier_pre_date=False)
         uploader_archive(path, dossier_upload, api_drive, current_date=current_date)
+        if rendre_gn_recherchable:
+            ajouter_arhive_gn_aux_recherchables(api_drive, dossier_upload)
+
+
+def ajouter_arhive_gn_aux_recherchables(api_drive, dossier_upload: str, fichier_destination = ID_FICHIER_ARCHIVES):
+    try:
+        # Étape 1: Obtenez le contenu actuel du fichier
+        fichier = api_drive.files().get(fileId=fichier_destination, alt='media').execute()
+        contenu_fichier = fichier.decode('utf-8')
+
+        # Étape 2: Vérifiez si dossier_upload est déjà présent dans le fichier
+        if dossier_upload in contenu_fichier:
+            print(f"L'ID du dossier {dossier_upload} est déjà présent dans le fichier.")
+            return
+
+        # Étape 3: Si non, ajoutez dossier_upload à la fin du fichier
+        nouveau_contenu = contenu_fichier + '\n' + dossier_upload
+        media = MediaIoBaseUpload(io.StringIO(nouveau_contenu), mimetype='text/plain')
+        api_drive.files().update(fileId=fichier_destination, media_body=media).execute()
+
+        print(f"L'ID du dossier {dossier_upload} a été ajouté au fichier.")
+    except HttpError as error:
+        print(f"Une erreur HTTP s'est produite: {error}")
+    except Exception as error:
+        print(f"Une erreur inattendue s'est produite: {error}")

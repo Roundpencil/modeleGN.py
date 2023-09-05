@@ -87,16 +87,41 @@ def creer_lecteurs_google_apis():
 
 
 def read_paragraph_element(element):
-    """Returns the text in the given ParagraphElement.
+    """Returns the text in the given ParagraphElement, including any hyperlinks.
 
-        Args:
-            element: a ParagraphElement from a Google Doc.
+    Args:
+        element: a dict representing a ParagraphElement from a Google Doc.
+
+    Returns:
+        str: The text content of the element, with hyperlinks expanded.
     """
+    content = ''
     text_run = element.get('textRun')
-    return text_run.get('content') if text_run else ''
-    # if not text_run:
-    #     return ''
-    # return text_run.get('content')
+
+    if text_run:
+        content = text_run.get('content', '')
+        text_style = text_run.get('textStyle', {})
+        hyperlink_info = text_style.get('link')
+
+        if hyperlink_info:
+            url = hyperlink_info.get('url')
+            if url:
+                content = ' '.join([content, url])
+
+    return content
+
+
+# def read_paragraph_element(element):
+#     """Returns the text in the given ParagraphElement.
+#
+#         Args:
+#             element: a ParagraphElement from a Google Doc.
+#     """
+#     text_run = element.get('textRun')
+#     return text_run.get('content') if text_run else ''
+#     # if not text_run:
+#     #     return ''
+#     # return text_run.get('content')
 
 
 def read_structural_elements(elements):
