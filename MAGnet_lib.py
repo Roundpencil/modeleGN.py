@@ -1,5 +1,6 @@
 import csv
 import os
+from inspect import signature
 
 import google_io as g_io
 from modeleGN import *
@@ -269,112 +270,65 @@ def lire_et_recharger_gn(fichier_gn: str,
     # visualisation(25)
 
     m_print("****** fin de la lecture du drive *********")
-    pas_visualisation = 25.0 / 14.0
+    # pas_visualisation = 25.0 / 14.0
     m_print("*******************************************")
     m_print("*******************************************")
     # prefixe_fichiers = str(datetime.date.today())
-    m_print("* génération du fichier des erreurs intrigues * ")
-    if fichier_erreurs_intrigues:
-        # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
-        ecrire_erreurs_intrigues_dans_drive(mon_gn, api_doc, api_drive)
 
-    visualisation(pas_visualisation)
+    dict_methodes = {
+        fichier_erreurs_intrigues:
+            lambda: ecrire_erreurs_intrigues_dans_drive (mon_gn, api_doc, api_drive, m_print = m_print),
+        fichier_erreurs_evenements:
+            lambda: ecrire_erreurs_evenements_dans_drive(mon_gn, api_doc, api_drive,
+                                                          mon_gn.get_dossier_outputs_drive(), m_print=m_print),
+        table_intrigues:
+            lambda: creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive, m_print=m_print),
+        changelog:
+            lambda: generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets, m_print=m_print),
+        table_objets:
+            lambda: ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets),
+        table_chrono:
+            lambda: ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets),
+        table_persos:
+            lambda: ecrire_table_persos(mon_gn, api_drive, api_sheets),
+        table_pnjs:
+            lambda: ecrire_table_pnj(mon_gn, api_drive, api_sheets),
+        table_commentaires:
+            lambda: ecrire_table_commentaires(mon_gn, api_drive, api_doc, api_sheets),
+        table_relations:
+            lambda: ecrire_table_relation(mon_gn, api_drive, api_sheets),
+        aides_de_jeu:
+            lambda: ecrire_texte_info(mon_gn, api_doc, api_drive),
+        table_evenements:
+            lambda: ecrire_table_evenements(mon_gn, api_drive, api_sheets),
+        table_questionnaire:
+            lambda: ecrire_table_questionnaire(mon_gn, api_drive, api_sheets),
+        resume_par_perso:
+            lambda: ecrire_resume_intrigues_persos(mon_gn, api_doc, api_drive),
+        solveur_planning:
+            lambda: ecrire_solveur_planning_dans_drive(mon_gn, api_sheets, api_drive)
+    }
+    nb_parametres_demandes = sum(bool(key) for key in dict_methodes)
+    pas_visualisation = 25.0 / nb_parametres_demandes
+    for param in dict_methodes:
+        if param:
+            dict_methodes[param]()
+            visualisation(pas_visualisation)
+            # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
 
-    if fichier_erreurs_evenements:
-        m_print("* génération du fichier des erreurs évènements * ")
-        # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
-        ecrire_erreurs_evenements_dans_drive(mon_gn, api_doc, api_drive, mon_gn.get_dossier_outputs_drive())
-
-    visualisation(pas_visualisation)
-
-    if table_intrigues:
-        m_print("******* statut intrigues *******************")
-        creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive)
-
-    visualisation(pas_visualisation)
-
-    if changelog:
-        m_print("*******changelog*****************************")
-        generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets)
-
-    visualisation(pas_visualisation)
 
     if generer_fichiers_pjs:
-        m_print("*******génération squelettes PJs ***********")
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=True,
                                       m_print=m_print, visualisation=visualisation, taille_visualisation=12.5)
     else:
         visualisation(12.5)
 
     if generer_fichiers_pnjs:
-        m_print("*******génération squelettes PJs ***********")
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=False,
                                       m_print=m_print, visualisation=visualisation, taille_visualisation=12.5)
     else:
         visualisation(12.5)
 
-    if table_objets:
-        m_print("************* table objets *******************")
-        ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets)
-
-    visualisation(pas_visualisation)
-
-    if table_chrono:
-        m_print("******* table planning ***********************")
-        ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets)
-
-    visualisation(pas_visualisation)
-
-    if table_persos:
-        m_print("******* table récap PJS ********************")
-        ecrire_table_persos(mon_gn, api_drive, api_sheets)
-    if table_pnjs:
-        m_print("******* table récap PNJS ********************")
-        ecrire_table_pnj(mon_gn, api_drive, api_sheets)
-
-    visualisation(pas_visualisation)
-
-    if table_commentaires:
-        m_print("******* table commentaires *******************")
-        ecrire_table_commentaires(mon_gn, api_drive, api_doc, api_sheets)
-
-    visualisation(pas_visualisation)
-
-    if table_relations:
-        m_print("********** table relations *******************")
-        ecrire_table_relation(mon_gn, api_drive, api_sheets)
-
-    visualisation(pas_visualisation)
-
-    if aides_de_jeu:
-        m_print("******* aides de jeu *************************")
-        ecrire_texte_info(mon_gn, api_doc, api_drive)
-
-    visualisation(pas_visualisation)
-
-    if table_evenements:
-        m_print("******* table des évènements ******************")
-        ecrire_table_evenements(mon_gn, api_drive, api_sheets)
-
-    visualisation(pas_visualisation)
-
-    if table_questionnaire:
-        m_print("******* table des questions pour inscription ******************")
-        ecrire_table_questionnaire(mon_gn, api_drive, api_sheets)
-
-    visualisation(pas_visualisation)
-
-    if resume_par_perso:
-        m_print("******* resume des intrigues par perso ******************")
-        ecrire_resume_intrigues_persos(mon_gn, api_doc, api_drive)
-
-    visualisation(pas_visualisation)
-
-    if solveur_planning:
-        m_print("******* génération du planning évènementiel ******************")
-        ecrire_solveur_planning_dans_drive(mon_gn, api_sheets, api_drive)
-
-    visualisation(pas_visualisation)
 
 
 
@@ -442,6 +396,26 @@ def retirer_elements_supprimes(ids_lus: list[str], dict_reference: dict):
 
 #             f.close()
 #     return log_erreur
+
+
+def attrappeur_dexceptions(func):
+    def wrapper(*args, **kwargs):
+        # Check if 'm_print' is in the function signature
+        sig = signature(func)
+        m_print = kwargs.get('m_print') if 'm_print' in sig.parameters else print
+
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            message = f"[{func.__name__}] a rencontré un problème, le fichier ne sera pas généré"
+            m_print(message)
+            logging.debug(f"{message} : {e}")
+
+    return wrapper
+
+# Custom print method
+
+
 
 def ecrire_fichier_erreur_localement(mon_gn: GN, prefixe: str, verbal: False):
     log_erreur = generer_texte_erreurs_intrigues(mon_gn, verbal=verbal)
@@ -518,7 +492,10 @@ def generer_texte_resume_intrigues_persos(mon_gn: GN, verbal=False):
 
     return to_return
 
-def ecrire_resume_intrigues_persos(mon_gn: GN, api_doc, api_drive, verbal=False):
+@attrappeur_dexceptions
+def ecrire_resume_intrigues_persos(mon_gn: GN, api_doc, api_drive, verbal=False, m_print=print):
+    m_print("******* resume des intrigues par perso ******************")
+
     parent = mon_gn.get_dossier_outputs_drive()
     texte_resume = generer_texte_resume_intrigues_persos(mon_gn, verbal)
 
@@ -528,7 +505,9 @@ def ecrire_resume_intrigues_persos(mon_gn: GN, api_doc, api_drive, verbal=False)
                                    id_dossier_archive=mon_gn.get_id_dossier_archive())
     g_io.write_to_doc(api_doc, mon_id, texte_resume)
 
-def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, verbal=False):
+@attrappeur_dexceptions
+def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, verbal=False, m_print=print):
+    m_print("* génération du fichier des erreurs intrigues * ")
     parent = mon_gn.get_dossier_outputs_drive()
     texte_erreurs = generer_texte_erreurs_intrigues(mon_gn, verbal=verbal)
 
@@ -542,7 +521,10 @@ def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, verbal=F
         g_io.formatter_fichier_erreurs(api_doc, mon_id)
 
 
-def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent, verbal=False):
+@attrappeur_dexceptions
+def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent, verbal=False, m_print=print):
+    m_print("* génération du fichier des erreurs évènements * ")
+
     texte_erreurs = generer_texte_erreurs_evenements(mon_gn, verbal=verbal)
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
@@ -651,8 +633,9 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     #
     # return to_print
 
-
-def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
+@attrappeur_dexceptions
+def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, m_print=print):
+    m_print("*******changelog*****************************")
     dict_orgas_persos = {}
     tableau_scene_orgas = []
     # tous_les_conteneurs = list(mon_gn.dictPJs.values()) + list(mon_gn.intrigues.values())
@@ -715,8 +698,10 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets):
     g_io.exporter_changelog(tableau_scene_orgas, mon_id, dict_orgas_persos, api_sheets)
     g_io.supprimer_feuille_1(api_sheets, mon_id)
 
+@attrappeur_dexceptions
+def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive, m_print=print):
+    m_print("******* statut intrigues *******************")
 
-def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
     table_intrigues = [
         ["nom intrigue", "nombre de scenes", "dernière édition", "modifié par", "Orga referent", "statut", "Problèmes",
          "url"]]
@@ -741,9 +726,10 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive):
     # extraire_texte_de_google_doc.ecrire_table_google_sheets(api_sheets, df, mon_id)
     g_io.ecrire_table_google_sheets(api_sheets, table_intrigues, mon_id)
 
-
+@attrappeur_dexceptions
 def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_print=print,
                                   visualisation=print_progress, taille_visualisation=100.0):
+    m_print(f"*******génération squelettes {'PJs' if pj else 'PNJs'} ***********")
     parent = mon_gn.get_dossier_outputs_drive()
     pj_pnj = "PJ" if pj else "PNJ"
     nom_dossier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} - Squelettes {pj_pnj}'
@@ -1088,7 +1074,9 @@ def lien_vers_hyperlink(lien: str, texte_lien = None):
         texte_lien = lien
     return f'=HYPERLINK(\"{lien}\"; \"{texte_lien}\")'
 
-def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets):
+@attrappeur_dexceptions
+def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets, m_print=print):
+    m_print("************* table objets *******************")
     parent = mon_gn.get_dossier_outputs_drive()
     table_detaillee = generer_table_objets_from_intrigues_et_evenements(mon_gn)
     table_condensee = generer_table_objets_uniques(mon_gn)
@@ -1118,8 +1106,10 @@ def generer_table_chrono_condensee_raw(gn: GN):
 
     return tableau_sortie
 
+@attrappeur_dexceptions
+def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_print=print):
+    m_print("******* génération du planning évènementiel ******************")
 
-def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive):
     tables_planning = generer_tables_planning_evenementiel(mon_gn)
 
     # faire un onglet par session
@@ -1276,8 +1266,9 @@ def generer_table_chrono_scenes(mon_gn: GN):
         ])
     return to_return
 
-
-def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets):
+@attrappeur_dexceptions
+def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets, m_print=print):
+    m_print("******* table planning ***********************")
     parent = mon_gn.get_dossier_outputs_drive()
     table_raw = generer_table_chrono_condensee_raw(mon_gn)
     table_simple = generer_table_chrono_condensee(table_raw, mon_gn.get_date_gn())
@@ -1316,8 +1307,10 @@ def generer_tableau_recap_persos(gn: GN):
 
     return to_return
 
+@attrappeur_dexceptions
+def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets, m_print=print):
+    m_print("******* table récap PJS ********************")
 
-def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.get_dossier_outputs_drive()
     table = generer_tableau_recap_persos(mon_gn)
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
@@ -1392,8 +1385,10 @@ def generer_table_pnjs_simple(gn: GN, verbal=False):
 
     return table_pnj
 
+@attrappeur_dexceptions
+def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets, m_print=print):
+    m_print("******* table récap PNJS ********************")
 
-def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.get_dossier_outputs_drive()
     table_etendue = generer_table_pnjs_etendue(mon_gn)
     table_simple = generer_table_pnjs_simple(mon_gn)
@@ -1447,8 +1442,10 @@ def generer_textes_infos(gn: GN):
         to_return += '***************************** \n'
     return to_return
 
+@attrappeur_dexceptions
+def ecrire_texte_info(mon_gn: GN, api_doc, api_drive, m_print=print):
+    m_print("******* aides de jeu *************************")
 
-def ecrire_texte_info(mon_gn: GN, api_doc, api_drive):
     parent = mon_gn.get_dossier_outputs_drive()
 
     texte = generer_textes_infos(mon_gn)
@@ -1541,8 +1538,10 @@ def generer_texte_commentaires(dict_auteur_intrigues):
         to_return += '******************************************* \n'
     return to_return
 
+@attrappeur_dexceptions
+def ecrire_table_commentaires(mon_gn: GN, api_drive, api_doc, api_sheets, m_print=print):
+    m_print("******* table commentaires *******************")
 
-def ecrire_table_commentaires(mon_gn: GN, api_drive, api_doc, api_sheets):
     parent = mon_gn.get_dossier_outputs_drive()
     dict_auteurs_tableaux, dict_auteur_intrigues, tableau_global = generer_table_commentaires(mon_gn)
     texte = generer_texte_commentaires(dict_auteur_intrigues)
@@ -1628,8 +1627,10 @@ def generer_table_relations_personnages(gn):
 
     return matrix
 
+@attrappeur_dexceptions
+def ecrire_table_relation(mon_gn: GN, api_drive, api_sheets, m_print=print):
+    m_print("********** table relations *******************")
 
-def ecrire_table_relation(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.get_dossier_outputs_drive()
     tab_relations = generer_table_relations_personnages(mon_gn)
 
@@ -1693,8 +1694,10 @@ def generer_table_evenements(gn: GN):
 
     return to_return
 
+@attrappeur_dexceptions
+def ecrire_table_evenements(mon_gn: GN, api_drive, api_sheets, m_print=print):
+    m_print("******* table des évènements ******************")
 
-def ecrire_table_evenements(mon_gn: GN, api_drive, api_sheets):
     parent = mon_gn.get_dossier_outputs_drive()
     tab_evenements = generer_table_evenements(mon_gn)
 
@@ -1717,8 +1720,10 @@ def generer_table_questionnaire(gn: GN):
             toutes_les_questions.append(ligne)
     return toutes_les_questions
 
+@attrappeur_dexceptions
+def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets, m_print=print):
+    m_print("******* table des questions pour inscription ******************")
 
-def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets):
     parent = gn.get_dossier_outputs_drive()
     tab_questionnaire = generer_table_questionnaire(gn)
 
@@ -1731,8 +1736,11 @@ def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets):
 
 
 def fichier_ini_defaut():
-    ini_mgn_files = [f for f in os.listdir('.') if f.endswith('.ini') or f.endswith('.mgn')]
-    return os.path.abspath(ini_files[0]) if len(ini_mgn_files) == 1 else "config.ini"
+    try:
+        ini_mgn_files = [f for f in os.listdir('.') if f.endswith('.ini') or f.endswith('.mgn')]
+        return os.path.abspath(ini_mgn_files[0]) if len(ini_mgn_files) == 1 else "config.ini"
+    except Exception:
+        return "pas de fichier magnet chargé"
 
 def verifier_derniere_version(api_doc):
     try:
