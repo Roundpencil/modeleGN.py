@@ -1,6 +1,9 @@
 import csv
+import logging
 import os
 from inspect import signature
+
+from numpy import matrix
 
 import google_io as g_io
 from modeleGN import *
@@ -276,47 +279,47 @@ def lire_et_recharger_gn(fichier_gn: str,
     # prefixe_fichiers = str(datetime.date.today())
 
     dict_methodes = {
-        fichier_erreurs_intrigues:
+        'fichier_erreurs_intrigues':
             lambda: ecrire_erreurs_intrigues_dans_drive (mon_gn, api_doc, api_drive, m_print = m_print),
-        fichier_erreurs_evenements:
+        'fichier_erreurs_evenements':
             lambda: ecrire_erreurs_evenements_dans_drive(mon_gn, api_doc, api_drive,
                                                           mon_gn.get_dossier_outputs_drive(), m_print=m_print),
-        table_intrigues:
+        'table_intrigues':
             lambda: creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive, m_print=m_print),
-        changelog:
+        'changelog':
             lambda: generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets, m_print=m_print),
-        table_objets:
+        'table_objets':
             lambda: ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets),
-        table_chrono:
+        'table_chrono':
             lambda: ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets),
-        table_persos:
+        'table_persos':
             lambda: ecrire_table_persos(mon_gn, api_drive, api_sheets),
-        table_pnjs:
+        'table_pnjs':
             lambda: ecrire_table_pnj(mon_gn, api_drive, api_sheets),
-        table_commentaires:
+        'table_commentaires':
             lambda: ecrire_table_commentaires(mon_gn, api_drive, api_doc, api_sheets),
-        table_relations:
+        'table_relations':
             lambda: ecrire_table_relation(mon_gn, api_drive, api_sheets),
-        aides_de_jeu:
+        'aides_de_jeu':
             lambda: ecrire_texte_info(mon_gn, api_doc, api_drive),
-        table_evenements:
+        'table_evenements':
             lambda: ecrire_table_evenements(mon_gn, api_drive, api_sheets),
-        table_questionnaire:
+        'table_questionnaire':
             lambda: ecrire_table_questionnaire(mon_gn, api_drive, api_sheets),
-        resume_par_perso:
+        'resume_par_perso':
             lambda: ecrire_resume_intrigues_persos(mon_gn, api_doc, api_drive),
-        solveur_planning:
+        'solveur_planning':
             lambda: ecrire_solveur_planning_dans_drive(mon_gn, api_sheets, api_drive)
     }
-    nb_parametres_demandes = sum(bool(key) for key in dict_methodes)
+    # debug_list_key = [key for  key in dict_methodes]
+    # print(f"DEBUG= liste clefs = {debug_list_key}")
+    nb_parametres_demandes = sum(bool(locals()[key]) for key in dict_methodes)
     pas_visualisation = 25.0 / nb_parametres_demandes
     for param in dict_methodes:
-        if param:
+        # si le boolean qui a le meme nom est vrai
+        if locals()[param]:
             dict_methodes[param]()
             visualisation(pas_visualisation)
-            # texte_erreurs = lister_erreurs(mon_gn, prefixe_fichiers)
-
-
     if generer_fichiers_pjs:
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=True,
                                       m_print=m_print, visualisation=visualisation, taille_visualisation=12.5)
@@ -403,6 +406,7 @@ def attrappeur_dexceptions(func):
         # Check if 'm_print' is in the function signature
         sig = signature(func)
         m_print = kwargs.get('m_print') if 'm_print' in sig.parameters else print
+        logging.debug(f"lancement de {func.__name__}")
 
         try:
             return func(*args, **kwargs)
