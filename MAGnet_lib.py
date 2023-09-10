@@ -311,15 +311,28 @@ def lire_et_recharger_gn(fichier_gn: str,
         'solveur_planning':
             lambda: ecrire_solveur_planning_dans_drive(mon_gn, api_sheets, api_drive)
     }
-    # debug_list_key = [key for  key in dict_methodes]
+    # debug_list_key = list(dict_methodes)
     # print(f"DEBUG= liste clefs = {debug_list_key}")
-    nb_parametres_demandes = sum(bool(locals()[key]) for key in dict_methodes)
-    pas_visualisation = 25.0 / nb_parametres_demandes
-    for param in dict_methodes:
-        # si le boolean qui a le meme nom est vrai
-        if locals()[param]:
-            dict_methodes[param]()
-            visualisation(pas_visualisation)
+    nb_parametres_demandes = 0
+    for key in dict_methodes:
+    # for key in list(dict_methodes):
+        valeur = locals()[key]
+        # print(f'DEBUG : clef :{key} - valeur : {valeur}')
+        if valeur:
+            nb_parametres_demandes += 1
+
+    # nb_parametres_demandes = sum(bool(locals()[key]) for key in dict_methodes)
+    # print(f'Nombre de parametres demandés : {nb_parametres_demandes}')
+    if nb_parametres_demandes:
+        pas_visualisation = 25.0 / nb_parametres_demandes
+        for param in dict_methodes:
+            # si le boolean qui a le meme nom est vrai
+            if locals()[param]:
+                dict_methodes[param]()
+                visualisation(pas_visualisation)
+    else:
+        visualisation(25)
+
     if generer_fichiers_pjs:
         generer_squelettes_dans_drive(mon_gn, api_doc, api_drive, pj=True,
                                       m_print=m_print, visualisation=visualisation, taille_visualisation=12.5)
