@@ -289,27 +289,28 @@ def lire_et_recharger_gn(fichier_gn: str,
         'changelog':
             lambda: generer_tableau_changelog_sur_drive(mon_gn, api_drive, api_sheets, m_print=m_print),
         'table_objets':
-            lambda: ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets),
+            lambda: ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets, m_print=m_print),
         'table_chrono':
-            lambda: ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets),
+            # lambda: ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets),
+            lambda: ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets, m_print=m_print),
         'table_persos':
-            lambda: ecrire_table_persos(mon_gn, api_drive, api_sheets),
+            lambda: ecrire_table_persos(mon_gn, api_drive, api_sheets, m_print=m_print),
         'table_pnjs':
-            lambda: ecrire_table_pnj(mon_gn, api_drive, api_sheets),
+            lambda: ecrire_table_pnj(mon_gn, api_drive, api_sheets, m_print=m_print),
         'table_commentaires':
-            lambda: ecrire_table_commentaires(mon_gn, api_drive, api_doc, api_sheets),
+            lambda: ecrire_table_commentaires(mon_gn, api_drive, api_doc, api_sheets, m_print=m_print),
         'table_relations':
-            lambda: ecrire_table_relation(mon_gn, api_drive, api_sheets),
+            lambda: ecrire_table_relation(mon_gn, api_drive, api_sheets, m_print=m_print),
         'aides_de_jeu':
-            lambda: ecrire_texte_info(mon_gn, api_doc, api_drive),
+            lambda: ecrire_texte_info(mon_gn, api_doc, api_drive, m_print=m_print),
         'table_evenements':
-            lambda: ecrire_table_evenements(mon_gn, api_drive, api_sheets),
+            lambda: ecrire_table_evenements(mon_gn, api_drive, api_sheet, sm_print=m_print),
         'table_questionnaire':
-            lambda: ecrire_table_questionnaire(mon_gn, api_drive, api_sheets),
+            lambda: ecrire_table_questionnaire(mon_gn, api_drive, api_sheets, m_print=m_print),
         'resume_par_perso':
-            lambda: ecrire_resume_intrigues_persos(mon_gn, api_doc, api_drive),
+            lambda: ecrire_resume_intrigues_persos(mon_gn, api_doc, api_drive, m_print=m_print),
         'solveur_planning':
-            lambda: ecrire_solveur_planning_dans_drive(mon_gn, api_sheets, api_drive)
+            lambda: ecrire_solveur_planning_dans_drive(mon_gn, api_sheets, api_drive, m_print=m_print)
     }
     # debug_list_key = list(dict_methodes)
     # print(f"DEBUG= liste clefs = {debug_list_key}")
@@ -418,15 +419,16 @@ def attrappeur_dexceptions(func):
     def wrapper(*args, **kwargs):
         # Check if 'm_print' is in the function signature
         sig = signature(func)
-        m_print = kwargs.get('m_print') if 'm_print' in sig.parameters else print
+        # m_print = kwargs.get('m_print') if 'm_print' in sig.parameters else print
+        m_print = kwargs.get('m_print', print)
         logging.debug(f"lancement de {func.__name__}")
 
         try:
             return func(*args, **kwargs)
         except Exception as e:
             message = f"[{func.__name__}] a rencontré un problème, le fichier ne sera pas généré"
-            m_print(message)
             logging.debug(f"{message} : {e}")
+            m_print(message)
 
     return wrapper
 
