@@ -304,7 +304,7 @@ def lire_et_recharger_gn(fichier_gn: str,
         'aides_de_jeu':
             lambda: ecrire_texte_info(mon_gn, api_doc, api_drive, m_print=m_print),
         'table_evenements':
-            lambda: ecrire_table_evenements(mon_gn, api_drive, api_sheet, sm_print=m_print),
+            lambda: ecrire_table_evenements(mon_gn, api_drive, api_sheets, m_print=m_print),
         'table_questionnaire':
             lambda: ecrire_table_questionnaire(mon_gn, api_drive, api_sheets, m_print=m_print),
         'resume_par_perso':
