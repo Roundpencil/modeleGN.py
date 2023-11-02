@@ -2121,30 +2121,6 @@ def is_document_being_edited(service, file_id):
 def write_to_doc(service, file_id, text: str, titre=False):
     # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
     formatting_requests = []
-    # index = 1
-    #
-    # lignes = text.split('\n')
-    # for ligne in lignes:
-    #     words = ligne.split()
-    #     for word in words:
-    #         # Use validators library for robust url validation
-    #         if validators.url(word):
-    #             formatting_requests.append({
-    #                 'updateTextStyle': {
-    #                     'range': {
-    #                         'startIndex': index,
-    #                         'endIndex': index + len(word),
-    #                     },
-    #                     'textStyle': {
-    #                         'link': {
-    #                             'url': word
-    #                         }
-    #                     },
-    #                     'fields': 'link'
-    #                 }
-    #             })
-    #         index += len(word) + 1
-    #     index += 1
 
     # url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     # pattern évolué pour ne plus prendre en compte les parenthèses

@@ -12,7 +12,7 @@ from fuzzywuzzy import process
 from packaging import version
 from unidecode import unidecode
 
-VERSION = "1.2.20230921"
+VERSION = "1.2.20231102"
 VERSION_MODELE = "1.1.20230826"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
@@ -1360,6 +1360,18 @@ class GN:
                                 continue
 
                         # du coup on est dans le cas ou on n'a pas trouvé le rôle :
+                        # est-il déjà présent dans l'intrigue ou faut-il ajouter un nouveau role, issu d'une faction ?
+                        score_role_dans_intrigue = process.extractOne(personnage_dans_faction.nom,
+                                                                      intrigue.rolesContenus.keys())
+                        if score_role_dans_intrigue[1] >= seuil_reconciliation_role:
+                            # dans ce cas, on a déjà le rôle dans l'intrigue, pas la meine d'en créer un nouveau
+                            role_a_associer: Role = intrigue.rolesContenus[score_role_dans_intrigue[0]]
+                            role_a_associer.ajouter_a_scene(scene)
+                            # et dans ce cas on a fini, on s'arrête là
+                            continue
+
+
+                        # ici, nous n'avons trouvé le rôle ni dans la scène, dans l'intrigue
                         # il faut ajouter un nouveau role, issu d'une faction
                         texte_info = f"{personnage_dans_faction.nom} " \
                                      f"a été ajouté via la faction {nom_faction} " \

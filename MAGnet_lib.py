@@ -1011,7 +1011,7 @@ def generer_changelog(mon_gn, prefixe, nb_jours=1, verbal=False):
 
 def generer_table_objets_from_intrigues_et_evenements(mon_gn):
     to_return = [['code', 'description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'Intrigues', 'Evènements',
-                  'fiche objet trouvée?']]
+                  'fiche objet trouvée?', 'Orga référent']]
     for objet_ref in mon_gn.objets_de_reference.values():
         ma_liste = [objet for objet in objet_ref.objets_dans_intrigues if objet.intrigue is not None]
         for objet in ma_liste:
@@ -1022,9 +1022,10 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
             debuteou = objet.emplacementDebut.replace('\n', '\v')
             fournipar = objet.fourniParJoueur.replace('\n', '\v')
             # intrigue = objet.intrigue
-            intrigue = lien_vers_hyperlink(objet.intrigue.url, objet.intrigue.nom)
+            intrigue = lien_vers_hyperlink(objet.intrigue.get_full_url(), objet.intrigue.nom)
             evenement = ""
             fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
+            orga_referent = objet.get_orga_referent()
             to_return.append([f"{code}",
                               f"{description}",
                               f"{avecfx}",
@@ -1033,7 +1034,8 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
                               f"{fournipar}",
                               f"{intrigue}",
                               f"{evenement}",
-                              f"{fiche_objet}"]
+                              f"{fiche_objet}",
+                              f"{orga_referent}"]
                              )
         # ma_liste = [objet for objet in objet_ref.objets_dans_evenements if objet.evenement is not None]
         for objet in objet_ref.objets_dans_evenements:
@@ -1078,7 +1080,7 @@ def generer_table_objets_uniques(mon_gn):
                                  o.evenement is not None]
         evenements = '\n'.join(liste_noms_evenements)
         fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else lien_vers_hyperlink(objet_ref.get_full_url())
-        orga = objet_ref.orga_referent
+        orga = objet_ref.get_orga_referent()
         # fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
         to_return.append([f"{code if len(code) > 1 else 'Pas de code'}",
                           f"{nom}",
