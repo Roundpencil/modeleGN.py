@@ -581,42 +581,84 @@ def suggerer_tableau_persos_new(mon_gn: GN, intrigue: Intrigue, verbal: bool = F
         for nom in permutations:
             scores[original_nom].extend(process.extract(nom, noms_personnages))
 
+        #trier les couples nom, score par ordre de score
+        scores[original_nom].sort(key=lambda x: x[1])
 
-    solution = {}
-    while True:
-        # Identify the current solution
-        solution = {}
-        for original_nom, matches in scores.items():
-            if not matches:
-                print("No solution")
+
+    #rechercher le solution : initiatilisation des variables
+    solution = []
+    solution_trouvee = False
+
+    # cosntruire la solution de départ en créant des triplettes nom proposé / score / nom de départ
+    # invariant : la solution est triée et l'élément le plus faible est en premier
+    for original_nom, matches in scores.items():
+        score_a_inclure = matches.pop()
+        solution .append([score_a_inclure[0], score_a_inclure[1], original_nom])
+    solution.sort(key=lambda x: x[1])
+
+    #met à jour la solution en prenant la valeur suivante de l'élément nom à updater désigné
+    def maj_solution(solution, scores, nom_a_updater):
+        matches = scores[nom_a_updater]
+        if not len(matches):
+            return None
+
+        score_a_inclure = matches.pop()
+        for triplette in solution:
+            if triplette[2] == nom_a_updater:
+                triplette[0], triplette[1] = score_a_inclure
+
+        solution.sort(key=lambda x: x[1])
+        return solution
+
+    while solution and not solution_trouvee:
+        solution_trouvee = True
+        # est-ce que la solution est valable?
+        # on crée une liste de noms triés du plus petit score au plus grand
+        noms_proposes = [triplette[0] for triplette in solution]
+        for i, element in enumerate(noms_proposes):
+            if element in noms_proposes[i+1:]:
+                solution_trouvee = False
+                solution = maj_solution(solution, scores, element)
                 break
-            best_match = max(matches, key=lambda x: x[1])
-            solution[original_nom] = best_match
 
-        # Check for duplicates
-        duplicates = {}
-        for original_nom, (name, score) in solution.items():
-            if name in duplicates:
-                duplicates[name].append(original_nom)
-            else:
-                duplicates[name] = [original_nom]
+    if verbal:
+        print(f'DEBUG : la solution est {solution}')
 
-        duplicates = {k: v for k, v in duplicates.items() if len(v) > 1}
-        if not duplicates:
-            print("Solution found:")
-            print(solution)
-            break
-
-        # Remove duplicates
-        for name, original_noms in duplicates.items():
-            lowest_score = float('inf')
-            lowest_original_nom = None
-            for original_nom in original_noms:
-                _, score = solution[original_nom]
-                if score < lowest_score:
-                    lowest_score = score
-                    lowest_original_nom = original_nom
-            scores[lowest_original_nom].remove((name, lowest_score))
+    # solution = {}
+    # while True:
+    #     # Identify the current solution
+    #     solution = {}
+    #     for original_nom, matches in scores.items():
+    #         if not matches:
+    #             print("No solution")
+    #             break
+    #         best_match = max(matches, key=lambda x: x[1])
+    #         solution[original_nom] = best_match
+    #
+    #     # Check for duplicates
+    #     duplicates = {}
+    #     for original_nom, (name, score) in solution.items():
+    #         if name in duplicates:
+    #             duplicates[name].append(original_nom)
+    #         else:
+    #             duplicates[name] = [original_nom]
+    #
+    #     duplicates = {k: v for k, v in duplicates.items() if len(v) > 1}
+    #     if not duplicates:
+    #         print("Solution found:")
+    #         print(solution)
+    #         break
+    #
+    #     # Remove duplicates
+    #     for name, original_noms in duplicates.items():
+    #         lowest_score = float('inf')
+    #         lowest_original_nom = None
+    #         for original_nom in original_noms:
+    #             _, score = solution[original_nom]
+    #             if score < lowest_score:
+    #                 lowest_score = score
+    #                 lowest_original_nom = original_nom
+    #         scores[lowest_original_nom].remove((name, lowest_score))
 
     #A ce stade là, la solution est dans le dictionnaire "solution"
     #todo : reprendre d'ici
