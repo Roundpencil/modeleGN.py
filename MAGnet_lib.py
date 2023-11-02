@@ -573,26 +573,52 @@ def suggerer_tableau_persos_new(mon_gn: GN, intrigue: Intrigue, verbal: bool = F
     correspondances = {}
     scores = {}
 
-    for nom in tous_les_noms_lus_dans_scenes:
-        nom_sans_alias = nom.split(' aka ')[0]
-        scores[nom] = process.extract(nom_sans_alias, noms_personnages)
-        meilleur_nom, score = scores[nom][0]
-        correspondances[nom] = meilleur_nom
+    #remplir un tableau, pour chaque nom, de toutes les correspondances possibles et permutations
+    for original_nom in tous_les_noms_lus_dans_scenes:
+        permutations = original_nom.split(' aka ')
+        scores[original_nom] = []
+        for nom in permutations:
+            scores[original_nom].extend(process.extract(nom, noms_personnages))
 
-    # Vérifier les doublons dans les correspondances et les résoudre
-    while len(correspondances.values()) > len(set(correspondances.values())):
-        doublons = [item for item, count in collections.Counter(correspondances.values()).items() if count > 1]
-        for doublon in doublons:
-            noms_doublon = [nom for nom, personnage in correspondances.items() if personnage == doublon]
-            meilleur_score = 0
-            meilleur_nom = ''
-            for nom in noms_doublon:
-                for candidat, score in scores[nom]:
-                    if candidat not in correspondances.values() and score > meilleur_score:
-                        meilleur_score = score
-                        meilleur_nom = candidat
-                correspondances[nom] = meilleur_nom
 
+    solution = {}
+    while True:
+        # Identify the current solution
+        solution = {}
+        for original_nom, matches in scores.items():
+            if not matches:
+                print("No solution")
+                break
+            best_match = max(matches, key=lambda x: x[1])
+            solution[original_nom] = best_match
+
+        # Check for duplicates
+        duplicates = {}
+        for original_nom, (name, score) in solution.items():
+            if name in duplicates:
+                duplicates[name].append(original_nom)
+            else:
+                duplicates[name] = [original_nom]
+
+        duplicates = {k: v for k, v in duplicates.items() if len(v) > 1}
+        if not duplicates:
+            print("Solution found:")
+            print(solution)
+            break
+
+        # Remove duplicates
+        for name, original_noms in duplicates.items():
+            lowest_score = float('inf')
+            lowest_original_nom = None
+            for original_nom in original_noms:
+                _, score = solution[original_nom]
+                if score < lowest_score:
+                    lowest_score = score
+                    lowest_original_nom = original_nom
+            scores[lowest_original_nom].remove((name, lowest_score))
+
+    #A ce stade là, la solution est dans le dictionnaire "solution"
+    #todo : reprendre d'ici
     output_list = []
 
     for nom, personnage in correspondances.items():
