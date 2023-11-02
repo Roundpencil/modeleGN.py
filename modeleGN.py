@@ -322,23 +322,27 @@ class Personnage(ConteneurDeScene):
             tab_intrigues.append(dict_tmp)
 
         tab_intrigues = sorted(tab_intrigues, key=lambda x: x['pips'], reverse=True)
+        if len(tab_intrigues):
+            # to_return = "Implications dans les intrigues : \n"
+            to_return = lecteurGoogle.DEBUT_TABLEAU
+            for intrigue in tab_intrigues:
+                to_return += f"{intrigue['nom_conteneur']} - {intrigue['url_conteneur']}{lecteurGoogle.SEPARATEUR_COLONNES}"
+                to_return += f"{intrigue['pips']} points{lecteurGoogle.SEPARATEUR_COLONNES}"
+                to_return += f"{intrigue['description']}{lecteurGoogle.FIN_LIGNE}"
 
-        # to_return = "Implications dans les intrigues : \n"
-        to_return = lecteurGoogle.DEBUT_TABLEAU
-        for intrigue in tab_intrigues:
-            to_return += f"{intrigue['nom_conteneur']} - {intrigue['url_conteneur']}{lecteurGoogle.SEPARATEUR_COLONNES}"
-            to_return += f"{intrigue['pips']} points{lecteurGoogle.SEPARATEUR_COLONNES}"
-            to_return += f"{intrigue['description']}{lecteurGoogle.FIN_LIGNE}"
-        to_return += lecteurGoogle.FIN_TABLEAU
 
-        # # to_return = "Implications dans les intrigues : \n"
-        # to_return = ""
-        # for intrigue in tab_intrigues:
-        #     to_return += f"{intrigue['nom_conteneur']} - {intrigue['url_conteneur']} \n"
-        #     to_return += f"{intrigue['pips']} points \n"
-        #     to_return += f"{intrigue['description']} \n\n"
+            # # to_return = "Implications dans les intrigues : \n"
+            # to_return = ""
+            # for intrigue in tab_intrigues:
+            #     to_return += f"{intrigue['nom_conteneur']} - {intrigue['url_conteneur']} \n"
+            #     to_return += f"{intrigue['pips']} points \n"
+            #     to_return += f"{intrigue['description']} \n\n"
 
-        return to_return
+            #on enlève le dernier FIN LIGNE pour le remplacer par un FIN TABLEAU
+            return to_return[:-1 * len(lecteurGoogle.FIN_LIGNE)] + lecteurGoogle.FIN_TABLEAU
+
+        # c'est vide, on revnoie du rien
+        return ''
 
     def str_relations(self):
         to_return = ""

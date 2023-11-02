@@ -2149,11 +2149,12 @@ def is_document_being_edited(service, file_id):
 
 
 def write_to_doc(service, file_id, text: str, titre=False):
-    texte_sans_balises_tableau = text.replace(lecteurGoogle.DEBUT_TABLEAU, '') \
-        .replace(lecteurGoogle.FIN_TABLEAU, '') \
-        .replace(lecteurGoogle.SEPARATEUR_COLONNES, '') \
-        .replace(lecteurGoogle.SEPARATEUR_LIGNES, '') \
-        .replace(lecteurGoogle.FIN_LIGNE, '')
+    # inutile en principe si les balises font la même taille que les offsets
+    # texte_sans_balises_tableau = text.replace(lecteurGoogle.DEBUT_TABLEAU, '') \
+    #     .replace(lecteurGoogle.FIN_TABLEAU, '') \
+    #     .replace(lecteurGoogle.SEPARATEUR_COLONNES, '') \
+    #     .replace(lecteurGoogle.SEPARATEUR_LIGNES, '') \
+    #     .replace(lecteurGoogle.FIN_LIGNE, '')
 
     # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
     formatting_requests = []
@@ -2162,7 +2163,8 @@ def write_to_doc(service, file_id, text: str, titre=False):
     # pattern évolué pour ne plus prendre en compte les parenthèses
     url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
-    for match in re.finditer(url_pattern, texte_sans_balises_tableau):
+    #requête non ajoutées à la fin car tant que création de colonne vides, décalage de l'offset qui fera planter
+    for match in re.finditer(url_pattern, text):
         url = match.group()
         start = match.start()
         end = match.end()

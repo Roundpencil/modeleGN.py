@@ -22,9 +22,10 @@ SCOPES = [
 
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre des tokens dans la déclaration
 
-
+# les tailles des constantes sont faites pour avoir le matching avec les offset des google tables
+# quand on voudra refaire des liens
 DEBUT_TABLEAU = '\uE000' * 4
-FIN_TABLEAU = '\uE001'
+FIN_TABLEAU = '\uE001' * 2
 SEPARATEUR_COLONNES = '\uE002'
 SEPARATEUR_LIGNES = '\uE003'
 FIN_LIGNE = SEPARATEUR_COLONNES + SEPARATEUR_LIGNES
