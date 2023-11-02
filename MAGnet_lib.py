@@ -1061,7 +1061,7 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
 
 
 def generer_table_objets_uniques(mon_gn):
-    to_return = [['Code', 'Nom / Description', 'Intrigues', 'Evènements', 'fiche objet trouvée?']]
+    to_return = [['Code', 'Nom / Description', 'Intrigues', 'Evènements', 'fiche objet trouvée?', 'orga']]
     for objet_ref in mon_gn.objets_de_reference.values():
         code = objet_ref.code_objet.replace('\n', '\v')
         if objet_ref.nom_objet != "":
@@ -1078,12 +1078,15 @@ def generer_table_objets_uniques(mon_gn):
                                  o.evenement is not None]
         evenements = '\n'.join(liste_noms_evenements)
         fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else lien_vers_hyperlink(objet_ref.get_full_url())
+        orga = objet_ref.orga_referent
         # fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
         to_return.append([f"{code if len(code) > 1 else 'Pas de code'}",
                           f"{nom}",
                           f"{intrigues}",
                           f"{evenements}",
-                          f"{fiche_objet}"]
+                          f"{fiche_objet}",
+                          f"{orga}"
+                          ]
                          )
 
     return to_return

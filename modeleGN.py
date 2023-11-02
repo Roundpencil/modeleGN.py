@@ -1112,7 +1112,7 @@ class GN:
                 gn.dict_config = dict_config
 
             return gn
-        except FileNotFoundError as f:
+        except FileNotFoundError:
             if dict_config:
                 message = f"pas de fichier {filename} trouvé, création d'un fichier mgn"
                 logging.debug(message)
@@ -1815,6 +1815,8 @@ class Objet:
     def avec_fx(self):
         return len(self.specialEffect) > 0
 
+    def get_orga_referent(self):
+        return self.intrigue.orga_referent
 
 class ErreurManager:
     def __init__(self):
@@ -2004,6 +2006,9 @@ class ObjetDansEvenement:
         self.termine = termine
         self.evenement = evenement
 
+    def get_orga_referent(self):
+        return self.evenement.referent
+
 
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
@@ -2059,7 +2064,7 @@ class ObjetDeReference:
             id_url="",
             nom_objet="",
             code_objet="",
-            referent="",
+            referent="Non spécifié",
             utilite="",
             budget="",
             effets_speciaux="",
@@ -2069,7 +2074,7 @@ class ObjetDeReference:
             derniere_edition_date=None,
             derniere_edition_par="",
             ajoute_via_forcage=False,
-            last_processing=None
+            last_processing=None,
     ):
         self.id_url = id_url
         self.nom_objet = nom_objet
@@ -2093,6 +2098,14 @@ class ObjetDeReference:
 
     def set_last_processing(self, valeur):
         self.last_processing = valeur
+
+    def get_orga_referent(self):
+        if self.referent == "Non spécifié":
+            for liste in [list(self.objets_dans_intrigues), list(self.objets_dans_evenements)]:
+                if len(liste):
+                    return liste[0].get_orga_referent()
+
+        return self.referent
 
     def clear(self):
         for objet in self.objets_dans_intrigues:

@@ -1081,8 +1081,7 @@ def generer_permutations_alias(nom_du_role: str):
     noms_et_alias = nom_du_role.split(' aka ')
     to_return = [noms_et_alias[0]]
     for alias in noms_et_alias[1:]:
-        to_return.append(f'{to_return} aka {alias}')
-        to_return.append(alias)
+        to_return.extend((f'{to_return} aka {alias}', alias))
     return to_return
 
 
