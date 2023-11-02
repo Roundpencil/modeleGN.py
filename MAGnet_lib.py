@@ -569,6 +569,7 @@ def suggerer_tableau_persos_new(mon_gn: GN, intrigue: Intrigue, verbal: bool = F
             tous_les_noms_lus_dans_scenes += scene.noms_roles_lus
     tous_les_noms_lus_dans_scenes = [x.strip() for x in tous_les_noms_lus_dans_scenes]
     tous_les_noms_lus_dans_scenes = set(tous_les_noms_lus_dans_scenes)
+    #todo : est-ce qu'on rationnaliserait pas un peu la liste des noms avant de processer pour enlever les doublons évidents ?
 
     correspondances = {}
     scores = {}
