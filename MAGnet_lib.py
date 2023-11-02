@@ -558,7 +558,7 @@ def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent,
 from fuzzywuzzy import process
 import collections
 
-def suggerer_tableau_persos_new(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
+def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
     noms_personnages = mon_gn.noms_personnages()
     noms_roles_dans_tableau_intrigue = [x.personnage.nom for x in intrigue.rolesContenus.values()
                                          if not x.issu_dune_faction and x.personnage is not None]
@@ -571,7 +571,6 @@ def suggerer_tableau_persos_new(mon_gn: GN, intrigue: Intrigue, verbal: bool = F
     tous_les_noms_lus_dans_scenes = set(tous_les_noms_lus_dans_scenes)
     #todo : est-ce qu'on rationnaliserait pas un peu la liste des noms avant de processer pour enlever les doublons évidents ?
 
-    correspondances = {}
     scores = {}
 
     #remplir un tableau, pour chaque nom, de toutes les correspondances possibles et permutations
@@ -593,7 +592,7 @@ def suggerer_tableau_persos_new(mon_gn: GN, intrigue: Intrigue, verbal: bool = F
     # invariant : la solution est triée et l'élément le plus faible est en premier
     for original_nom, matches in scores.items():
         score_a_inclure = matches.pop()
-        solution .append([score_a_inclure[0], score_a_inclure[1], original_nom])
+        solution.append([score_a_inclure[0], score_a_inclure[1], original_nom])
     solution.sort(key=lambda x: x[1])
 
     #met à jour la solution en prenant la valeur suivante de l'élément nom à updater désigné
@@ -614,67 +613,41 @@ def suggerer_tableau_persos_new(mon_gn: GN, intrigue: Intrigue, verbal: bool = F
         solution_trouvee = True
         # est-ce que la solution est valable?
         # on crée une liste de noms triés du plus petit score au plus grand
-        noms_proposes = [triplette[0] for triplette in solution]
-        for i, element in enumerate(noms_proposes):
-            if element in noms_proposes[i+1:]:
+        noms_proposes = {triplette[0]:triplette[1] for triplette in solution}
+        noms_proposes_list = list(noms_proposes.keys())
+        for i, element in enumerate(noms_proposes_list):
+            if verbal:
+                print(f"DEBUG : je suis en train de chercher l'élément {element} dans \n "
+                      f"{noms_proposes_list[i + 1:]}")
+            if element in noms_proposes_list[i + 1:]:
+                if verbal:
+                    print(f"et je l'ai trouvé, il était associé au nom noms_proposes{element}")
                 solution_trouvee = False
-                solution = maj_solution(solution, scores, element)
-                break
+                solution = maj_solution(solution, scores, noms_proposes[element])
+
 
     if verbal:
-        print(f'DEBUG : la solution est {solution}')
+        print(f'DEBUG : trouvé = {solution_trouvee} \n la solution est {solution}')
 
-    # solution = {}
-    # while True:
-    #     # Identify the current solution
-    #     solution = {}
-    #     for original_nom, matches in scores.items():
-    #         if not matches:
-    #             print("No solution")
-    #             break
-    #         best_match = max(matches, key=lambda x: x[1])
-    #         solution[original_nom] = best_match
-    #
-    #     # Check for duplicates
-    #     duplicates = {}
-    #     for original_nom, (name, score) in solution.items():
-    #         if name in duplicates:
-    #             duplicates[name].append(original_nom)
-    #         else:
-    #             duplicates[name] = [original_nom]
-    #
-    #     duplicates = {k: v for k, v in duplicates.items() if len(v) > 1}
-    #     if not duplicates:
-    #         print("Solution found:")
-    #         print(solution)
-    #         break
-    #
-    #     # Remove duplicates
-    #     for name, original_noms in duplicates.items():
-    #         lowest_score = float('inf')
-    #         lowest_original_nom = None
-    #         for original_nom in original_noms:
-    #             _, score = solution[original_nom]
-    #             if score < lowest_score:
-    #                 lowest_score = score
-    #                 lowest_original_nom = original_nom
-    #         scores[lowest_original_nom].remove((name, lowest_score))
 
     #A ce stade là, la solution est dans le dictionnaire "solution"
-    #todo : reprendre d'ici
-    output_list = []
 
-    for nom, personnage in correspondances.items():
-        if personnage in noms_roles_dans_tableau_intrigue:
-            status = "already present"
-        else:
-            status = "new"
+    if not solution or not solution_trouvee:
+        return "Impossible de construire une proposition de tableau"
 
-        score = next(score for candidat, score in scores[nom] if candidat == personnage)
-        output_list.append([personnage, nom, score, status])
+    tableau_persos = [['Nom proposé', 'nom dans les scènes', 'score', 'déjà dans le tableau?']]
+    #on inverse la solution pour avoir les éléments les plus forts en premier
+    solution = solution[::-1]
+    for nom_personnage, score, nom_role in solution:
+        tableau_persos.append([
+            nom_personnage,
+            nom_role,
+            f'{score} % de certitude',
+            'oui' if noms_personnages in noms_roles_dans_tableau_intrigue else 'non'
+        ])
 
     to_print = "Tableau suggéré : \n"
-    to_print += lecteurGoogle.formatter_tableau_pour_export(output_list)
+    to_print += lecteurGoogle.formatter_tableau_pour_export(tableau_persos)
 
     if verbal:
         print(to_print)
@@ -682,7 +655,7 @@ def suggerer_tableau_persos_new(mon_gn: GN, intrigue: Intrigue, verbal: bool = F
     return to_print
 
 
-def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
+def suggerer_tableau_persos_old(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
     """
     Suggère un tableau de personnages participant à une intrigue donnée, en se basant sur les scènes qui la composent.
 
