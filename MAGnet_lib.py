@@ -828,7 +828,10 @@ def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
         # ajout des informations issues des infos pour evènement:
         if len(perso.informations_evenements) > 0:
             texte_perso += "\n *** informations à fournir pour organiser les évènements : *** \n"
-            texte_perso += '\n'.join([i.str_pour_squelette() for i in perso.informations_evenements])
+            # texte_perso += '\n'.join([i.str_pour_squelette() for i in perso.informations_evenements])
+            tab_evts = [['évènement', 'infos à fournir']]
+            tab_evts.extend(evt.row_infos_evenement_pour_squelette() for evt in perso.informations_evenements)
+            texte_perso += lecteurGoogle.formatter_tableau_pour_export(tab_evts)
 
         # ajout des informations issues des intrigues :
 

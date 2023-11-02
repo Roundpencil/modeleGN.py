@@ -323,41 +323,42 @@ class Personnage(ConteneurDeScene):
 
         tab_intrigues = sorted(tab_intrigues, key=lambda x: x['pips'], reverse=True)
         if len(tab_intrigues):
-            # to_return = "Implications dans les intrigues : \n"
-            to_return = lecteurGoogle.DEBUT_TABLEAU
-            for intrigue in tab_intrigues:
-                to_return += f"{intrigue['nom_conteneur']} - {intrigue['url_conteneur']}{lecteurGoogle.SEPARATEUR_COLONNES}"
-                to_return += f"{intrigue['pips']} points{lecteurGoogle.SEPARATEUR_COLONNES}"
-                to_return += f"{intrigue['description']}{lecteurGoogle.FIN_LIGNE}"
+            tableau_intrigues = [
+                [
+                    f"{intrigue['nom_conteneur']} - {intrigue['url_conteneur']}",
+                    f"{intrigue['pips']} points",
+                    f"{intrigue['description']}",
+                ]
+                for intrigue in tab_intrigues
+            ]
+            return lecteurGoogle.formatter_tableau_pour_export(tableau_intrigues)
 
-
-            # # to_return = "Implications dans les intrigues : \n"
-            # to_return = ""
-            # for intrigue in tab_intrigues:
-            #     to_return += f"{intrigue['nom_conteneur']} - {intrigue['url_conteneur']} \n"
-            #     to_return += f"{intrigue['pips']} points \n"
-            #     to_return += f"{intrigue['description']} \n\n"
-
-            #on enlève le dernier FIN LIGNE pour le remplacer par un FIN TABLEAU
-            return to_return[:-1 * len(lecteurGoogle.FIN_LIGNE)] + lecteurGoogle.FIN_TABLEAU
 
         # c'est vide, on revnoie du rien
         return ''
 
     def str_relations(self):
-        to_return = ""
+        # to_return = ""
+        tab_relation = [['Avec Qui?', 'Nature de la relation']]
         for role in self.roles:
             for relation in role.relations:
                 roles_dans_relation, description, est_reciproque = relation.trouver_partenaires(role)
-                for role_associe in roles_dans_relation:
-                    if role_associe.personnage is None:
-                        to_return += f"En relation avec le rôle {role_associe} (sans perso) >> " \
-                                     f"{description}"
-                    else:
-                        to_return += f"En relation avec {role_associe.personnage.nom} >> " \
-                                     f"{description}"
-                    to_return += "\n" if est_reciproque else "(non réciproque) \n"
-        return to_return
+                tab_relation.extend(
+                    [
+                        role_associe.personnage.nom if role_associe.personnage else f'{role_associe} (sans perso)',
+                        f"{description}{'' if est_reciproque else '(non réciproque)'}"
+                    ]
+                    for role_associe in roles_dans_relation
+                )
+        #             if role_associe.personnage is None:
+        #                 to_return += f"En relation avec le rôle {role_associe} (sans perso) >> " \
+        #                              f"{description}"
+        #             else:
+        #                 to_return += f"En relation avec {role_associe.personnage.nom} >> " \
+        #                              f"{description}"
+        #             to_return += "\n" if est_reciproque else "(non réciproque) \n"
+        # return to_return
+        return lecteurGoogle.formatter_tableau_pour_export(tab_relation)
 
     def str_interventions(self):
         to_return = [f"{intervention.implication} "
@@ -2014,6 +2015,9 @@ class PJConcerneEvenement:
 
     def str_pour_squelette(self):
         return f"Pour l'évènement {self.evenement.code_evenement} : {self.infos_a_fournir}"
+
+    def row_infos_evenement_pour_squelette(self):
+        return [self.evenement.code_evenement, self.infos_a_fournir]
 
 
 class InfoFactionsPourEvenement:

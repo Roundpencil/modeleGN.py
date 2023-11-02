@@ -26,7 +26,7 @@ os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre de
 # quand on voudra refaire des liens
 DEBUT_TABLEAU = '\uE000' * 4
 FIN_TABLEAU = '\uE001' * 2
-SEPARATEUR_COLONNES = '\uE002'
+SEPARATEUR_COLONNES = '\uE002'*2
 SEPARATEUR_LIGNES = '\uE003'
 FIN_LIGNE = SEPARATEUR_COLONNES + SEPARATEUR_LIGNES
 
@@ -228,3 +228,14 @@ def generer_liste_items(api_drive, nom_fichier):
     except HttpError as err:
         print(f'An error occurred: {err}')
         return None
+
+def formatter_tableau_pour_export(tableau: list):
+    to_return = DEBUT_TABLEAU
+
+    for ligne in tableau:
+        for cellule in ligne:
+            to_return += f'{cellule}{SEPARATEUR_COLONNES}'
+        to_return += SEPARATEUR_LIGNES
+
+    # on enlève le dernier FIN LIGNE pour le remplacer par un FIN TABLEAU
+    return to_return[:-1 * len(FIN_LIGNE)] + FIN_TABLEAU

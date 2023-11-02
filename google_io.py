@@ -2149,13 +2149,6 @@ def is_document_being_edited(service, file_id):
 
 
 def write_to_doc(service, file_id, text: str, titre=False):
-    # inutile en principe si les balises font la même taille que les offsets
-    # texte_sans_balises_tableau = text.replace(lecteurGoogle.DEBUT_TABLEAU, '') \
-    #     .replace(lecteurGoogle.FIN_TABLEAU, '') \
-    #     .replace(lecteurGoogle.SEPARATEUR_COLONNES, '') \
-    #     .replace(lecteurGoogle.SEPARATEUR_LIGNES, '') \
-    #     .replace(lecteurGoogle.FIN_LIGNE, '')
-
     # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
     formatting_requests = []
 
@@ -2191,17 +2184,6 @@ def write_to_doc(service, file_id, text: str, titre=False):
         start_index = 1
 
         while lecteurGoogle.DEBUT_TABLEAU in text:
-            # DEBUG : ajout d'un lore lipsuym pour comprendre le décalage
-            lore = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-            requests.append({
-                'insertText': {
-                    'location': {
-                        'index': 1
-                    },
-                    'text': lore * 30
-                }
-            })
-
             # Extraire le texte avant le tableau
             start_table = text.find(lecteurGoogle.DEBUT_TABLEAU)
             text_before_table = text[:start_table]
@@ -2229,8 +2211,8 @@ def write_to_doc(service, file_id, text: str, titre=False):
             num_rows = len(table)
             num_columns = max(len(row) for row in table)
 
-            print(f'DEBUG : table pour les intrigues : {table}')
-            print(f'DEBUG : {num_columns} x {num_rows}')
+            # print(f'DEBUG : table pour les intrigues : {table}')
+            # print(f'DEBUG : {num_columns} x {num_rows}')
 
             # créer la structure du tableau
             requests.append({
@@ -2244,31 +2226,11 @@ def write_to_doc(service, file_id, text: str, titre=False):
             })
 
             #focntions pour calculer l'offset du début d'une cellule dans le tableau ou la reprise
-            # a utiliser à l'envers, en commencant par la fin, pour ne pas pourrir les calcule
+            # a utiliser en remplissant à l'envers, en commencant par la fin, pour ne pas pourrir les calcule
             def calculer_offset(no_ligne, no_colonne, nb_colonnes):
                 return 4 + (no_colonne-1) * 2 + (no_ligne-1) * (nb_colonnes * 2 + 1)
             def calculer_offset_fin_tableau(nb_lignes, nb_colonnes):
                 return calculer_offset(nb_lignes, nb_colonnes, nb_colonnes)+2
-            # # Remplir le tableau avec des dummys variables
-
-            # requests.append({
-            #     'insertText': {
-            #         'location': {
-            #             'index': start_index+4
-            #         },
-            #         'text': "B2"
-            #     }
-            # })
-            # requests.append({
-            #     "insertText":
-            #         {
-            #             "text": "test",
-            #             "location":
-            #                 {
-            #                     "index": start_index + calculer_offset(4, 3, 3)
-            #                 }
-            #         }
-            # })
 
             # # Remplir le tableau avec les valeurs dela table
             taille_texte_insere = 0
@@ -2281,7 +2243,7 @@ def write_to_doc(service, file_id, text: str, titre=False):
                         # print(f"Colonne {j}, Ligne {i} : {table[i][j]}")
                         # Insérer le texte dans la cellule
                         texte_a_inserer = table[no_ligne-1][no_colonne-1]
-                        print(f'DEBUG : {no_ligne - 1}{no_colonne - 1} texte à insérer : {texte_a_inserer}')
+                        # print(f'DEBUG : {no_ligne - 1}{no_colonne - 1} texte à insérer : {texte_a_inserer}')
                         if len(texte_a_inserer):
                             requests.append({
                                 'insertText': {
@@ -2293,7 +2255,8 @@ def write_to_doc(service, file_id, text: str, titre=False):
                             })
                             taille_texte_insere += len(texte_a_inserer)
                     except IndexError as e:
-                        print(f'DEBUG : exception en {no_ligne}:{no_colonne} (offset : {offset} : {e}')
+                        print(f"Erreur dans l'écriture d'un tableau en "
+                              f"{no_ligne}:{no_colonne} (offset : {offset} : {e}")
 
             #mettre à jour l'offset pour reprendre l'inserttion du texte
             start_index += calculer_offset_fin_tableau(num_rows, num_columns) + taille_texte_insere
@@ -2312,7 +2275,7 @@ def write_to_doc(service, file_id, text: str, titre=False):
         })
 
         # ajouter le formattage à la requete d'insert
-        # requests += formatting_requests
+        requests += formatting_requests
 
         #debug : code récupérer de slack, fontionnel, utilisé pour comprendre les offsets
         # requests = [
@@ -2369,76 +2332,13 @@ def write_to_doc(service, file_id, text: str, titre=False):
         #     }
         # ]
 
-
         # Execute the request.
         result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
         return result
     except HttpError as error:
         print(f'An error occurred: {error}')
         return None
-    # try:
-    #     requests = []
-    #     start_index = 1
-    #
-    #     while lecteurGoogle.DEBUT_TABLEAU in text:
-    #         # Extraire le texte avant le tableau
-    #         start_table = text.find(lecteurGoogle.DEBUT_TABLEAU)
-    #         text_before_table = text[:start_table]
-    #
-    #         # Ajouter la requête pour insérer le texte avant le tableau
-    #         requests.append({
-    #             'insertText': {
-    #                 'location': {
-    #                     'index': start_index
-    #                 },
-    #                 'text': text_before_table
-    #             }
-    #         })
-    #
-    #         start_index += len(text_before_table)
-    #
-    #         # Extraire le texte du tableau
-    #         end_table = text.find(lecteurGoogle.FIN_TABLEAU, start_table) + len(lecteurGoogle.FIN_TABLEAU)
-    #         table_text = text[start_table + len(lecteurGoogle.DEBUT_TABLEAU):end_table - len(lecteurGoogle.FIN_TABLEAU)]
-    #
-    #         # Créer le tableau à partir du texte
-    #         rows = table_text.split(lecteurGoogle.FIN_LIGNE)
-    #         table = [row.split(lecteurGoogle.SEPARATEUR_COLONNES) for row in rows]
-    #
-    #         table_rows = [{'values': [{'content': cell} for cell in row]} for row in table]
-    #         requests.append({
-    #             {
-    #                 'insertTable': {
-    #                     'location': {
-    #                         'index': start_index,
-    #                     },
-    #                     'rows': table_rows,
-    #                 },
-    #             },
-    #         })
-    #
-    #         # Supprimer le texte du tableau du texte original
-    #         text = text[end_table:]
-    #
-    #     # Ajouter la requête pour insérer le reste du texte
-    #     requests.append({
-    #         'insertText': {
-    #             'location': {
-    #                 'index': start_index
-    #             },
-    #             'text': text
-    #         }
-    #     })
-    #
-    #     # ajouter le formattage à la requete d'insert
-    #     requests += formatting_requests
-    #
-    #     # Execute the request.
-    #     result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
-    #     return result
-    # except HttpError as error:
-    #     print(f'An error occurred: {error}')
-    #     return None
+
 
 
 def write_to_doc_old(service, file_id, text: str, titre=False):
