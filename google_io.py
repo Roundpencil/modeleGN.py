@@ -381,23 +381,41 @@ def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_e
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_intrigue)
     # print(f"debug : indexes = {indexes}")
 
+    # dict_methodes = {
+    #     Labels.REFERENT: lambda x: intrigue_referent(x, current_intrigue, Labels.REFERENT.value),
+    #     Labels.TODO: intrigue_todo,
+    #     Labels.PITCH: intrigue_pitch,
+    #     Labels.CROISEES: intrigue_croisee,
+    #     Labels.PJS: intrigue_pjs,
+    #     Labels.PNJS: intrigue_pnjs,
+    #     Labels.REROLLS: intrigue_rerolls,
+    #     Labels.OBJETS: intrigue_objets,
+    #     Labels.SCENESFX: intrigue_scenesfx,
+    #     Labels.TIMELINE: intrigue_timeline,
+    #     Labels.SCENES: intrigue_scenes,
+    #     Labels.RESOLUTION: intrigue_resolution,
+    #     Labels.NOTES: intrigue_notes,
+    #     Labels.QUESTIONNAIRE: intrigue_questionnaire,
+    #     Labels.RELATIONS_BI: intrigue_relations_bi,
+    #     Labels.RELATIONS_MULTI: intrigue_relations_multi
+    # }
     dict_methodes = {
-        Labels.REFERENT: intrigue_referent,
-        Labels.TODO: intrigue_todo,
-        Labels.PITCH: intrigue_pitch,
-        Labels.CROISEES: intrigue_croisee,
-        Labels.PJS: intrigue_pjs,
-        Labels.PNJS: intrigue_pnjs,
-        Labels.REROLLS: intrigue_rerolls,
-        Labels.OBJETS: intrigue_objets,
-        Labels.SCENESFX: intrigue_scenesfx,
-        Labels.TIMELINE: intrigue_timeline,
-        Labels.SCENES: intrigue_scenes,
-        Labels.RESOLUTION: intrigue_resolution,
-        Labels.NOTES: intrigue_notes,
-        Labels.QUESTIONNAIRE: intrigue_questionnaire,
-        Labels.RELATIONS_BI: intrigue_relations_bi,
-        Labels.RELATIONS_MULTI: intrigue_relations_multi
+        Labels.REFERENT: lambda x: intrigue_referent(x, current_intrigue, Labels.REFERENT.value),
+        Labels.TODO: lambda x: intrigue_todo(x, current_intrigue, Labels.TODO.value),
+        Labels.PITCH: lambda x: intrigue_pitch(x, current_intrigue),
+        Labels.CROISEES: lambda x: intrigue_croisee(x, Labels.CROISEES.value),
+        Labels.PJS: lambda x: intrigue_pjs(x, current_intrigue),
+        Labels.PNJS: lambda x: intrigue_pnjs(x, current_intrigue),
+        Labels.REROLLS: lambda x: intrigue_rerolls(x, current_intrigue),
+        Labels.OBJETS: lambda x: intrigue_objets(x, current_intrigue),
+        Labels.SCENESFX: lambda x: intrigue_scenesfx(x, current_intrigue),
+        Labels.TIMELINE: lambda x: intrigue_timeline(x, current_intrigue),
+        Labels.SCENES: lambda x: intrigue_scenes(x, current_intrigue, Labels.SCENES.value),
+        Labels.RESOLUTION: lambda x: intrigue_resolution(x, current_intrigue),
+        Labels.NOTES: lambda x: intrigue_notes(x, current_intrigue),
+        Labels.QUESTIONNAIRE: lambda x: intrigue_questionnaire(x, current_intrigue),
+        Labels.RELATIONS_BI: lambda x: intrigue_relations_bi(x, current_intrigue),
+        Labels.RELATIONS_MULTI: lambda x: intrigue_relations_multi(x, current_intrigue)
     }
 
     for label in Labels:
@@ -407,7 +425,8 @@ def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_e
             ma_methode = dict_methodes[label]
             texte = texte_intrigue[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
             # print(f"debug : texte label {label.value} = {texte}")
-            ma_methode(texte, current_intrigue, label.value)
+            # ma_methode(texte, current_intrigue, label.value)
+            ma_methode(texte)
 
     return current_intrigue
 
@@ -420,15 +439,15 @@ def intrigue_todo(texte: str, intrigue: Intrigue, texte_label: str):
     intrigue.questions_ouvertes = retirer_label(texte, texte_label)
 
 
-def intrigue_croisee(texte: str, intrigue: Intrigue, texte_label: str):
+def intrigue_croisee(texte: str, texte_label: str):
     logging.debug(f"balise {texte_label} non prise en charge = {texte}")
 
 
-def intrigue_pitch(texte: str, intrigue: Intrigue, texte_label: str):
+def intrigue_pitch(texte: str, intrigue: Intrigue):
     intrigue.pitch = retirer_premiere_ligne(texte)
 
 
-def intrigue_pjs(texte: str, current_intrigue: Intrigue, texte_label: str):
+def intrigue_pjs(texte: str, current_intrigue: Intrigue):
     tableau_pjs, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
 
     if nb_colonnes == 0:
@@ -578,7 +597,7 @@ def en_tete_vers_valeur_dans_ligne(ligne_tableau: list[str], dict_header_vers_no
     return ligne_tableau[index] if index is not None else default
 
 
-def intrigue_pnjs(texte: str, current_intrigue: Intrigue, texte_label: str, seuil_type_perso=85):
+def intrigue_pnjs(texte: str, current_intrigue: Intrigue, seuil_type_perso=85):
     # tableau_pnjs, _ = reconstituer_tableau(texte)
     # # faire un tableau avec une ligne par PNJ
     # # print(f"tableau pnj décodé : {tableau_pnjs}")
@@ -684,7 +703,7 @@ def separer_nom_et_alias(nom):
     return nom, alias
 
 
-def intrigue_rerolls(texte: str, current_intrigue: Intrigue, texte_label: str):
+def intrigue_rerolls(texte: str, current_intrigue: Intrigue):
     tableau_rerolls, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
 
     # tab_rerolls, _ = reconstituer_tableau(texte)
@@ -756,7 +775,7 @@ def intrigue_rerolls(texte: str, current_intrigue: Intrigue, texte_label: str):
         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
-def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
+def intrigue_objets(texte: str, current_intrigue: Intrigue):
     tab_objets, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
 
     if nb_colonnes == 0:
@@ -825,7 +844,7 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue, texte_label: str):
         #     mon_objet.intrigue = current_intrigue
 
 
-def intrigue_scenesfx(texte: str, intrigue: Intrigue, texte_label: str):
+def intrigue_scenesfx(texte: str, intrigue: Intrigue):
     # print(f" debug : texte fx = {texte}")
     tableau_evenements, nb_colonnes = reconstituer_tableau(texte)
     if nb_colonnes != 4:
@@ -836,7 +855,7 @@ def intrigue_scenesfx(texte: str, intrigue: Intrigue, texte_label: str):
     intrigue.codes_evenements_raw = codes_raw
 
 
-def intrigue_timeline(texte: str, intrigue: Intrigue, texte_label: str):
+def intrigue_timeline(texte: str, intrigue: Intrigue):
     intrigue.timeline = retirer_premiere_ligne(texte)
 
 
@@ -845,15 +864,15 @@ def intrigue_scenes(texte: str, intrigue: Intrigue, texte_label: str):
     texte2scenes(intrigue, intrigue.nom, texte)
 
 
-def intrigue_resolution(texte: str, intrigue: Intrigue, texte_label: str):
+def intrigue_resolution(texte: str, intrigue: Intrigue):
     intrigue.resolution = retirer_premiere_ligne(texte)
 
 
-def intrigue_notes(texte: str, intrigue: Intrigue, texte_label: str):
+def intrigue_notes(texte: str, intrigue: Intrigue):
     intrigue.notes = retirer_premiere_ligne(texte)
 
 
-def intrigue_questionnaire(texte: str, intrigue: Intrigue, texte_label: str):
+def intrigue_questionnaire(texte: str, intrigue: Intrigue):
     # intrigue.questionnaire = retirer_premiere_ligne(texte)
     tab_intrigues, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=True)
     if nb_colonnes != 2:
@@ -864,12 +883,12 @@ def intrigue_questionnaire(texte: str, intrigue: Intrigue, texte_label: str):
     intrigue.questionnaire = tab_intrigues
 
 
-def intrigue_relations_bi(texte: str, intrigue: Intrigue, texte_label: str):
+def intrigue_relations_bi(texte: str, intrigue: Intrigue):
     tab_relations_bi, _ = reconstituer_tableau(texte)
     extraire_relations_bi(intrigue, tab_relations_bi)
 
 
-def intrigue_relations_multi(texte: str, intrigue: Intrigue, texte_label: str):
+def intrigue_relations_multi(texte: str, intrigue: Intrigue):
     tab_relations_multi, _ = reconstituer_tableau(texte)
     # on a alors un tableau à deux colonnes avec les noms des persos et leurs relations
     extraire_relation_multi(intrigue, tab_relations_multi)
@@ -977,37 +996,6 @@ def extraire_balise(input_balise: str, scene_a_ajouter: Scene, conteneur: Conten
             return True
 
     return False
-
-    # balise_lower = input_balise.lower()
-    #
-    # if balise_lower.startswith('## quand?') or balise_lower.startswith('## quand ?'):
-    #     extraire_date_scene(input_balise.split("?", 1)[1], scene_a_ajouter)
-    # elif balise_lower.startswith('## il y a'):
-    #     extraire_il_y_a_scene(input_balise[9:], scene_a_ajouter)
-    # elif balise_lower.startswith('## date :') or balise_lower.startswith('## date:') or balise_lower.startswith(
-    #         '## date?'):
-    #     extraire_date_absolue(input_balise.split(":", 1)[1], scene_a_ajouter)
-    # elif balise_lower.startswith('## qui?') or balise_lower.startswith('## qui ?'):
-    #     extraire_qui_scene(input_balise.split("?", 1)[1], conteneur, scene_a_ajouter,
-    #                        avec_tableau_des_persos=tableau_roles_existant)
-    # elif balise_lower.startswith('## niveau :'):
-    #     scene_a_ajouter.niveau = input_balise[11:].strip()
-    # elif balise_lower.startswith('## résumé :') or balise_lower.startswith('## résumé:'):
-    #     scene_a_ajouter.resume = input_balise.split(":", 1)[1].strip()
-    # elif balise_lower.startswith('## factions :') or balise_lower.startswith('## factions:') or balise_lower.startswith(
-    #         '## faction :') or balise_lower.startswith('## faction:'):
-    #     extraire_factions_scene(input_balise.split(":", 1)[1], scene_a_ajouter)
-    # elif balise_lower.startswith('## info :') or balise_lower.startswith('## info:'):
-    #     extraire_infos_scene(input_balise.split(":", 1)[1], scene_a_ajouter)
-    # elif balise_lower.startswith('## heure :') or balise_lower.startswith('## heure:'):
-    #     scene_a_ajouter.heure_debut = input_balise.split(":", 1)[1]
-    # elif balise_lower.startswith('## où?') or balise_lower.startswith('## où ?') or \
-    #         balise_lower.startswith('## ou?') or balise_lower.startswith('## ou ?'):
-    #     scene_a_ajouter.lieu = input_balise.split(":", 1)[1]
-    #
-    # else:
-    #     return False
-    # return True
 
 
 def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
@@ -1270,16 +1258,28 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_evenement.lower())
 
     # utliser un dictionnaire pour savoir quelle section lire
+    # dict_methodes = {
+    #     Labels.FICHE: evenement_lire_fiche,
+    #     Labels.SYNOPSIS: evenement_lire_synopsis,
+    #     Labels.LIES: evenement_lire_lies,
+    #     Labels.BRIEFS: evenement_lire_briefs,
+    #     Labels.INFOS_PJS: evenement_lire_infos_pj,
+    #     Labels.INFOS_FACTIONS: evenement_infos_factions,
+    #     Labels.OBJETS: evenement_lire_objets,
+    #     Labels.CHRONO: evenement_lire_chrono,
+    #     Labels.AUTRES: evenement_lire_autres
+    # }
+
     dict_methodes = {
-        Labels.FICHE: evenement_lire_fiche,
-        Labels.SYNOPSIS: evenement_lire_synopsis,
-        Labels.LIES: evenement_lire_lies,
-        Labels.BRIEFS: evenement_lire_briefs,
-        Labels.INFOS_PJS: evenement_lire_infos_pj,
-        Labels.INFOS_FACTIONS: evenement_infos_factions,
-        Labels.OBJETS: evenement_lire_objets,
-        Labels.CHRONO: evenement_lire_chrono,
-        Labels.AUTRES: evenement_lire_autres
+        Labels.FICHE: lambda x: evenement_lire_fiche(x, current_evenement, Labels.FICHE.value),
+        Labels.SYNOPSIS: lambda x: evenement_lire_synopsis(x, current_evenement),
+        Labels.LIES: lambda x: evenement_lire_lies(x, Labels.LIES.value),
+        Labels.BRIEFS: lambda x: evenement_lire_briefs(x, current_evenement, Labels.BRIEFS.value),
+        Labels.INFOS_PJS: lambda x: evenement_lire_infos_pj(x, current_evenement, Labels.INFOS_PJS.value),
+        Labels.INFOS_FACTIONS: lambda x: evenement_infos_factions(x, current_evenement, Labels.INFOS_FACTIONS.value),
+        Labels.OBJETS: lambda x: evenement_lire_objets(x, current_evenement, Labels.OBJETS.value),
+        Labels.CHRONO: lambda x: evenement_lire_chrono(x, current_evenement),
+        Labels.AUTRES: lambda x: evenement_lire_autres(x, Labels.AUTRES.value),
     }
 
     # lire les sections dans le fichier et appliquer la bonne méthode
@@ -1295,7 +1295,9 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
         else:
             texte_section = texte_evenement[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
             methode_a_appliquer = dict_methodes[label]
-            methode_a_appliquer(texte_section, current_evenement, label.value)
+            # methode_a_appliquer(texte_section, current_evenement, label.value)
+            methode_a_appliquer(texte_section)
+
     # on vérifie ensuite qu'on a bien une chrono, sinon on la force et elle sera remplie par défaut
     if indexes[Labels.CHRONO.value]["debut"] == -1:
         # dans ce cas on reconstruit un tableau de toute pièce en appelant lire_chono_tableau avec non comme argument
@@ -1395,11 +1397,11 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
     current_evenement.consequences_evenement = dict_fiche.get(NomsLignes.CONSEQUENCES.value, "").strip()
 
 
-def evenement_lire_synopsis(texte: str, current_evenement: Evenement, texte_label: str):
+def evenement_lire_synopsis(texte: str, current_evenement: Evenement):
     current_evenement.synopsis = '\n'.join(texte.splitlines()[1:])
 
 
-def evenement_lire_lies(texte: str, current_evenement: Evenement, texte_label: str):
+def evenement_lire_lies(texte: str, texte_label: str):
     logging.debug(f"balise {texte_label} non prise en charge = {texte}")
 
 
@@ -1476,8 +1478,7 @@ def evenement_lire_objets(texte: str, current_evenement: Evenement, texte_label:
         current_evenement.objets.add(objet)
 
 
-def evenement_lire_chrono(texte: str, current_evenement: Evenement, texte_label: str,
-                          seuil_alerte_pnj=70, seuil_alerte_pj=70):
+def evenement_lire_chrono(texte: str, current_evenement: Evenement, seuil_alerte_pnj=70, seuil_alerte_pj=70):
     texte = retirer_premiere_ligne(texte)
     # # on regarde l'entete pour connaitre la taille du tableau,
     # # mais on prend le tableau sans entete pour terminer ce qu'il faut lire
@@ -1705,7 +1706,7 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, dict_he
 #         intervenant.interventions.add(intervention)
 
 
-def evenement_lire_autres(texte: str, current_evenement: Evenement, texte_label: str):
+def evenement_lire_autres(texte: str, texte_label: str):
     logging.debug(f"balise {texte_label} non prise en charge = {texte}")
 
 
@@ -1733,9 +1734,9 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     nom_perso_en_cours = re.sub(r"^\d+\s*-", '', nom_doc).strip()
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
-    perso_en_cours = Personnage(nom=nom_perso_en_cours, url=id_url, derniere_edition_fichier=last_file_edit, pj=pj)
-    perso_en_cours.modifie_par = derniere_modification_par
-    dict_pj_pnj[id_url] = perso_en_cours
+    current_personnage = Personnage(nom=nom_perso_en_cours, url=id_url, derniere_edition_fichier=last_file_edit, pj=pj)
+    current_personnage.modifie_par = derniere_modification_par
+    dict_pj_pnj[id_url] = current_personnage
 
     texte_persos_low = texte_persos.lower()  # on passe en minuscule pour mieux trouver les chaines
 
@@ -1763,25 +1764,46 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_persos_low)
 
+    # dict_methodes = {
+    #     Labels.REFERENT: personnage_referent,
+    #     Labels.JOUEUR: personnage_interprete,
+    #     Labels.JOUEUSE: personnage_interprete,
+    #     Labels.INTERPRETE: personnage_interprete,
+    #     Labels.PITCH: personnage_pitch,
+    #     Labels.COSTUME: personnage_costume,
+    #     Labels.FACTION1: personnage_faction1,
+    #     Labels.FACTION2: personnage_factions2,
+    #     Labels.GROUPES: personnage_groupes,
+    #     Labels.INTRIGUES: personnage_intrigues,
+    #     Labels.BIO: personnage_bio,
+    #     Labels.PSYCHO: personnage_psycho,
+    #     Labels.MOTIVATIONS: personnage_motivation,
+    #     Labels.CHRONOLOGIE: personnage_chronologie,
+    #     Labels.SCENES: personnage_scenes,
+    #     Labels.RELATIONS: personnage_relations,
+    #     Labels.RELATIONS_BI: personnage_relations_bi,
+    #     Labels.RELATIONS_MULTI: personnage_relations_multi
+    # }
+
     dict_methodes = {
-        Labels.REFERENT: personnage_referent,
-        Labels.JOUEUR: personnage_interprete,
-        Labels.JOUEUSE: personnage_interprete,
-        Labels.INTERPRETE: personnage_interprete,
-        Labels.PITCH: personnage_pitch,
-        Labels.COSTUME: personnage_costume,
-        Labels.FACTION1: personnage_faction1,
-        Labels.FACTION2: personnage_factions2,
-        Labels.GROUPES: personnage_groupes,
-        Labels.INTRIGUES: personnage_intrigues,
-        Labels.BIO: personnage_bio,
-        Labels.PSYCHO: personnage_psycho,
-        Labels.MOTIVATIONS: personnage_motivation,
-        Labels.CHRONOLOGIE: personnage_chronologie,
-        Labels.SCENES: personnage_scenes,
-        Labels.RELATIONS: personnage_relations,
-        Labels.RELATIONS_BI: personnage_relations_bi,
-        Labels.RELATIONS_MULTI: personnage_relations_multi
+        Labels.REFERENT: lambda x: personnage_referent(x, current_personnage, Labels.REFERENT.value),
+        Labels.JOUEUR: lambda x: personnage_interprete(x, current_personnage, Labels.JOUEUR.value),
+        Labels.JOUEUSE: lambda x: personnage_interprete(x, current_personnage, Labels.JOUEUSE.value),
+        Labels.INTERPRETE: lambda x: personnage_interprete(x, current_personnage, Labels.INTERPRETE.value),
+        Labels.PITCH: lambda x: personnage_pitch(x, current_personnage),
+        Labels.COSTUME: lambda x: personnage_costume(x, current_personnage, Labels.COSTUME.value),
+        Labels.FACTION1: lambda x: personnage_faction1(x, current_personnage, Labels.FACTION1.value),
+        Labels.FACTION2: lambda x: personnage_factions2(x, current_personnage, Labels.FACTION2.value),
+        Labels.GROUPES: lambda x: personnage_groupes(x, current_personnage, Labels.GROUPES.value),
+        Labels.INTRIGUES: lambda x: personnage_intrigues(Labels.INTRIGUES.value),
+        Labels.BIO: lambda x: personnage_bio(x, current_personnage),
+        Labels.PSYCHO: lambda x: personnage_psycho(x, current_personnage),
+        Labels.MOTIVATIONS: lambda x: personnage_motivation(x, current_personnage),
+        Labels.CHRONOLOGIE: lambda x: personnage_chronologie(x, current_personnage),
+        Labels.SCENES: lambda x: personnage_scenes(x, current_personnage),
+        Labels.RELATIONS: lambda x: personnage_relations(Labels.RELATIONS.value),
+        Labels.RELATIONS_BI: lambda x: personnage_relations_bi(x, current_personnage),
+        Labels.RELATIONS_MULTI: lambda x: personnage_relations_multi(x, current_personnage)
     }
 
     for label in Labels:
@@ -1791,11 +1813,12 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
             ma_methode = dict_methodes[label]
             texte = texte_persos[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
             # print(f"debug : texte label {label.value} = {texte}")
-            ma_methode(texte, perso_en_cours, label.value)
+            # ma_methode(texte, current_personnage, label.value)
+            ma_methode(texte)
 
     # et on enregistre la date de dernière mise à jour de l'intrigue
     # perso_en_cours.lastProcessing = datetime.datetime.now()
-    return perso_en_cours
+    return current_personnage
 
 
 def personnage_referent(texte: str, perso_en_cours: Personnage, text_label: str):
@@ -1806,11 +1829,11 @@ def personnage_referent(texte: str, perso_en_cours: Personnage, text_label: str)
 #     perso_en_cours.joueurs['V1'] = retirer_label(texte, text_label)
 #
 
-def personnage_relations(texte: str, perso_en_cours: Personnage, text_label: str):
+def personnage_relations(text_label: str):
     print(f"Balise {text_label} trouvée : cette balise n'est plus prise en compte")
 
 
-def personnage_intrigues(texte: str, perso_en_cours: Personnage, text_label: str):
+def personnage_intrigues(text_label: str):
     print(f"Balise {text_label} trouvée : cette balise n'a pas d'effet dans MAGnet")
 
 
@@ -1833,7 +1856,7 @@ def personnage_interprete(texte: str, perso_en_cours: Personnage, text_label: st
 #     perso_en_cours.joueurs['V2'] = retirer_label(texte, text_label)
 
 
-def personnage_pitch(texte: str, perso_en_cours: Personnage, text_label: str):
+def personnage_pitch(texte: str, perso_en_cours: Personnage):
     perso_en_cours.pitch = retirer_premiere_ligne(texte)
 
 
@@ -1854,23 +1877,23 @@ def personnage_groupes(texte: str, perso_en_cours: Personnage, text_label: str):
     perso_en_cours.groupes.extend([nom_groupe.strip() for nom_groupe in texte.split(',')])
 
 
-def personnage_bio(texte: str, perso_en_cours: Personnage, text_label: str):
+def personnage_bio(texte: str, perso_en_cours: Personnage):
     perso_en_cours.description = retirer_premiere_ligne(texte)
 
 
-def personnage_psycho(texte: str, perso_en_cours: Personnage, text_label: str):
+def personnage_psycho(texte: str, perso_en_cours: Personnage):
     perso_en_cours.concept = retirer_premiere_ligne(texte)
 
 
-def personnage_motivation(texte: str, perso_en_cours: Personnage, text_label: str):
+def personnage_motivation(texte: str, perso_en_cours: Personnage):
     perso_en_cours.driver = retirer_premiere_ligne(texte)
 
 
-def personnage_chronologie(texte: str, perso_en_cours: Personnage, text_label: str):
+def personnage_chronologie(texte: str, perso_en_cours: Personnage):
     perso_en_cours.datesClefs = retirer_premiere_ligne(texte)
 
 
-def personnage_relations_bi(texte: str, perso_en_cours: Personnage, text_label: str):
+def personnage_relations_bi(texte: str, perso_en_cours: Personnage):
     tableau_relation_bi_brut, _ = reconstituer_tableau(texte)
     print(f"tab brut : {tableau_relation_bi_brut}")
     # comme on est dans une fiche perso, il est implicite que le perso fait partie de la relation : on l'ajoute donc
@@ -1878,7 +1901,7 @@ def personnage_relations_bi(texte: str, perso_en_cours: Personnage, text_label: 
     extraire_relations_bi(perso_en_cours, tableau_relation_bi_complet, avec_tableau_persos=False)
 
 
-def personnage_relations_multi(texte: str, perso_en_cours: Personnage, text_label: str):
+def personnage_relations_multi(texte: str, perso_en_cours: Personnage):
     tableau_relation_multi_brut, _ = reconstituer_tableau(texte)
 
     # comme on est dans une fiche perso, il est implicite que le perso fait partie de la relation : on l'ajoute donc
@@ -1889,7 +1912,7 @@ def personnage_relations_multi(texte: str, perso_en_cours: Personnage, text_labe
     extraire_relation_multi(perso_en_cours, tableau_relation_multi_complet, avec_tableau_des_persos=False)
 
 
-def personnage_scenes(texte: str, perso_en_cours: Personnage, text_label: str):
+def personnage_scenes(texte: str, perso_en_cours: Personnage):
     texte2scenes(perso_en_cours, perso_en_cours.nom, texte, tableau_roles_existant=False)
 
 
@@ -1911,12 +1934,12 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
 
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
-    objet_en_cours = ObjetDeReference(nom_objet=nom_objet_en_cours,
-                                      code_objet=code_objet,
-                                      id_url=id_url,
-                                      derniere_edition_date=last_file_edit,
-                                      derniere_edition_par=derniere_modification_par)
-    dict_objets_de_reference[id_url] = objet_en_cours
+    current_objet = ObjetDeReference(nom_objet=nom_objet_en_cours,
+                                     code_objet=code_objet,
+                                     id_url=id_url,
+                                     derniere_edition_date=last_file_edit,
+                                     derniere_edition_par=derniere_modification_par)
+    dict_objets_de_reference[id_url] = current_objet
 
     texte_objets_low = texte_objets.lower()  # on passe en minuscule pour mieux trouver les chaines
 
@@ -1936,17 +1959,29 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
 
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_objets_low)
 
+    # dict_methodes = {
+    #     Labels.REFERENT: objets_referent,
+    #     Labels.INTRIGUE: objets_noms_intrigues,
+    #     Labels.INTRIGUES: objets_noms_intrigues,
+    #     Labels.UTILITE: objets_utilite,
+    #     Labels.BUDGET: objets_budget,
+    #     Labels.RECOMMANDATION: objets_recommandation,
+    #     Labels.MATERIAUX: objets_materiaux,
+    #     Labels.MOODBOARD: objets_moodboard,
+    #     Labels.DESCRIPTION: objets_description,
+    #     Labels.FX: objets_effets_speciaux
+    # }
     dict_methodes = {
-        Labels.REFERENT: objets_referent,
-        Labels.INTRIGUE: objets_noms_intrigues,
-        Labels.INTRIGUES: objets_noms_intrigues,
-        Labels.UTILITE: objets_utilite,
-        Labels.BUDGET: objets_budget,
-        Labels.RECOMMANDATION: objets_recommandation,
-        Labels.MATERIAUX: objets_materiaux,
-        Labels.MOODBOARD: objets_moodboard,
-        Labels.DESCRIPTION: objets_description,
-        Labels.FX: objets_effets_speciaux
+        Labels.REFERENT: lambda x: objets_referent(x, current_objet, Labels.REFERENT.value),
+        Labels.INTRIGUE: lambda x: objets_noms_intrigues(Labels.INTRIGUE.value),
+        Labels.INTRIGUES: lambda x: objets_noms_intrigues(Labels.INTRIGUES.value),
+        Labels.UTILITE: lambda x: objets_utilite(x, current_objet, Labels.UTILITE.value),
+        Labels.BUDGET: lambda x: objets_budget(x, current_objet, Labels.BUDGET.value),
+        Labels.RECOMMANDATION: lambda x: objets_recommandation(x, current_objet, Labels.RECOMMANDATION.value),
+        Labels.MATERIAUX: lambda x: objets_materiaux(x, current_objet, Labels.MATERIAUX.value),
+        Labels.MOODBOARD: lambda x: objets_moodboard(Labels.MOODBOARD.value),
+        Labels.DESCRIPTION: lambda x: objets_description(x, current_objet),
+        Labels.FX: lambda x: objets_effets_speciaux(x, current_objet, Labels.FX.value)
     }
 
     for label in Labels:
@@ -1956,11 +1991,12 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
             ma_methode = dict_methodes[label]
             texte = texte_objets[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
             # print(f"debug : texte label {label.value} = {texte}")
-            ma_methode(texte, objet_en_cours, label.value)
+            # ma_methode(texte, current_objet, label.value)
+            ma_methode(texte)
 
     # et on enregistre la date de dernière mise à jour de l'intrigue
-    objet_en_cours.set_last_processing(datetime.datetime.now())
-    return objet_en_cours
+    current_objet.set_last_processing(datetime.datetime.now())
+    return current_objet
 
 
 def objets_effets_speciaux(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
@@ -1971,7 +2007,7 @@ def objets_referent(texte: str, objet_en_cours: ObjetDeReference, texte_label: s
     objet_en_cours.referent = retirer_label(texte, texte_label)
 
 
-def objets_noms_intrigues(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
+def objets_noms_intrigues(texte_label: str):
     print(f"la balise {texte_label} n'a pas d'utilité pour MAGnet")
 
 
@@ -1991,11 +2027,11 @@ def objets_materiaux(texte: str, objet_en_cours: ObjetDeReference, texte_label: 
     objet_en_cours.materiaux = retirer_label(texte, texte_label)
 
 
-def objets_moodboard(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
+def objets_moodboard(texte_label: str):
     print(f"la balise {texte_label} n'a pas d'utilité pour MAGnet")
 
 
-def objets_description(texte: str, objet_en_cours: ObjetDeReference, texte_label: str):
+def objets_description(texte: str, objet_en_cours: ObjetDeReference):
     objet_en_cours.description = retirer_premiere_ligne(texte)
 
 
@@ -2083,12 +2119,6 @@ def lire_google_doc(api_doc, id_doc):
     return text
 
 
-# def inserer_squelettes_dans_drive(parent_id: str, api_doc, api_drive, text: str, nom_fichier, titre=False, prefixe=""):
-#     file_id = add_doc(api_drive, nom_fichier, parent_id, prefixe_message=prefixe)
-#     write_to_doc(api_doc, file_id, text, titre=titre)
-#     formatter_titres_scenes_dans_squelettes(api_doc, file_id)
-
-
 def check_if_doc_exists(service, file_id):
     try:
         # check if the file exists
@@ -2168,32 +2198,6 @@ def write_to_doc(service, file_id, text: str, titre=False):
         return None
 
 
-# def ecrire_texte_et_tables(service, file_id: str, a_ecrire: list[dict], titre=False):
-#
-#     chunks = a_ecrire[::-1]
-#     requests = []
-#     for chunk in chunks:
-#         if text := chunk.get('texte'):
-#             requests.append({
-#                 'insertText': {
-#                     'location': {
-#                         'index': 1
-#                     },
-#                     'text': text
-#                 }
-#             })
-#         if table := chunk.get('table'):
-#
-#
-#     try:
-#         # Execute the request.
-#         result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
-#         return result
-#     except HttpError as error:
-#         print(F'An error occurred: {error}')
-#         return None
-
-
 def formatter_titres_scenes_dans_squelettes(service, file_id):
     try:
         # get the document
@@ -2262,16 +2266,16 @@ def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: st
 def creer_dossier_drive(service_drive, id_parent: str, nom_dossier: str, m_print=print, id_dossier_archive=None) -> \
         Optional[str]:
     """Crée un dossier dans Google Drive."""
-    TYPE_MIME_DOSSIER = 'application/vnd.google-apps.folder'
-    return creer_fichier(service_drive, nom_dossier, id_parent, TYPE_MIME_DOSSIER,
+    type_mime_dossier = 'application/vnd.google-apps.folder'
+    return creer_fichier(service_drive, nom_dossier, id_parent, type_mime_dossier,
                          id_dossier_archive=id_dossier_archive)
 
 
 def creer_google_sheet(service_drive, nom_feuille: str, id_dossier_parent: str, m_print=print,
                        id_dossier_archive=None) -> Optional[str]:
     """Crée un document Google Sheets dans Google Drive."""
-    TYPE_MIME_FEUILLE = 'application/vnd.google-apps.spreadsheet'
-    return creer_fichier(service_drive, nom_feuille, id_dossier_parent, TYPE_MIME_FEUILLE,
+    type_mime_feuille = 'application/vnd.google-apps.spreadsheet'
+    return creer_fichier(service_drive, nom_feuille, id_dossier_parent, type_mime_feuille,
                          id_dossier_archive=id_dossier_archive)
 
 
@@ -2297,6 +2301,13 @@ def archiver_fichiers_existants(service, nom_fichier, id_dossier_parent, id_doss
         id_dossier_archive (str): L'ID du dossier où les fichiers seront archivés.
         considerer_supprime (bool): Si True, considère également les fichiers supprimés.
         fichier_pre_date (bool): Si true, on considère que le nom du fichier en entrée commence par une date et un ' - '
+        :param fichier_pre_date:
+        :param considerer_supprime:
+        :param service:
+        :param nom_fichier:
+        :param id_dossier_archive:
+        :param id_dossier_parent:
+        :param verbal:
     """
     if nom_fichier is None or id_dossier_parent is None or id_dossier_archive is None:
         logging.debug("un paramètre de archiver fichiers existants est Null : "
@@ -2695,18 +2706,18 @@ def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, 
     # Get the list of sheets in the spreadsheet
     sheets = api_sheets.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()['sheets']
 
-    sheetId = None
+    sheet_id = None
 
     for i, sheet in enumerate(sheets):
         # Store the ID of the first sheet
         if i == 0:
-            sheetId = sheet['properties']['sheetId']
+            sheet_id = sheet['properties']['sheetId']
 
         if sheet['properties']['title'] == feuille:
-            sheetId = sheet['properties']['sheetId']
+            sheet_id = sheet['properties']['sheetId']
             break
 
-    expand_grid(api_sheets, spreadsheet_id, sheetId, table)
+    expand_grid(api_sheets, spreadsheet_id, sheet_id, table)
 
     requests = []
 
@@ -2717,7 +2728,7 @@ def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, 
                 requests.append({
                     "updateCells": {
                         "range": {
-                            "sheetId": sheetId,
+                            "sheetId": sheet_id,
                             "startRowIndex": i,
                             "endRowIndex": i + 1,
                             "startColumnIndex": j,
@@ -2738,7 +2749,7 @@ def ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, 
                 requests.append({
                     "updateCells": {
                         "range": {
-                            "sheetId": sheetId,
+                            "sheetId": sheet_id,
                             "startRowIndex": i,
                             "endRowIndex": i + 1,
                             "startColumnIndex": j,
@@ -2975,10 +2986,11 @@ def reconstituer_tableau(texte_lu: str, sans_la_premiere_ligne=True):
 
 def lire_gspread_pj_pnjs(api_sheets, sheet_id):
     """
-    Lit les données des feuilles "PJs" et "PNJs" d'un Google Spreadsheet et les stocke dans deux listes de dictionnaires.
+    Lit les données des feuilles "PJs" et "PNJs" d'un Google Spreadsheet et les stocke dans deux listes de
+    dictionnaires.
 
-    Cette fonction utilise la méthode `mettre_sheet_dans_dictionnaires` pour lire les données des feuilles "PJs" et "PNJs"
-    et les stocker dans deux listes de dictionnaires séparées.
+    Cette fonction utilise la méthode `mettre_sheet_dans_dictionnaires` pour lire les données des feuilles "PJs" et
+    "PNJs" et les stocker dans deux listes de dictionnaires séparées.
 
     Args:
         api_sheets (googleapiclient.discovery.Resource): L'objet API Google Sheets pour accéder au service.
@@ -3031,7 +3043,7 @@ def mettre_sheet_dans_dictionnaires(api_sheets, sheet_id, sheet_name):
                                                         majorDimension="ROWS").execute()
         values = result.get('values', [])
         en_tetes = [en_tete.strip() for en_tete in values[0]]
-        taille_ligne = len(en_tetes)
+        # taille_ligne = len(en_tetes)
 
         to_return = []
         for ligne in values[1:]:
@@ -3111,137 +3123,6 @@ def extraire_commentaires_de_document_drive(api_drive, id_fichier: str):
 
     return to_return
 
-
-# def charger_parser_et_preparer_verification(config: configparser.ConfigParser):
-#     resultats = []
-#     test_global_reussi = True
-#
-#     dict_config = {}
-#     dossiers_a_verifier = []
-#     google_docs_a_verifier = []
-#     google_sheets_a_verifier = []
-#     # *** vérification que tous les paramètres Essentiels sont présents
-#     # intégration du fichier de sortie
-#     try:
-#         dict_config['dossier_output'] = config.get('Essentiels', 'dossier_output_squelettes_pjs')
-#     except configparser.NoOptionError:
-#         resultats.append(
-#             ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de dossier de sortie trouvé"])
-#         test_global_reussi = False
-#     # intégration des dossiers intrigues et vérifications
-#     dict_config['dossiers_intrigues'] = []
-#     clefs_intrigues = [key for key in config.options("Essentiels") if key.startswith("id_dossier_intrigues")]
-#     for clef in clefs_intrigues:
-#         valeur = config.get("Essentiels", clef)
-#         dossiers_a_verifier.append([clef, valeur])
-#         dict_config['dossiers_intrigues'].append(valeur)
-#     if len(dict_config.get('dossiers_intrigues', [])) == 0:
-#         resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de dossier intrigue"])
-#         test_global_reussi = False
-#     # intégration du mode association et vérifications
-#     try:
-#         mode_association_value = int(config.get('Essentiels', 'mode_association', fallback="9")[0])
-#         if mode_association_value in [0, 1]:
-#             dict_config['mode_association'] = GN.ModeAssociation(mode_association_value)
-#         else:
-#             resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Mode association invalide"])
-#             test_global_reussi = False
-#     except configparser.NoOptionError:
-#         resultats.append(
-#             ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de mode association trouvé"])
-#         test_global_reussi = False
-#     except IndexError:
-#         resultats.append(
-#             ["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de mode association trouvé"])
-#         test_global_reussi = False
-#     # intégration du fichier de sauvegarde
-#     try:
-#         dict_config['nom_fichier_sauvegarde'] = config.get('Essentiels', 'nom_fichier_sauvegarde')
-#     except configparser.NoOptionError:
-#         resultats.append(["Paramètre Essentiels", "Validité du fichier de paramètres", "Pas de fichier de sauvegarde"])
-#         test_global_reussi = False
-#     # intégration d'une ligne de bilan des tests essentiels
-#     if test_global_reussi:
-#         resultats.append(["Paramètre Essentiels", "Présence des champs", "Test Réussi"])
-#     # *** intégration des fichiers optionnels
-#     # création du paramètre fichier local sauvegarde, par défaut ou tel que lu
-#     try:
-#         nom_dossier_sauvegarde = config.get('Optionnels', 'nom_fichier_sauvegarde')
-#         dict_config['dossier_local_fichier_sauvegarde'] = os.path.join(os.path.curdir, nom_dossier_sauvegarde)
-#     except configparser.NoOptionError:
-#         dict_config['dossier_local_fichier_sauvegarde'] = os.path.curdir
-#     # intégration des dossiers PJs
-#     dict_config['dossiers_pjs'] = []
-#     clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_pjs")]
-#     for clef in clefs_pjs:
-#         valeur = config.get("Optionnels", clef)
-#         dossiers_a_verifier.append([clef, valeur])
-#         dict_config['dossiers_pjs'].append(valeur)
-#     # intégration des dossiers PNJs
-#     dict_config['dossiers_pnjs'] = []
-#     clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_pnjs")]
-#     for clef in clefs_pjs:
-#         valeur = config.get("Optionnels", clef)
-#         dossiers_a_verifier.append([clef, valeur])
-#         dict_config['dossiers_pnjs'].append(valeur)
-#     # intégration des dossiers Evenements
-#     dict_config['dossiers_evenements'] = []
-#     clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_evenements")]
-#     for clef in clefs_pjs:
-#         valeur = config.get("Optionnels", clef)
-#         dossiers_a_verifier.append([clef, valeur])
-#         dict_config['dossiers_evenements'].append(valeur)
-#     # intégration des dossiers objets
-#     dict_config['dossiers_objets'] = []
-#     clefs_pjs = [key for key in config.options("Optionnels") if key.startswith("id_dossier_objets")]
-#     for clef in clefs_pjs:
-#         valeur = config.get("Optionnels", clef)
-#         dossiers_a_verifier.append([clef, valeur])
-#         dict_config['dossiers_objets'].append(valeur)
-#     # intégration du fichier des factions
-#     id_factions = config.get('Optionnels', 'id_factions', fallback=None)
-#     dict_config['id_factions'] = id_factions
-#     if id_factions:
-#         google_docs_a_verifier.append(["id_factions", id_factions])
-#     # intégration du fichier des ids pjs_pnjs
-#     id_pjs_et_pnjs = config.get('Optionnels', 'id_pjs_et_pnjs', fallback=None)
-#     if id_pjs_et_pnjs:
-#         dict_config['id_pjs_et_pnjs'] = id_pjs_et_pnjs
-#         google_sheets_a_verifier.append(["id_pjs_et_pnjs", id_pjs_et_pnjs])
-#     else:
-#         logging.debug("Je suis en train de lire le fichier de config et je n'ai pas trouvé d'id pjpnj en ligne")
-#         dict_config['fichier_noms_pnjs'] = config.get('Optionnels', 'nom_fichier_pnjs', fallback=None)
-#         dict_config['liste_noms_pjs'] = [nom_p.strip()
-#                                             for nom_p in
-#                                             config.get('Optionnels', 'noms_persos', fallback="").split(',')]
-#     # ajout de la date du GN
-#     texte_date_gn = config.get('Optionnels', 'date_gn', fallback=None)
-#     if texte_date_gn:
-#         dict_config['date_gn'] = dateparser.parse(texte_date_gn, languages=['fr'])
-#         logging.debug(f"date_gn formattée = {dict_config['date_gn']}")
-#     else:
-#         logging.debug("pour ce GN, date_gn = Pas de date lue")
-#     dict_config['prefixe_intrigues'] = config.get('Optionnels', 'prefixe_intrigues', fallback="I")
-#     dict_config['prefixe_evenements'] = config.get('Optionnels', 'prefixe_evenements', fallback="E")
-#     dict_config['prefixe_PJs'] = config.get('Optionnels', 'prefixe_PJs', fallback="P")
-#     dict_config['prefixe_PNJs'] = config.get('Optionnels', 'prefixe_PNJs', fallback="N")
-#     dict_config['prefixe_objets'] = config.get('Optionnels', 'prefixe_objets', fallback="O")
-#     dict_config['liste_noms_pjs'] = config.get('Optionnels', 'noms_persos', fallback=None)
-#     # ajouter le dossier archive
-#     dict_config['id_dossier_archive'] = config.get('Optionnels', 'id_dossier_archive', fallback=None)
-#     return dict_config, test_global_reussi, resultats, \
-#         dossiers_a_verifier, google_docs_a_verifier, google_sheets_a_verifier
-
-
-# # Utilisation de la méthode
-# config_dict = charger_fichier_init("config.ini")
-# if config_dict:
-#     resultats, test_reussi = verifier_fichier_config(config_dict)
-#     for param, resultat in resultats:
-#         print(f"{param}: {'Réussi' if resultat else 'Échec'}")
-#     print(f"Test global: {'Réussi' if test_reussi else 'Échec'}")
-# else:
-#     print("Erreur lors du chargement du fichier de configuration.")
 
 def preparer_tests_dict_config(dict_config: dict):
     dossiers_a_verifier = []
@@ -3384,7 +3265,7 @@ def creer_dict_config(config: configparser.ConfigParser):
             valeur = config.get(section, clef)
             dict_config[clef_valeurs].append(valeur)
             dict_config[clef_nom].append(clef)
-            #todo : si remise à plat du dictionnaire de paramètres, renvoyer un dictionnaire plutot que deux listes
+            # todo : si remise à plat du dictionnaire de paramètres, renvoyer un dictionnaire plutot que deux listes
 
     # intégration des dossiers intrigues et vérifications
 
@@ -3489,14 +3370,13 @@ def fichier_ini_2_parser(fichier_ini: str):
     Paramètres:
     - fichier_ini (str) : Chemin d'accès complet du fichier INI à charger.
 
-    Retourne:
-    - tuple: Un tuple contenant deux éléments :
-        1. configparser.ConfigParser: L'objet de configuration chargé à partir du fichier INI. Retourne None si une erreur s'est produite.
-        2. list: Une liste de listes contenant des détails sur l'erreur. Retourne None si le chargement a réussi.
+    Retourne: - tuple: Un tuple contenant deux éléments : 1. configparser.ConfigParser: L'objet de configuration
+    chargé à partir du fichier INI. Retourne None si une erreur s'est produite. 2. list: Une liste de listes
+    contenant des détails sur l'erreur. Retourne None si le chargement a réussi.
 
-    Notes:
-    - En cas d'erreur lors du chargement, la fonction retourne un objet ConfigParser vide et une liste décrivant l'erreur.
-    - Si le fichier est chargé avec succès, la fonction retourne l'objet de configuration et la valeur None pour l'erreur.
+    Notes: - En cas d'erreur lors du chargement, la fonction retourne un objet ConfigParser vide et une liste
+    décrivant l'erreur. - Si le fichier est chargé avec succès, la fonction retourne l'objet de configuration et la
+    valeur None pour l'erreur.
     """
     try:
         # #création du fichier d'entrée
@@ -3525,6 +3405,7 @@ def verifier_fichier_gn_et_fournir_dict_config(nom_fichier: str, api_drive, m_pr
 
     test_ok, commentaires = verifier_dict_config(dict_config, api_drive)
     return test_ok, commentaires, dict_config
+
 
 def verifier_config_parser(api_drive, config: configparser.ConfigParser):
     dict_config, test_global_reussi, resultats = creer_dict_config(config)
@@ -3575,18 +3456,12 @@ def extraire_id_google_si_possible(user_text):
     # Regular expression pattern for Google Drive, Sheets, and Docs URLs
     pattern = r'https?://(?:drive|docs)\.google\.com/(?:drive/u/0/folders/|spreadsheets/d/|document/d/)([a-zA-Z0-9_-]+)'
 
-    # Search for the pattern in the user text
-    match = re.search(pattern, user_text)
-
-    # If a match is found, return the resource ID from the match
-    if match:
+    if match := re.search(pattern, user_text):
         return match.group(1), True
 
-    # If no match is found, check if the user_text looks like an ID
     elif re.fullmatch(r'[a-zA-Z0-9_-]+', user_text):
         return user_text, True
 
-    # If neither a URL nor an ID, return None
     else:
         return user_text, False
 
@@ -3603,11 +3478,9 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
     print(f"DEBUG : query telechargement archive = {query}")
     results = api_drive.files().list(q=query,
                                      orderBy="modifiedTime desc",
-                                     fields = "files(id, name)",
+                                     fields="files(id, name)",
                                      pageSize=1).execute()
-    items = results.get('files', [])
-
-    if items:
+    if items := results.get('files', []):
         if last_save_connu:
             nom = items[0]['name']
             last_save_online = nom.split(' - ')[0]
@@ -3624,7 +3497,7 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
         with io.FileIO(local_path, 'wb') as file:
             downloader = MediaIoBaseDownload(file, request)
             done = False
-            while done is False:
+            while not done:
                 status, done = downloader.next_chunk()
         return local_path
     else:
@@ -3633,7 +3506,6 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
 
 
 def uploader_archive(file_path, folder_id, api_drive, current_date):
-
     new_filename = f"{current_date} - {os.path.basename(file_path)}"
     new_filename = normaliser_nom_gn(new_filename)
 
@@ -3666,7 +3538,8 @@ def charger_gn(nom_archive: str, source_folder_id: str, dest_folder: str, api_dr
     return GN.load(chemin_archive, dict_config=dict_config, m_print=m_print)
 
 
-def charger_gn_from_dict(dict_config: dict, api_drive=None, m_print=print, updater_dict_config=True, last_save_connu=None):
+def charger_gn_from_dict(dict_config: dict, api_drive=None, m_print=print, updater_dict_config=True,
+                         last_save_connu=None):
     nom_archive = normaliser_nom_gn(dict_config['nom_fichier_sauvegarde'])
     dest_folder = dict_config['dossier_local_fichier_sauvegarde']
     source_folder_id = dict_config.get('dossier_output')
@@ -3674,7 +3547,8 @@ def charger_gn_from_dict(dict_config: dict, api_drive=None, m_print=print, updat
                       dict_config=dict_config if updater_dict_config else None,
                       last_save_connu=last_save_connu)
 
-def charger_gn_from_gn(mon_gn: GN,api_drive, m_print=print, updater_dict_config=None):
+
+def charger_gn_from_gn(mon_gn: GN, api_drive, m_print=print, updater_dict_config=None):
     nom_archive = mon_gn.get_nom_fichier_sauvegarde()
     dest_folder = mon_gn.get_dossier_local_fichier_sauvegarde()
     source_folder_id = mon_gn.get_dossier_outputs_drive()
@@ -3684,7 +3558,7 @@ def charger_gn_from_gn(mon_gn: GN,api_drive, m_print=print, updater_dict_config=
                       last_save_connu=last_save_connu)
 
 
-def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None, rendre_gn_recherchable = True):
+def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None, rendre_gn_recherchable=True):
     current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
     path = mon_gn.save(last_save=current_date)
@@ -3718,7 +3592,7 @@ def ajouter_archive_gn_aux_recherchables(api_drive, dossier_upload: str, fichier
         fh = io.BytesIO()
         downloader = MediaIoBaseDownload(fh, request)
         done = False
-        while done is False:
+        while not done:
             status, done = downloader.next_chunk()
 
         fh.seek(0)
