@@ -814,18 +814,6 @@ def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
         texte_perso += f"Chronologie : \n "
         texte_perso += f"{perso.datesClefs} \n"
 
-        # for item in perso.description:
-        #     texte_perso += f"{item} \n"
-        # texte_perso += f"Psychologie : \n"
-        # for item in perso.concept:
-        #     texte_perso += f"{item} \n"
-        # texte_perso += f"Motivations et objectifs : \n"
-        # logging.debug(f"driver avant insertion {perso.driver}")
-        # for item in perso.driver:
-        #     texte_perso += f"{item} \n"
-        # texte_perso += f"Chronologie : \n "
-        # for item in perso.datesClefs:
-        #     texte_perso += f"{item} \n"
         texte_perso += "\n *** Intrigues : *** \n"
         texte_perso += perso.str_recap_intrigues()
 

@@ -12,6 +12,8 @@ from fuzzywuzzy import process
 from packaging import version
 from unidecode import unidecode
 
+import lecteurGoogle
+
 VERSION = "1.2.20231102"
 VERSION_MODELE = "1.1.20230826"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
@@ -322,11 +324,19 @@ class Personnage(ConteneurDeScene):
         tab_intrigues = sorted(tab_intrigues, key=lambda x: x['pips'], reverse=True)
 
         # to_return = "Implications dans les intrigues : \n"
-        to_return = ""
+        to_return = lecteurGoogle.DEBUT_TABLEAU
         for intrigue in tab_intrigues:
-            to_return += f"{intrigue['nom_conteneur']} - {intrigue['url_conteneur']} \n"
-            to_return += f"{intrigue['pips']} points \n"
-            to_return += f"{intrigue['description']} \n\n"
+            to_return += f"{intrigue['nom_conteneur']} - {intrigue['url_conteneur']}{lecteurGoogle.SEPARATEUR_COLONNES}"
+            to_return += f"{intrigue['pips']} points{lecteurGoogle.SEPARATEUR_COLONNES}"
+            to_return += f"{intrigue['description']}{lecteurGoogle.FIN_LIGNE}"
+        to_return += lecteurGoogle.FIN_TABLEAU
+
+        # # to_return = "Implications dans les intrigues : \n"
+        # to_return = ""
+        # for intrigue in tab_intrigues:
+        #     to_return += f"{intrigue['nom_conteneur']} - {intrigue['url_conteneur']} \n"
+        #     to_return += f"{intrigue['pips']} points \n"
+        #     to_return += f"{intrigue['description']} \n\n"
 
         return to_return
 

@@ -2149,13 +2149,11 @@ def is_document_being_edited(service, file_id):
 
 
 def write_to_doc(service, file_id, text: str, titre=False):
-
-    texte_sans_balises_tableau = text.replace(lecteurGoogle.DEBUT_TABLEAU, '')\
-        .replace(lecteurGoogle.FIN_TABLEAU, '')\
-        .replace(lecteurGoogle.SEPARATEUR_COLONNES, '')\
-        .replace(lecteurGoogle.SEPARATEUR_LIGNES, '')\
+    texte_sans_balises_tableau = text.replace(lecteurGoogle.DEBUT_TABLEAU, '') \
+        .replace(lecteurGoogle.FIN_TABLEAU, '') \
+        .replace(lecteurGoogle.SEPARATEUR_COLONNES, '') \
+        .replace(lecteurGoogle.SEPARATEUR_LIGNES, '') \
         .replace(lecteurGoogle.FIN_LIGNE, '')
-
 
     # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
     formatting_requests = []
@@ -2191,6 +2189,17 @@ def write_to_doc(service, file_id, text: str, titre=False):
         start_index = 1
 
         while lecteurGoogle.DEBUT_TABLEAU in text:
+            # DEBUG : ajout d'un lore lipsuym pour comprendre le décalage
+            lore = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+            requests.append({
+                'insertText': {
+                    'location': {
+                        'index': 1
+                    },
+                    'text': lore * 30
+                }
+            })
+
             # Extraire le texte avant le tableau
             start_table = text.find(lecteurGoogle.DEBUT_TABLEAU)
             text_before_table = text[:start_table]
@@ -2218,7 +2227,10 @@ def write_to_doc(service, file_id, text: str, titre=False):
             num_rows = len(table)
             num_columns = max(len(row) for row in table)
 
-            #créer la structure du tableau
+            print(f'DEBUG : table pour les intrigues : {table}')
+            print(f'DEBUG : {num_columns} x {num_rows}')
+
+            # créer la structure du tableau
             requests.append({
                 'insertTable': {
                     'location': {
@@ -2229,21 +2241,60 @@ def write_to_doc(service, file_id, text: str, titre=False):
                 }
             })
 
-            # Remplir le tableau avec les valeurs de liste_2d
-            for row_index, row in enumerate(table):
-                for col_index, cell_text in enumerate(row):
-                    # Calculer l'index de la cellule dans le document
-                    cell_start_index = start_index + 1 + (row_index * len(row) + col_index) * (len(cell_text) + 1)
+            #focntions pour calculer l'offset du début d'une cellule dans le tableau ou la reprise
+            # a utiliser à l'envers, en commencant par la fin, pour ne pas pourrir les calcule
+            def calculer_offset(no_ligne, no_colonne, nb_colonnes):
+                return 4 + (no_colonne-1) * 2 + (no_ligne-1) * (nb_colonnes * 2 + 1)
+            def calculer_offset_fin_tableau(nb_lignes, nb_colonnes):
+                return calculer_offset(nb_lignes, nb_colonnes, nb_colonnes)+2
+            # # Remplir le tableau avec des dummys variables
 
-                    # Insérer le texte dans la cellule
-                    requests.append({
-                        'insertText': {
-                            'location': {
-                                'index': cell_start_index
-                            },
-                            'text': cell_text
-                        }
-                    })
+            # requests.append({
+            #     'insertText': {
+            #         'location': {
+            #             'index': start_index+4
+            #         },
+            #         'text': "B2"
+            #     }
+            # })
+            # requests.append({
+            #     "insertText":
+            #         {
+            #             "text": "test",
+            #             "location":
+            #                 {
+            #                     "index": start_index + calculer_offset(4, 3, 3)
+            #                 }
+            #         }
+            # })
+
+            # # Remplir le tableau avec les valeurs dela table
+            taille_texte_insere = 0
+            # parcourir la table à l'envers
+            for no_ligne in range(num_rows, 0, -1):
+                for no_colonne in range(num_columns, 0, -1):
+                    offset = calculer_offset(no_ligne, no_colonne, num_columns)
+                    try:
+                        # afficher le numéro de la colonne, le numéro de la ligne, et le contenu de la case
+                        # print(f"Colonne {j}, Ligne {i} : {table[i][j]}")
+                        # Insérer le texte dans la cellule
+                        texte_a_inserer = table[no_ligne-1][no_colonne-1]
+                        print(f'DEBUG : {no_ligne - 1}{no_colonne - 1} texte à insérer : {texte_a_inserer}')
+                        if len(texte_a_inserer):
+                            requests.append({
+                                'insertText': {
+                                    'location': {
+                                        'index': start_index + offset
+                                    },
+                                    'text': texte_a_inserer
+                                }
+                            })
+                            taille_texte_insere += len(texte_a_inserer)
+                    except IndexError as e:
+                        print(f'DEBUG : exception en {no_ligne}:{no_colonne} (offset : {offset} : {e}')
+
+            #mettre à jour l'offset pour reprendre l'inserttion du texte
+            start_index += calculer_offset_fin_tableau(num_rows, num_columns) + taille_texte_insere
 
             # Supprimer le texte du tableau du texte original
             text = text[end_table:]
@@ -2259,7 +2310,63 @@ def write_to_doc(service, file_id, text: str, titre=False):
         })
 
         # ajouter le formattage à la requete d'insert
-        requests += formatting_requests
+        # requests += formatting_requests
+
+        #debug : code récupérer de slack, fontionnel, utilisé pour comprendre les offsets
+        # requests = [
+        #     {
+        #         "insertTable":
+        #             {
+        #                 "rows": 2,
+        #                 "columns": 2,
+        #                 "location":
+        #                     {
+        #                         "index": 1
+        #                     }
+        #             }
+        #     },
+        #     {
+        #         "insertText":
+        #             {
+        #                 "text": "B2",
+        #                 "location":
+        #                     {
+        #                         "index": 12
+        #                     }
+        #             }
+        #     },
+        #     {
+        #         "insertText":
+        #             {
+        #                 "text": "A2",
+        #                 "location":
+        #                     {
+        #                         "index": 10
+        #                     }
+        #             }
+        #     },
+        #     {
+        #         "insertText":
+        #             {
+        #                 "text": "B1",
+        #                 "location":
+        #                     {
+        #                         "index": 7
+        #                     }
+        #             }
+        #     },
+        #     {
+        #         "insertText":
+        #             {
+        #                 "text": "A1",
+        #                 "location":
+        #                     {
+        #                         "index": 5
+        #                     }
+        #             }
+        #     }
+        # ]
+
 
         # Execute the request.
         result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
@@ -2331,6 +2438,7 @@ def write_to_doc(service, file_id, text: str, titre=False):
     #     print(f'An error occurred: {error}')
     #     return None
 
+
 def write_to_doc_old(service, file_id, text: str, titre=False):
     # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
     formatting_requests = []
@@ -2379,6 +2487,7 @@ def write_to_doc_old(service, file_id, text: str, titre=False):
     except HttpError as error:
         print(F'An error occurred: {error}')
         return None
+
 
 def formatter_titres_scenes_dans_squelettes(service, file_id):
     try:
