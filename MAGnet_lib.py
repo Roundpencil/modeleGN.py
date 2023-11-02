@@ -643,7 +643,7 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
             nom_personnage,
             nom_role,
             f'{score} % de certitude',
-            'oui' if noms_personnages in noms_roles_dans_tableau_intrigue else 'non'
+            'oui' if nom_personnage in noms_roles_dans_tableau_intrigue else 'non'
         ])
 
     to_print = "Tableau suggéré : \n"
