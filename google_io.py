@@ -2149,6 +2149,189 @@ def is_document_being_edited(service, file_id):
 
 
 def write_to_doc(service, file_id, text: str, titre=False):
+
+    texte_sans_balises_tableau = text.replace(lecteurGoogle.DEBUT_TABLEAU, '')\
+        .replace(lecteurGoogle.FIN_TABLEAU, '')\
+        .replace(lecteurGoogle.SEPARATEUR_COLONNES, '')\
+        .replace(lecteurGoogle.SEPARATEUR_LIGNES, '')\
+        .replace(lecteurGoogle.FIN_LIGNE, '')
+
+
+    # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
+    formatting_requests = []
+
+    # url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+    # pattern évolué pour ne plus prendre en compte les parenthèses
+    url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+
+    for match in re.finditer(url_pattern, texte_sans_balises_tableau):
+        url = match.group()
+        start = match.start()
+        end = match.end()
+
+        formatting_requests.append({
+            'updateTextStyle': {
+                'range': {
+                    'startIndex': start + 1,
+                    'endIndex': end + 1,
+                },
+                'textStyle': {
+                    'link': {
+                        'url': url
+                    }
+                },
+                'fields': 'link'
+            }
+        })
+
+    # a ce stade là, les endroits qui doivent être mis sous forme d'url sont identifiés
+    # l'ancien code, fonctionnel
+    try:
+        requests = []
+        start_index = 1
+
+        while lecteurGoogle.DEBUT_TABLEAU in text:
+            # Extraire le texte avant le tableau
+            start_table = text.find(lecteurGoogle.DEBUT_TABLEAU)
+            text_before_table = text[:start_table]
+
+            # Ajouter la requête pour insérer le texte avant le tableau
+            requests.append({
+                'insertText': {
+                    'location': {
+                        'index': start_index
+                    },
+                    'text': text_before_table
+                }
+            })
+
+            start_index += len(text_before_table)
+
+            # Extraire le texte du tableau
+            end_table = text.find(lecteurGoogle.FIN_TABLEAU, start_table) + len(lecteurGoogle.FIN_TABLEAU)
+            table_text = text[start_table + len(lecteurGoogle.DEBUT_TABLEAU):end_table - len(lecteurGoogle.FIN_TABLEAU)]
+
+            # Créer le tableau à partir du texte
+            rows = table_text.split(lecteurGoogle.FIN_LIGNE)
+            table = [row.split(lecteurGoogle.SEPARATEUR_COLONNES) for row in rows]
+
+            num_rows = len(table)
+            num_columns = max(len(row) for row in table)
+
+            #créer la structure du tableau
+            requests.append({
+                'insertTable': {
+                    'location': {
+                        'index': start_index
+                    },
+                    'rows': num_rows,
+                    'columns': num_columns
+                }
+            })
+
+            # Remplir le tableau avec les valeurs de liste_2d
+            for row_index, row in enumerate(table):
+                for col_index, cell_text in enumerate(row):
+                    # Calculer l'index de la cellule dans le document
+                    cell_start_index = start_index + 1 + (row_index * len(row) + col_index) * (len(cell_text) + 1)
+
+                    # Insérer le texte dans la cellule
+                    requests.append({
+                        'insertText': {
+                            'location': {
+                                'index': cell_start_index
+                            },
+                            'text': cell_text
+                        }
+                    })
+
+            # Supprimer le texte du tableau du texte original
+            text = text[end_table:]
+
+        # Ajouter la requête pour insérer le reste du texte
+        requests.append({
+            'insertText': {
+                'location': {
+                    'index': start_index
+                },
+                'text': text
+            }
+        })
+
+        # ajouter le formattage à la requete d'insert
+        requests += formatting_requests
+
+        # Execute the request.
+        result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
+        return result
+    except HttpError as error:
+        print(f'An error occurred: {error}')
+        return None
+    # try:
+    #     requests = []
+    #     start_index = 1
+    #
+    #     while lecteurGoogle.DEBUT_TABLEAU in text:
+    #         # Extraire le texte avant le tableau
+    #         start_table = text.find(lecteurGoogle.DEBUT_TABLEAU)
+    #         text_before_table = text[:start_table]
+    #
+    #         # Ajouter la requête pour insérer le texte avant le tableau
+    #         requests.append({
+    #             'insertText': {
+    #                 'location': {
+    #                     'index': start_index
+    #                 },
+    #                 'text': text_before_table
+    #             }
+    #         })
+    #
+    #         start_index += len(text_before_table)
+    #
+    #         # Extraire le texte du tableau
+    #         end_table = text.find(lecteurGoogle.FIN_TABLEAU, start_table) + len(lecteurGoogle.FIN_TABLEAU)
+    #         table_text = text[start_table + len(lecteurGoogle.DEBUT_TABLEAU):end_table - len(lecteurGoogle.FIN_TABLEAU)]
+    #
+    #         # Créer le tableau à partir du texte
+    #         rows = table_text.split(lecteurGoogle.FIN_LIGNE)
+    #         table = [row.split(lecteurGoogle.SEPARATEUR_COLONNES) for row in rows]
+    #
+    #         table_rows = [{'values': [{'content': cell} for cell in row]} for row in table]
+    #         requests.append({
+    #             {
+    #                 'insertTable': {
+    #                     'location': {
+    #                         'index': start_index,
+    #                     },
+    #                     'rows': table_rows,
+    #                 },
+    #             },
+    #         })
+    #
+    #         # Supprimer le texte du tableau du texte original
+    #         text = text[end_table:]
+    #
+    #     # Ajouter la requête pour insérer le reste du texte
+    #     requests.append({
+    #         'insertText': {
+    #             'location': {
+    #                 'index': start_index
+    #             },
+    #             'text': text
+    #         }
+    #     })
+    #
+    #     # ajouter le formattage à la requete d'insert
+    #     requests += formatting_requests
+    #
+    #     # Execute the request.
+    #     result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
+    #     return result
+    # except HttpError as error:
+    #     print(f'An error occurred: {error}')
+    #     return None
+
+def write_to_doc_old(service, file_id, text: str, titre=False):
     # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
     formatting_requests = []
 
@@ -2196,7 +2379,6 @@ def write_to_doc(service, file_id, text: str, titre=False):
     except HttpError as error:
         print(F'An error occurred: {error}')
         return None
-
 
 def formatter_titres_scenes_dans_squelettes(service, file_id):
     try:

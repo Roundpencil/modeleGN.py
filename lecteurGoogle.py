@@ -22,9 +22,12 @@ SCOPES = [
 
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre des tokens dans la déclaration
 
+DEBUT_TABLEAU = '¤¤d¤¤'
+FIN_TABLEAU = '¤¤f¤¤'
 SEPARATEUR_COLONNES = "¤¤c¤¤"
 SEPARATEUR_LIGNES = "¤¤l¤¤"
-FIN_LIGNE = SEPARATEUR_COLONNES + SEPARATEUR_LIGNES
+FIN_LIGNE = '¤¤fl¤¤'
+# FIN_LIGNE = SEPARATEUR_COLONNES + SEPARATEUR_LIGNES
 
 
 # crée deux lecteurs, api_doc et ApiDoc, pour pouvoir lire plus facilement les fichiers par la suite

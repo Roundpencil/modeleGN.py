@@ -1046,8 +1046,11 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
             debuteou = objet.commence.replace('\n', '\v')
             fournipar = ""
             intrigue = ""
-            evenement = objet.evenement.nom_evenement
+            # evenement = objet.evenement.nom_evenement
+            evenement = lien_vers_hyperlink(objet.evenement.get_full_url(), objet.evenement.nom)
+
             fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
+            orga_referent = objet.get_orga_referent()
             to_return.append([f"{code}",
                               f"{description}",
                               f"{avecfx}",
@@ -1056,7 +1059,8 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
                               f"{fournipar}",
                               f"{intrigue}",
                               f"{evenement}",
-                              f"{fiche_objet}"]
+                              f"{fiche_objet}",
+                              f"{orga_referent}"]
                              )
 
     return to_return
