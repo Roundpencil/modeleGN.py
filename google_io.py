@@ -3691,7 +3691,7 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
     #                                pageSize=1).execute()
 
     query = f"'{source_folder_id}' in parents and name contains '{save_file_name}'"
-    print(f"DEBUG : query telechargement archive = {query}")
+    # print(f"DEBUG : query telechargement archive = {query}")
     results = api_drive.files().list(q=query,
                                      orderBy="modifiedTime desc",
                                      fields="files(id, name)",

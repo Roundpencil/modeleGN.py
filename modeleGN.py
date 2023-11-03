@@ -719,8 +719,8 @@ class Scene:
         return date_texte[:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
 
     def str_pour_squelette(self, date_gn=None):
-        print(f'DEBUG : je suis en train de générer les scenes pour {self.titre} dans {self.conteneur.nom} '
-              f'({self.conteneur.get_full_url()})')
+        # print(f'DEBUG : je suis en train de générer les scenes pour {self.titre} dans {self.conteneur.nom} '
+        #       f'({self.conteneur.get_full_url()})')
         print(f'{ [r.nom for r in self.roles]}')
         print(f'{self.roles_et_confiance}')
         to_return = ""
