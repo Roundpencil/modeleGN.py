@@ -825,7 +825,7 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive, m_print=p
     # extraire_texte_de_google_doc.ecrire_table_google_sheets(api_sheets, df, mon_id)
     g_io.ecrire_table_google_sheets(api_sheets, table_intrigues, mon_id)
 
-@attrappeur_dexceptions
+# @attrappeur_dexceptions
 def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_print=print,
                                   visualisation=print_progress, taille_visualisation=100.0):
     m_print(f"*******génération squelettes {'PJs' if pj else 'PNJs'} ***********")
@@ -920,6 +920,7 @@ def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
         for role in perso.roles:
             mes_scenes.extend(iter(role.scenes))
         mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=mon_gn.get_date_gn())
+        print(f'DEBUG = personnage en cours de génération des scènes = {perso.nom}, {perso.url}')
         for scene in mes_scenes:
             # print(scene)
             texte_perso += scene.str_pour_squelette(mon_gn.get_date_gn()) + '\n'

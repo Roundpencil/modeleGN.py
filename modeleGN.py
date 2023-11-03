@@ -719,6 +719,10 @@ class Scene:
         return date_texte[:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
 
     def str_pour_squelette(self, date_gn=None):
+        print(f'DEBUG : je suis en train de générer les scenes pour {self.titre} dans {self.conteneur.nom} '
+              f'({self.conteneur.get_full_url()})')
+        print(f'{ [r.nom for r in self.roles]}')
+        print(f'{self.roles_et_confiance}')
         to_return = ""
 
         heure = f'- heure = {self.get_heure_debut()}' if self.get_heure_debut() else ''
@@ -1561,7 +1565,9 @@ class GN:
         tous_les_roles = []
         for scene in self.lister_toutes_les_scenes():
             tous_les_roles.extend(scene.get_roles())
-        return tous_les_roles
+        for perso in self.lister_tous_les_persos():
+            tous_les_roles.extend(perso.rolesContenus.values())
+        return set(tous_les_roles)
 
     # def mettre_a_jour_champs(self):
     # # mise à jour des formats de date et des factions
