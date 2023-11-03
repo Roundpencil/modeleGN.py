@@ -761,6 +761,6 @@ def lister_rerolls(gn:GN):
     #                  + list(gn.intrigues.values()):
     for conteneur in list(gn.personnages.values()) + list(gn.intrigues.values()):
         for scene in conteneur.scenes:
-            for role in scene.roles:
+            for role in scene.get_roles():
                 if role.pj == TypePerso.EST_REROLL:
                     print(f"{role.nom} est un reroll")

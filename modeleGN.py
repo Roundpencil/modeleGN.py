@@ -15,7 +15,7 @@ from unidecode import unidecode
 import lecteurGoogle
 
 VERSION = "1.2.20231102"
-VERSION_MODELE = "1.1.20230826"
+VERSION_MODELE = "1.1.20231103"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -111,7 +111,7 @@ class ConteneurDeScene:
     def get_noms_personnages_depuis_scenes(self):
         to_return = []
         for scene in self.scenes:
-            to_return.extend([role.personnage.nom for role in scene.roles if role.personnage is not None])
+            to_return.extend([role.personnage.nom for role in scene.get_roles() if role.personnage is not None])
         return list(set(to_return))
 
     def ajouter_scene(self, nom_scene):
@@ -333,7 +333,6 @@ class Personnage(ConteneurDeScene):
             ]
             return lecteurGoogle.formatter_tableau_pour_export(tableau_intrigues)
 
-
         # c'est vide, on revnoie du rien
         return ''
 
@@ -466,9 +465,9 @@ class Role:
         return f"{self.nom} ({self.personnage.nom})" if self.personnage is not None \
             else f"{self.nom} (pas de personnage associé)"
 
-    def ajouter_a_scene(self, scene_a_ajouter):
+    def ajouter_a_scene(self, scene_a_ajouter, nom_brut: str = None, score: float = 0):
         self.scenes.add(scene_a_ajouter)
-        scene_a_ajouter.roles.add(self)
+        scene_a_ajouter.ajouter_role(self, nom_brut=nom_brut, score=score)
 
     def est_un_pnj(self):
         return est_un_pnj(self.pj)
@@ -612,6 +611,7 @@ class Scene:
         self.description = description
         self.actif = actif
         self.roles = set()
+        self.roles_et_confiance = {}  # à terme remplacera roles, garde la mémoire du ([)nom d'origine, score%)
         self.nom_factions = set()  # des strings qui contiennent les noms des factions à embarquer
         self.infos = set()  # des strings qui contiennent les noms où rapatrier les infos
         # faut-il dire que role et personnages héritent l'un de l'autre? Ou bien d'un objet "protagoniste"?
@@ -621,6 +621,13 @@ class Scene:
         self.heure_debut = heure_debut
         self.lieu = lieu
         # print(f"Je viens de créer la scène {self.titre}, avec en entrée la date {date}")
+
+    def get_roles(self):
+        return self.roles | set(self.roles_et_confiance.keys())
+
+    def ajouter_role(self, role: Role, nom_brut: str = None, score: float = 0):
+        self.roles.add(role)
+        self.roles_et_confiance[role] = (nom_brut, score)
 
     def get_heure_debut(self):
         if self.heure_debut:
@@ -638,13 +645,13 @@ class Scene:
 
     def effacer_roles_issus_de_factions(self):
         # print(f"debug : {self.titre} avant effaçage de mes roles, j'avais : {list(self.roles)} ")
-        roles_a_effacer = [r for r in self.roles if r.issu_dune_faction]
+        roles_a_effacer = [r for r in self.get_roles() if r.issu_dune_faction]
         for role in roles_a_effacer:
-            self.roles.remove(role)
+            self.retirer_role(role)
         # print(f"debug : {self.titre} apès effaçage de mes roles, j'ai : {list(self.roles)} ")
 
     def get_liste_noms_roles(self):
-        return [r.nom for r in self.roles]
+        return [r.nom for r in self.get_roles()]
 
     def get_formatted_date(self, date_gn=None, jours_semaine=False, avec_heure=True):
         # print(f"debut du débug affichage dates pour la scène {self.titre}, clef de tri = {self.clef_tri(date_gn)}")
@@ -711,9 +718,6 @@ class Scene:
             date_texte += "1 jour, "
         return date_texte[:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
 
-    def ajouter_role(self, role):
-        self.roles.add(role)
-
     def str_pour_squelette(self, date_gn=None):
         to_return = ""
 
@@ -723,14 +727,16 @@ class Scene:
         if self.lieu:
             to_return += f"lieu : {self.lieu} \n"
         str_roles_persos = 'Roles (Perso) : '
-        for role in self.roles:
+        for role in self.get_roles():
             if role.personnage is None:
                 str_roles_persos += f"{role.nom} (pas de personnage affecté) / "
                 print(f"$$$$$$$$$$$ J'ai trouvé un role sans perso = {role.nom} "
                       f"dans la scene {self.titre} / {self.conteneur.nom} "
                       f"est_il est factionneux ? {role.issu_dune_faction}")
             else:
-                str_roles_persos += f" {role.get_nom_et_alias()} ({role.personnage.nom}) / "
+                str_roles_persos += f" {role.get_nom_et_alias()} " \
+                                    f"({role.personnage.nom}, " \
+                                    f"{self.roles_et_confiance.get(role, 'non évalué')[1]}%), "
         to_return += f"roles  : {str_roles_persos[:-2]} \n"
         to_return += f"provenance : {self.conteneur.nom} \n"
         # to_return += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
@@ -777,6 +783,10 @@ class Scene:
     @staticmethod
     def trier_scenes(scenes_a_trier, date_gn=None):
         return sorted(scenes_a_trier, key=lambda scene: scene.clef_tri(date_gn))
+
+    def retirer_role(self, role):
+        self.roles.remove(role)
+        self.roles_et_confiance.pop(role)
 
 
 # objet pour tout sauvegarder
@@ -1366,7 +1376,7 @@ class GN:
                             print(f"personnage_dans_faction, intrigue.rolesContenus.keys() ="
                                   f" {personnage_dans_faction.nom}, {intrigue.rolesContenus.keys()}")
 
-                        if len(scene.roles) > 1:
+                        if len(scene.get_roles()) > 1:
                             noms_roles_dans_scene = scene.get_liste_noms_roles()
                             score_role = process.extractOne(personnage_dans_faction.nom, noms_roles_dans_scene)
                             # print(f"debug : scene : {scene.titre} / {noms_roles_dans_scene} / {score_role}")
@@ -1381,10 +1391,11 @@ class GN:
                         if score_role_dans_intrigue[1] >= seuil_reconciliation_role:
                             # dans ce cas, on a déjà le rôle dans l'intrigue, pas la meine d'en créer un nouveau
                             role_a_associer: Role = intrigue.rolesContenus[score_role_dans_intrigue[0]]
-                            role_a_associer.ajouter_a_scene(scene)
+                            role_a_associer.ajouter_a_scene(scene,
+                                                            nom_brut=personnage_dans_faction.nom,
+                                                            score=score_role_dans_intrigue[1])
                             # et dans ce cas on a fini, on s'arrête là
                             continue
-
 
                         # ici, nous n'avons trouvé le rôle ni dans la scène, dans l'intrigue
                         # il faut ajouter un nouveau role, issu d'une faction
@@ -1407,7 +1418,7 @@ class GN:
                         personnage_dans_faction.roles.add(role_a_ajouter)
 
                         # l'ajouter à la scène
-                        role_a_ajouter.ajouter_a_scene(scene)
+                        role_a_ajouter.ajouter_a_scene(scene, nom_brut=personnage_dans_faction.nom, score=100)
 
     # utilisée pour préparer l'association roles/persos
     # l'idée est qu'avec la sauvegarde les associations restent, tandis que si les pj/pnj ont bougé ca peut tout changer
@@ -1549,7 +1560,7 @@ class GN:
     def lister_tous_les_roles(self):
         tous_les_roles = []
         for scene in self.lister_toutes_les_scenes():
-            tous_les_roles.extend(scene.roles)
+            tous_les_roles.extend(scene.get_roles())
         return tous_les_roles
 
     # def mettre_a_jour_champs(self):
@@ -1845,6 +1856,7 @@ class Objet:
     def get_orga_referent(self):
         return self.intrigue.orga_referent
 
+
 class ErreurManager:
     def __init__(self):
         self.erreurs = []
@@ -1978,6 +1990,9 @@ class Evenement:
         # for intervention in self.interventions:
         #     del intervention
         self.interventions.clear()
+
+    def get_full_url(self):
+        return f"https://docs.google.com/document/d/{self.id_url}"
 
 
 class IntervenantEvenement:

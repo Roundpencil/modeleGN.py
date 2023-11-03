@@ -1052,7 +1052,7 @@ def extraire_qui_scene(liste_noms, conteneur, scene_a_ajouter, verbal=True, seui
                                        texte_erreur,
                                        ErreurManager.ORIGINES.SCENE)
         else:
-            role_a_ajouter.ajouter_a_scene(scene_a_ajouter)
+            role_a_ajouter.ajouter_a_scene(scene_a_ajouter, nom_brut=nom_du_role, score=score)
             # if score != 100:
             #     conteneur.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
             if score < seuil:
@@ -1074,6 +1074,41 @@ def generer_permutations_alias(nom_du_role: str):
 
 
 def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, avec_tableau_des_persos: bool = True):
+    """
+        Identifie et renvoie une liste de rôles présents dans une scène en fonction des noms fournis.
+
+        Cette fonction permet d'associer des rôles à des noms détectés dans une scène en utilisant soit un conteneur
+        pré-établi si 'avec_tableau_des_persos' est True, soit en les créant sur le pouce si ce n'est pas le cas.
+
+        Args:
+            roles: Une liste de chaînes de caractères représentant les noms des rôles à identifier.
+            conteneur: Une instance de ConteneurDeScene qui contient des rôles et des méthodes pour gérer ces rôles.
+            avec_tableau_des_persos: Un booléen qui indique si la fonction doit utiliser un tableau de référence
+                                     des personnages (True par défaut). Si False, les rôles sont créés sans référence.
+
+        Returns:
+            Une liste composée de sous-listes tripartites. Chaque sous-liste correspond à un rôle analysé et contient
+            les éléments suivants :
+            - Le nom du rôle (`str`): la désignation textuelle exacte du rôle telle qu'elle apparaît dans la liste des
+            rôles fournie.
+            - L'instance du rôle (`Role` ou `None`): l'objet représentant le rôle associé à ce nom dans le conteneur de
+            scènes, ou `None` si aucune correspondance n'est trouvée.
+            - Le score de correspondance (`int`): une valeur numérique indiquant le degré de certitude de l'association.
+            Un score de 100 signale une concordance directe et indiscutable avec un rôle connu dans le conteneur. Si un tableau de référence est consulté pour l'association, ce score reflète la proximité de la correspondance entre le nom fourni et les noms connus, avec des valeurs potentiellement inférieures à 100 pour les correspondances moins précises.
+
+
+        Exemple d'utilisation:
+            >>> conteneur = ConteneurDeScene()
+            >>> qui_2_roles(['Gardien', 'Voleur'], conteneur)
+            [['Gardien', <objet Role Gardien>, 100], ['Voleur', <objet Role Voleur>, 100]]
+
+        Note:
+            - L'identification des rôles sans tableau de référence se fait par une recherche directe dans les rôles
+              déjà contenus dans le 'conteneur'.
+            - Avec un tableau de référence, la fonction génère des permutations d'alias pour chaque rôle et utilise
+              une fonction de calcul de score pour déterminer la meilleure correspondance.
+            - Les noms de rôles de moins de deux caractères sont ignorés durant le processus.
+        """
     to_return = []  # nom, role,score
     # print("rôles trouvés en lecture brute : " + str(roles))
 
@@ -1127,18 +1162,6 @@ def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, avec_tableau_des_
             to_return.append([nom_du_role, mon_role, meilleur_score[1]])
         else:
             to_return.append([nom_du_role, None, 0])
-
-        # print("nom normalisé du personnage {0} trouvé dans une scène de {1} : {2}".format(nom_du_role.strip(),
-        #                                                                                   conteneur.nom,
-        #                                                                                   score))
-
-        # if score is not None:
-        #     # trouver le rôle à ajouter à la scène en lisant l'intrigue
-        #     # mon_role = conteneur.rolesContenus[score[0]]
-        #     mon_role = dico_noms_avec_alias[score[0]]
-        #     to_return.append([nom_du_role, mon_role, score[1]])
-        # else:
-        #     to_return.append([nom_du_role, None, 0])
 
     return to_return
 

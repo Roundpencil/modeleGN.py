@@ -588,7 +588,7 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     solution = []
     solution_trouvee = False
 
-    # cosntruire la solution de départ en créant des triplettes nom proposé / score / nom de départ
+    # cosntruire la solution de départ en créant des triplettes [nom proposé, score, nom de départ]
     # invariant : la solution est triée et l'élément le plus faible est en premier
     for original_nom, matches in scores.items():
         score_a_inclure = matches.pop()
@@ -612,18 +612,29 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     while solution and not solution_trouvee:
         solution_trouvee = True
         # est-ce que la solution est valable?
-        # on crée une liste de noms triés du plus petit score au plus grand
-        noms_proposes = {triplette[0]:triplette[1] for triplette in solution}
-        noms_proposes_list = list(noms_proposes.keys())
-        for i, element in enumerate(noms_proposes_list):
+
+        # pour cela, on va vérifier que chaque nom n'est présent qu'eun fois.
+        # Si ce n'est pas le cas, on mettra à jour la solution en trouvant le nom d'origine qui était associé au nom
+        # en doublon le plus faible et en cherchant les solutions alternatives
+
+        # on parcourre les clefs pour vérifier lesquelles sont en double,
+        # sachant qu'elles sont triées par ordre du plus faible au plus fort
+        if verbal:
+            print(f"Je m'apprête à commencer une itération avec la solution suivante :\n"
+                  f"{solution}")
+
+        for i, triplette in enumerate(solution):
+            nom_propose, _, nom_origine = triplette
+            noms_a_verifier = [triplette[0] for triplette in solution[i+1:]]
             if verbal:
-                print(f"DEBUG : je suis en train de chercher l'élément {element} dans \n "
-                      f"{noms_proposes_list[i + 1:]}")
-            if element in noms_proposes_list[i + 1:]:
+                print(f"DEBUG : je suis en train de chercher l'élément {nom_propose} dans \n "
+                      f"{noms_a_verifier}")
+
+            if nom_propose in noms_a_verifier:
                 if verbal:
-                    print(f"et je l'ai trouvé, il était associé au nom noms_proposes{element}")
+                    print("et il était bien présent, j'itère")
                 solution_trouvee = False
-                solution = maj_solution(solution, scores, noms_proposes[element])
+                solution = maj_solution(solution, scores, nom_origine)
 
 
     if verbal:
@@ -636,15 +647,27 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
         return "Impossible de construire une proposition de tableau"
 
     tableau_persos = [['Nom proposé', 'nom dans les scènes', 'score', 'déjà dans le tableau?']]
-    #on inverse la solution pour avoir les éléments les plus forts en premier
-    solution = solution[::-1]
-    for nom_personnage, score, nom_role in solution:
+
+    #on ajoute l'infor de la présence dans la solution et on la trie :
+    # d'abord les présents, puis les scores
+    for sol in solution:
+        sol.append(sol[0] in noms_roles_dans_tableau_intrigue)
+    solution.sort(key=lambda x: (x[3], x[1]), reverse=True)
+
+    for nom_personnage, score, nom_role, present in solution:
         tableau_persos.append([
             nom_personnage,
             nom_role,
             f'{score} % de certitude',
-            'oui' if nom_personnage in noms_roles_dans_tableau_intrigue else 'non'
+            'oui' if present else 'non'
         ])
+    # for nom_personnage, score, nom_role in solution:
+    #     tableau_persos.append([
+    #         nom_personnage,
+    #         nom_role,
+    #         f'{score} % de certitude',
+    #         'oui' if nom_personnage in noms_roles_dans_tableau_intrigue else 'non'
+    #     ])
 
     to_print = "Tableau suggéré : \n"
     to_print += lecteurGoogle.formatter_tableau_pour_export(tableau_persos)
@@ -727,7 +750,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, m_pri
     #       f"taille de tous les conteneurs = {len(tous_les_conteneurs)}")
 
     for ma_scene in toutes_les_scenes:
-        for role in ma_scene.roles:
+        for role in ma_scene.get_roles():
             if role.est_un_pnj():
                 continue
             if role.personnage is None:
@@ -753,7 +776,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, m_pri
                       }
         dict_orgas = {}
         # dict_scene['dict_orgas'] = dict_orgas
-        for role in ma_scene.roles:
+        for role in ma_scene.get_roles():
             if role.est_un_pnj():
                 continue
             if role.personnage is None:
@@ -1095,7 +1118,7 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
             fournipar = ""
             intrigue = ""
             # evenement = objet.evenement.nom_evenement
-            evenement = lien_vers_hyperlink(objet.evenement.get_full_url(), objet.evenement.nom)
+            evenement = lien_vers_hyperlink(objet.evenement.get_full_url(), objet.evenement.nom_evenement)
 
             fiche_objet = "aucune" if objet_ref.ajoute_via_forcage else objet_ref.get_full_url()
             orga_referent = objet.get_orga_referent()
@@ -1321,23 +1344,14 @@ def generer_table_chrono_scenes(mon_gn: GN):
     toutes_scenes = Scene.trier_scenes(mon_gn.lister_toutes_les_scenes())
     to_return = [['Date', 'Intrigue', 'Scène', 'PJs concernés', 'PNJ, concernés']]
 
-    # for scene in toutes_scenes:
-    #     logging.debug(f"scene = {scene.titre} *******************************************")
-    #     for role in scene.roles:
-    #         logging.debug(f"\t role = {role.nom} est issu d'une faction : {role.issu_dune_faction}")
-    #         logging.debug(f"\t \t personnage = {role.personnage}")
-    #         logging.debug(f"\t \t \t nom personnage = {role.personnage.nom}")
-
     for scene in toutes_scenes:
         to_return.append([
             scene.get_formatted_date(mon_gn.get_date_gn()),
             # scene.conteneur.nom
             lien_vers_hyperlink(scene.conteneur.get_full_url(), scene.conteneur.nom),
             scene.titre,
-            # ', '.join([role.personnage.nom for role in scene.roles if role is not None and role.est_un_pj()]),
-            # ', '.join([role.personnage.nom for role in scene.roles if role is not None and role.est_un_pnj()]),
-            ', '.join([role.str_avec_perso() for role in scene.roles if role is not None and role.est_un_pj()]),
-            ', '.join([role.str_avec_perso() for role in scene.roles if role is not None and role.est_un_pnj()]),
+            ', '.join([role.str_avec_perso() for role in scene.get_roles() if role is not None and role.est_un_pj()]),
+            ', '.join([role.str_avec_perso() for role in scene.get_roles() if role is not None and role.est_un_pnj()]),
 
         ])
     return to_return
