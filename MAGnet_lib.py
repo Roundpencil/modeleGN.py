@@ -555,7 +555,7 @@ def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent,
     ):
         g_io.formatter_fichier_erreurs(api_doc, mon_id)
 
-def rationaliser_liste_noms(noms_en_entree, seuil=70):
+def rationaliser_liste_noms(noms_en_entree, seuil=80):
     cut = process.dedupe(noms_en_entree, seuil)
     off = [e for e in noms_en_entree if e not in cut]
     dico = {e: [] for e in cut}
@@ -576,7 +576,11 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
             tous_les_noms_lus_dans_scenes += scene.noms_roles_lus
     tous_les_noms_lus_dans_scenes = [x.strip() for x in tous_les_noms_lus_dans_scenes]
     tous_les_noms_lus_dans_scenes = set(tous_les_noms_lus_dans_scenes)
-    #todo : est-ce qu'on rationnaliserait pas un peu la liste des noms avant de processer pour enlever les doublons évidents ?
+
+    #rationnaliser la liste des noms avant de processer pour enlever les doublons évidents,
+    # on les remettra à la fin
+    dico_dedup = rationaliser_liste_noms(tous_les_noms_lus_dans_scenes)
+    tous_les_noms_lus_dans_scenes = list(dico_dedup.keys())
 
     scores = {}
 
@@ -664,7 +668,7 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     for nom_personnage, score, nom_role, present in solution:
         tableau_persos.append([
             nom_personnage,
-            nom_role,
+            ', '.join([nom_role] + dico_dedup[nom_role]),
             f'{score} % de certitude',
             'oui' if present else 'non'
         ])
