@@ -15,7 +15,7 @@ from unidecode import unidecode
 import lecteurGoogle
 
 VERSION = "1.2.20231102"
-VERSION_MODELE = "1.1.20231103"
+VERSION_MODELE = "1.1.20231105"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -73,6 +73,7 @@ class ConteneurDeScene:
         self.modifie_par = ""
         self.url = url
         self.nom = "Conteneur sans nom"
+        self.input_questionnaire_inscription = []
 
         self.lastProcessing = last_processing or datetime.datetime.now() - datetime.timedelta(days=500 * 365)
 
@@ -488,7 +489,7 @@ class Role:
 class Intrigue(ConteneurDeScene):
 
     def __init__(self, url="", nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
-                 questions_ouvertes="", notes="", resolution="", orga_referent="", timeline="", questionnaire=None,
+                 questions_ouvertes="", notes="", resolution="", orga_referent="", timeline="",
                  last_processing=None,
                  derniere_edition_fichier=0):
         super(Intrigue, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url,
@@ -497,7 +498,8 @@ class Intrigue(ConteneurDeScene):
         self.description = description
         self.pitch = pitch
         self.questions_ouvertes = questions_ouvertes
-        self.questionnaire = questionnaire or []
+        # remplacé par input_questionnaire_inscription dans conteneur de scènes
+        # self.questionnaire = questionnaire or []
         self.notes = notes
         self.resolution = resolution
         self.orga_referent = orga_referent

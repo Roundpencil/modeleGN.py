@@ -825,7 +825,7 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive, m_print=p
     # extraire_texte_de_google_doc.ecrire_table_google_sheets(api_sheets, df, mon_id)
     g_io.ecrire_table_google_sheets(api_sheets, table_intrigues, mon_id)
 
-# @attrappeur_dexceptions
+@attrappeur_dexceptions
 def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_print=print,
                                   visualisation=print_progress, taille_visualisation=100.0):
     m_print(f"*******génération squelettes {'PJs' if pj else 'PNJs'} ***********")
@@ -1801,15 +1801,43 @@ def ecrire_table_evenements(mon_gn: GN, api_drive, api_sheets, m_print=print):
 
 
 def generer_table_questionnaire(gn: GN):
-    toutes_les_questions = [["Identifiant", "Question", "Explication"]]
-    for intrigue in gn.intrigues.values():
-        id_intrigue = g_io.ref_du_doc(intrigue.nom, prefixes="I")
-        prefixes_id_questions = "I" + "{:03d}".format(id_intrigue) + "-"
+    toutes_les_questions = [
+        [intrigue] + intrigue.input_questionnaire_inscription
+        for intrigue in gn.intrigues.values()
+    ]
 
-        for i, questions in enumerate(intrigue.questionnaire, start=1):
-            ligne = [prefixes_id_questions + str(i)] + questions
-            toutes_les_questions.append(ligne)
-    return toutes_les_questions
+    tous_les_headers = set()
+
+    # Collecter tous les en-têtes uniques à partir des questions
+    for intrigue_questions in toutes_les_questions:
+        for dico in intrigue_questions[1:]:
+            tous_les_headers.update(dico.keys())
+
+    # S'assurer que "Identifiant" est le premier dans la liste des en-têtes
+    liste_headers = ["Identifiant"] + [header for header in tous_les_headers if header != "Identifiant"]
+
+    # Initialiser le tableau de sortie avec les entêtes
+    tableau_final = [liste_headers]
+
+    for intrigue_questions in toutes_les_questions:
+        intrigue = intrigue_questions[0]
+        id_intrigue = g_io.ref_du_doc(intrigue.nom, prefixes="I")
+
+        for j, dico in enumerate(intrigue_questions[1:], 1):
+            prefixes_id_questions = f"I{id_intrigue:03d}-{j}"
+            # Assurer que l'identifiant est le premier élément de chaque ligne
+            ligne_a_ajouter = [prefixes_id_questions] + [dico.get(cle, '') for cle in liste_headers if
+                                                         cle != "Identifiant"]
+            tableau_final.append(ligne_a_ajouter)
+
+    return tableau_final
+
+    ##########################################
+    # for intrigue in gn.intrigues.values():
+    #     for i, questions in enumerate(intrigue.questionnaire, start=1):
+    #         ligne = [prefixes_id_questions + str(i)] + questions
+    #         toutes_les_questions.append(ligne)
+    # return toutes_les_questions
 
 @attrappeur_dexceptions
 def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets, m_print=print):

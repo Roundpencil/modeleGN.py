@@ -612,7 +612,7 @@ def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles:l
     return tab_rectifie
 
 
-def generer_dict_from_tableau(tableau_avec_en_tetes, noms_colonnes, erreur_manager: ErreurManager):
+def generer_liste_de_dict_from_tableau(tableau_avec_en_tetes, noms_colonnes, erreur_manager: ErreurManager):
     entetes_normalises = normaliser_en_tete_tableau(tableau_avec_en_tetes[0], noms_colonnes, erreur_manager)
 
     #on crée un tableau de dictionnaires avec les valeurs lues
@@ -620,7 +620,7 @@ def generer_dict_from_tableau(tableau_avec_en_tetes, noms_colonnes, erreur_manag
     valeurs = tableau_avec_en_tetes[1:]
     for ligne in valeurs:
         current_dict = {
-            valeur_colonne: entetes_normalises[i]
+            entetes_normalises[i] : valeur_colonne
             for i, valeur_colonne in enumerate(ligne)
         }
         to_return.append(current_dict)
@@ -866,32 +866,6 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue):
 
         current_intrigue.objets.add(mon_objet)
         mon_objet.intrigue = current_intrigue
-        #
-        # mon_objet = None
-        # if nb_colonnes == 4:
-        #     mon_objet = Objet(description=objet[0].strip(),
-        #                       special_effect=objet[1].strip() if objet[1].strip().lower() != "non" else '',
-        #                       emplacement_debut=objet[2].strip(),
-        #                       fourni_par=objet[3].strip())
-        #     # if pnj[3].strip().lower() != "non":  # si on a mis non pour le RFID ca ne veut pas dire oui :)
-        #     #     mon_objet.specialEffect = pnj[1].strip()
-        #
-        # elif nb_colonnes == 3:
-        #     mon_objet = Objet(description=objet[0].strip(),
-        #                       emplacement_debut=objet[1].strip(),
-        #                       fourni_par=objet[2].strip())
-        # elif nb_colonnes == 6:
-        #     mon_objet = Objet(code=objet[0].strip(),
-        #                       description=objet[1].strip(),
-        #                       special_effect=objet[2].strip() if objet[2].strip().lower() != "non" else '',
-        #                       emplacement_debut=objet[3].strip(),
-        #                       fourni_par=objet[4].strip())
-        # else:
-        #     print(f"Erreur de format d'objet dans l'intrigue {current_intrigue.nom} : {mon_objet}")
-        #
-        # if mon_objet is not None:
-        #     current_intrigue.objets.add(mon_objet)
-        #     mon_objet.intrigue = current_intrigue
 
 
 def intrigue_scenesfx(texte: str, intrigue: Intrigue):
@@ -923,14 +897,24 @@ def intrigue_notes(texte: str, intrigue: Intrigue):
 
 
 def intrigue_questionnaire(texte: str, intrigue: Intrigue):
-    # intrigue.questionnaire = retirer_premiere_ligne(texte)
-    tab_intrigues, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=True)
-    if nb_colonnes != 2:
-        texte_erreur = "le tableau questionnaire est inexploitable"
-        intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
-                                  texte_erreur,
-                                  ErreurManager.ORIGINES.SCENE)
-    intrigue.questionnaire = tab_intrigues
+    #todo : ajouter questionnaire dans les fiches de perso
+
+    tab_questions, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
+
+    class NomsColonnes(Enum):
+        QUESTION = "Question à inclure dans le questionnaire"
+        EXPLICATION = "Explication si nécessaire"
+        PERSO_CONCERNE = "Personnage(s) concerné(s) par la question"
+
+    noms_colonnes = [nc.value for nc in NomsColonnes]
+    intrigue.input_questionnaire_inscription +=  generer_liste_de_dict_from_tableau(tab_questions,
+                                                                                    noms_colonnes,
+                                                                                    intrigue.error_log)
+    # if nb_colonnes != 2:
+    #     texte_erreur = "le tableau questionnaire est inexploitable"
+    #     intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+    #                               texte_erreur,
+    #                               ErreurManager.ORIGINES.SCENE)
 
 
 def intrigue_relations_bi(texte: str, intrigue: Intrigue):
