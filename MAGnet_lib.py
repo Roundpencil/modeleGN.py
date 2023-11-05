@@ -555,8 +555,15 @@ def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent,
     ):
         g_io.formatter_fichier_erreurs(api_doc, mon_id)
 
-from fuzzywuzzy import process
-import collections
+def rationaliser_liste_noms(noms_en_entree, seuil=70):
+    cut = process.dedupe(noms_en_entree, seuil)
+    off = [e for e in noms_en_entree if e not in cut]
+    dico = {e: [] for e in cut}
+    for e in off:
+        score = process.extractOne(e, cut)
+        dico[score[0]].append(e)
+
+    return dico
 
 def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
     noms_personnages = mon_gn.noms_personnages()
