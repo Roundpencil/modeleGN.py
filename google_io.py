@@ -551,18 +551,52 @@ def generer_dict_header_vers_no_colonne(en_tetes, noms_colonnes, erreur_manager:
     :param erreur_manager: Instance d'ErreurManager pour gérer les erreurs.
     :return: Dictionnaire avec les correspondances entre les entêtes et les noms de colonnes.
     """
+    #todo : supprimer cette fonction et passer par la focntion de dictionnaire à la place
+    tab_rectifie = normaliser_en_tete_tableau(en_tetes, noms_colonnes, erreur_manager)
+    return {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
+
+
+def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles:list[str], erreur_manager: ErreurManager):
+    """
+    Normalise les en-têtes d'un tableau en fonction d'une liste de noms de colonnes cibles.
+
+    Cette fonction prend une liste d'en-têtes bruts et les compare à une liste de noms de colonnes cibles,
+    en trouvant le meilleur match pour chaque en-tête. Les en-têtes sont ainsi "rectifiés" pour correspondre
+    aux noms de colonnes attendus. En cas de faible score de correspondance ou de duplication des en-têtes rectifiés,
+    des erreurs sont enregistrées à l'aide de l'`erreur_manager` :
+    Warning: En cas de score inférieur à 85 % lors de la correspondance des en-têtes.
+    Erreur: Si une valeur d'en-tête est trouvée en double après rectification.
+
+
+    Parameters:
+        en_tetes_bruts (list[str]): Liste des en-têtes tels que lus dans le tableau brut.
+        noms_colonnes_cibles (list[str]): Liste des noms de colonnes attendus ou cibles.
+        erreur_manager (ErreurManager): Gestionnaire des erreurs pour enregistrer les problèmes rencontrés.
+
+    Returns:
+        list[str]: Liste des en-têtes rectifiés correspondant aux noms de colonnes cibles.
+
+    Note:
+        Si les résultats de la correspondance sont jugés insuffisants, une autre approche plus complexe
+        peut être envisagée au prix d'une diminution de la performance globale.
+    """
+
+    # À noter : cette fonction est une version simplifiée de celle qui suggère les tableaux en trouvant le meilleur
+    # match. Si les résultats sont trop mauvais, il est possible d'utiliser la même structure, au prix de perdre en
+    # performance globale.
+
     tab_rectifie = []
     min_score = 100
     pire_match = ""
-    for head in en_tetes:
-        score = process.extractOne(head, noms_colonnes)
+    for head in en_tetes_bruts:
+        score = process.extractOne(head, noms_colonnes_cibles)
         tab_rectifie.append(score[0])
         if score[1] < min_score:
             min_score = score[1]
             pire_match = score[0]
     logging.debug("lecture auto des tableaux :")
-    for i in range(len(en_tetes)):
-        logging.debug(f"{en_tetes[i]} > {tab_rectifie[i]}")
+    for i in range(len(en_tetes_bruts)):
+        logging.debug(f"{en_tetes_bruts[i]} > {tab_rectifie[i]}")
     if min_score < 85:
         texte_erreur = f"Attention, score bas de lecture des entêtes du tableau des personnages. " \
                        f"Pire score : {min_score}% pour {pire_match}. Tableau lu = {tab_rectifie}"
@@ -575,7 +609,23 @@ def generer_dict_header_vers_no_colonne(en_tetes, noms_colonnes, erreur_manager:
         erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
                                       texte_erreur,
                                       ErreurManager.ORIGINES.SCENE)
-    return {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
+    return tab_rectifie
+
+
+def generer_dict_from_tableau(tableau_avec_en_tetes, noms_colonnes, erreur_manager: ErreurManager):
+    entetes_normalises = normaliser_en_tete_tableau(tableau_avec_en_tetes[0], noms_colonnes, erreur_manager)
+
+    #on crée un tableau de dictionnaires avec les valeurs lues
+    to_return = []
+    valeurs = tableau_avec_en_tetes[1:]
+    for ligne in valeurs:
+        current_dict = {
+            valeur_colonne: entetes_normalises[i]
+            for i, valeur_colonne in enumerate(ligne)
+        }
+        to_return.append(current_dict)
+
+    return to_return
 
 
 def en_tete_vers_valeur_dans_ligne(ligne_tableau: list[str], dict_header_vers_no_colonne: dict, header_value, default):
@@ -3165,6 +3215,30 @@ def formatter_fichier_erreurs(api_doc, doc_id):
 
 
 def reconstituer_tableau(texte_lu: str, sans_la_premiere_ligne=True):
+    """
+    Reconstitue un tableau de données à partir d'une chaîne de texte formatée.
+
+    Cette fonction divise un texte contenant un tableau de données en lignes et colonnes,
+    en supprimant optionnellement la première ligne (typiquement des en-têtes).
+
+    Parameters:
+    texte_lu (str): Le texte brut contenant le tableau de données.
+    sans_la_premiere_ligne (bool, optional): Indique si la première ligne doit être ignorée. Par défaut à True.
+
+    Returns:
+    Tuple[List[List[str]], int]:
+    - Une liste de listes, chaque sous-liste représentant une ligne du tableau reconstitué.
+    - Le nombre de colonnes détecté dans la première ligne valide du tableau, ou 0 si le tableau est vide.
+
+    Raises:
+    ValueError: Si `texte_lu` ne contient pas le marqueur de fin de ligne attendu.
+
+    Notes:
+    La chaîne de texte est attendue avec un format spécifique, utilisant des constantes de `lecteurGoogle` pour
+    indiquer la fin des lignes et la séparation des colonnes. Les lignes vides ou ne contenant que des espaces
+    seront ignorées dans le tableau reconstitué.
+    """
+
     # logging.debug(f"chaine en entrée = {repr(texte_lu)}")
     last_hash_index = texte_lu.rfind(lecteurGoogle.FIN_LIGNE)
     if last_hash_index == -1:
@@ -3189,15 +3263,6 @@ def reconstituer_tableau(texte_lu: str, sans_la_premiere_ligne=True):
     #               f"j'ai reconstitué le tableau \n {to_return}"
     #               )
     return to_return or [], len(to_return[0]) if to_return else 0
-
-
-# def lire_gspread_pnj(api_sheets, sheet_id):
-#     a, b = lire_gspread_pj_pnjs(api_sheets, sheet_id, "PNJs")
-#     return a
-#
-#
-# def lire_gspread_pj(api_sheets, sheet_id):
-#     return lire_gspread_pj_pnjs(api_sheets, sheet_id, "PJs")
 
 
 def lire_gspread_pj_pnjs(api_sheets, sheet_id):
