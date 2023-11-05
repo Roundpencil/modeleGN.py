@@ -648,43 +648,6 @@ def en_tete_vers_valeur_dans_ligne(ligne_tableau: list[str], dict_header_vers_no
 
 
 def intrigue_pnjs(texte: str, current_intrigue: Intrigue, seuil_type_perso=85):
-    # tableau_pnjs, _ = reconstituer_tableau(texte)
-    # # faire un tableau avec une ligne par PNJ
-    # # print(f"tableau pnj décodé : {tableau_pnjs}")
-    # for pnj in tableau_pnjs:
-    #     # print(f"section pnj en cours de lecture : {pnj}")
-    #     # print(f"taille = {len(pnj)}")
-    #     # print(f"pnj en cours = {pnj}")
-    #
-    #     # 0 Nom duPNJ et / ou fonction :
-    #     # 1 Intervention:(Permanente ou Temporaire)
-    #     # 2 Type d’implication: (Active, Passive, Info, ou Objet)
-    #     # 3 Résumé de l’implication
-    #     pnj_a_ajouter = Role(current_intrigue, nom=pnj[0], description=pnj[3],
-    #                          pj=TypePerso.EST_PNJ_HORS_JEU, niveau_implication=pnj[2],
-    #                          perimetre_intervention=pnj[1])
-    #
-    #     # print("Je suis en train de regarder {0} et son implication est {1}"
-    #     # .format(pnj_a_ajouter.nom, pnj[1].strip()))
-    #
-    #     # cherche ensuite le niveau d'implication du pj
-    #     if pnj[1].lower().find('perman') > -1:
-    #         # print(pnj_a_ajouter.nom + " est permanent !!")
-    #         pnj_a_ajouter.pj = TypePerso.EST_PNJ_PERMANENT
-    #     elif pnj[1].lower().find('infiltr') > -1:
-    #         pnj_a_ajouter.pj = TypePerso.EST_PNJ_INFILTRE
-    #         # print(pnj_a_ajouter.nom + " est temporaire !!")
-    #     # elif pnj[1].strip().lower().find('temp') > -1:
-    #     #     pnj_a_ajouter.pj = modeleGN.EST_PNJ_TEMPORAIRE
-    #     #     # print(pnj_a_ajouter.nom + " est temporaire !!")
-    #     elif len(pnj[1]) > 1:
-    #         pnj_a_ajouter.pj = TypePerso.EST_PNJ_TEMPORAIRE
-    #         # print(pnj_a_ajouter.nom + " est temporaire !!")
-    #
-    #     # sinon PNJ hors-jeu est la valeur par défaut : ne rien faire
-    #
-    #     # du coup, on peut l'ajouter aux intrigues
-    #     current_intrigue.rolesContenus[pnj_a_ajouter.nom] = pnj_a_ajouter
     tableau_pnjs, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
 
     if nb_colonnes == 0:
