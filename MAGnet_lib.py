@@ -555,7 +555,30 @@ def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent,
     ):
         g_io.formatter_fichier_erreurs(api_doc, mon_id)
 
-def rationaliser_liste_noms(noms_en_entree, seuil=80):
+def rationaliser_liste_noms(noms_en_entree, seuil=70):
+    """
+    Rationalise une liste de noms en éliminant les doublons et en groupant les noms similaires.
+
+    Cette fonction prend une liste de noms et utilise un processus de dédoublonnage pour retirer
+    les entrées qui sont considérées comme des doublons, en fonction d'un seuil de similitude.
+    Les noms en trop, qui ne sont pas retenus dans la liste dédoublonnée, sont ensuite comparés
+    aux noms conservés pour identifier le meilleur match possible en utilisant un score de similarité.
+    Les noms sont ensuite regroupés en fonction de leur match le plus similaire dans le dictionnaire final.
+
+    Paramètres:
+        noms_en_entree (list): Une liste de chaînes de caractères représentant les noms à rationaliser.
+        seuil (int, optionnel): Le seuil de similitude pour considérer deux noms comme étant des doublons.
+                                La valeur par défaut est 70.
+
+    Retourne:
+        dict: Un dictionnaire où chaque clé est un nom unique de la liste dédoublonnée et chaque valeur
+              est une liste des noms originaux qui correspondent à cette clé basée sur le score de
+              similitude le plus élevé.
+
+    Exemple:
+        >>> rationaliser_liste_noms(['Jean Dupont', 'Jean du Pont', 'J. Dupont', 'Isabelle Durand', 'I. Durand'])
+        {'Jean Dupont': ['Jean du Pont', 'J. Dupont'], 'Isabelle Durand': ['I. Durand']}
+    """
     cut = process.dedupe(noms_en_entree, seuil)
     off = [e for e in noms_en_entree if e not in cut]
     dico = {e: [] for e in cut}
@@ -969,6 +992,36 @@ def generer_liste_pnj_dedup_avec_perso(mon_gn, threshold=89, verbal=False):
     dict_noms_noms_pnjs = dict_nom_role_nom_pnj | dict_nom_brief_nom_pnj
 
     noms_pnjs = list(dict_noms_noms_pnjs)
+    # noms_dedup = process.dedupe(noms_pnjs, threshold=threshold)
+    dico_dedup = rationaliser_liste_noms(noms_pnjs, threshold)
+    noms_dedup = sorted(list(dico_dedup.keys()))
+
+    persos_dedup = [dict_noms_noms_pnjs[nom_pnj] for nom_pnj in noms_dedup]
+    variations_orthographe = [dico_dedup[nom_pnj] for nom_pnj in noms_dedup]
+
+    logging.debug(f"liste des pnjs dédup : {noms_dedup}")
+
+    if verbal:
+        for v in noms_dedup:
+            print(v)
+    return noms_dedup, variations_orthographe, persos_dedup
+
+def generer_liste_pnj_dedup_avec_perso_old(mon_gn, threshold=89, verbal=False):
+    dict_nom_role_nom_pnj = {}
+    for intrigue in mon_gn.intrigues.values():
+        for role in intrigue.rolesContenus.values():
+            if role.est_un_pnj() or role.est_un_reroll():
+                dict_nom_role_nom_pnj[role.nom] = role.personnage.nom if role.personnage is not None else "aucun perso"
+
+    dict_nom_brief_nom_pnj = {}
+    for evenement in mon_gn.evenements.values():
+        for intervenant_evenement in evenement.intervenants_evenement.values():
+            dict_nom_brief_nom_pnj[intervenant_evenement.nom_pnj] = \
+                intervenant_evenement.pnj.nom if intervenant_evenement.pnj else "aucun perso"
+
+    dict_noms_noms_pnjs = dict_nom_role_nom_pnj | dict_nom_brief_nom_pnj
+
+    noms_pnjs = list(dict_noms_noms_pnjs)
     noms_dedup = process.dedupe(noms_pnjs, threshold=threshold)
     noms_dedup = sorted(noms_dedup)
 
@@ -982,17 +1035,17 @@ def generer_liste_pnj_dedup_avec_perso(mon_gn, threshold=89, verbal=False):
     return noms_dedup, persos_dedup
 
 
-def generer_liste_pnj_dedup(mon_gn, threshold=89, verbal=False):
-    to_return, _ = generer_liste_pnj_dedup_avec_perso(mon_gn, threshold, verbal)
-    return to_return
+# def generer_liste_pnj_dedup(mon_gn, threshold=89, verbal=False):
+#     to_return, _ = generer_liste_pnj_dedup_avec_perso(mon_gn, threshold, verbal)
+#     return to_return
 
 
-def ecrire_liste_pnj_dedup_localement(mon_gn: GN, prefixe: str, threshold=89, verbal=False):
-    to_print = '\n'.join(generer_liste_pnj_dedup(mon_gn, threshold, verbal))
-    if prefixe is not None:
-        with open(f"{prefixe} - liste_pnjs_dedupliqués.txt", 'w', encoding="utf-8") as f:
-            f.write(to_print)
-            f.close()
+# def ecrire_liste_pnj_dedup_localement(mon_gn: GN, prefixe: str, threshold=89, verbal=False):
+#     to_print = '\n'.join(generer_liste_pnj_dedup(mon_gn, threshold, verbal))
+#     if prefixe is not None:
+#         with open(f"{prefixe} - liste_pnjs_dedupliqués.txt", 'w', encoding="utf-8") as f:
+#             f.write(to_print)
+#             f.close()
 
 
 def generer_changelog(mon_gn, prefixe, nb_jours=1, verbal=False):
@@ -1508,20 +1561,17 @@ def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets, m_print=print):
 
 
 def generer_table_pnj_dedupliquee(mon_gn: GN):
-    # table_pnj = [["Nom"]]
-    # table_pnj.extend([nom] for nom in generer_liste_pnj_dedup(mon_gn))
 
-    table_pnj = [["Nom", "Déjà présent avec exactement ce nom?", "Actuellement affecté à"]]
+    table_pnj = [["Nom", "Déjà présent avec exactement ce nom?", "Autres orthographes identifiées",
+                  "Actuellement affecté à"]]
 
     noms_actuels = mon_gn.noms_pnjs()
-    noms_dedup, persos_affectes = generer_liste_pnj_dedup_avec_perso(mon_gn)
+    noms_dedup, orthographes, persos_affectes = generer_liste_pnj_dedup_avec_perso(mon_gn)
 
-    for nom_pnj, nom_perso in zip(noms_dedup, persos_affectes):
-        if nom_pnj in noms_actuels:
-            table_pnj.append([nom_pnj, "oui", nom_perso])
-        else:
-            table_pnj.append([nom_pnj, "non", nom_perso])
-
+    table_pnj.extend(
+        [nom_pnj, "oui" if nom_pnj in noms_actuels else "non",','.join(variations), nom_perso]
+        for nom_pnj, variations, nom_perso in zip(noms_dedup, orthographes, persos_affectes)
+    )
     return table_pnj
 
 
