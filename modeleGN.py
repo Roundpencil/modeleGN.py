@@ -14,8 +14,8 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.2.20231105"
-VERSION_MODELE = "1.1.20231105"
+VERSION = "1.2.20231110"
+VERSION_MODELE = "1.1.20231110"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -723,8 +723,8 @@ class Scene:
     def str_pour_squelette(self, date_gn=None):
         # print(f'DEBUG : je suis en train de générer les scenes pour {self.titre} dans {self.conteneur.nom} '
         #       f'({self.conteneur.get_full_url()})')
-        print(f'{ [r.nom for r in self.roles]}')
-        print(f'{self.roles_et_confiance}')
+        # print(f'{ [r.nom for r in self.roles]}')
+        # print(f'{self.roles_et_confiance}')
         to_return = ""
 
         heure = f'- heure = {self.get_heure_debut()}' if self.get_heure_debut() else ''
@@ -1848,18 +1848,22 @@ class GN:
 # objets
 
 class Objet:
-    def __init__(self, code="", description="", fourni_par="Inconnu", emplacement_debut="", special_effect=""):
+    def __init__(self, code="", description="", fourni_par="Inconnu", emplacement_debut="", special_effect="", informatique =""):
         self.description = description
         self.fourniParJoueur = fourni_par
         self.emplacementDebut = emplacement_debut
         self.specialEffect = special_effect
+        self.informatique = informatique
         self.code = code
-        self.inIntrigues = set()  # ne pas utiliser, ici pour des besoins de rétro-compatibilité
+        # self.inIntrigues = set()  # ne pas utiliser, ici pour des besoins de rétro-compatibilité
         self.intrigue = None
         # self.objet_de_reference=None
 
     def avec_fx(self):
         return len(self.specialEffect) > 0
+
+    def avec_informatique(self):
+        return len(self.informatique) > 0
 
     def get_orga_referent(self):
         return self.intrigue.orga_referent

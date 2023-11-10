@@ -806,29 +806,44 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue):
         START = "Où se trouve-t-il en début de jeu ? (Personnage ou lieu)"
         FOURNI_PAR = "Fourni par ?"
         LIEN_FICHE = "Lien vers la fiche objet (Facultatif)"
+        INFORMATIQUE = "Informatique"
 
     noms_colonnes = [nc.value for nc in NomsColonnes]
     headers = tab_objets[0]
-    dict_headers = generer_dict_header_vers_no_colonne(headers, noms_colonnes, current_intrigue.error_log)
+    # dict_headers = generer_dict_header_vers_no_colonne(headers, noms_colonnes, current_intrigue.error_log)
+
+    liste_dico_objets = generer_liste_de_dict_from_tableau(tab_objets, noms_colonnes, current_intrigue.error_log)
 
     # faire un tableau avec une ligne par objet
-    for ligne in tab_objets[1:]:
-        code = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.CODE.value, "")
-        description = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
-        fourni_par = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.FOURNI_PAR.value, "")
-        emplacement_debut = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.START.value, "")
-        special_effect_1 = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.FX.value, "")
-        special_effect_2 = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.RFID.value, "")
-        special_effect = special_effect_1 + special_effect_2
-
-        mon_objet = Objet(code=code,
-                          description=description,
-                          fourni_par=fourni_par,
-                          emplacement_debut=emplacement_debut,
-                          special_effect=special_effect)
+    for dico_objet in liste_dico_objets:
+        mon_objet = Objet(code=dico_objet.get(NomsColonnes.CODE.value, ""),
+                          description=dico_objet.get(NomsColonnes.DESCRIPTION.value, ""),
+                          fourni_par=dico_objet.get(NomsColonnes.FOURNI_PAR.value, ""),
+                          emplacement_debut=dico_objet.get(NomsColonnes.START.value, ""),
+                          special_effect=dico_objet.get(NomsColonnes.FX.value, "")
+                                         + dico_objet.get(NomsColonnes.RFID.value, ""),
+                          informatique=dico_objet.get(NomsColonnes.INFORMATIQUE.value, "")
+                          )
 
         current_intrigue.objets.add(mon_objet)
         mon_objet.intrigue = current_intrigue
+    # for ligne in tab_objets[1:]:
+    #     code = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.CODE.value, "")
+    #     description = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
+    #     fourni_par = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.FOURNI_PAR.value, "")
+    #     emplacement_debut = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.START.value, "")
+    #     special_effect_1 = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.FX.value, "")
+    #     special_effect_2 = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.RFID.value, "")
+    #     special_effect = special_effect_1 + special_effect_2
+    #
+    #     mon_objet = Objet(code=code,
+    #                       description=description,
+    #                       fourni_par=fourni_par,
+    #                       emplacement_debut=emplacement_debut,
+    #                       special_effect=special_effect)
+    #
+    #     current_intrigue.objets.add(mon_objet)
+    #     mon_objet.intrigue = current_intrigue
 
 
 def intrigue_scenesfx(texte: str, intrigue: Intrigue):

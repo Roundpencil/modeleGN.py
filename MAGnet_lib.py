@@ -954,7 +954,7 @@ def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
         for role in perso.roles:
             mes_scenes.extend(iter(role.scenes))
         mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=mon_gn.get_date_gn())
-        print(f'DEBUG = personnage en cours de génération des scènes = {perso.nom}, {perso.url}')
+        # print(f'DEBUG = personnage en cours de génération des scènes = {perso.nom}, {perso.url}')
         for scene in mes_scenes:
             # print(scene)
             texte_perso += scene.str_pour_squelette(mon_gn.get_date_gn()) + '\n'
@@ -1146,7 +1146,7 @@ def generer_changelog(mon_gn, prefixe, nb_jours=1, verbal=False):
 
 
 def generer_table_objets_from_intrigues_et_evenements(mon_gn):
-    to_return = [['code', 'description', 'Avec FX?', 'FX', 'Débute Où?', 'fourni par Qui?', 'Intrigues', 'Evènements',
+    to_return = [['code', 'description', 'Avec FX?','Avec informatique?', 'Détail', 'Débute Où?', 'fourni par Qui?', 'Intrigues', 'Evènements',
                   'fiche objet trouvée?', 'Orga référent']]
     for objet_ref in mon_gn.objets_de_reference.values():
         ma_liste = [objet for objet in objet_ref.objets_dans_intrigues if objet.intrigue is not None]
@@ -1154,7 +1154,8 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
             code = objet.code.replace('\n', '\v')
             description = objet.description.replace('\n', '\v')
             avecfx = objet.avec_fx()
-            fx = objet.specialEffect.replace('\n', '\v')
+            avecinformatique = objet.avec_informatique()
+            details_fx_info = '\n'.join([objet.specialEffect.replace('\n', '\v') + objet.informatique.replace('\n', '\v')])
             debuteou = objet.emplacementDebut.replace('\n', '\v')
             fournipar = objet.fourniParJoueur.replace('\n', '\v')
             # intrigue = objet.intrigue
@@ -1165,7 +1166,8 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
             to_return.append([f"{code}",
                               f"{description}",
                               f"{avecfx}",
-                              f"{fx}",
+                              f"{avecinformatique}",
+                              f"{details_fx_info}",
                               f"{debuteou}",
                               f"{fournipar}",
                               f"{intrigue}",
@@ -1178,7 +1180,7 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
             code = objet.code.replace('\n', '\v')
             description = objet.description.replace('\n', '\v')
             avecfx = ""
-            fx = ""
+            details_fx_info = ""
             debuteou = objet.commence.replace('\n', '\v')
             fournipar = ""
             intrigue = ""
@@ -1190,7 +1192,7 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
             to_return.append([f"{code}",
                               f"{description}",
                               f"{avecfx}",
-                              f"{fx}",
+                              f"{details_fx_info}",
                               f"{debuteou}",
                               f"{fournipar}",
                               f"{intrigue}",
