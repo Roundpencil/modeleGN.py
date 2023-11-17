@@ -260,7 +260,7 @@ def recherche_dichotomique_aides(evenements, min_aides=0, max_aides=100, aides_c
                                       consever_liens_aides_pnjs=consever_liens_aides_pnjs)
 
 
-def determiner_pas(evenements: list[Evenement]):
+def determiner_pas(evenements: list[FicheEvenement]):
     minutes = {'0'}
     for evenement in evenements:
         with contextlib.suppress(Exception):
@@ -354,7 +354,7 @@ def pas_2_h(heure_en_pas, pas):
     return f"J{jour} - {minutes // 60}h{minutes % 60}"
 
 
-def evenements_2_dict_ortools(liste_evenements: list[Evenement], pas, texte_erreurs):
+def evenements_2_dict_ortools(liste_evenements: list[FicheEvenement], pas, texte_erreurs):
     evenements_formattes = []
     for evenement in liste_evenements:
         for i, intervention in enumerate(evenement.interventions, start=1):

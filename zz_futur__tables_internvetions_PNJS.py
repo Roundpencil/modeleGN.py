@@ -12,7 +12,7 @@ def heure_en_pas(heure_en_texte: str, pas: int):
         return 0
 
 
-def determiner_pas(evenements: list[Evenement]):
+def determiner_pas(evenements: list[FicheEvenement]):
     minutes = {'0'}
     for evenement in evenements:
         with contextlib.suppress(Exception):
@@ -47,7 +47,7 @@ def preparer_donnees_pour_ortools(gn: GN, pas=None):
     return evenements_2_dict_ortools(gn.evenements.values(), pas)
 
 
-def evenements_2_dict_ortools(liste_evenements: list[Evenement], pas):
+def evenements_2_dict_ortools(liste_evenements: list[FicheEvenement], pas):
     evenements_formattes = []
     for evenement in liste_evenements:
         for i, intervention in enumerate(evenement.interventions, start=1):

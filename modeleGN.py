@@ -1824,6 +1824,9 @@ class GN:
                 print(f'heure de la scène {scene.titre} : {scene.heure_debut}')
 
         for evenement in self.evenements.values():
+            if version.parse(self.version) < version.parse('1.2.0'):
+                evenement.__class__.name = "FicheEvenement"
+
             maj_classe(evenement)
             for intervention in evenement.interventions:
                 maj_classe(intervention)
@@ -1949,7 +1952,7 @@ class ErreurManager:
             self.erreurs = temp
 
 
-class Evenement(ConteneurDInterventions):
+class FicheEvenement(ConteneurDInterventions):
     def __init__(
             self,
             id_url="",
@@ -2008,6 +2011,8 @@ class Evenement(ConteneurDInterventions):
     def get_full_url(self):
         return f"https://docs.google.com/document/d/{self.id_url}"
 
+#une classe pour la rétrocompatibilité, devra être supprimée à terme
+Evenement = FicheEvenement
 
 class IntervenantEvenement:
     def __init__(self, nom_pnj, evenement: ConteneurDInterventions, costumes_et_accessoires="", implication="",
@@ -2050,7 +2055,7 @@ class PJConcerneEvenement:
 
 
 class InfoFactionsPourEvenement:
-    def __init__(self, nom_faction, evenement: Evenement, infos_a_fournir=""):
+    def __init__(self, nom_faction, evenement: FicheEvenement, infos_a_fournir=""):
         self.nom_faction = nom_faction
         # self.faction = None
         self.infos_a_fournir = infos_a_fournir
@@ -2058,7 +2063,7 @@ class InfoFactionsPourEvenement:
 
 
 class ObjetDansEvenement:
-    def __init__(self, code: str, description: str, commence: str, termine: str, evenement: Evenement):
+    def __init__(self, code: str, description: str, commence: str, termine: str, evenement: FicheEvenement):
         self.code = code
         self.description = description
         self.commence = commence

@@ -1270,10 +1270,10 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
     # Créer un nouvel évènement
     nom_evenement_en_cours = re.sub(r"^\d+\s*-", '', nom_evenement).strip()
 
-    current_evenement = Evenement(nom_evenement=nom_evenement_en_cours,
-                                  id_url=id_url,
-                                  derniere_edition_date=lastFileEdit,
-                                  derniere_edition_par=derniere_modification_par)
+    current_evenement = FicheEvenement(nom_evenement=nom_evenement_en_cours,
+                                       id_url=id_url,
+                                       derniere_edition_date=lastFileEdit,
+                                       derniere_edition_par=derniere_modification_par)
     dict_evenements[id_url] = current_evenement
 
     #     print(f"evenements apres création de l'évènement {nom_evenement_en_cours} : {gn.evenements} ")
@@ -1347,7 +1347,7 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
                                                         ErreurManager.ORIGINES.LECTURE_EVENEMENT)
 
 
-def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: str):
+def evenement_lire_fiche(texte: str, current_evenement: FicheEvenement, texte_label: str):
     texte = retirer_premiere_ligne(texte)
     tableau_fiche, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
     # print(f"debug : tableau fiche évènement {current_evenement.nom_evenement}, {tableau_fiche} ")
@@ -1432,7 +1432,7 @@ def evenement_lire_fiche(texte: str, current_evenement: Evenement, texte_label: 
     current_evenement.consequences_evenement = dict_fiche.get(NomsLignes.CONSEQUENCES.value, "").strip()
 
 
-def evenement_lire_synopsis(texte: str, current_evenement: Evenement):
+def evenement_lire_synopsis(texte: str, current_evenement: FicheEvenement):
     current_evenement.synopsis = '\n'.join(texte.splitlines()[1:])
 
 
@@ -1440,7 +1440,7 @@ def evenement_lire_lies(texte: str, texte_label: str):
     logging.debug(f"balise {texte_label} non prise en charge = {texte}")
 
 
-def evenement_lire_briefs(texte: str, current_evenement: Evenement, texte_label: str):
+def evenement_lire_briefs(texte: str, current_evenement: FicheEvenement, texte_label: str):
     texte = retirer_premiere_ligne(texte)
     tableau_briefs, nb_colonnes = reconstituer_tableau(texte)
     if nb_colonnes != 4:
@@ -1463,7 +1463,7 @@ def evenement_lire_briefs(texte: str, current_evenement: Evenement, texte_label:
         current_evenement.intervenants_evenement[nom_intervenant] = intervenant
 
 
-def evenement_lire_infos_pj(texte: str, current_evenement: Evenement, texte_label: str):
+def evenement_lire_infos_pj(texte: str, current_evenement: FicheEvenement, texte_label: str):
     texte = retirer_premiere_ligne(texte)
     tableau_pjs, nb_colonnes = reconstituer_tableau(texte)
     if nb_colonnes != 2:
@@ -1481,7 +1481,7 @@ def evenement_lire_infos_pj(texte: str, current_evenement: Evenement, texte_labe
         current_evenement.pjs_concernes_evenement[nom_pj] = info_pj
 
 
-def evenement_infos_factions(texte: str, current_evenement: Evenement, texte_label: str):
+def evenement_infos_factions(texte: str, current_evenement: FicheEvenement, texte_label: str):
     texte = retirer_premiere_ligne(texte)
     tableau_factions, nb_colonnes = reconstituer_tableau(texte)
     if nb_colonnes != 2:
@@ -1497,7 +1497,7 @@ def evenement_infos_factions(texte: str, current_evenement: Evenement, texte_lab
         current_evenement.infos_factions.append(info_faction)
 
 
-def evenement_lire_objets(texte: str, current_evenement: Evenement, texte_label: str):
+def evenement_lire_objets(texte: str, current_evenement: FicheEvenement, texte_label: str):
     texte = retirer_premiere_ligne(texte)
     tableau_objets, nb_colonnes = reconstituer_tableau(texte)
     if nb_colonnes != 4:
@@ -1513,7 +1513,7 @@ def evenement_lire_objets(texte: str, current_evenement: Evenement, texte_label:
         current_evenement.objets.add(objet)
 
 
-def evenement_lire_chrono(texte: str, current_evenement: Evenement, seuil_alerte_pnj=70, seuil_alerte_pj=70):
+def evenement_lire_chrono(texte: str, current_evenement: FicheEvenement, seuil_alerte_pnj=70, seuil_alerte_pj=70):
     texte = retirer_premiere_ligne(texte)
     # # on regarde l'entete pour connaitre la taille du tableau,
     # # mais on prend le tableau sans entete pour terminer ce qu'il faut lire
@@ -1532,7 +1532,7 @@ def evenement_lire_chrono(texte: str, current_evenement: Evenement, seuil_alerte
                                                 seuil_alerte_pj=seuil_alerte_pj)
 
 
-def evenement_lire_chrono_depuis_tableau(current_evenement: Evenement,
+def evenement_lire_chrono_depuis_tableau(current_evenement: FicheEvenement,
                                          tableau_interventions: list = None, nb_colonnes: int = 0,
                                          seuil_alerte_pnj=70, seuil_alerte_pj=70):
     class NomsColonnes(Enum):
@@ -1579,7 +1579,7 @@ def evenement_lire_chrono_depuis_tableau(current_evenement: Evenement,
                                         seuil_alerte_pj, seuil_alerte_pnj)
 
 
-def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, dict_header_vers_no_colonne: dict,
+def evenement_extraire_ligne_chrono(current_evenement: FicheEvenement, ligne, dict_header_vers_no_colonne: dict,
                                     noms_colonnes,
                                     seuil_alerte_pj, seuil_alerte_pnj):
     # print(f"debug : "
