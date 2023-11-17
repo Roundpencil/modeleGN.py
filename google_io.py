@@ -1682,10 +1682,9 @@ def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvene
                 current_conteneur_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
                                                                           texte_erreur,
                                                                           ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-            intervenant = current_conteneur_evenement.intervenants_evenement[score[0]]
-            # todo : créer une méthode 'ajouter_pnj_dans_evenement' qui pour les intrigues
-            #  vérifie si le persoonage y est déjà et l'ajoute,
-            #  ou bien créer un roel pour l'ajouter
+            # intervenant = current_conteneur_evenement.intervenants_evenement[score[0]]
+            intervenant = current_conteneur_evenement.get_intervenant_from_nom(score[0])
+
 
             intervention.liste_intervenants.append(intervenant)
     for intervenant in intervention.liste_intervenants:
@@ -1716,11 +1715,10 @@ def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvene
                 current_conteneur_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
                                                                           texte_erreur,
                                                                           ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-            pj_concerne = current_conteneur_evenement.pjs_concernes_evenement[score[0]]
+            # pj_concerne = current_conteneur_evenement.pjs_concernes_evenement[score[0]]
+            pj_concerne = current_conteneur_evenement.get_pjs_concernes_from_nom(score[0])
             intervention.liste_pjs_concernes.append(pj_concerne)
-            # todo : créer une méthode 'ajouter_pj_dans_evenement' qui pour les intrigues
-            #  vérifie si le persoonage y est déjà et l'ajoute,
-            #  ou bien créer un roel pour l'ajouter
+
 
 
 

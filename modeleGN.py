@@ -246,6 +246,21 @@ class ConteneurDEvenementsUnitaires(ABC):
     def get_noms_pjs(self):
         pass
 
+    @abstractmethod
+    def get_intervenant_from_nom(self, nom):
+        pass
+
+    # todo : pour les intrigues :
+    #  vérifie si le persoonage y est déjà et l'ajoute,
+    #  ou bien créer un roel pour l'ajouter
+
+    @abstractmethod
+    def get_pjs_concernes_from_nom(self, param):
+        pass
+
+    # todo : créer une méthode 'ajouter_pj_dans_evenement' qui pour les intrigues
+    #  vérifie si le persoonage y est déjà et l'ajoute,
+    #  ou bien créer un roel pour l'ajouter
 
 # personnage
 class Personnage(ConteneurDeScene):
@@ -579,6 +594,46 @@ class Intrigue(ConteneurDeScene, ConteneurDEvenementsUnitaires):
         self.commentaires = []
         self.codes_evenements_raw = []
         self.evenements = set()
+
+    def get_noms_pjs(self):
+        return [role.nom for role in self.rolesContenus.values() if role.est_un_pj()]
+
+    def get_noms_pnjs(self):
+        return [role.nom for role in self.rolesContenus.values() if role.est_un_pnj() or role.est_un_reroll()]
+
+
+    def date_par_defaut(self):
+        return 'J0'
+
+    def heure_de_demarrage_par_defaut(self):
+        return '00h00'
+
+    def heure_de_fin_par_defaut(self):
+        return ''
+
+
+    def synopsis_par_defaut(self):
+        return ''
+
+    def lieu_par_defaut(self):
+        return ''
+
+
+    @abstractmethod
+    def get_intervenant_from_nom(self, nom):
+        pass
+
+    # todo : pour les intrigues :
+    #  vérifie si le persoonage y est déjà et l'ajoute,
+    #  ou bien créer un roel pour l'ajouter
+
+    @abstractmethod
+    def get_pjs_concernes_from_nom(self, param):
+        pass
+
+    # todo : créer une méthode 'ajouter_pj_dans_evenement' qui pour les intrigues
+    #  vérifie si le persoonage y est déjà et l'ajoute,
+    #  ou bien créer un roel pour l'ajouter
 
     def __str__(self):
         return self.nom
@@ -2057,6 +2112,12 @@ class FicheEvenement(ConteneurDEvenementsUnitaires):
 
     def lieu_par_defaut(self):
         return self.lieu
+
+    def get_intervenant_from_nom(self, nom):
+        return self.intervenants_evenement[nom]
+
+    def get_pjs_concernes_from_nom(self, nom):
+        return self.pjs_concernes_evenement[nom]
 
 
     def get_full_url(self):
