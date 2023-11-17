@@ -5,6 +5,7 @@ import os.path
 import pickle
 import re
 import sys
+from abc import ABC, abstractmethod
 from enum import IntEnum
 
 import dateparser
@@ -186,7 +187,7 @@ class ConteneurDeScene:
                         print("mais pas la même description !")
                     break
 
-class ConteneurDEvenementsUnitaires:
+class ConteneurDEvenementsUnitaires(ABC):
     def __init__(self, referent="", code_evenement = "", intrigue = None, nom = "", erreur_manager = None):
         self.referent = referent
         self.code_evenement = code_evenement
@@ -215,6 +216,36 @@ class ConteneurDEvenementsUnitaires:
         # for intervention in self.interventions:
         #     del intervention
         self.interventions.clear()
+
+    @abstractmethod
+    def get_noms_pnjs(self):
+        pass
+    # todo : implémenter dans Intrigue
+
+    @abstractmethod
+    def date_par_defaut(self):
+        pass
+
+    @abstractmethod
+    def heure_de_demarrage_par_defaut(self):
+        pass
+
+    @abstractmethod
+    def heure_de_fin_par_defaut(self):
+        pass
+
+    @abstractmethod
+    def synopsis_par_defaut(self):
+        pass
+
+    @abstractmethod
+    def lieu_par_defaut(self):
+        pass
+
+    @abstractmethod
+    def get_noms_pjs(self):
+        pass
+
 
 # personnage
 class Personnage(ConteneurDeScene):
@@ -2010,6 +2041,22 @@ class FicheEvenement(ConteneurDEvenementsUnitaires):
 
     def get_noms_pjs(self):
         return list(self.pjs_concernes_evenement.keys())
+
+    def date_par_defaut(self):
+        return self.date
+
+    def heure_de_demarrage_par_defaut(self):
+        return self.heure_de_demarrage
+
+    def heure_de_fin_par_defaut(self):
+        return self.heure_de_fin
+
+    def synopsis_par_defaut(self):
+        return self.synopsis
+
+
+    def lieu_par_defaut(self):
+        return self.lieu
 
 
     def get_full_url(self):

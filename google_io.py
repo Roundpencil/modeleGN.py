@@ -581,6 +581,11 @@ def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles:l
         peut être envisagée au prix d'une diminution de la performance globale.
     """
 
+    #si on a en entrée un tableau vide, alors on renvoie un tableau vide pour obtenir un dictionnaire avec une clef
+    # inutilisable derrière, dont les fonctions get renverrons la valeur par défaut.
+    if en_tetes_bruts == ['']:
+        return ['']
+
     # À noter : cette fonction est une version simplifiée de celle qui suggère les tableaux en trouvant le meilleur
     # match. Si les résultats sont trop mauvais, il est possible d'utiliser la même structure, au prix de perdre en
     # performance globale.
@@ -1334,10 +1339,18 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
             methode_a_appliquer(texte_section)
 
     # on vérifie ensuite qu'on a bien une chrono, sinon on la force et elle sera remplie par défaut
-    if indexes[Labels.CHRONO.value]["debut"] == -1:
+    # if indexes[Labels.CHRONO.value]["debut"] == -1:
+
+    # à la place on va vérifier l'état du tableau après être passé, s'il est vide, on le force
+    if len(current_evenement.interventions) == 0:
         # dans ce cas on reconstruit un tableau de toute pièce en appelant lire_chono_tableau avec non comme argument
 
-        evenement_lire_chrono_depuis_tableau(current_conteneur_evenement=current_evenement)
+        # si on est entré avec les paramètres apr défaut, dans ce cas le tableau est à reconstruire en '',
+        tableau_interventions = [[''], ['']]
+
+        evenement_lire_chrono_depuis_tableau(current_conteneur_evenement=current_evenement,
+                                             tableau_interventions=tableau_interventions,
+                                             nb_colonnes=1)
 
         texte_erreur = "Le tableau des interventions n'a pas été trouvé " \
                        "> les informations de l'évènement (jour, date, tous les pjs, tous les pnjs, synopsys) " \
@@ -1533,7 +1546,7 @@ def evenement_lire_chrono(texte: str, current_evenement: FicheEvenement, seuil_a
 
 
 def evenement_lire_chrono_depuis_tableau(current_conteneur_evenement: ConteneurDEvenementsUnitaires,
-                                         tableau_interventions: list = None, nb_colonnes: int = 0,
+                                         tableau_interventions: list, nb_colonnes: int,
                                          seuil_alerte_pnj=70, seuil_alerte_pj=70):
     class NomsColonnes(Enum):
         JOUR = "jour"
@@ -1542,14 +1555,17 @@ def evenement_lire_chrono_depuis_tableau(current_conteneur_evenement: ConteneurD
         PNJs = "pnjs"
         PJs = "pjs impliqués"
         QUOI = "quoi?"
+        OU = "où?"
 
     colonnes = [nc.value for nc in NomsColonnes]
 
-    # si on est entré avec les paramètres apr défaut, dans ce cas le tableau est à reconstruire en '',
-    # pour recopier plus tard ceux de l'évènement
-    if tableau_interventions is None or nb_colonnes == 0:
-        nb_colonnes = len(colonnes)
-        tableau_interventions = [colonnes, [''] * nb_colonnes]
+    #### déplacé dans l'appel unitaire dans les cas où on n'a pas de tableau
+    # # si on est entré avec les paramètres apr défaut, dans ce cas le tableau est à reconstruire en '',
+    # # pour recopier plus tard ceux de l'évènement
+    # if tableau_interventions is None or nb_colonnes == 0:
+    #     nb_colonnes = len(colonnes)
+    #     tableau_interventions = [colonnes, [''] * nb_colonnes]
+    #
 
     if not 1 <= nb_colonnes <= len(colonnes):
         logging.debug(f"format incorrect de tableau le la chronologie des évènements : {tableau_interventions}")
@@ -1558,58 +1574,56 @@ def evenement_lire_chrono_depuis_tableau(current_conteneur_evenement: ConteneurD
                                                                   texte_erreur,
                                                                   ErreurManager.ORIGINES.LECTURE_EVENEMENT)
         return
-    # du coup si le nombre de colonnes est bon mais que la longueur est nulle, le tableau est vide
-    # il faut donc le remplir
+
+    # # du coup si le nombre de colonnes est bon mais que la longueur est nulle, le tableau est vide
+    # # il faut donc le remplir
     if len(tableau_interventions) == 1:
-        tableau_interventions.append([''] * nb_colonnes)
-        texte_erreur = "Le tableau des interventions a été trouvé, mais ne contenait aucune ligne " \
-                       "> les informations de l'évènement (jour, date, tous les pjs, tous les pnjs, synopsys) " \
-                       "ont été reprises"
+        texte_erreur = "Le tableau des interventions a été trouvé, mais ne contenait aucune ligne "
         current_conteneur_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.INFO,
                                                                   texte_erreur,
                                                                   ErreurManager.ORIGINES.LECTURE_EVENEMENT)
-        # print(f"debug : {tableau_interventions} pour l'evènement {current_evenement.nom_evenement}")
+        return
 
-    dict_header_vers_no_colonne = generer_dict_header_vers_no_colonne(en_tetes=tableau_interventions[0],
-                                                                      noms_colonnes=colonnes,
-                                                                      erreur_manager=current_conteneur_evenement.erreur_manager,
-                                                                      )
-    for ligne in tableau_interventions[1:]:
-        evenement_extraire_ligne_chrono(current_conteneur_evenement, ligne, dict_header_vers_no_colonne, NomsColonnes,
+    # if len(tableau_interventions) == 1:
+    #     tableau_interventions.append([''] * nb_colonnes)
+    #     texte_erreur = "Le tableau des interventions a été trouvé, mais ne contenait aucune ligne " \
+    #                    "> les informations de l'évènement (jour, date, tous les pjs, tous les pnjs, synopsys) " \
+    #                    "ont été reprises"
+    #     current_conteneur_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.INFO,
+    #                                                               texte_erreur,
+    #                                                               ErreurManager.ORIGINES.LECTURE_EVENEMENT)
+    #     # print(f"debug : {tableau_interventions} pour l'evènement {current_evenement.nom_evenement}")
+
+    # dict_header_vers_no_colonne = generer_dict_header_vers_no_colonne(en_tetes=tableau_interventions[0],
+    #                                                                   noms_colonnes=colonnes,
+    #                                                                   erreur_manager=current_conteneur_evenement.erreur_manager,
+    #                                                                   )
+
+    liste_dict_lignes = generer_liste_de_dict_from_tableau(tableau_interventions, colonnes,
+                                                     current_conteneur_evenement.erreur_manager)
+    # for ligne in tableau_interventions[1:]:
+    #     evenement_extraire_ligne_chrono(current_conteneur_evenement, ligne, dict_header_vers_no_colonne, NomsColonnes,
+    #                                     seuil_alerte_pj, seuil_alerte_pnj)
+
+    for dict_ligne in liste_dict_lignes:
+        evenement_extraire_ligne_chrono(current_conteneur_evenement, dict_ligne, NomsColonnes,
                                         seuil_alerte_pj, seuil_alerte_pnj)
 
 
-def evenement_extraire_ligne_chrono(current_evenement: FicheEvenement, ligne, dict_header_vers_no_colonne: dict,
+def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvenementsUnitaires,
+                                    dict_ligne: dict,
                                     noms_colonnes,
-                                    seuil_alerte_pj, seuil_alerte_pnj):
+                                    seuil_alerte_pj: int, seuil_alerte_pnj: int):
     # print(f"debug : "
-    #       f"Je suis en train de lire une internventionde de l'évènement {current_evenement.code_evenement}, "
+    #       f"Je suis en train de lire une internvention de de l'évènement {current_evenement.code_evenement}, "
     #       f"et ma ligne est  = {ligne}")
-    jour = en_tete_vers_valeur_dans_ligne(ligne,
-                                          dict_header_vers_no_colonne,
-                                          noms_colonnes.JOUR.value,
-                                          '')
-    heure_debut = en_tete_vers_valeur_dans_ligne(ligne,
-                                                 dict_header_vers_no_colonne,
-                                                 noms_colonnes.HEURE_DEBUT.value,
-                                                 '')
-    heure_fin = en_tete_vers_valeur_dans_ligne(ligne,
-                                               dict_header_vers_no_colonne,
-                                               noms_colonnes.HEURE_FIN.value,
-                                               '')
-    pnjs_raw = en_tete_vers_valeur_dans_ligne(ligne,
-                                              dict_header_vers_no_colonne,
-                                              noms_colonnes.PNJs.value,
-                                              '')
-    pj_raw = en_tete_vers_valeur_dans_ligne(ligne,
-                                            dict_header_vers_no_colonne,
-                                            noms_colonnes.PJs.value,
-                                            '')
-
-    description = en_tete_vers_valeur_dans_ligne(ligne,
-                                                 dict_header_vers_no_colonne,
-                                                 noms_colonnes.QUOI.value,
-                                                 '')
+    jour = dict_ligne.get(noms_colonnes.JOUR.value, '')
+    heure_debut = dict_ligne.get(noms_colonnes.HEURE_DEBUT.value, '')
+    heure_fin = dict_ligne.get(noms_colonnes.HEURE_FIN.value, '')
+    pnjs_raw = dict_ligne.get(noms_colonnes.PNJs.value, '')
+    pj_raw = dict_ligne.get(noms_colonnes.PJs.value, '')
+    description = dict_ligne.get(noms_colonnes.QUOI.value, '')
+    lieu = dict_ligne.get(noms_colonnes.OU.value, '')
 
     # print(f"debug : "
     #       f"après correction, j'ai les données suivantes : "
@@ -1619,12 +1633,16 @@ def evenement_extraire_ligne_chrono(current_evenement: FicheEvenement, ligne, di
     #       f"description={description if description != '' else current_evenement.synopsis},"
     #       )
 
-    intervention = EvenementUnitaire(jour=jour if jour != '' else current_evenement.date,
-                                     heure_debut=heure_debut if heure_debut != '' else current_evenement.heure_de_demarrage,
-                                     heure_fin=heure_fin if heure_fin != '' else current_evenement.heure_de_fin,
-                                     description=description if description != '' else current_evenement.synopsis,
-                                     conteneur_dinterventions=current_evenement,
-                                     lieu = current_evenement.lieu
+    intervention = EvenementUnitaire(jour=jour if jour != '' else current_conteneur_evenement.date_par_defaut(),
+                                     heure_debut=heure_debut if heure_debut != ''
+                                        else current_conteneur_evenement.heure_de_demarrage_par_defaut(),
+                                     heure_fin=heure_fin if heure_fin != ''
+                                        else current_conteneur_evenement.heure_de_fin_par_defaut(),
+                                     description=description if description != ''
+                                        else current_conteneur_evenement.synopsis_par_defaut(),
+                                     conteneur_dinterventions=current_conteneur_evenement,
+                                     lieu = lieu if lieu != ''
+                                        else current_conteneur_evenement.lieu_par_defaut()
                                      )
     # intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
     #                             heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
@@ -1632,67 +1650,78 @@ def evenement_extraire_ligne_chrono(current_evenement: FicheEvenement, ligne, di
     #                             evenement=current_evenement
     #                             )
     noms_pnjs_impliques = [nom.strip() for nom in pnjs_raw.split(',')]
-    noms_pnjs_dans_evenement = current_evenement.get_noms_pnjs()
+    noms_pnjs_dans_evenement = current_conteneur_evenement.get_noms_pnjs()
     # print(f"debug : {len(current_evenement.interventions)} interventions "
     #       f"dans l'evènement {current_evenement.id_url}")
 
-    current_evenement.interventions.append(intervention)
+    current_conteneur_evenement.interventions.append(intervention)
     # print(f"debug : apres ajout de l'intervention {intervention.description} dans l'évènement "
     #       f"{current_evenement.nom_evenement} / {current_evenement.code_evenement}, "
     #       f"celui ci contient {len(current_evenement.interventions)} interventions")
     if noms_pnjs_impliques == ['']:
-        intervention.liste_intervenants.extend(current_evenement.intervenants_evenement.values())
+        intervention.liste_intervenants.extend(current_conteneur_evenement.intervenants_evenement.values())
+        #todo : faire évoluer pour gérer la cas des intrigues
+
     else:
         for nom_pnj in noms_pnjs_impliques:
             score = process.extractOne(nom_pnj, noms_pnjs_dans_evenement)
             if score is None:
                 texte_erreur = f"Correspondance introuvable pour le nom {nom_pnj} avec la table des PNJs" \
-                               f"dans l'évènement {current_evenement.code_evenement} " \
-                               f"/ {current_evenement.nom_evenement} " \
+                               f"dans l'évènement {current_conteneur_evenement.code_evenement} " \
+                               f"/ {current_conteneur_evenement.nom_evenement} " \
                                f"pour l'intervention {intervention.description}"
-                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
-                                                                texte_erreur,
-                                                                ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+                current_conteneur_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                                          texte_erreur,
+                                                                          ErreurManager.ORIGINES.CHRONO_EVENEMENT)
                 # print(f"debug : {texte_erreur}")
                 continue
 
             if score[1] < seuil_alerte_pnj:
                 texte_erreur = f"Le nom du pnj {nom_pnj} trouvé dans la chronologie de l'évènement " \
                                f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
-                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
-                                                                texte_erreur,
-                                                                ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-            intervenant = current_evenement.intervenants_evenement[score[0]]
+                current_conteneur_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                                          texte_erreur,
+                                                                          ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+            intervenant = current_conteneur_evenement.intervenants_evenement[score[0]]
+            # todo : créer une méthode 'ajouter_pnj_dans_evenement' qui pour les intrigues
+            #  vérifie si le persoonage y est déjà et l'ajoute,
+            #  ou bien créer un roel pour l'ajouter
+
             intervention.liste_intervenants.append(intervenant)
     for intervenant in intervention.liste_intervenants:
         intervenant.interventions.add(intervention)
 
     noms_pj_impliques = [nom.strip() for nom in pj_raw.split(',')]
-    noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
+    noms_pjs_dans_evenement = current_conteneur_evenement.get_noms_pjs()
     if noms_pj_impliques == ['']:
-        intervention.liste_pjs_concernes.extend(current_evenement.pjs_concernes_evenement.values())
+        intervention.liste_pjs_concernes.extend(current_conteneur_evenement.pjs_concernes_evenement.values())
+        #todo : faire évoluer pour gérer la cas des intrigues
     else:
         for nom_pj in noms_pj_impliques:
             score = process.extractOne(nom_pj, noms_pjs_dans_evenement)
             if score is None:
                 texte_erreur = f"Correspondance introuvable pour le nom {nom_pj} " \
-                               f"dans l'évènement {current_evenement.code_evenement} avec la table des PJs" \
-                               f"/ {current_evenement.nom_evenement}" \
+                               f"dans l'évènement {current_conteneur_evenement.code_evenement} avec la table des PJs" \
+                               f"/ {current_conteneur_evenement.nom_evenement}" \
                                f"pour l'intervention {intervention.description}"
-                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
-                                                                texte_erreur,
-                                                                ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+                current_conteneur_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                                          texte_erreur,
+                                                                          ErreurManager.ORIGINES.CHRONO_EVENEMENT)
                 # print(f"debug : {texte_erreur}")
                 continue
 
             if score[1] < seuil_alerte_pj:
                 texte_erreur = f"Le nom du pj {nom_pj} trouvé dans la chronologie de l'évènement " \
                                f"a été associé à {score[0]} à seulement {score[1]}% de confiance"
-                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
-                                                                texte_erreur,
-                                                                ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-            pj_concerne = current_evenement.pjs_concernes_evenement[score[0]]
+                current_conteneur_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                                          texte_erreur,
+                                                                          ErreurManager.ORIGINES.CHRONO_EVENEMENT)
+            pj_concerne = current_conteneur_evenement.pjs_concernes_evenement[score[0]]
             intervention.liste_pjs_concernes.append(pj_concerne)
+            # todo : créer une méthode 'ajouter_pj_dans_evenement' qui pour les intrigues
+            #  vérifie si le persoonage y est déjà et l'ajoute,
+            #  ou bien créer un roel pour l'ajouter
+
 
 
 def evenement_lire_autres(texte: str, texte_label: str):
