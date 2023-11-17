@@ -1623,7 +1623,8 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, dict_he
                                 heure_debut=heure_debut if heure_debut != '' else current_evenement.heure_de_demarrage,
                                 heure_fin=heure_fin if heure_fin != '' else current_evenement.heure_de_fin,
                                 description=description if description != '' else current_evenement.synopsis,
-                                evenement=current_evenement
+                                conteneur_dinterventions=current_evenement,
+                                lieu = current_evenement.lieu
                                 )
     # intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
     #                             heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,

@@ -65,14 +65,14 @@ def normaliser_nom_gn(nom_archive: str):
 # ceux qui sont liés aux personnes (roles)
 # et la contenance de ceux qui sont associés à ses propres scènes (via cette classe, donc)
 class ConteneurDeScene:
-    def __init__(self, derniere_edition_fichier, last_processing, url):
+    def __init__(self, derniere_edition_fichier, last_processing, url, nom = "Conteneur sans nom"):
         self.scenes = set()
         self.rolesContenus = {}  # nom, rôle
         self.error_log = ErreurManager()
         self.lastFileEdit = derniere_edition_fichier
         self.modifie_par = ""
         self.url = url
-        self.nom = "Conteneur sans nom"
+        self.nom = nom
         self.input_questionnaire_inscription = []
 
         self.lastProcessing = last_processing or datetime.datetime.now() - datetime.timedelta(days=500 * 365)
@@ -186,6 +186,34 @@ class ConteneurDeScene:
                         print("mais pas la même description !")
                     break
 
+class ConteneurDInterventions:
+    def __init__(self, referent="", code_evenement = "", intrigue = None, nom = ""):
+        self.referent = referent
+        self.code_evenement = code_evenement
+        self.intrigue = intrigue
+        self.nom_evenement = nom
+        self.interventions = []
+        self.intervenants_evenement = {}  # nom, intervenant
+        self.pjs_concernes_evenement = {}  # nom, pj_concerné
+
+    def clear(self):
+        # casser toutes les relations intervenants <> persos
+        intervenants_a_nettoyer = self.intervenants_evenement.values()
+        for intervenant in intervenants_a_nettoyer:
+            if intervenant.pnj is not None:
+                intervenant.pnj.intervient_comme.remove(intervenant)
+            del intervenant
+
+        # casser toutes les relations pj_concernés <> persos
+        for pj_concerne in self.pjs_concernes_evenement.values():
+            if pj_concerne.pj is not None:
+                pj_concerne.pj.informations_evenements.remove(pj_concerne)
+            del pj_concerne
+
+        # effacer toutes les interventions de l'évènement
+        # for intervention in self.interventions:
+        #     del intervention
+        self.interventions.clear()
 
 # personnage
 class Personnage(ConteneurDeScene):
@@ -361,9 +389,9 @@ class Personnage(ConteneurDeScene):
         return lecteurGoogle.formatter_tableau_pour_export(tab_relation)
 
     def str_interventions(self):
-        to_return = [f"{intervention.implication} "
-                     f"dans {intervention.evenement.nom_evenement}"
-                     for intervention in self.intervient_comme
+        to_return = [f"{intervention_du_perso.implication} "
+                     f"dans {intervention_du_perso.evenement.nom_evenement}"
+                     for intervention_du_perso in self.intervient_comme
                      ]
         return '\n'.join(to_return)
 
@@ -486,15 +514,18 @@ class Role:
 
 
 # intrigue
-class Intrigue(ConteneurDeScene):
+class Intrigue(ConteneurDeScene, ConteneurDInterventions):
 
     def __init__(self, url="", nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
                  questions_ouvertes="", notes="", resolution="", orga_referent="", timeline="",
                  last_processing=None,
                  derniere_edition_fichier=0):
-        super(Intrigue, self).__init__(derniere_edition_fichier=derniere_edition_fichier, url=url,
-                                       last_processing=last_processing)
-        self.nom = nom
+        ConteneurDeScene.__init__(self, derniere_edition_fichier=derniere_edition_fichier, url=url,
+                                       last_processing=last_processing, nom=nom)
+        ConteneurDInterventions.__init__(self, referent=orga_referent, intrigue = self, nom = nom)
+
+
+        # self.nom = nom
         self.description = description
         self.pitch = pitch
         self.questions_ouvertes = questions_ouvertes
@@ -521,7 +552,8 @@ class Intrigue(ConteneurDeScene):
 
     def clear(self):
         # retirer l'intrigue du GN > à faire au niveau de l'appel
-        super().clear()
+        ConteneurDeScene.clear(self)
+        ConteneurDInterventions.clear(self)
 
         # se séparer de tous les objets
         for objet in self.objets:
@@ -1926,7 +1958,7 @@ class ErreurManager:
             self.erreurs = temp
 
 
-class Evenement:
+class Evenement(ConteneurDInterventions):
     def __init__(
             self,
             id_url="",
@@ -1943,16 +1975,16 @@ class Evenement:
             consequences_evenement="",
             synopsis="",
             derniere_edition_date=None,
-            derniere_edition_par=""
+            derniere_edition_par="",
+            intrigue = None
     ):
-        self.nom_evenement = nom_evenement
+        ConteneurDInterventions.__init__(self, referent=referent, code_evenement = code_evenement, intrigue = intrigue,
+                                         nom = nom_evenement)
         self.id_url = id_url
         self.derniere_edition_date = derniere_edition_date
         self.derniere_edition_par = derniere_edition_par
-        self.code_evenement = code_evenement
-        self.referent = referent
         self.etat = etat
-        self.intrigue_liee = intrigue_liee
+        self.intrigue_liee = intrigue_liee #jamais utilisé
         self.lieu = lieu
         self.date = date
         self.heure_de_demarrage = heure_de_demarrage
@@ -1961,15 +1993,12 @@ class Evenement:
         self.consequences_evenement = consequences_evenement
         self.synopsis = synopsis
         #         self.objets = []
-        self.interventions = []
-        self.intervenants_evenement = {}  # nom, intervenant
-        self.pjs_concernes_evenement = {}  # nom, pj_concerné
+
         self.infos_factions = []
         if derniere_edition_date is None:
             derniere_edition_date = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
         self.lastProcessing = derniere_edition_date
         self.erreur_manager = ErreurManager()
-        self.intrigue = None
         self.objets = set()
 
     def get_last_processing(self):
@@ -1984,31 +2013,13 @@ class Evenement:
     def get_noms_pjs(self):
         return list(self.pjs_concernes_evenement.keys())
 
-    def clear(self):
-        # casser toutes les relations intervenants <> persos
-        intervenants_a_nettoyer = self.intervenants_evenement.values()
-        for intervenant in intervenants_a_nettoyer:
-            if intervenant.pnj is not None:
-                intervenant.pnj.intervient_comme.remove(intervenant)
-            del intervenant
-
-        # casser toutes les relations pj_concernés <> persos
-        for pj_concerne in self.pjs_concernes_evenement.values():
-            if pj_concerne.pj is not None:
-                pj_concerne.pj.informations_evenements.remove(pj_concerne)
-            del pj_concerne
-
-        # effacer toutes les interventions de l'évènement
-        # for intervention in self.interventions:
-        #     del intervention
-        self.interventions.clear()
 
     def get_full_url(self):
         return f"https://docs.google.com/document/d/{self.id_url}"
 
 
 class IntervenantEvenement:
-    def __init__(self, nom_pnj, evenement: Evenement, costumes_et_accessoires="", implication="",
+    def __init__(self, nom_pnj, evenement: ConteneurDInterventions, costumes_et_accessoires="", implication="",
                  situation_de_depart=""):
         self.nom_pnj = nom_pnj
         self.pnj = None
@@ -2030,7 +2041,7 @@ class IntervenantEvenement:
 
 
 class PJConcerneEvenement:
-    def __init__(self, nom_pj, evenement: Evenement, infos_a_fournir=""):
+    def __init__(self, nom_pj, evenement: ConteneurDInterventions, infos_a_fournir=""):
         self.nom_pj = nom_pj
         self.pj = None
         self.infos_a_fournir = infos_a_fournir
@@ -2079,14 +2090,16 @@ def _heure_formattee(heure, defaut_si_ko=None):
 
 
 class Intervention:
-    def __init__(self, evenement: Evenement = None, jour=None, heure_debut=None, heure_fin=None, description=""):
+    def __init__(self, conteneur_dinterventions: ConteneurDInterventions = None, jour=None, heure_debut=None,
+                 heure_fin=None, description="", lieu = ""):
         self.jour = jour
         self.heure_debut = heure_debut
         self.heure_fin = heure_fin
         self.liste_intervenants = []
         self.liste_pjs_concernes = []
         self.description = description
-        self.evenement = evenement
+        self.evenement = conteneur_dinterventions
+        self.lieu = lieu
 
     def heure_debut_formattee(self, defaut_si_ko=None):
         # try:
@@ -2106,6 +2119,22 @@ class Intervention:
 
     def jour_formatte(self):
         return f"J{self.jour}" if self.jour.isdigit() else self.jour
+
+    def get_code_evenement(self):
+        return self.evenement.code_evenement
+
+    def get_lieu(self):
+        return self.lieu
+
+    def get_nom_intrigue(self):
+        return self.evenement.intrigue.nom if self.evenement.intrigue is not None \
+            else f"Pas d'intrigue pour l'évènement {self.get_code_evenement()}"
+
+    def get_nom_conteneur(self):
+        return self.evenement.nom_evenement
+
+    def get_referent(self):
+        return self.evenement.referent
 
 
 class Commentaire:

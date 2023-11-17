@@ -39,6 +39,8 @@ import createur_planning_evenementiel as cpe
 #  vérifier auxquels a acces l'utilisateur quand il lance le programme, puis lui proposer de télécahrger les siens.
 #  objectifs : se passer et du fichier de config, et de la nécessité de télécharger un mgn
 #  quand on vérifie la validité du dict config du fichier GN, en profiter pour le loader et séparer les fcontions selon si on a utilisé .ini ou .mgn
+# todo : renommer Evmenet en FicheEvemenet et Intervention en Evenement
+#
 
 # confort / logique
 # todo : refaire version console
@@ -1824,13 +1826,14 @@ def generer_table_evenements(gn: GN):
         pj_pour_tableau = [pj.str_avec_perso()
                            for pj in intervention.liste_pjs_concernes]
 
-        nom_intrigue = intervention.evenement.intrigue.nom if intervention.evenement.intrigue is not None \
-            else f"Pas d'intrigue pour l'évènement {intervention.evenement.code_evenement}"
+        nom_intrigue = intervention.get_nom_intrigue()
+        # nom_intrigue = intervention.evenement.intrigue.nom if intervention.evenement.intrigue is not None \
+        #     else f"Pas d'intrigue pour l'évènement {intervention.evenement.code_evenement}"
 
-        ligne = [intervention.evenement.code_evenement,
+        ligne = [intervention.get_code_evenement(),
                  intervention.jour_formatte(),
                  intervention.heure_debut_formattee(),
-                 intervention.evenement.lieu,
+                 intervention.get_lieu(),
                  intervention.description,
                  '\n'.join(pnj_pour_tableau),
                  '\n'.join(costumes_pnjs),
@@ -1838,9 +1841,23 @@ def generer_table_evenements(gn: GN):
                  '\n'.join(demarrage_pnjs),
                  '\n'.join(pj_pour_tableau),
                  nom_intrigue,
-                 intervention.evenement.nom_evenement,
-                 intervention.evenement.referent
+                 intervention.get_nom_conteneur(),
+                 intervention.get_referent()
                  ]
+        # ligne = [intervention.evenement.code_evenement,
+        #          intervention.jour_formatte(),
+        #          intervention.heure_debut_formattee(),
+        #          intervention.evenement.lieu,
+        #          intervention.description,
+        #          '\n'.join(pnj_pour_tableau),
+        #          '\n'.join(costumes_pnjs),
+        #          '\n'.join(implications_pnjs),
+        #          '\n'.join(demarrage_pnjs),
+        #          '\n'.join(pj_pour_tableau),
+        #          nom_intrigue,
+        #          intervention.evenement.nom_evenement,
+        #          intervention.evenement.referent
+        #          ]
         # # print(f"debug : ligne : {ligne}")
         to_return.append(ligne)
         # print(f"debug : ligne = {ligne}")
