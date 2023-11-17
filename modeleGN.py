@@ -14,8 +14,8 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.2.20231117"
-VERSION_MODELE = "1.2.20231117"
+VERSION = "1.2.20231118"
+VERSION_MODELE = "1.2.20231118"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -1776,7 +1776,7 @@ class GN:
                            "joueurs": "interpretes"},
                       Intrigue:
                           {'orgaReferent': 'orga_referent'},
-                      Intervention:
+                      EvenementUnitaire:
                           {'heure': 'heure_debut'}
                       }
 
@@ -1824,12 +1824,14 @@ class GN:
                 print(f'heure de la scène {scene.titre} : {scene.heure_debut}')
 
         for evenement in self.evenements.values():
-            if version.parse(self.version) < version.parse('1.2.0'):
-                evenement.__class__.name = "FicheEvenement"
+            if evenement.__class__.__name__ == "Evenement":
+                evenement.__class__.__name__ = "FicheEvenement"
 
             maj_classe(evenement)
-            for intervention in evenement.interventions:
-                maj_classe(intervention)
+            for evenement_unitaire in evenement.interventions:
+                if evenement_unitaire.__class__.__name__ == "Intervention":
+                    evenement_unitaire.__class__.__name__ = "EvenementUnitaire"
+                maj_classe(evenement_unitaire)
 
         for objet in self.objets_de_reference.values():
             maj_classe(objet)
@@ -2085,7 +2087,7 @@ def _heure_formattee(heure, defaut_si_ko=None):
         return "00h00" if defaut_si_ko is None else heure
 
 
-class Intervention:
+class EvenementUnitaire:
     def __init__(self, conteneur_dinterventions: ConteneurDInterventions = None, jour=None, heure_debut=None,
                  heure_fin=None, description="", lieu = ""):
         self.jour = jour
@@ -2132,6 +2134,8 @@ class Intervention:
     def get_referent(self):
         return self.evenement.referent
 
+# à supprimer à terme, utilisé pour la rétrocompatibilité
+Intervention = EvenementUnitaire
 
 class Commentaire:
     def __init__(self, texte: str, auteur: str, destinataires: list[str]):

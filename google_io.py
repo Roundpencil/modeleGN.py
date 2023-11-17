@@ -1619,13 +1619,13 @@ def evenement_extraire_ligne_chrono(current_evenement: FicheEvenement, ligne, di
     #       f"description={description if description != '' else current_evenement.synopsis},"
     #       )
 
-    intervention = Intervention(jour=jour if jour != '' else current_evenement.date,
-                                heure_debut=heure_debut if heure_debut != '' else current_evenement.heure_de_demarrage,
-                                heure_fin=heure_fin if heure_fin != '' else current_evenement.heure_de_fin,
-                                description=description if description != '' else current_evenement.synopsis,
-                                conteneur_dinterventions=current_evenement,
-                                lieu = current_evenement.lieu
-                                )
+    intervention = EvenementUnitaire(jour=jour if jour != '' else current_evenement.date,
+                                     heure_debut=heure_debut if heure_debut != '' else current_evenement.heure_de_demarrage,
+                                     heure_fin=heure_fin if heure_fin != '' else current_evenement.heure_de_fin,
+                                     description=description if description != '' else current_evenement.synopsis,
+                                     conteneur_dinterventions=current_evenement,
+                                     lieu = current_evenement.lieu
+                                     )
     # intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
     #                             heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
     #                             description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
