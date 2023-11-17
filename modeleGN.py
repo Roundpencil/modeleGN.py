@@ -1831,6 +1831,12 @@ class GN:
         for objet in self.objets_de_reference.values():
             maj_classe(objet)
 
+        if version.parse(self.version) < version.parse('1.2.0'):
+            #dans ce cas il faut mettre à jour les noms des référents car pas automatique
+            intrigues = self.intrigues.values()
+            for intrigue in intrigues:
+                intrigue.referent = intrigue.orga_referent
+
         self.version = VERSION_MODELE
 
     def get_nom_fichier_sauvegarde(self):
