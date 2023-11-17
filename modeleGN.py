@@ -14,8 +14,8 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.2.20231110"
-VERSION_MODELE = "1.1.20231110"
+VERSION = "1.2.20231117"
+VERSION_MODELE = "1.2.20231117"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -869,21 +869,6 @@ class GN:
         self.oldestUpdatedIntrigue = ""  # contient l'id de la dernière intrigue updatée dans le GN
         self.oldestUpdatedPJ = ""  # contient l'id du dernier PJ updaté dans le GN
 
-        # injection des paramètres du fichier de config
-        # self.association_auto = None  # Ne pas utiliser, paramètres à supprimer
-        # self.id_factions = None
-        # self.dossiers_pnjs = None
-        # self.dossiers_pjs = None
-        # self.dossier_outputs_drive = None
-        # self.dossiers_intrigues = None
-        # self.dossiers_objets = None
-        # self.dossiers_evenements = None
-        # self.date_gn = None
-        # self.id_pjs_et_pnjs = None
-        # self.fichier_pnjs = None
-        # # self.liste_noms_pjs = None
-        # # self.liste_noms_pnjs = None
-        # self.mode_association = None
         self.version = ma_version
 
         self.dict_config = dict_config or {}
