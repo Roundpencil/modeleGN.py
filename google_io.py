@@ -1337,7 +1337,7 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
     if indexes[Labels.CHRONO.value]["debut"] == -1:
         # dans ce cas on reconstruit un tableau de toute pièce en appelant lire_chono_tableau avec non comme argument
 
-        evenement_lire_chrono_depuis_tableau(current_evenement=current_evenement)
+        evenement_lire_chrono_depuis_tableau(current_conteneur_evenement=current_evenement)
 
         texte_erreur = "Le tableau des interventions n'a pas été trouvé " \
                        "> les informations de l'évènement (jour, date, tous les pjs, tous les pnjs, synopsys) " \
@@ -1527,12 +1527,12 @@ def evenement_lire_chrono(texte: str, current_evenement: FicheEvenement, seuil_a
     #       f"tableau interventions : {tableau_interventions}")
     return evenement_lire_chrono_depuis_tableau(tableau_interventions=tableau_interventions,
                                                 nb_colonnes=nb_colonnes,
-                                                current_evenement=current_evenement,
+                                                current_conteneur_evenement=current_evenement,
                                                 seuil_alerte_pnj=seuil_alerte_pnj,
                                                 seuil_alerte_pj=seuil_alerte_pj)
 
 
-def evenement_lire_chrono_depuis_tableau(current_evenement: FicheEvenement,
+def evenement_lire_chrono_depuis_tableau(current_conteneur_evenement: ConteneurDEvenementsUnitaires,
                                          tableau_interventions: list = None, nb_colonnes: int = 0,
                                          seuil_alerte_pnj=70, seuil_alerte_pj=70):
     class NomsColonnes(Enum):
@@ -1554,9 +1554,9 @@ def evenement_lire_chrono_depuis_tableau(current_evenement: FicheEvenement,
     if not 1 <= nb_colonnes <= len(colonnes):
         logging.debug(f"format incorrect de tableau le la chronologie des évènements : {tableau_interventions}")
         texte_erreur = "format incorrect de tableau pour Chronologie de l'évènement"
-        current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
-                                                        texte_erreur,
-                                                        ErreurManager.ORIGINES.LECTURE_EVENEMENT)
+        current_conteneur_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                                  texte_erreur,
+                                                                  ErreurManager.ORIGINES.LECTURE_EVENEMENT)
         return
     # du coup si le nombre de colonnes est bon mais que la longueur est nulle, le tableau est vide
     # il faut donc le remplir
@@ -1565,17 +1565,17 @@ def evenement_lire_chrono_depuis_tableau(current_evenement: FicheEvenement,
         texte_erreur = "Le tableau des interventions a été trouvé, mais ne contenait aucune ligne " \
                        "> les informations de l'évènement (jour, date, tous les pjs, tous les pnjs, synopsys) " \
                        "ont été reprises"
-        current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.INFO,
-                                                        texte_erreur,
-                                                        ErreurManager.ORIGINES.LECTURE_EVENEMENT)
+        current_conteneur_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.INFO,
+                                                                  texte_erreur,
+                                                                  ErreurManager.ORIGINES.LECTURE_EVENEMENT)
         # print(f"debug : {tableau_interventions} pour l'evènement {current_evenement.nom_evenement}")
 
     dict_header_vers_no_colonne = generer_dict_header_vers_no_colonne(en_tetes=tableau_interventions[0],
                                                                       noms_colonnes=colonnes,
-                                                                      erreur_manager=current_evenement.erreur_manager,
+                                                                      erreur_manager=current_conteneur_evenement.erreur_manager,
                                                                       )
     for ligne in tableau_interventions[1:]:
-        evenement_extraire_ligne_chrono(current_evenement, ligne, dict_header_vers_no_colonne, NomsColonnes,
+        evenement_extraire_ligne_chrono(current_conteneur_evenement, ligne, dict_header_vers_no_colonne, NomsColonnes,
                                         seuil_alerte_pj, seuil_alerte_pnj)
 
 

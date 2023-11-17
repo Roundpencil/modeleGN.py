@@ -186,8 +186,8 @@ class ConteneurDeScene:
                         print("mais pas la même description !")
                     break
 
-class ConteneurDInterventions:
-    def __init__(self, referent="", code_evenement = "", intrigue = None, nom = ""):
+class ConteneurDEvenementsUnitaires:
+    def __init__(self, referent="", code_evenement = "", intrigue = None, nom = "", erreur_manager = None):
         self.referent = referent
         self.code_evenement = code_evenement
         self.intrigue = intrigue
@@ -195,6 +195,7 @@ class ConteneurDInterventions:
         self.interventions = []
         self.intervenants_evenement = {}  # nom, intervenant
         self.pjs_concernes_evenement = {}  # nom, pj_concerné
+        self.erreur_manager = erreur_manager if erreur_manager else ErreurManager()
 
     def clear(self):
         # casser toutes les relations intervenants <> persos
@@ -514,7 +515,7 @@ class Role:
 
 
 # intrigue
-class Intrigue(ConteneurDeScene, ConteneurDInterventions):
+class Intrigue(ConteneurDeScene, ConteneurDEvenementsUnitaires):
 
     def __init__(self, url="", nom="intrigue sans nom", description="Description à écrire", pitch="pitch à écrire",
                  questions_ouvertes="", notes="", resolution="", orga_referent="", timeline="",
@@ -522,7 +523,8 @@ class Intrigue(ConteneurDeScene, ConteneurDInterventions):
                  derniere_edition_fichier=0):
         ConteneurDeScene.__init__(self, derniere_edition_fichier=derniere_edition_fichier, url=url,
                                        last_processing=last_processing, nom=nom)
-        ConteneurDInterventions.__init__(self, referent=orga_referent, intrigue = self, nom = nom)
+        ConteneurDEvenementsUnitaires.__init__(self, referent=orga_referent, intrigue = self, nom = nom,
+                                               erreur_manager=self.error_log)
 
 
         # self.nom = nom
@@ -553,7 +555,7 @@ class Intrigue(ConteneurDeScene, ConteneurDInterventions):
     def clear(self):
         # retirer l'intrigue du GN > à faire au niveau de l'appel
         ConteneurDeScene.clear(self)
-        ConteneurDInterventions.clear(self)
+        ConteneurDEvenementsUnitaires.clear(self)
 
         # se séparer de tous les objets
         for objet in self.objets:
@@ -1954,7 +1956,7 @@ class ErreurManager:
             self.erreurs = temp
 
 
-class FicheEvenement(ConteneurDInterventions):
+class FicheEvenement(ConteneurDEvenementsUnitaires):
     def __init__(
             self,
             id_url="",
@@ -1972,10 +1974,11 @@ class FicheEvenement(ConteneurDInterventions):
             synopsis="",
             derniere_edition_date=None,
             derniere_edition_par="",
-            intrigue = None
+            intrigue = None,
+            erreur_manager = None
     ):
-        ConteneurDInterventions.__init__(self, referent=referent, code_evenement = code_evenement, intrigue = intrigue,
-                                         nom = nom_evenement)
+        ConteneurDEvenementsUnitaires.__init__(self, referent=referent, code_evenement = code_evenement, intrigue = intrigue,
+                                               nom = nom_evenement, erreur_manager = erreur_manager)
         self.id_url = id_url
         self.derniere_edition_date = derniere_edition_date
         self.derniere_edition_par = derniere_edition_par
@@ -1994,7 +1997,6 @@ class FicheEvenement(ConteneurDInterventions):
         if derniere_edition_date is None:
             derniere_edition_date = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
         self.lastProcessing = derniere_edition_date
-        self.erreur_manager = ErreurManager()
         self.objets = set()
 
     def get_last_processing(self):
@@ -2017,7 +2019,7 @@ class FicheEvenement(ConteneurDInterventions):
 Evenement = FicheEvenement
 
 class IntervenantEvenement:
-    def __init__(self, nom_pnj, evenement: ConteneurDInterventions, costumes_et_accessoires="", implication="",
+    def __init__(self, nom_pnj, evenement: ConteneurDEvenementsUnitaires, costumes_et_accessoires="", implication="",
                  situation_de_depart=""):
         self.nom_pnj = nom_pnj
         self.pnj = None
@@ -2039,7 +2041,7 @@ class IntervenantEvenement:
 
 
 class PJConcerneEvenement:
-    def __init__(self, nom_pj, evenement: ConteneurDInterventions, infos_a_fournir=""):
+    def __init__(self, nom_pj, evenement: ConteneurDEvenementsUnitaires, infos_a_fournir=""):
         self.nom_pj = nom_pj
         self.pj = None
         self.infos_a_fournir = infos_a_fournir
@@ -2088,7 +2090,7 @@ def _heure_formattee(heure, defaut_si_ko=None):
 
 
 class EvenementUnitaire:
-    def __init__(self, conteneur_dinterventions: ConteneurDInterventions = None, jour=None, heure_debut=None,
+    def __init__(self, conteneur_dinterventions: ConteneurDEvenementsUnitaires = None, jour=None, heure_debut=None,
                  heure_fin=None, description="", lieu = ""):
         self.jour = jour
         self.heure_debut = heure_debut
