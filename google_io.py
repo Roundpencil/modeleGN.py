@@ -1695,53 +1695,6 @@ def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, dict_he
             intervention.liste_pjs_concernes.append(pj_concerne)
 
 
-# def ajouter_intervenants(noms, intervenants_dans_evenement, seuil_alerte, intervention, erreur_manager):
-#     for nom in noms:
-#         score = process.extractOne(nom, intervenants_dans_evenement)
-#         if score is None:
-#             texte_erreur = f"Correspondance introuvable pour le nom {nom} avec la table des intervenants"
-#             erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR, texte_erreur,
-#                                           ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-#             continue
-#
-#         if score[1] < seuil_alerte:
-#             texte_erreur = f"Le nom {nom} trouvé dans la chronologie a été associé à {score[0]} à seulement {score[1]}% de confiance"
-#             erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.WARNING, texte_erreur,
-#                                           ErreurManager.ORIGINES.CHRONO_EVENEMENT)
-#
-#         intervenant = intervenants_dans_evenement[score[0]]
-#         intervention.liste_intervenants.append(intervenant)
-#
-#
-# def evenement_extraire_ligne_chrono(current_evenement: Evenement, ligne, seuil_alerte_pj, seuil_alerte_pnj):
-#     intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
-#                                 heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
-#                                 description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
-#                                 evenement=current_evenement
-#                                 )
-#     current_evenement.interventions.append(intervention)
-#
-#     noms_pnjs_impliques = [nom.strip() for nom in ligne[2].split(',')]
-#     noms_pnjs_dans_evenement = current_evenement.get_noms_pnjs()
-#     noms_pj_impliques = [nom.strip() for nom in ligne[3].split(',')]
-#     noms_pjs_dans_evenement = current_evenement.get_noms_pjs()
-#
-#     if noms_pnjs_impliques == ['']:
-#         intervention.liste_intervenants.extend(current_evenement.intervenants_evenement.values())
-#     else:
-#         ajouter_intervenants(noms_pnjs_impliques, noms_pnjs_dans_evenement, seuil_alerte_pnj, intervention,
-#                              current_evenement.erreur_manager)
-#
-#     if noms_pj_impliques == ['']:
-#         intervention.liste_pjs_concernes.extend(current_evenement.pjs_concernes_evenement.values())
-#     else:
-#         ajouter_intervenants(noms_pj_impliques, noms_pjs_dans_evenement, seuil_alerte_pj, intervention,
-#                              current_evenement.erreur_manager)
-#
-#     for intervenant in intervention.liste_intervenants:
-#         intervenant.interventions.add(intervention)
-
-
 def evenement_lire_autres(texte: str, texte_label: str):
     logging.debug(f"balise {texte_label} non prise en charge = {texte}")
 
