@@ -551,12 +551,13 @@ def generer_dict_header_vers_no_colonne(en_tetes, noms_colonnes, erreur_manager:
     :param erreur_manager: Instance d'ErreurManager pour gérer les erreurs.
     :return: Dictionnaire avec les correspondances entre les entêtes et les noms de colonnes.
     """
-    #todo : supprimer cette fonction et passer par la focntion de dictionnaire à la place
+    # todo : supprimer cette fonction et passer par la focntion de dictionnaire à la place
     tab_rectifie = normaliser_en_tete_tableau(en_tetes, noms_colonnes, erreur_manager)
     return {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
 
 
-def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles:list[str], erreur_manager: ErreurManager):
+def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles: list[str],
+                               erreur_manager: ErreurManager):
     """
     Normalise les en-têtes d'un tableau en fonction d'une liste de noms de colonnes cibles.
 
@@ -581,7 +582,7 @@ def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles:l
         peut être envisagée au prix d'une diminution de la performance globale.
     """
 
-    #si on a en entrée un tableau vide, alors on renvoie un tableau vide pour obtenir un dictionnaire avec une clef
+    # si on a en entrée un tableau vide, alors on renvoie un tableau vide pour obtenir un dictionnaire avec une clef
     # inutilisable derrière, dont les fonctions get renverrons la valeur par défaut.
     if en_tetes_bruts == ['']:
         return ['']
@@ -620,12 +621,12 @@ def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles:l
 def generer_liste_de_dict_from_tableau(tableau_avec_en_tetes, noms_colonnes, erreur_manager: ErreurManager):
     entetes_normalises = normaliser_en_tete_tableau(tableau_avec_en_tetes[0], noms_colonnes, erreur_manager)
 
-    #on crée un tableau de dictionnaires avec les valeurs lues
+    # on crée un tableau de dictionnaires avec les valeurs lues
     to_return = []
     valeurs = tableau_avec_en_tetes[1:]
     for ligne in valeurs:
         current_dict = {
-            entetes_normalises[i] : valeur_colonne
+            entetes_normalises[i]: valeur_colonne
             for i, valeur_colonne in enumerate(ligne)
         }
         to_return.append(current_dict)
@@ -880,7 +881,7 @@ def intrigue_notes(texte: str, intrigue: Intrigue):
 
 
 def intrigue_questionnaire(texte: str, intrigue: Intrigue):
-    #todo : ajouter questionnaire dans les fiches de perso
+    # todo : ajouter questionnaire dans les fiches de perso
 
     tab_questions, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
 
@@ -890,9 +891,9 @@ def intrigue_questionnaire(texte: str, intrigue: Intrigue):
         PERSO_CONCERNE = "Personnage(s) concerné(s) par la question"
 
     noms_colonnes = [nc.value for nc in NomsColonnes]
-    intrigue.input_questionnaire_inscription +=  generer_liste_de_dict_from_tableau(tab_questions,
-                                                                                    noms_colonnes,
-                                                                                    intrigue.error_log)
+    intrigue.input_questionnaire_inscription += generer_liste_de_dict_from_tableau(tab_questions,
+                                                                                   noms_colonnes,
+                                                                                   intrigue.error_log)
     # if nb_colonnes != 2:
     #     texte_erreur = "le tableau questionnaire est inexploitable"
     #     intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
@@ -1600,7 +1601,7 @@ def evenement_lire_chrono_depuis_tableau(current_conteneur_evenement: ConteneurD
     #                                                                   )
 
     liste_dict_lignes = generer_liste_de_dict_from_tableau(tableau_interventions, colonnes,
-                                                     current_conteneur_evenement.erreur_manager)
+                                                           current_conteneur_evenement.erreur_manager)
     # for ligne in tableau_interventions[1:]:
     #     evenement_extraire_ligne_chrono(current_conteneur_evenement, ligne, dict_header_vers_no_colonne, NomsColonnes,
     #                                     seuil_alerte_pj, seuil_alerte_pnj)
@@ -1635,14 +1636,14 @@ def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvene
 
     intervention = EvenementUnitaire(jour=jour if jour != '' else current_conteneur_evenement.date_par_defaut(),
                                      heure_debut=heure_debut if heure_debut != ''
-                                        else current_conteneur_evenement.heure_de_demarrage_par_defaut(),
+                                     else current_conteneur_evenement.heure_de_demarrage_par_defaut(),
                                      heure_fin=heure_fin if heure_fin != ''
-                                        else current_conteneur_evenement.heure_de_fin_par_defaut(),
+                                     else current_conteneur_evenement.heure_de_fin_par_defaut(),
                                      description=description if description != ''
-                                        else current_conteneur_evenement.synopsis_par_defaut(),
+                                     else current_conteneur_evenement.synopsis_par_defaut(),
                                      conteneur_dinterventions=current_conteneur_evenement,
-                                     lieu = lieu if lieu != ''
-                                        else current_conteneur_evenement.lieu_par_defaut()
+                                     lieu=lieu if lieu != ''
+                                     else current_conteneur_evenement.lieu_par_defaut()
                                      )
     # intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
     #                             heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
@@ -1659,8 +1660,9 @@ def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvene
     #       f"{current_evenement.nom_evenement} / {current_evenement.code_evenement}, "
     #       f"celui ci contient {len(current_evenement.interventions)} interventions")
     if noms_pnjs_impliques == ['']:
-        intervention.liste_intervenants.extend(current_conteneur_evenement.intervenants_evenement.values())
-        #todo : faire évoluer pour gérer la cas des intrigues
+        a_ajouter = current_conteneur_evenement.get_intervenants_si_vide()
+        intervention.liste_intervenants.extend(a_ajouter)
+        # intervention.liste_intervenants.extend(current_conteneur_evenement.intervenants_evenement.values())
 
     else:
         for nom_pnj in noms_pnjs_impliques:
@@ -1685,7 +1687,6 @@ def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvene
             # intervenant = current_conteneur_evenement.intervenants_evenement[score[0]]
             intervenant = current_conteneur_evenement.get_intervenant_from_nom(score[0])
 
-
             intervention.liste_intervenants.append(intervenant)
     for intervenant in intervention.liste_intervenants:
         intervenant.interventions.add(intervention)
@@ -1693,8 +1694,10 @@ def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvene
     noms_pj_impliques = [nom.strip() for nom in pj_raw.split(',')]
     noms_pjs_dans_evenement = current_conteneur_evenement.get_noms_pjs()
     if noms_pj_impliques == ['']:
-        intervention.liste_pjs_concernes.extend(current_conteneur_evenement.pjs_concernes_evenement.values())
-        #todo : faire évoluer pour gérer la cas des intrigues
+        # intervention.liste_pjs_concernes.extend(current_conteneur_evenement.pjs_concernes_evenement.values())
+        a_ajouter = current_conteneur_evenement.get_pjs_concernes_si_vide()
+        intervention.liste_pjs_concernes.extend(a_ajouter)
+
     else:
         for nom_pj in noms_pj_impliques:
             score = process.extractOne(nom_pj, noms_pjs_dans_evenement)
@@ -1718,8 +1721,6 @@ def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvene
             # pj_concerne = current_conteneur_evenement.pjs_concernes_evenement[score[0]]
             pj_concerne = current_conteneur_evenement.get_pjs_concernes_from_nom(score[0])
             intervention.liste_pjs_concernes.append(pj_concerne)
-
-
 
 
 def evenement_lire_autres(texte: str, texte_label: str):
@@ -2172,7 +2173,7 @@ def write_to_doc(service, file_id, text: str, titre=False):
     # pattern évolué pour ne plus prendre en compte les parenthèses
     url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
-    #requête non ajoutées à la fin car tant que création de colonne vides, décalage de l'offset qui fera planter
+    # requête non ajoutées à la fin car tant que création de colonne vides, décalage de l'offset qui fera planter
     for match in re.finditer(url_pattern, text):
         url = match.group()
         start = match.start()
@@ -2241,12 +2242,13 @@ def write_to_doc(service, file_id, text: str, titre=False):
                 }
             })
 
-            #focntions pour calculer l'offset du début d'une cellule dans le tableau ou la reprise
+            # focntions pour calculer l'offset du début d'une cellule dans le tableau ou la reprise
             # a utiliser en remplissant à l'envers, en commencant par la fin, pour ne pas pourrir les calcule
             def calculer_offset(no_ligne, no_colonne, nb_colonnes):
-                return 4 + (no_colonne-1) * 2 + (no_ligne-1) * (nb_colonnes * 2 + 1)
+                return 4 + (no_colonne - 1) * 2 + (no_ligne - 1) * (nb_colonnes * 2 + 1)
+
             def calculer_offset_fin_tableau(nb_lignes, nb_colonnes):
-                return calculer_offset(nb_lignes, nb_colonnes, nb_colonnes)+2
+                return calculer_offset(nb_lignes, nb_colonnes, nb_colonnes) + 2
 
             # # Remplir le tableau avec les valeurs dela table
             taille_texte_insere = 0
@@ -2258,7 +2260,7 @@ def write_to_doc(service, file_id, text: str, titre=False):
                         # afficher le numéro de la colonne, le numéro de la ligne, et le contenu de la case
                         # print(f"Colonne {j}, Ligne {i} : {table[i][j]}")
                         # Insérer le texte dans la cellule
-                        texte_a_inserer = table[no_ligne-1][no_colonne-1]
+                        texte_a_inserer = table[no_ligne - 1][no_colonne - 1]
                         # print(f'DEBUG : {no_ligne - 1}{no_colonne - 1} texte à insérer : {texte_a_inserer}')
                         if len(texte_a_inserer):
                             requests.append({
@@ -2274,7 +2276,7 @@ def write_to_doc(service, file_id, text: str, titre=False):
                         print(f"Erreur dans l'écriture d'un tableau en "
                               f"{no_ligne}:{no_colonne} (offset : {offset} : {e}")
 
-            #mettre à jour l'offset pour reprendre l'inserttion du texte
+            # mettre à jour l'offset pour reprendre l'inserttion du texte
             start_index += calculer_offset_fin_tableau(num_rows, num_columns) + taille_texte_insere
 
             # Supprimer le texte du tableau du texte original
@@ -2293,7 +2295,7 @@ def write_to_doc(service, file_id, text: str, titre=False):
         # ajouter le formattage à la requete d'insert
         requests += formatting_requests
 
-        #debug : code récupérer de slack, fontionnel, utilisé pour comprendre les offsets
+        # debug : code récupérer de slack, fontionnel, utilisé pour comprendre les offsets
         # requests = [
         #     {
         #         "insertTable":
@@ -2354,7 +2356,6 @@ def write_to_doc(service, file_id, text: str, titre=False):
     except HttpError as error:
         print(f'An error occurred: {error}')
         return None
-
 
 
 def write_to_doc_old(service, file_id, text: str, titre=False):

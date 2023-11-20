@@ -66,7 +66,7 @@ def normaliser_nom_gn(nom_archive: str):
 # ceux qui sont liés aux personnes (roles)
 # et la contenance de ceux qui sont associés à ses propres scènes (via cette classe, donc)
 class ConteneurDeScene:
-    def __init__(self, derniere_edition_fichier, last_processing, url, nom = "Conteneur sans nom"):
+    def __init__(self, derniere_edition_fichier, last_processing, url, nom="Conteneur sans nom"):
         self.scenes = set()
         self.rolesContenus = {}  # nom, rôle
         self.error_log = ErreurManager()
@@ -187,8 +187,9 @@ class ConteneurDeScene:
                         print("mais pas la même description !")
                     break
 
+
 class ConteneurDEvenementsUnitaires(ABC):
-    def __init__(self, referent="", code_evenement = "", intrigue = None, nom = "", erreur_manager = None):
+    def __init__(self, referent="", code_evenement="", intrigue=None, nom="", erreur_manager=None):
         self.referent = referent
         self.code_evenement = code_evenement
         self.intrigue = intrigue
@@ -196,7 +197,7 @@ class ConteneurDEvenementsUnitaires(ABC):
         self.interventions = []
         self.intervenants_evenement = {}  # nom, intervenant
         self.pjs_concernes_evenement = {}  # nom, pj_concerné
-        self.erreur_manager = erreur_manager if erreur_manager else ErreurManager()
+        self.erreur_manager = erreur_manager or ErreurManager()
 
     def clear(self):
         # casser toutes les relations intervenants <> persos
@@ -220,6 +221,7 @@ class ConteneurDEvenementsUnitaires(ABC):
     @abstractmethod
     def get_noms_pnjs(self):
         pass
+
     # todo : implémenter dans Intrigue
 
     @abstractmethod
@@ -261,6 +263,15 @@ class ConteneurDEvenementsUnitaires(ABC):
     # todo : créer une méthode 'ajouter_pj_dans_evenement' qui pour les intrigues
     #  vérifie si le persoonage y est déjà et l'ajoute,
     #  ou bien créer un roel pour l'ajouter
+
+    @abstractmethod
+    def get_intervenants_si_vide(self):
+        pass
+
+    @abstractmethod
+    def get_pjs_concernes_si_vide(self):
+        pass
+
 
 # personnage
 class Personnage(ConteneurDeScene):
@@ -568,10 +579,9 @@ class Intrigue(ConteneurDeScene, ConteneurDEvenementsUnitaires):
                  last_processing=None,
                  derniere_edition_fichier=0):
         ConteneurDeScene.__init__(self, derniere_edition_fichier=derniere_edition_fichier, url=url,
-                                       last_processing=last_processing, nom=nom)
-        ConteneurDEvenementsUnitaires.__init__(self, referent=orga_referent, intrigue = self, nom = nom,
+                                  last_processing=last_processing, nom=nom)
+        ConteneurDEvenementsUnitaires.__init__(self, referent=orga_referent, intrigue=self, nom=nom,
                                                erreur_manager=self.error_log)
-
 
         # self.nom = nom
         self.description = description
@@ -601,7 +611,6 @@ class Intrigue(ConteneurDeScene, ConteneurDEvenementsUnitaires):
     def get_noms_pnjs(self):
         return [role.nom for role in self.rolesContenus.values() if role.est_un_pnj() or role.est_un_reroll()]
 
-
     def date_par_defaut(self):
         return 'J0'
 
@@ -611,29 +620,51 @@ class Intrigue(ConteneurDeScene, ConteneurDEvenementsUnitaires):
     def heure_de_fin_par_defaut(self):
         return ''
 
-
     def synopsis_par_defaut(self):
         return ''
 
     def lieu_par_defaut(self):
         return ''
 
-
-    @abstractmethod
     def get_intervenant_from_nom(self, nom):
-        pass
+        # est-ce que ce nom fait déjà partie des intervenants ?
+        # si oui
+        #   on le renvoie
+        # si non
+        #   on crée un nouvel intervenant à partir du rôle qui correspond à ce nom
+        #   on ajoute cet intervenntsà ceux du gestionnaire contenu dans l'intrigue
+        #   on le renvoie
+        if nom in self.intervenants_evenement.keys():
+            return self.intervenants_evenement[nom]
 
-    # todo : pour les intrigues :
-    #  vérifie si le persoonage y est déjà et l'ajoute,
-    #  ou bien créer un roel pour l'ajouter
+        role_source = self.rolesContenus[nom]
+        intervenant = IntervenantEvenement.intervenant_from_role(role_source, self)
+        self.intervenants_evenement[nom] = intervenant
+        return intervenant
 
-    @abstractmethod
-    def get_pjs_concernes_from_nom(self, param):
-        pass
 
-    # todo : créer une méthode 'ajouter_pj_dans_evenement' qui pour les intrigues
-    #  vérifie si le persoonage y est déjà et l'ajoute,
-    #  ou bien créer un roel pour l'ajouter
+    def get_pjs_concernes_from_nom(self, nom):
+        # est-ce que ce nom fait déjà partie des pjs concernés ?
+        # si oui
+        #   on le renvoie
+        # si non
+        #   on crée un nouveau pj concerné à partir du rôle qui correspond à ce nom
+        #   on ajoute ce pj  ceux du gestionnaire contenu dans l'intrigue
+        #   on le renvoie
+        if nom in self.pjs_concernes_evenement.keys():
+            return self.pjs_concernes_evenement[nom]
+
+        role_source = self.rolesContenus[nom]
+        pj_concerne = PJConcerneEvenement.pj_concerne_from_role(role_source, self)
+        self.pjs_concernes_evenement[nom] = pj_concerne
+        return pj_concerne
+
+    def get_intervenants_si_vide(self):
+        return []
+
+    def get_pjs_concernes_si_vide(self):
+        return []
+
 
     def __str__(self):
         return self.nom
@@ -1925,7 +1956,7 @@ class GN:
             maj_classe(objet)
 
         if version.parse(self.version) < version.parse('1.2.0'):
-            #dans ce cas il faut mettre à jour les noms des référents car pas automatique
+            # dans ce cas il faut mettre à jour les noms des référents car pas automatique
             intrigues = self.intrigues.values()
             for intrigue in intrigues:
                 intrigue.referent = intrigue.orga_referent
@@ -1964,7 +1995,8 @@ class GN:
 # objets
 
 class Objet:
-    def __init__(self, code="", description="", fourni_par="Inconnu", emplacement_debut="", special_effect="", informatique =""):
+    def __init__(self, code="", description="", fourni_par="Inconnu", emplacement_debut="", special_effect="",
+                 informatique=""):
         self.description = description
         self.fourniParJoueur = fourni_par
         self.emplacementDebut = emplacement_debut
@@ -2060,16 +2092,17 @@ class FicheEvenement(ConteneurDEvenementsUnitaires):
             synopsis="",
             derniere_edition_date=None,
             derniere_edition_par="",
-            intrigue = None,
-            erreur_manager = None
+            intrigue=None,
+            erreur_manager=None
     ):
-        ConteneurDEvenementsUnitaires.__init__(self, referent=referent, code_evenement = code_evenement, intrigue = intrigue,
-                                               nom = nom_evenement, erreur_manager = erreur_manager)
+        ConteneurDEvenementsUnitaires.__init__(self, referent=referent, code_evenement=code_evenement,
+                                               intrigue=intrigue,
+                                               nom=nom_evenement, erreur_manager=erreur_manager)
         self.id_url = id_url
         self.derniere_edition_date = derniere_edition_date
         self.derniere_edition_par = derniere_edition_par
         self.etat = etat
-        self.intrigue_liee = intrigue_liee #jamais utilisé
+        self.intrigue_liee = intrigue_liee  # jamais utilisé
         self.lieu = lieu
         self.date = date
         self.heure_de_demarrage = heure_de_demarrage
@@ -2109,7 +2142,6 @@ class FicheEvenement(ConteneurDEvenementsUnitaires):
     def synopsis_par_defaut(self):
         return self.synopsis
 
-
     def lieu_par_defaut(self):
         return self.lieu
 
@@ -2119,12 +2151,19 @@ class FicheEvenement(ConteneurDEvenementsUnitaires):
     def get_pjs_concernes_from_nom(self, nom):
         return self.pjs_concernes_evenement[nom]
 
+    def get_intervenants_si_vide(self):
+        return self.intervenants_evenement.values()
+
+    def get_pjs_concernes_si_vide(self):
+        return self.pjs_concernes_evenement.values()
 
     def get_full_url(self):
         return f"https://docs.google.com/document/d/{self.id_url}"
 
-#une classe pour la rétrocompatibilité, devra être supprimée à terme
+
+# une classe pour la rétrocompatibilité, devra être supprimée à terme
 Evenement = FicheEvenement
+
 
 class IntervenantEvenement:
     def __init__(self, nom_pnj, evenement: ConteneurDEvenementsUnitaires, costumes_et_accessoires="", implication="",
@@ -2147,6 +2186,11 @@ class IntervenantEvenement:
                f"\t implication : {self.implication} \n " \
                f"\t commence : {self.situation_de_depart}"
 
+    @staticmethod
+    def intervenant_from_role(role: Role, conteneur_evenement: ConteneurDEvenementsUnitaires):
+        return IntervenantEvenement(
+            nom_pnj = role.nom,
+            evenement = conteneur_evenement)
 
 class PJConcerneEvenement:
     def __init__(self, nom_pj, evenement: ConteneurDEvenementsUnitaires, infos_a_fournir=""):
@@ -2164,6 +2208,10 @@ class PJConcerneEvenement:
 
     def row_infos_evenement_pour_squelette(self):
         return [self.evenement.code_evenement, self.infos_a_fournir]
+
+    @staticmethod
+    def pj_concerne_from_role(role_source: Role, conteneur_evenement: ConteneurDEvenementsUnitaires):
+        return PJConcerneEvenement(nom_pj=role_source.nom, evenement=conteneur_evenement)
 
 
 class InfoFactionsPourEvenement:
@@ -2199,7 +2247,7 @@ def _heure_formattee(heure, defaut_si_ko=None):
 
 class EvenementUnitaire:
     def __init__(self, conteneur_dinterventions: ConteneurDEvenementsUnitaires = None, jour=None, heure_debut=None,
-                 heure_fin=None, description="", lieu = ""):
+                 heure_fin=None, description="", lieu=""):
         self.jour = jour
         self.heure_debut = heure_debut
         self.heure_fin = heure_fin
@@ -2244,8 +2292,10 @@ class EvenementUnitaire:
     def get_referent(self):
         return self.evenement.referent
 
+
 # à supprimer à terme, utilisé pour la rétrocompatibilité
 Intervention = EvenementUnitaire
+
 
 class Commentaire:
     def __init__(self, texte: str, auteur: str, destinataires: list[str]):
