@@ -817,7 +817,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, m_pri
                 continue
             if role.personnage is None:
                 continue
-            orga_referent = role.personnage.orga_referent.strip()
+            orga_referent = role.personnage.orga_referent.strip().upper()
             if len(orga_referent) < 3:
                 orga_referent = "Orga sans nom"
             if orga_referent not in dict_orgas:
