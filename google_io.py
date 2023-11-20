@@ -375,30 +375,14 @@ def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_e
         QUESTIONNAIRE = "questionnaire inscription"
         RELATIONS_BI = "relations bilatérales induites par cette intrigue"
         RELATIONS_MULTI = "relations multilatérales induites par cette intrigue"
+        GRILLE_EVENEMENTS = 'événementiel à prévoir en jeu'
 
     labels = [lab.value for lab in Labels]
 
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_intrigue)
     # print(f"debug : indexes = {indexes}")
 
-    # dict_methodes = {
-    #     Labels.REFERENT: lambda x: intrigue_referent(x, current_intrigue, Labels.REFERENT.value),
-    #     Labels.TODO: intrigue_todo,
-    #     Labels.PITCH: intrigue_pitch,
-    #     Labels.CROISEES: intrigue_croisee,
-    #     Labels.PJS: intrigue_pjs,
-    #     Labels.PNJS: intrigue_pnjs,
-    #     Labels.REROLLS: intrigue_rerolls,
-    #     Labels.OBJETS: intrigue_objets,
-    #     Labels.SCENESFX: intrigue_scenesfx,
-    #     Labels.TIMELINE: intrigue_timeline,
-    #     Labels.SCENES: intrigue_scenes,
-    #     Labels.RESOLUTION: intrigue_resolution,
-    #     Labels.NOTES: intrigue_notes,
-    #     Labels.QUESTIONNAIRE: intrigue_questionnaire,
-    #     Labels.RELATIONS_BI: intrigue_relations_bi,
-    #     Labels.RELATIONS_MULTI: intrigue_relations_multi
-    # }
+
     dict_methodes = {
         Labels.REFERENT: lambda x: intrigue_referent(x, current_intrigue, Labels.REFERENT.value),
         Labels.TODO: lambda x: intrigue_todo(x, current_intrigue, Labels.TODO.value),
@@ -415,7 +399,8 @@ def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_e
         Labels.NOTES: lambda x: intrigue_notes(x, current_intrigue),
         Labels.QUESTIONNAIRE: lambda x: intrigue_questionnaire(x, current_intrigue),
         Labels.RELATIONS_BI: lambda x: intrigue_relations_bi(x, current_intrigue),
-        Labels.RELATIONS_MULTI: lambda x: intrigue_relations_multi(x, current_intrigue)
+        Labels.RELATIONS_MULTI: lambda x: intrigue_relations_multi(x, current_intrigue),
+        Labels.GRILLE_EVENEMENTS: lambda x: evenement_lire_chrono(x, current_intrigue)
     }
 
     for label in Labels:
@@ -1527,7 +1512,7 @@ def evenement_lire_objets(texte: str, current_evenement: FicheEvenement, texte_l
         current_evenement.objets.add(objet)
 
 
-def evenement_lire_chrono(texte: str, current_evenement: FicheEvenement, seuil_alerte_pnj=70, seuil_alerte_pj=70):
+def evenement_lire_chrono(texte: str, current_evenement: ConteneurDEvenementsUnitaires, seuil_alerte_pnj=70, seuil_alerte_pj=70):
     texte = retirer_premiere_ligne(texte)
     # # on regarde l'entete pour connaitre la taille du tableau,
     # # mais on prend le tableau sans entete pour terminer ce qu'il faut lire

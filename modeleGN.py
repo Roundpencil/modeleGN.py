@@ -222,8 +222,6 @@ class ConteneurDEvenementsUnitaires(ABC):
     def get_noms_pnjs(self):
         pass
 
-    # todo : implémenter dans Intrigue
-
     @abstractmethod
     def date_par_defaut(self):
         pass
@@ -271,6 +269,13 @@ class ConteneurDEvenementsUnitaires(ABC):
     @abstractmethod
     def get_pjs_concernes_si_vide(self):
         pass
+    @abstractmethod
+    def get_heure_de_demarrage(self):
+        pass
+
+    @abstractmethod
+    def get_heure_de_fin(self):
+        pass
 
 
 # personnage
@@ -280,7 +285,7 @@ class Personnage(ConteneurDeScene):
                  indications_costume="",
                  textes_annexes="", url="", last_processing=None,
                  dates_clefs="", forced=False,
-                 derniere_edition_fichier=0):
+                 derniere_edition_fichier=0, age = ""):
         # last_change = datetime.datetime(year=2000, month=1, day=1), retiré du constructeur
         super(Personnage, self).__init__(derniere_edition_fichier=derniere_edition_fichier,
                                          url=url,
@@ -309,6 +314,7 @@ class Personnage(ConteneurDeScene):
         self.commentaires = []
         self.informations_evenements = set()
         self.intervient_comme = set()
+        self.age = age
 
     def clear(self):
         for role in self.roles:
@@ -679,6 +685,12 @@ class Intrigue(ConteneurDeScene, ConteneurDEvenementsUnitaires):
             # objet.inIntrigues.remove(self)
             objet.intrigue = None
         # self.objets.clear()
+
+    def get_heure_de_demarrage(self):
+        return min(intervention.heure_debut for intervention in self.interventions)
+
+    def get_heure_de_fin(self):
+        return max(intervention.heure_fin for intervention in self.interventions)
 
     def ajouter_commentaires(self, commentaires: list):
         self.commentaires.extend(commentaires)
@@ -1078,6 +1090,9 @@ class GN:
     def get_dict_pnj(self):
         return {key: self.personnages[key] for key in self.personnages if self.personnages[key].est_un_pnj()}
 
+    def lister_tous_les_conteneurs_evenements_unitaires(self) -> list[ConteneurDEvenementsUnitaires]:
+        return list(self.evenements.values()) + list(self.intrigues.values())
+
     def lister_toutes_les_scenes(self):
         to_return = []
         for conteneur in list(self.personnages.values()) + list(self.intrigues.values()):
@@ -1403,7 +1418,8 @@ class GN:
     def associer_pjs_a_evenements(self, seuil_nom_roles: int = 80):
         dict_noms_persos = {pj.nom: pj for pj in self.get_dict_pj().values()}
         liste_noms_persos = list(dict_noms_persos.keys())
-        for evenement in self.evenements.values():
+        # for evenement in self.evenements.values():
+        for evenement in self.lister_tous_les_conteneurs_evenements_unitaires():
             for pj_informe in evenement.pjs_concernes_evenement.values():
                 score = process.extractOne(pj_informe.nom_pj, liste_noms_persos)
                 if score[1] < seuil_nom_roles:
@@ -1421,7 +1437,8 @@ class GN:
     def associer_pnjs_a_evenements(self, seuil_nom_roles=80):
         dict_noms_persos = {pnj.nom: pnj for pnj in self.get_dict_pnj().values()}
         liste_noms_persos = list(dict_noms_persos.keys())
-        for evenement in self.evenements.values():
+        # for evenement in self.evenements.values():
+        for evenement in self.lister_tous_les_conteneurs_evenements_unitaires():
             for intervenant in evenement.intervenants_evenement.values():
                 score = process.extractOne(intervenant.nom_pnj, liste_noms_persos)
                 if score[1] < seuil_nom_roles:
@@ -1607,6 +1624,9 @@ class GN:
             for evenement in intrigue.evenements:
                 evenement.intrigue = None
             intrigue.evenements.clear()
+            intrigue.erreur_manager.clear(ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS)
+            intrigue.erreur_manager.clear(ErreurManager.ORIGINES.ANALYSE_EVENEMENT)
+
 
         objets = list(self.objets_de_reference.values())
         for objet_de_reference in objets:
@@ -2157,6 +2177,12 @@ class FicheEvenement(ConteneurDEvenementsUnitaires):
     def get_pjs_concernes_si_vide(self):
         return self.pjs_concernes_evenement.values()
 
+    def get_heure_de_demarrage(self):
+        return self.heure_de_demarrage
+
+    def get_heure_de_fin(self):
+        return self.heure_de_fin
+
     def get_full_url(self):
         return f"https://docs.google.com/document/d/{self.id_url}"
 
@@ -2239,6 +2265,8 @@ class ObjetDansEvenement:
 
 def _heure_formattee(heure, defaut_si_ko=None):
     try:
+        if heure[-1:].lower() == 'h':
+            heure += '00'
         date_obj = dateparser.parse(heure)
         return date_obj.strftime("%Hh%M")
     except Exception:
