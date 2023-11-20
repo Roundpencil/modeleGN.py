@@ -241,12 +241,12 @@ def recherche_dichotomique_aides(evenements, min_aides=0, max_aides=100, aides_c
                                       consever_liens_aides_pnjs=consever_liens_aides_pnjs)
 
 
-def determiner_pas(evenements: list[FicheEvenement]):
+def determiner_pas(evenements: list[ConteneurDEvenementsUnitaires]):
     minutes = {'0'}
     for evenement in evenements:
         with contextlib.suppress(Exception):
-            minutes.add(evenement.heure_de_demarrage.split('h')[1])
-            minutes.add(evenement.heure_de_fin.split('h')[1])
+            minutes.add(evenement.get_heure_de_demarrage().split('h')[1])
+            minutes.add(evenement.get_heure_de_fin().split('h')[1])
 
     print(f"debug : minutes avant rationalisation : {minutes}")
     maximum = max(int(m) for m in minutes if m.isnumeric())
@@ -261,11 +261,13 @@ def determiner_pas(evenements: list[FicheEvenement]):
 
 def preparer_donnees_pour_ortools(gn: GN, pas=None, avec_corrections=True):
     if pas is None:
-        pas = determiner_pas(gn.evenements.values())
+        # pas = determiner_pas(gn.evenements.values())
+        pas = determiner_pas(gn.lister_tous_les_conteneurs_evenements_unitaires())
         print(f'debug : pas final = {pas}')
 
     texte_erreurs = ""
-    evenements = evenements_2_dict_ortools(gn.evenements.values(), pas, texte_erreurs)
+    # evenements = evenements_2_dict_ortools(gn.evenements.values(), pas, texte_erreurs)
+    evenements = evenements_2_dict_ortools(gn.lister_tous_les_conteneurs_evenements_unitaires(), pas, texte_erreurs)
 
     if avec_corrections:
         texte_cumul = identifier_erreurs_cumul(evenements, pas)
@@ -335,13 +337,13 @@ def pas_2_h(heure_en_pas, pas):
     return f"J{jour} - {minutes // 60}h{minutes % 60}"
 
 
-def evenements_2_dict_ortools(liste_evenements: list[FicheEvenement], pas, texte_erreurs):
+def evenements_2_dict_ortools(liste_evenements: list[ConteneurDEvenementsUnitaires], pas, texte_erreurs):
     evenements_formattes = []
     for evenement in liste_evenements:
         for i, intervention in enumerate(evenement.interventions, start=1):
             # {"start": 0, "end": 4, "pnjs": [0, 1]},
 
-            jour_nombre = ''.join(chiffre for chiffre in evenement.date if chiffre.isdigit())
+            jour_nombre = ''.join(chiffre for chiffre in intervention.date if chiffre.isdigit())
             jour_nombre = int(jour_nombre) if jour_nombre else 0
 
             heure_debut = heure_en_pas(intervention.heure_debut, pas) + jour_nombre * MULTIPLICATEURS_MINUTES
@@ -417,8 +419,9 @@ def creer_planning_evenementiel(gn: GN, pas=None,
                                 utiliser_affectations_predefinies=True,
                                 session=None,
                                 ):
-
-    if not len(gn.evenements.values()):
+    liste_evenements = gn.lister_tous_les_conteneurs_evenements_unitaires()
+    # if not len(gn.evenements.values()):
+    if not len(liste_evenements):
         return [['aucun évènement dans le GN']]
 
     evenements, pas, texte_erreurs = preparer_donnees_pour_ortools(gn, pas=pas, avec_corrections=avec_corrections)

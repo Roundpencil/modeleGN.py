@@ -196,7 +196,7 @@ def lire_et_recharger_gn(fichier_gn: str,
                                        taille_visualisation=pas_visualisation
                                        )
 
-    retirer_evenements_supprimes(mon_gn, ids_lus)
+    retirer_fiches_evenements_supprimes(mon_gn, ids_lus)
     # visualisation(pas_visualisation)
     m_print("****** fin de la lecture des évènements *********")
 
@@ -367,7 +367,7 @@ def retirer_pnjs_supprimes(mon_gn: GN, ids_pnjs_lus: list[str]):
     retirer_elements_supprimes(ids_pnjs_lus, mon_gn.personnages)
 
 
-def retirer_evenements_supprimes(mon_gn: GN, ids_evenements_lus: list[str]):
+def retirer_fiches_evenements_supprimes(mon_gn: GN, ids_evenements_lus: list[str]):
     retirer_elements_supprimes(ids_evenements_lus, mon_gn.evenements)
 
 
@@ -469,7 +469,7 @@ def generer_texte_erreurs_intrigues(mon_gn, verbal=False):
     return log_erreur
 
 
-def generer_texte_erreurs_evenements(mon_gn, verbal=False):
+def generer_texte_erreurs_fiches_evenements(mon_gn, verbal=False):
     log_erreur = ""
 
     evenements_tries = sorted(mon_gn.evenements.values(), key=lambda x: x.referent)
@@ -546,7 +546,7 @@ def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, verbal=F
 def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent, verbal=False, m_print=print):
     m_print("* génération du fichier des erreurs évènements * ")
 
-    texte_erreurs = generer_texte_erreurs_evenements(mon_gn, verbal=verbal)
+    texte_erreurs = generer_texte_erreurs_fiches_evenements(mon_gn, verbal=verbal)
 
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- Récap erreurs évènements'
@@ -1801,7 +1801,8 @@ def ecrire_table_relation(mon_gn: GN, api_drive, api_sheets, m_print=print):
 def generer_table_evenements(gn: GN):
     # Jour / heure / lieu / description / pnj impliqués / costume / implication /  débute / pj impliqués /
     toutes_interventions = []
-    for evenement in gn.evenements.values():
+    # for evenement in gn.evenements.values():
+    for evenement in gn.lister_tous_les_conteneurs_evenements_unitaires():
         toutes_interventions.extend(evenement.interventions)
 
     toutes_interventions = sorted(toutes_interventions, key=lambda x: [x.jour, x.heure_debut_formattee()])
