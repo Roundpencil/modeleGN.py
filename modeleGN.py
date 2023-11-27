@@ -1490,14 +1490,22 @@ class GN:
                     # comme on prend uniquement les roles lus, on exclut de facto les persos issus de faction
                     tous_les_noms_lus_dans_scenes += scene.noms_roles_lus
             tous_les_noms_lus_dans_scenes = [x.strip() for x in tous_les_noms_lus_dans_scenes]
+
+            #ajouter tous les noms lus dans les évènements de la scène
+            tous_les_noms_lus_dans_scenes.extend(list(intrigue.pjs_concernes_evenement.keys()))
+            tous_les_noms_lus_dans_scenes.extend(list(intrigue.intervenants_evenement.keys()))
+
+
+            #simplifier sous la forme d'un set
             tous_les_noms_lus_dans_scenes = set(tous_les_noms_lus_dans_scenes)
+
 
             # pour chaque nom dans le tableau, lui chercher une correspondance dans les scènes
             for nom in noms_roles_dans_tableau_intrigue:
                 score = process.extractOne(nom, tous_les_noms_lus_dans_scenes)
                 # Si inférieur au seuil, alors l'ajouter aux noms sans scènes
                 if score is not None and score[1] < seuil:
-                    texte_erreur = f"[--] {nom} est dans le tableau des personnages mais dans aucune scène"
+                    texte_erreur = f"[--] {nom} est dans le tableau des personnages mais dans aucune scène ou évènement"
                     intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
                                                       texte_erreur,
                                                       ErreurManager.ORIGINES.PERSOS_SANS_SCENE)
