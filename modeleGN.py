@@ -15,8 +15,8 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.2.20231120"
-VERSION_MODELE = "1.2.20231118"
+VERSION = "1.2.20231127"
+VERSION_MODELE = "1.2.20231127"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
@@ -147,20 +147,9 @@ class ConteneurDeScene:
         # print(f"intrigue effacée {self.nom}")
         self.error_log.clear()
 
-    # def effacer_roles_issus_de_factions(self):
-    #     roles_a_effacer = [role for role in self.rolesContenus.values() if role.issu_dune_faction]
-    #     for role in roles_a_effacer:
-    #         # print(f"Role à dissocier  : {role.nom} de {role.personnage}")
-    #         if role.personnage is not None:
-    #             debug_asso = [f"{r.nom} : {repr(r)} dans {r.conteneur.nom}" for r in role.personnage.roles]
-    #             print(f"debug : role à retirer = {role.nom} : {repr(role)}, personnage.roles = {debug_asso}")
-    #
-    #             with contextlib.suppress(Exception):
-    #                 role.personnage.roles.remove(role)
-    #             # role.personnage.roles.remove(role)
-    #
-    #             del role
-    # #todo : effacer les scènes, effacer les liens roles-scène, effacer les liens roles-conteneurs
+    def retirer_role_contenu(self, role):
+        with contextlib.suppress(KeyError):
+            del self.rolesContenus[role.nom]
 
     def get_full_url(self):
         return f"https://docs.google.com/document/d/{self.url}"
@@ -250,17 +239,9 @@ class ConteneurDEvenementsUnitaires(ABC):
     def get_intervenant_from_nom(self, nom):
         pass
 
-    # todo : pour les intrigues :
-    #  vérifie si le persoonage y est déjà et l'ajoute,
-    #  ou bien créer un roel pour l'ajouter
-
     @abstractmethod
     def get_pjs_concernes_from_nom(self, param):
         pass
-
-    # todo : créer une méthode 'ajouter_pj_dans_evenement' qui pour les intrigues
-    #  vérifie si le persoonage y est déjà et l'ajoute,
-    #  ou bien créer un roel pour l'ajouter
 
     @abstractmethod
     def get_intervenants_si_vide(self):
@@ -269,6 +250,7 @@ class ConteneurDEvenementsUnitaires(ABC):
     @abstractmethod
     def get_pjs_concernes_si_vide(self):
         pass
+
     @abstractmethod
     def get_heure_de_demarrage(self):
         pass
@@ -285,7 +267,7 @@ class Personnage(ConteneurDeScene):
                  indications_costume="",
                  textes_annexes="", url="", last_processing=None,
                  dates_clefs="", forced=False,
-                 derniere_edition_fichier=0, age = ""):
+                 derniere_edition_fichier=0, age=""):
         # last_change = datetime.datetime(year=2000, month=1, day=1), retiré du constructeur
         super(Personnage, self).__init__(derniere_edition_fichier=derniere_edition_fichier,
                                          url=url,
@@ -306,7 +288,6 @@ class Personnage(ConteneurDeScene):
         self.interpretes = {}
         self.pitchJoueur = pitch_joueur
         self.indicationsCostume = indications_costume
-        self.factions = []  # todo : supprimer
         self.groupes = []
         self.datesClefs = dates_clefs
         self.textesAnnexes = textes_annexes
@@ -459,6 +440,10 @@ class Personnage(ConteneurDeScene):
                      ]
         return '\n'.join(to_return)
 
+    def retirer_role_de_personnage(self, role):
+        with contextlib.suppress(KeyError):
+            self.roles.remove(role)
+
     @staticmethod
     def perso_depuis_dico(dict_perso: dict):
         to_return = Personnage()
@@ -479,7 +464,8 @@ class Personnage(ConteneurDeScene):
 # rôle
 class Role:
 
-    def __init__(self, conteneur: ConteneurDeScene = None, personnage=None, nom="rôle sans nom", description="", pipi=0,
+    def __init__(self, conteneur: ConteneurDeScene = None, personnage: Personnage = None, nom="rôle sans nom",
+                 description="", pipi=0,
                  pipr=0,
                  genre="i",
                  pj: TypePerso = TypePerso.EST_PJ,
@@ -514,9 +500,9 @@ class Role:
         self.perimetre_intervention = perimetre_intervention
         self.issu_dune_faction = issu_dune_faction
         self.relations = set()
-        self.briefs_pnj_pour_evenement = {}  # evenement, brief
-        self.infos_pj_pour_evenement = {}  # evenement, brief
-        self.interventions = {}  # evenement, intervention
+        # self.briefs_pnj_pour_evenement = {}  # evenement, brief
+        # self.infos_pj_pour_evenement = {}  # evenement, brief
+        # self.interventions = {}  # evenement, intervention
         self.affectation = affectation
         self.alias_dans_intrigue = alias_dans_intrigue
 
@@ -575,6 +561,20 @@ class Role:
         # print(f"je suis en train de sommer {self.nom}")
         self.pip_total = int(self.pip_globaux) + int(self.pipi) + int(self.pipr)
         return self.pip_total
+
+    def supprimer(self):
+        self.conteneur.retirer_role_contenu(self)
+        if self.personnage:
+            self.personnage.retirer_role_de_personnage(self)
+        for scene in self.scenes:
+            scene.retirer_role_de_scene(self)
+
+        for relation in self.relations:
+            relation.retirer_role_de_relation(self)
+
+    def supprimer_relation(self, relation):
+        with contextlib.suppress(KeyError):
+            self.relations.remove(relation)
 
 
 # intrigue
@@ -648,7 +648,6 @@ class Intrigue(ConteneurDeScene, ConteneurDEvenementsUnitaires):
         self.intervenants_evenement[nom] = intervenant
         return intervenant
 
-
     def get_pjs_concernes_from_nom(self, nom):
         # est-ce que ce nom fait déjà partie des pjs concernés ?
         # si oui
@@ -670,7 +669,6 @@ class Intrigue(ConteneurDeScene, ConteneurDEvenementsUnitaires):
 
     def get_pjs_concernes_si_vide(self):
         return []
-
 
     def __str__(self):
         return self.nom
@@ -734,7 +732,7 @@ class Intrigue(ConteneurDeScene, ConteneurDEvenementsUnitaires):
 # relations
 class Relation:
     def __init__(self):
-        self.persos_vue_relation = {}  # personnage - voit la relation comme
+        self.persos_vue_relation = {}  # personnage (role) - voit la relation comme
         self.est_reciproque = True
 
     @staticmethod
@@ -759,6 +757,14 @@ class Relation:
         return [role for role in self.persos_vue_relation if role != mon_role], \
             self.persos_vue_relation[mon_role], \
             self.est_reciproque
+
+    def retirer_role_de_relation(self, role: Role):
+        with contextlib.suppress(KeyError):
+            del self.persos_vue_relation[role]
+
+        if len(self.persos_vue_relation) <= 1:
+            for role in self.persos_vue_relation.keys():
+                role.supprimer_relation(self)
 
 
 # Scènes
@@ -812,7 +818,7 @@ class Scene:
         # print(f"debug : {self.titre} avant effaçage de mes roles, j'avais : {list(self.roles)} ")
         roles_a_effacer = [r for r in self.get_roles() if r.issu_dune_faction]
         for role in roles_a_effacer:
-            self.retirer_role(role)
+            self.retirer_role_de_scene(role)
         # print(f"debug : {self.titre} apès effaçage de mes roles, j'ai : {list(self.roles)} ")
 
     def get_liste_noms_roles(self):
@@ -953,9 +959,11 @@ class Scene:
     def trier_scenes(scenes_a_trier, date_gn=None):
         return sorted(scenes_a_trier, key=lambda scene: scene.clef_tri(date_gn))
 
-    def retirer_role(self, role):
-        self.roles.remove(role)
-        self.roles_et_confiance.pop(role)
+    def retirer_role_de_scene(self, role):
+        with contextlib.suppress(KeyError):
+            self.roles.remove(role)
+        with contextlib.suppress(KeyError):
+            self.roles_et_confiance.pop(role)
 
 
 # objet pour tout sauvegarder
@@ -1491,14 +1499,12 @@ class GN:
                     tous_les_noms_lus_dans_scenes += scene.noms_roles_lus
             tous_les_noms_lus_dans_scenes = [x.strip() for x in tous_les_noms_lus_dans_scenes]
 
-            #ajouter tous les noms lus dans les évènements de la scène
+            # ajouter tous les noms lus dans les évènements de la scène
             tous_les_noms_lus_dans_scenes.extend(list(intrigue.pjs_concernes_evenement.keys()))
             tous_les_noms_lus_dans_scenes.extend(list(intrigue.intervenants_evenement.keys()))
 
-
-            #simplifier sous la forme d'un set
+            # simplifier sous la forme d'un set
             tous_les_noms_lus_dans_scenes = set(tous_les_noms_lus_dans_scenes)
-
 
             # pour chaque nom dans le tableau, lui chercher une correspondance dans les scènes
             for nom in noms_roles_dans_tableau_intrigue:
@@ -1551,7 +1557,7 @@ class GN:
                                 # dans ce cas, le role est déjà présent dans la scène, ne rien faire
                                 continue
 
-                        # du coup on est dans le cas ou on n'a pas trouvé le rôle :
+                        # du coup on est dans le cas ou on n'a pas trouvé le rôle dans la scène :
                         # est-il déjà présent dans l'intrigue ou faut-il ajouter un nouveau role, issu d'une faction ?
                         score_role_dans_intrigue = process.extractOne(personnage_dans_faction.nom,
                                                                       intrigue.rolesContenus.keys())
@@ -1594,17 +1600,21 @@ class GN:
     def clear_all_associations(self):
         # nettoyer les factions
 
+        ### Ancien code
         # casser toutes les associations entre les persos issus de factions et leurs personnages
-        tous_les_roles = self.lister_tous_les_roles()
-        for role in tous_les_roles:
-            if role.issu_dune_faction and role.personnage is not None:
-                role.personnage.roles.remove(role)
-                role.personnage = None
-
-        # oter les persos issus de fation de toutes les scènes
-        toutes_scene = self.lister_toutes_les_scenes()
-        for scene in toutes_scene:
-            scene.effacer_roles_issus_de_factions()
+        # tous_les_roles = self.lister_tous_les_roles()
+        # for role in tous_les_roles:
+        #     if role.issu_dune_faction and role.personnage is not None:
+        #         role.personnage.roles.remove(role)
+        #         role.personnage = None
+        #
+        # # oter les persos issus de fation de toutes les scènes
+        # toutes_scene = self.lister_toutes_les_scenes()
+        # for scene in toutes_scene:
+        #     scene.effacer_roles_issus_de_factions()
+        for role in self.lister_tous_les_roles():
+            if role.issu_dune_faction:
+                role.supprimer()
 
         for perso in self.lister_tous_les_persos():
             perso.clear_roles_hors_factions()
@@ -1634,7 +1644,6 @@ class GN:
             intrigue.evenements.clear()
             intrigue.erreur_manager.clear(ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS)
             intrigue.erreur_manager.clear(ErreurManager.ORIGINES.ANALYSE_EVENEMENT)
-
 
         objets = list(self.objets_de_reference.values())
         for objet_de_reference in objets:
@@ -2014,6 +2023,14 @@ class GN:
     def get_last_save(self):
         return self.last_save
 
+    def clear_all_factions(self):
+        # factions = mon_gn.factions.values()
+        # for faction in factions:
+        #     faction.personnages.clear()
+        #     del faction
+        # mon_gn.factions.clear()
+        pass
+
 
 # if hasattr(personnage, "orgaReferent"):
 #     personnage.orga_referent = personnage.orgaReferent
@@ -2223,8 +2240,9 @@ class IntervenantEvenement:
     @staticmethod
     def intervenant_from_role(role: Role, conteneur_evenement: ConteneurDEvenementsUnitaires):
         return IntervenantEvenement(
-            nom_pnj = role.nom,
-            evenement = conteneur_evenement)
+            nom_pnj=role.nom,
+            evenement=conteneur_evenement)
+
 
 class PJConcerneEvenement:
     def __init__(self, nom_pj, evenement: ConteneurDEvenementsUnitaires, infos_a_fournir=""):

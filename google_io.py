@@ -2057,11 +2057,7 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
     # on commence par effacer les factions existantes pour éviter les doublons
     # todo : réécrire et débugger
 
-    # factions = mon_gn.factions.values()
-    # for faction in factions:
-    #     faction.personnages.clear()
-    #     del faction
-    # mon_gn.factions.clear()
+    mon_gn.clear_all_factions()
 
     try:
         id_doc = mon_gn.get_id_factions()
@@ -2078,8 +2074,6 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
     lines = text.splitlines()
     noms_persos = mon_gn.noms_personnages()
     # on crée un dictionnaire qui permettra de retrouver les id en fonction des noms
-    # temp_dict_pjs = {mon_gn.dictPJs[x].nom: x for x in mon_gn.dictPJs}
-    # temp_dict_pnjs = {mon_gn.dictPNJs[x].nom: x for x in mon_gn.dictPNJs}
     dict_nom_id = {mon_gn.personnages[x].nom: x for x in mon_gn.personnages}
 
     current_faction = None
@@ -2102,12 +2096,7 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
                 if verbal:
                     print(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
                 logging.info(f"pour le nom {perso_name} lu dans la faction {current_faction.nom}, j'ai {score}")
-                # if temp_dict_pjs.get(score[0]):
-                #     personnages_a_ajouter = mon_gn.dictPJs[temp_dict_pjs.get(score[0])]
-                #     logging.info("et il venait des pjs")
-                # else:
-                #     personnages_a_ajouter = mon_gn.dictPNJs[temp_dict_pnjs.get(score[0])]
-                #     logging.info("et il venait des pnjs")
+
                 personnages_a_ajouter = mon_gn.personnages[dict_nom_id.get(score[0])]
                 current_faction.personnages.add(personnages_a_ajouter)
     return 0
