@@ -151,6 +151,9 @@ class ConteneurDeScene:
         with contextlib.suppress(KeyError):
             del self.rolesContenus[role.nom]
 
+    def ajouter_role_contenu(self, role):
+        self.rolesContenus[role.nom] = role
+
     def get_full_url(self):
         return f"https://docs.google.com/document/d/{self.url}"
 
@@ -309,12 +312,12 @@ class Personnage(ConteneurDeScene):
         # print(f"debug : apres avoir retiré les roles non issus de factions, mes roles contenaient : "
         #       f"{[r.nom for r in self.roles]}")
 
-    def clear_roles_issus_de_factions(self):
-        to_clear = [role for role in self.roles if role.issu_dune_faction]
-        for role in to_clear:
-            self.roles.remove(role)
-        # print(f"debug : apres avoir retiré les roles issus de factions, mes roles contenaient : "
-        #       f"{[r.nom for r in self.roles]}")
+    # def clear_roles_issus_de_factions(self):
+    #     to_clear = [role for role in self.roles if role.issu_dune_faction]
+    #     for role in to_clear:
+    #         self.roles.remove(role)
+    #     # print(f"debug : apres avoir retiré les roles issus de factions, mes roles contenaient : "
+    #     #       f"{[r.nom for r in self.roles]}")
 
     def ajouter_role(self, r):
         self.roles.add(r)
@@ -908,6 +911,8 @@ class Scene:
                 print(f"$$$$$$$$$$$ J'ai trouvé un role sans perso = {role.nom} "
                       f"dans la scene {self.titre} / {self.conteneur.nom} "
                       f"est_il est factionneux ? {role.issu_dune_faction}")
+                print(f"est-il dans l'intrigue? {role in self.conteneur.rolesContenus.values()}")
+
             else:
                 str_roles_persos += f" {role.get_nom_et_alias()} " \
                                     f"({role.personnage.nom}, " \
@@ -1588,6 +1593,7 @@ class GN:
                                               issu_dune_faction=True,
                                               personnage=personnage_dans_faction
                                               )
+                        intrigue.ajouter_role_contenu(role_a_ajouter)
                         personnage_dans_faction.roles.add(role_a_ajouter)
 
                         # l'ajouter à la scène
@@ -1737,12 +1743,17 @@ class GN:
         return list(self.personnages.values())
 
     def lister_tous_les_roles(self):
-        tous_les_roles = []
-        for scene in self.lister_toutes_les_scenes():
-            tous_les_roles.extend(scene.get_roles())
-        for perso in self.lister_tous_les_persos():
-            tous_les_roles.extend(perso.rolesContenus.values())
-        return set(tous_les_roles)
+        # tous_les_roles = []
+        # for scene in self.lister_toutes_les_scenes():
+        #     tous_les_roles.extend(scene.get_roles())
+        # for perso in self.lister_tous_les_persos():
+        #     tous_les_roles.extend(perso.rolesContenus.values())
+        # return set(tous_les_roles)
+        tous_les_roles = set()
+        for conteneurs in [self.intrigues.values(), self.personnages.values()]:
+            for conteneur in conteneurs:
+                tous_les_roles.update(conteneur.rolesContenus.values())
+        return tous_les_roles
 
     # def mettre_a_jour_champs(self):
     # # mise à jour des formats de date et des factions
