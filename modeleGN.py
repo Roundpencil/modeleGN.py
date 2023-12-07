@@ -384,6 +384,12 @@ class Personnage(ConteneurDeScene):
         toutes = [role.conteneur.nom for role in self.roles]
         return ', '.join(toutes)
 
+    def nombre_scenes(self):
+        return sum(len(role.scenes) for role in self.roles)
+
+    def nombre_evenements(self):
+        return sum(len(intervenant.interventions) for intervenant in self.intervient_comme)
+
     def str_recap_intrigues(self):
         tab_intrigues = []
         for role in self.roles:
@@ -1659,6 +1665,12 @@ class GN:
             if objet_de_reference.ajoute_via_forcage:
                 objet_de_reference.clear()
                 self.objets_de_reference.pop(objet_de_reference.id_url)
+
+        # nettoyer toutes les associations roles / interventionsPNJS
+        for perso in self.lister_tous_les_persos():
+            for interventions_comme_pnj_dans_evenement in perso.intervient_comme:
+                interventions_comme_pnj_dans_evenement.pnj = None
+            perso.intervient_comme.clear()
 
     def forcer_import_pjs(self, dicts_pjs_lus: list[dict], suffixe="_imported", verbal=False):
         return self.forcer_import_pjpnjs(dicts_perso_lu=dicts_pjs_lus, pj=True, suffixe=suffixe, verbal=verbal)

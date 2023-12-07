@@ -1512,7 +1512,8 @@ def generer_table_pnjs_simple(gn: GN, verbal=False):
     table_pnj = [["nom PNJ",
                   "type_pj",
                   "intrigues",
-                  "évènements"]]
+                  "évènements",
+                  "Nombre scènes et évènements"]]
 
     logging.debug(f"pnjs contenus : {gn.get_dict_pnj()}")
 
@@ -1521,7 +1522,8 @@ def generer_table_pnjs_simple(gn: GN, verbal=False):
             pnj.nom,
             pnj.string_type_personnage(),
             pnj.toutes_les_apparitions(),
-            pnj.str_interventions()
+            pnj.str_interventions(),
+            pnj.nombre_scenes() + pnj.nombre_evenements()
         ]
         for pnj in gn.get_dict_pnj().values()
     )
