@@ -262,6 +262,11 @@ class ConteneurDEvenementsUnitaires(ABC):
     def get_heure_de_fin(self):
         pass
 
+    def get_noms_intervenants(self):
+        return list(self.intervenants_evenement.keys())
+
+    def get_noms_pjs_concernes(self):
+        return list(self.pjs_concernes_evenement.keys())
 
 # personnage
 class Personnage(ConteneurDeScene):

@@ -9,6 +9,7 @@ import google_io as g_io
 from modeleGN import *
 import createur_planning_evenementiel as cpe
 
+
 # communication :
 # A venir (prochaine version)
 # Suppression du besoin de télécharger le fichier mgn : l’interface proposera à l’utilisateur une liste des GNs auxquel il a accès et réalisera toutes les opérations.
@@ -63,6 +64,7 @@ import createur_planning_evenementiel as cpe
 def print_progress(v: float):
     print(f"La génération a progressé de {v}%")
 
+
 def lire_fichier_pnjs(nom_fichier: str):
     to_return = []
     try:
@@ -94,7 +96,7 @@ def lire_et_recharger_gn(fichier_gn: str,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
                          table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
                          table_commentaires: bool = True, table_relations: bool = True, table_evenements: bool = True,
-                         table_questionnaire: bool = True, resume_par_perso = True, solveur_planning=True,
+                         table_questionnaire: bool = True, resume_par_perso=True, solveur_planning=True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, fast_pnjs=True, fast_evenements=True,
                          fast_objets=True,
@@ -129,8 +131,8 @@ def lire_et_recharger_gn(fichier_gn: str,
         # si c'ets un fichier ini qui a été founi en entrée, on pudate le GN, sinon on garde la config
         if fichier_gn.endswith('.mgn'):
             # mon_gn = GN.load(fichier_gn) # le fichier a déjà été chargé
-            mon_gn = g_io.charger_gn_from_gn(mon_gn,api_drive, m_print=m_print,
-                                               updater_dict_config=None)
+            mon_gn = g_io.charger_gn_from_gn(mon_gn, api_drive, m_print=m_print,
+                                             updater_dict_config=None)
         else:
             mon_gn = g_io.charger_gn_from_dict(dict_config, api_drive, m_print=m_print,
                                                updater_dict_config=dict_config,
@@ -282,10 +284,10 @@ def lire_et_recharger_gn(fichier_gn: str,
 
     dict_methodes = {
         'fichier_erreurs_intrigues':
-            lambda: ecrire_erreurs_intrigues_dans_drive (mon_gn, api_doc, api_drive, m_print = m_print),
+            lambda: ecrire_erreurs_intrigues_dans_drive(mon_gn, api_doc, api_drive, m_print=m_print),
         'fichier_erreurs_evenements':
             lambda: ecrire_erreurs_evenements_dans_drive(mon_gn, api_doc, api_drive,
-                                                          mon_gn.get_dossier_outputs_drive(), m_print=m_print),
+                                                         mon_gn.get_dossier_outputs_drive(), m_print=m_print),
         'table_intrigues':
             lambda: creer_table_intrigues_sur_drive(mon_gn, api_sheets, api_drive, m_print=m_print),
         'changelog':
@@ -293,7 +295,7 @@ def lire_et_recharger_gn(fichier_gn: str,
         'table_objets':
             lambda: ecrire_table_objet_dans_drive(mon_gn, api_drive, api_sheets, m_print=m_print),
         'table_chrono':
-            # lambda: ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets),
+        # lambda: ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets),
             lambda: ecrire_table_chrono_dans_drive(mon_gn, api_drive, api_sheets, m_print=m_print),
         'table_persos':
             lambda: ecrire_table_persos(mon_gn, api_drive, api_sheets, m_print=m_print),
@@ -318,7 +320,7 @@ def lire_et_recharger_gn(fichier_gn: str,
     # print(f"DEBUG= liste clefs = {debug_list_key}")
     nb_parametres_demandes = 0
     for key in dict_methodes:
-    # for key in list(dict_methodes):
+        # for key in list(dict_methodes):
         valeur = locals()[key]
         # print(f'DEBUG : clef :{key} - valeur : {valeur}')
         if valeur:
@@ -347,9 +349,6 @@ def lire_et_recharger_gn(fichier_gn: str,
                                       m_print=m_print, visualisation=visualisation, taille_visualisation=12.5)
     else:
         visualisation(12.5)
-
-
-
 
     m_print("******* fin de la génération  ****************\n\n\n\n")
     visualisation(1000)
@@ -434,8 +433,8 @@ def attrappeur_dexceptions(func):
 
     return wrapper
 
-# Custom print method
 
+# Custom print method
 
 
 def ecrire_fichier_erreur_localement(mon_gn: GN, prefixe: str, verbal: False):
@@ -489,11 +488,12 @@ def generer_texte_erreurs_fiches_evenements(mon_gn, verbal=False):
 
     return log_erreur
 
+
 def generer_texte_resume_intrigues_persos(mon_gn: GN, verbal=False):
     tab_brut = [
-        {'orga' : perso.orga_referent,
-         'nom_perso' : perso.nom,
-         'texte_recap' : perso.str_recap_intrigues()
+        {'orga': perso.orga_referent,
+         'nom_perso': perso.nom,
+         'texte_recap': perso.str_recap_intrigues()
          }
         for perso in mon_gn.get_dict_pj().values()
     ]
@@ -513,6 +513,7 @@ def generer_texte_resume_intrigues_persos(mon_gn: GN, verbal=False):
 
     return to_return
 
+
 @attrappeur_dexceptions
 def ecrire_resume_intrigues_persos(mon_gn: GN, api_doc, api_drive, verbal=False, m_print=print):
     m_print("******* resume des intrigues par perso ******************")
@@ -525,6 +526,7 @@ def ecrire_resume_intrigues_persos(mon_gn: GN, api_doc, api_drive, verbal=False,
     mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
                                    id_dossier_archive=mon_gn.get_id_dossier_archive())
     g_io.write_to_doc(api_doc, mon_id, texte_resume)
+
 
 @attrappeur_dexceptions
 def ecrire_erreurs_intrigues_dans_drive(mon_gn: GN, api_doc, api_drive, verbal=False, m_print=print):
@@ -556,6 +558,7 @@ def ecrire_erreurs_evenements_dans_drive(mon_gn: GN, api_doc, api_drive, parent,
             api_doc, mon_id, texte_erreurs
     ):
         g_io.formatter_fichier_erreurs(api_doc, mon_id)
+
 
 def rationaliser_liste_noms(noms_en_entree, seuil=70):
     """
@@ -590,37 +593,43 @@ def rationaliser_liste_noms(noms_en_entree, seuil=70):
 
     return dico
 
+
 def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False):
     noms_personnages = mon_gn.noms_personnages()
     noms_roles_dans_tableau_intrigue = [x.personnage.nom for x in intrigue.rolesContenus.values()
-                                         if not x.issu_dune_faction and x.personnage is not None]
+                                        if not x.issu_dune_faction and x.personnage is not None]
 
     tous_les_noms_lus_dans_scenes = []
     for scene in intrigue.scenes:
         if scene.noms_roles_lus is not None:
             tous_les_noms_lus_dans_scenes += scene.noms_roles_lus
     tous_les_noms_lus_dans_scenes = [x.strip() for x in tous_les_noms_lus_dans_scenes]
+
+    #ajouter les noms issus des evenements
+    tous_les_noms_lus_dans_scenes += intrigue.get_noms_intervenants()
+    tous_les_noms_lus_dans_scenes += intrigue.get_noms_pjs_concernes()
+
+    #simplifier sous forme de set
     tous_les_noms_lus_dans_scenes = set(tous_les_noms_lus_dans_scenes)
 
-    #rationnaliser la liste des noms avant de processer pour enlever les doublons évidents,
+    # rationnaliser la liste des noms avant de processer pour enlever les doublons évidents,
     # on les remettra à la fin
     dico_dedup = rationaliser_liste_noms(tous_les_noms_lus_dans_scenes)
     tous_les_noms_lus_dans_scenes = list(dico_dedup.keys())
 
     scores = {}
 
-    #remplir un tableau, pour chaque nom, de toutes les correspondances possibles et permutations
+    # remplir un tableau, pour chaque nom, de toutes les correspondances possibles et permutations
     for original_nom in tous_les_noms_lus_dans_scenes:
         permutations = original_nom.split(' aka ')
         scores[original_nom] = []
         for nom in permutations:
             scores[original_nom].extend(process.extract(nom, noms_personnages))
 
-        #trier les couples nom, score par ordre de score
+        # trier les couples nom, score par ordre de score
         scores[original_nom].sort(key=lambda x: x[1])
 
-
-    #rechercher le solution : initiatilisation des variables
+    # rechercher le solution : initiatilisation des variables
     solution = []
     solution_trouvee = False
 
@@ -631,7 +640,7 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
         solution.append([score_a_inclure[0], score_a_inclure[1], original_nom])
     solution.sort(key=lambda x: x[1])
 
-    #met à jour la solution en prenant la valeur suivante de l'élément nom à updater désigné
+    # met à jour la solution en prenant la valeur suivante de l'élément nom à updater désigné
     def maj_solution(solution, scores, nom_a_updater):
         matches = scores[nom_a_updater]
         if not len(matches):
@@ -661,7 +670,7 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
 
         for i, triplette in enumerate(solution):
             nom_propose, _, nom_origine = triplette
-            noms_a_verifier = [triplette[0] for triplette in solution[i+1:]]
+            noms_a_verifier = [triplette[0] for triplette in solution[i + 1:]]
             if verbal:
                 print(f"DEBUG : je suis en train de chercher l'élément {nom_propose} dans \n "
                       f"{noms_a_verifier}")
@@ -672,19 +681,17 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
                 solution_trouvee = False
                 solution = maj_solution(solution, scores, nom_origine)
 
-
     if verbal:
         print(f'DEBUG : trouvé = {solution_trouvee} \n la solution est {solution}')
 
-
-    #A ce stade là, la solution est dans le dictionnaire "solution"
+    # A ce stade là, la solution est dans le dictionnaire "solution"
 
     if not solution or not solution_trouvee:
         return "Impossible de construire une proposition de tableau"
 
     tableau_persos = [['Nom proposé', 'nom dans les scènes', 'score', 'déjà dans le tableau?']]
 
-    #on ajoute l'infor de la présence dans la solution et on la trie :
+    # on ajoute l'infor de la présence dans la solution et on la trie :
     # d'abord les présents, puis les scores
     for sol in solution:
         sol.append(sol[0] in noms_roles_dans_tableau_intrigue)
@@ -833,6 +840,7 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, m_pri
     g_io.exporter_changelog(tableau_scene_orgas, mon_id, dict_orgas_persos, api_sheets)
     g_io.supprimer_feuille_1(api_sheets, mon_id)
 
+
 @attrappeur_dexceptions
 def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive, m_print=print):
     m_print("******* statut intrigues *******************")
@@ -860,6 +868,7 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive, m_print=p
     # extraire_texte_de_google_doc.exporter_table_intrigue(api_doc, nom_fichier, dossier_export, df)
     # extraire_texte_de_google_doc.ecrire_table_google_sheets(api_sheets, df, mon_id)
     g_io.ecrire_table_google_sheets(api_sheets, table_intrigues, mon_id)
+
 
 @attrappeur_dexceptions
 def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_print=print,
@@ -893,7 +902,7 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
 
         # pas d'archivage car le dossier a déjà été archivé
         file_id = g_io.creer_google_doc(api_drive, nom_fichier, nouveau_dossier,
-                                   id_dossier_archive=None)
+                                        id_dossier_archive=None)
         g_io.write_to_doc(api_doc, file_id, texte, titre=nom_fichier)
         g_io.formatter_titres_scenes_dans_squelettes(api_doc, file_id)
 
@@ -1007,6 +1016,7 @@ def generer_liste_pnj_dedup_avec_perso(mon_gn, threshold=89, verbal=False):
         for v in noms_dedup:
             print(v)
     return noms_dedup, variations_orthographe, persos_dedup
+
 
 def generer_liste_pnj_dedup_avec_perso_old(mon_gn, threshold=89, verbal=False):
     dict_nom_role_nom_pnj = {}
@@ -1148,7 +1158,8 @@ def generer_changelog(mon_gn, prefixe, nb_jours=1, verbal=False):
 
 
 def generer_table_objets_from_intrigues_et_evenements(mon_gn):
-    to_return = [['code', 'description', 'Avec FX?','Avec informatique?', 'Détail', 'Débute Où?', 'fourni par Qui?', 'Intrigues', 'Evènements',
+    to_return = [['code', 'description', 'Avec FX?', 'Avec informatique?', 'Détail', 'Débute Où?', 'fourni par Qui?',
+                  'Intrigues', 'Evènements',
                   'fiche objet trouvée?', 'Orga référent']]
     for objet_ref in mon_gn.objets_de_reference.values():
         ma_liste = [objet for objet in objet_ref.objets_dans_intrigues if objet.intrigue is not None]
@@ -1157,7 +1168,8 @@ def generer_table_objets_from_intrigues_et_evenements(mon_gn):
             description = objet.description.replace('\n', '\v')
             avecfx = objet.avec_fx()
             avecinformatique = objet.avec_informatique()
-            details_fx_info = '\n'.join([objet.specialEffect.replace('\n', '\v') + objet.informatique.replace('\n', '\v')])
+            details_fx_info = '\n'.join(
+                [objet.specialEffect.replace('\n', '\v') + objet.informatique.replace('\n', '\v')])
             debuteou = objet.emplacementDebut.replace('\n', '\v')
             fournipar = objet.fourniParJoueur.replace('\n', '\v')
             # intrigue = objet.intrigue
@@ -1237,10 +1249,12 @@ def generer_table_objets_uniques(mon_gn):
 
     return to_return
 
-def lien_vers_hyperlink(lien: str, texte_lien = None):
+
+def lien_vers_hyperlink(lien: str, texte_lien=None):
     if texte_lien is None:
         texte_lien = lien
     return f'=HYPERLINK(\"{lien}\"; \"{texte_lien}\")'
+
 
 @attrappeur_dexceptions
 def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets, m_print=print):
@@ -1274,6 +1288,7 @@ def generer_table_chrono_condensee_raw(gn: GN):
 
     return tableau_sortie
 
+
 @attrappeur_dexceptions
 def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_print=print):
     m_print("******* génération du planning évènementiel ******************")
@@ -1281,22 +1296,23 @@ def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_prin
     tables_planning = generer_tables_planning_evenementiel(mon_gn)
 
     # faire un onglet par session
-    #voir si on ne peut pas chopper le paramètre des sessions qu'on veut explorer (sera utile aussi pour les squelettes)
+    # voir si on ne peut pas chopper le paramètre des sessions qu'on veut explorer (sera utile aussi pour les squelettes)
     parent = mon_gn.get_dossier_outputs_drive()
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- planning evènementiel'
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
-                                     id_dossier_archive=mon_gn.get_id_dossier_archive())
+                                      id_dossier_archive=mon_gn.get_id_dossier_archive())
     for session in tables_planning.keys():
         g_io.ecrire_table_google_sheets(api_sheets, tables_planning[session], file_id, feuille=session)
     g_io.supprimer_feuille_1(api_sheets, file_id)
+
 
 def generer_tables_planning_evenementiel(mon_gn: GN):
     # identifier toutes les sessions
     sessions = mon_gn.get_liste_sessions_froms_pnjs()
 
     # faire un premier onglet sans session
-    tables_planning = {'evenementiel générique' : cpe.creer_planning_evenementiel(mon_gn)}
+    tables_planning = {'evenementiel générique': cpe.creer_planning_evenementiel(mon_gn)}
 
     for session in sessions:
         tables_planning[session] = cpe.creer_planning_evenementiel(mon_gn, session=session)
@@ -1305,7 +1321,6 @@ def generer_tables_planning_evenementiel(mon_gn: GN):
 
 
 def generer_table_chrono_condensee(tableau_raw, date_gn):
-
     # Get the maximum number of events among all stories
     max_len = max(len(story) - 1 for story in tableau_raw)
 
@@ -1425,6 +1440,7 @@ def generer_table_chrono_scenes(mon_gn: GN):
         ])
     return to_return
 
+
 @attrappeur_dexceptions
 def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets, m_print=print):
     m_print("******* table planning ***********************")
@@ -1436,7 +1452,7 @@ def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets, m_print=pr
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- synthèse chrono'
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
-                                     id_dossier_archive=mon_gn.get_id_dossier_archive())
+                                      id_dossier_archive=mon_gn.get_id_dossier_archive())
     g_io.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="condensée")
     g_io.ecrire_table_google_sheets(api_sheets, table_complete, file_id, feuille="étendue")
     g_io.ecrire_table_google_sheets(api_sheets, table_chrono_scenes, file_id,
@@ -1461,10 +1477,11 @@ def generer_tableau_recap_persos(gn: GN):
         taille_pip = len(tableau_pip)
 
         densite = pip / taille_pip if taille_pip > 0 else 0
-        table_perso = [perso.nom] + [perso.orga_referent] + [pip] + [f"{densite:.2f}"]+ table_perso
+        table_perso = [perso.nom] + [perso.orga_referent] + [pip] + [f"{densite:.2f}"] + table_perso
         to_return.append(table_perso)
 
     return to_return
+
 
 @attrappeur_dexceptions
 def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets, m_print=print):
@@ -1475,7 +1492,7 @@ def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets, m_print=print):
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- synthèse des intrigues par personnage'
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
-                                     id_dossier_archive=mon_gn.get_id_dossier_archive())
+                                      id_dossier_archive=mon_gn.get_id_dossier_archive())
     g_io.ecrire_table_google_sheets(api_sheets, table, file_id)
 
 
@@ -1546,6 +1563,7 @@ def generer_table_pnjs_simple(gn: GN, verbal=False):
 
     return table_pnj
 
+
 @attrappeur_dexceptions
 def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets, m_print=print):
     m_print("******* table récap PNJS ********************")
@@ -1556,7 +1574,7 @@ def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets, m_print=print):
     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                   f'- table des PNJs'
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
-                                     id_dossier_archive=mon_gn.get_id_dossier_archive())
+                                      id_dossier_archive=mon_gn.get_id_dossier_archive())
     g_io.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="En synthèse")
     g_io.ecrire_table_google_sheets(api_sheets, table_etendue, file_id, feuille="Vision détaillée")
     if mon_gn.get_mode_association() == GN.ModeAssociation.AUTO:
@@ -1567,7 +1585,6 @@ def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets, m_print=print):
 
 
 def generer_table_pnj_dedupliquee(mon_gn: GN):
-
     table_pnj = [["Nom", "Déjà présent avec exactement ce nom?", "Autres orthographes identifiées",
                   "Actuellement affecté à"]]
 
@@ -1575,7 +1592,7 @@ def generer_table_pnj_dedupliquee(mon_gn: GN):
     noms_dedup, orthographes, persos_affectes = generer_liste_pnj_dedup_avec_perso(mon_gn)
 
     table_pnj.extend(
-        [nom_pnj, "oui" if nom_pnj in noms_actuels else "non",','.join(variations), nom_perso]
+        [nom_pnj, "oui" if nom_pnj in noms_actuels else "non", ','.join(variations), nom_perso]
         for nom_pnj, variations, nom_perso in zip(noms_dedup, orthographes, persos_affectes)
     )
     return table_pnj
@@ -1599,6 +1616,7 @@ def generer_textes_infos(gn: GN):
             to_return += scene.str_pour_squelette() + '\n'
         to_return += '***************************** \n'
     return to_return
+
 
 @attrappeur_dexceptions
 def ecrire_texte_info(mon_gn: GN, api_doc, api_drive, m_print=print):
@@ -1696,6 +1714,7 @@ def generer_texte_commentaires(dict_auteur_intrigues):
         to_return += '******************************************* \n'
     return to_return
 
+
 @attrappeur_dexceptions
 def ecrire_table_commentaires(mon_gn: GN, api_drive, api_doc, api_sheets, m_print=print):
     m_print("******* table commentaires *******************")
@@ -1785,6 +1804,7 @@ def generer_table_relations_personnages(gn):
 
     return matrix
 
+
 @attrappeur_dexceptions
 def ecrire_table_relation(mon_gn: GN, api_drive, api_sheets, m_print=print):
     m_print("********** table relations *******************")
@@ -1796,7 +1816,7 @@ def ecrire_table_relation(mon_gn: GN, api_drive, api_sheets, m_print=print):
                   f'- table des relations'
 
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
-                                     id_dossier_archive=mon_gn.get_id_dossier_archive())
+                                      id_dossier_archive=mon_gn.get_id_dossier_archive())
     g_io.ecrire_table_google_sheets(api_sheets, tab_relations, file_id)
 
 
@@ -1868,6 +1888,7 @@ def generer_table_evenements(gn: GN):
 
     return to_return
 
+
 @attrappeur_dexceptions
 def ecrire_table_evenements(mon_gn: GN, api_drive, api_sheets, m_print=print):
     m_print("******* table des évènements ******************")
@@ -1879,7 +1900,7 @@ def ecrire_table_evenements(mon_gn: GN, api_drive, api_sheets, m_print=print):
                   f'- table des evenements'
 
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
-                                     id_dossier_archive=mon_gn.get_id_dossier_archive())
+                                      id_dossier_archive=mon_gn.get_id_dossier_archive())
     g_io.ecrire_table_google_sheets(api_sheets, tab_evenements, file_id)
 
 
@@ -1922,6 +1943,7 @@ def generer_table_questionnaire(gn: GN):
     #         toutes_les_questions.append(ligne)
     # return toutes_les_questions
 
+
 @attrappeur_dexceptions
 def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets, m_print=print):
     m_print("******* table des questions pour inscription ******************")
@@ -1933,7 +1955,7 @@ def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets, m_print=print):
                   f'- Fichier questionnaire inscription'
 
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
-                                     id_dossier_archive=gn.get_id_dossier_archive())
+                                      id_dossier_archive=gn.get_id_dossier_archive())
     g_io.ecrire_table_google_sheets(api_sheets, tab_questionnaire, file_id)
 
 
@@ -1943,6 +1965,7 @@ def fichier_ini_defaut():
         return os.path.abspath(ini_mgn_files[0]) if len(ini_mgn_files) == 1 else "config.ini"
     except Exception:
         return "pas de fichier magnet chargé"
+
 
 def verifier_derniere_version(api_doc):
     try:
@@ -1982,4 +2005,3 @@ def verifier_derniere_version(api_doc):
         print(f"{e}")
         logging.debug(f"Une erreur est survenue pendant la lecture du fichier de version {e}")
         return True, [e], None
-
