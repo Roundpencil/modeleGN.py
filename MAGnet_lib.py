@@ -689,31 +689,45 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     if not solution or not solution_trouvee:
         return "Impossible de construire une proposition de tableau"
 
-    tableau_persos = [['Nom proposé', 'nom dans les scènes', 'score', 'déjà dans le tableau?']]
+    # tableau_persos = [['Nom proposé', 'nom dans les scènes', 'score', 'déjà dans le tableau?']]
+    tableau_pjs = [['Nom proposé', 'nom dans les scènes', 'score', 'déjà dans le tableau?']]
+    tableau_pnjs = [['Nom proposé', 'nom dans les scènes', 'score', 'déjà dans le tableau?']]
+    tableau_rerolls = [['Nom proposé', 'nom dans les scènes', 'score', 'déjà dans le tableau?']]
 
-    # on ajoute l'infor de la présence dans la solution et on la trie :
+    dict_nom_perso = mon_gn.get_dict_noms_persos(True, True, True)
+
+    # on ajoute l'info de la présence dans la solution et on la trie :
     # d'abord les présents, puis les scores
     for sol in solution:
         sol.append(sol[0] in noms_roles_dans_tableau_intrigue)
     solution.sort(key=lambda x: (x[3], x[1]), reverse=True)
 
     for nom_personnage, score, nom_role, present in solution:
-        tableau_persos.append([
+        personnage = dict_nom_perso[nom_personnage]
+        if personnage.est_un_pj():
+            tab = tableau_pjs
+        elif personnage.est_un_pnj():
+            tab = tableau_pnjs
+        else:
+            tab = tableau_rerolls
+
+        tab.append([
             nom_personnage,
             ', '.join([nom_role] + dico_dedup[nom_role]),
             f'{score} % de certitude',
             'oui' if present else 'non'
         ])
-    # for nom_personnage, score, nom_role in solution:
-    #     tableau_persos.append([
-    #         nom_personnage,
-    #         nom_role,
-    #         f'{score} % de certitude',
-    #         'oui' if nom_personnage in noms_roles_dans_tableau_intrigue else 'non'
-    #     ])
 
-    to_print = "Tableau suggéré : \n"
-    to_print += lecteurGoogle.formatter_tableau_pour_export(tableau_persos)
+    to_print = "Tableau des PJs suggéré : \n"
+    to_print += lecteurGoogle.formatter_tableau_pour_export(tableau_pjs)
+    to_print += '\n'
+    to_print += "Tableau des PNJs suggéré : \n"
+    to_print += lecteurGoogle.formatter_tableau_pour_export(tableau_pnjs)
+    to_print += '\n'
+    to_print += "Tableau des Rerolls suggéré : \n"
+    to_print += lecteurGoogle.formatter_tableau_pour_export(tableau_rerolls)
+    to_print += '\n'
+
 
     if verbal:
         print(to_print)
