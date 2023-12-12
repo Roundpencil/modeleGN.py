@@ -514,18 +514,6 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue):
                               )
         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
-    # if nb_colonnes == 4:
-    #     lire_tableau_pj_chalacta(current_intrigue, tableau_pjs)
-    # elif nb_colonnes == 5:
-    #     lire_tableau_pj_5_colonnes(current_intrigue, tableau_pjs)
-    # elif nb_colonnes == 6:
-    #     lire_tableau_pj_6_colonnes(current_intrigue, tableau_pjs)
-    # else:
-    #     current_intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
-    #                                               "Tableau des personnages dans l'intrigue non standard",
-    #                                               ErreurManager.ORIGINES.SCENE)
-    #     print("Erreur : tableau d'intrigue non standard")
-
 
 def generer_dict_header_vers_no_colonne(en_tetes, noms_colonnes, erreur_manager: ErreurManager):
     """
@@ -1402,22 +1390,7 @@ def evenement_lire_fiche(texte: str, current_evenement: FicheEvenement, texte_la
     # print(f"debug : tableau evènement après  harmonisation : {[ligne[0] for ligne in tableau_fiche]}")
 
     dict_fiche = dict(tableau_fiche)
-    # print(f"debug : dict fiche = {dict_fiche}")
-    # current_evenement.code_evenement = ''.join([dict_fiche.get(key, "").strip()
-    #                                             for key in dict_fiche
-    #                                             if key.startswith("Code")])
-    # current_evenement.etat = dict_fiche.get("État", "").strip()
-    # current_evenement.referent = dict_fiche.get("Référent", "").strip()
-    # current_evenement.intrigue_liee = dict_fiche.get("Intrigue liée", "").strip()
-    # current_evenement.lieu = dict_fiche.get("Lieu", "").strip()
-    # current_evenement.date = dict_fiche.get('Jour, au format “J1”, “J2”, etc.', "").strip()
-    # current_evenement.heure_de_demarrage = dict_fiche.get("Heure de démarrage", "").strip()
-    # current_evenement.declencheur = dict_fiche.get("Déclencheur", "").strip()
-    # current_evenement.consequences_evenement = ''.join([dict_fiche.get(key, "").strip()
-    #                                                     for key in dict_fiche
-    #                                                     if key.startswith("Conséquences ")])
 
-    # print(f"debug : tableau évènement après modification : {dict_fiche}")
 
     current_evenement.code_evenement = dict_fiche.get(NomsLignes.CODE.value, "").strip()
     current_evenement.etat = dict_fiche.get(NomsLignes.ETAT.value, "").strip()
@@ -1536,6 +1509,7 @@ def evenement_lire_chrono_depuis_tableau(current_conteneur_evenement: ConteneurD
                                          seuil_alerte_pnj=70, seuil_alerte_pj=70):
     class NomsColonnes(Enum):
         JOUR = "jour"
+        LIEU = 'lieu'
         HEURE_DEBUT = "heure début"
         HEURE_FIN = "heure fin"
         PNJs = "pnjs"
@@ -1587,9 +1561,6 @@ def evenement_lire_chrono_depuis_tableau(current_conteneur_evenement: ConteneurD
 
     liste_dict_lignes = generer_liste_de_dict_from_tableau(tableau_interventions, colonnes,
                                                            current_conteneur_evenement.erreur_manager)
-    # for ligne in tableau_interventions[1:]:
-    #     evenement_extraire_ligne_chrono(current_conteneur_evenement, ligne, dict_header_vers_no_colonne, NomsColonnes,
-    #                                     seuil_alerte_pj, seuil_alerte_pnj)
 
     for dict_ligne in liste_dict_lignes:
         evenement_extraire_ligne_chrono(current_conteneur_evenement, dict_ligne, NomsColonnes,
@@ -1609,7 +1580,7 @@ def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvene
     pnjs_raw = dict_ligne.get(noms_colonnes.PNJs.value, '')
     pj_raw = dict_ligne.get(noms_colonnes.PJs.value, '')
     description = dict_ligne.get(noms_colonnes.QUOI.value, '')
-    lieu = dict_ligne.get(noms_colonnes.OU.value, '')
+    lieu = dict_ligne.get(noms_colonnes.OU.value) or dict_ligne.get(noms_colonnes.LIEU.value) or ''
 
     # print(f"debug : "
     #       f"après correction, j'ai les données suivantes : "
@@ -1630,6 +1601,7 @@ def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvene
                                      lieu=lieu if lieu != ''
                                      else current_conteneur_evenement.lieu_par_defaut()
                                      )
+
     # intervention = Intervention(jour=ligne[0] if ligne[0] != '' else current_evenement.date,
     #                             heure=ligne[1] if ligne[1] != '' else current_evenement.heure_de_demarrage,
     #                             description=ligne[4] if ligne[4] != '' else current_evenement.synopsis,
