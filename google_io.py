@@ -530,7 +530,7 @@ def generer_dict_header_vers_no_colonne(en_tetes, noms_colonnes, erreur_manager:
 
 
 def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles: list[str],
-                               erreur_manager: ErreurManager):
+                               erreur_manager: ErreurManager, verbal=False):
     """
     Normalise les en-têtes d'un tableau en fonction d'une liste de noms de colonnes cibles.
 
@@ -564,6 +564,10 @@ def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles: 
     # match. Si les résultats sont trop mauvais, il est possible d'utiliser la même structure, au prix de perdre en
     # performance globale.
 
+    if verbal:
+        print(f'En-têtes lus : {en_tetes_bruts}')
+        print(f'Noms colonnes cibles : {noms_colonnes_cibles}')
+
     tab_rectifie = []
     min_score = 100
     pire_match = ""
@@ -573,6 +577,10 @@ def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles: 
         if score[1] < min_score:
             min_score = score[1]
             pire_match = score[0]
+
+        if verbal:
+            print(f'En-Tête : {head}; proposition : {score[0]}; score : {score[1]}')
+
     logging.debug("lecture auto des tableaux :")
     for i in range(len(en_tetes_bruts)):
         logging.debug(f"{en_tetes_bruts[i]} > {tab_rectifie[i]}")
@@ -591,8 +599,10 @@ def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles: 
     return tab_rectifie
 
 
-def generer_liste_de_dict_from_tableau(tableau_avec_en_tetes, noms_colonnes, erreur_manager: ErreurManager):
-    entetes_normalises = normaliser_en_tete_tableau(tableau_avec_en_tetes[0], noms_colonnes, erreur_manager)
+def generer_liste_de_dict_from_tableau(tableau_avec_en_tetes, noms_colonnes, erreur_manager: ErreurManager,
+                                       verbal=False):
+    entetes_normalises = normaliser_en_tete_tableau(tableau_avec_en_tetes[0], noms_colonnes, erreur_manager,
+                                                    verbal=verbal)
 
     # on crée un tableau de dictionnaires avec les valeurs lues
     to_return = []
@@ -806,23 +816,7 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue):
 
         current_intrigue.objets.add(mon_objet)
         mon_objet.intrigue = current_intrigue
-    # for ligne in tab_objets[1:]:
-    #     code = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.CODE.value, "")
-    #     description = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
-    #     fourni_par = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.FOURNI_PAR.value, "")
-    #     emplacement_debut = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.START.value, "")
-    #     special_effect_1 = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.FX.value, "")
-    #     special_effect_2 = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.RFID.value, "")
-    #     special_effect = special_effect_1 + special_effect_2
-    #
-    #     mon_objet = Objet(code=code,
-    #                       description=description,
-    #                       fourni_par=fourni_par,
-    #                       emplacement_debut=emplacement_debut,
-    #                       special_effect=special_effect)
-    #
-    #     current_intrigue.objets.add(mon_objet)
-    #     mon_objet.intrigue = current_intrigue
+
 
 
 def intrigue_scenesfx(texte: str, intrigue: Intrigue):
@@ -1271,19 +1265,6 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
     labels = [e.value for e in Labels]
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_evenement.lower())
 
-    # utliser un dictionnaire pour savoir quelle section lire
-    # dict_methodes = {
-    #     Labels.FICHE: evenement_lire_fiche,
-    #     Labels.SYNOPSIS: evenement_lire_synopsis,
-    #     Labels.LIES: evenement_lire_lies,
-    #     Labels.BRIEFS: evenement_lire_briefs,
-    #     Labels.INFOS_PJS: evenement_lire_infos_pj,
-    #     Labels.INFOS_FACTIONS: evenement_infos_factions,
-    #     Labels.OBJETS: evenement_lire_objets,
-    #     Labels.CHRONO: evenement_lire_chrono,
-    #     Labels.AUTRES: evenement_lire_autres
-    # }
-
     dict_methodes = {
         Labels.FICHE: lambda x: evenement_lire_fiche(x, current_evenement, Labels.FICHE.value),
         Labels.SYNOPSIS: lambda x: evenement_lire_synopsis(x, current_evenement),
@@ -1560,7 +1541,7 @@ def evenement_lire_chrono_depuis_tableau(current_conteneur_evenement: ConteneurD
     #                                                                   )
 
     liste_dict_lignes = generer_liste_de_dict_from_tableau(tableau_interventions, colonnes,
-                                                           current_conteneur_evenement.erreur_manager)
+                                                           current_conteneur_evenement.erreur_manager, verbal=True)
 
     for dict_ligne in liste_dict_lignes:
         evenement_extraire_ligne_chrono(current_conteneur_evenement, dict_ligne, NomsColonnes,
