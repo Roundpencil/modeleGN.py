@@ -1,25 +1,27 @@
 import csv
-import logging
 import os
 from inspect import signature
 
-from numpy import matrix
-
+import createur_planning_evenementiel as cpe
 import google_io as g_io
 from modeleGN import *
-import createur_planning_evenementiel as cpe
 
 
 # communication :
 # A venir (prochaine version)
-# Suppression du besoin de télécharger le fichier mgn : l’interface proposera à l’utilisateur une liste des GNs auxquel il a accès et réalisera toutes les opérations.
+# Suppression du besoin de télécharger le fichier mgn : l’interface proposera à l’utilisateur une liste des GNs
+# auxquel il a accès et réalisera toutes les opérations.
 # Optimisation de la gestion des factions
 #
 # Nouveaux paramètres pour optimiser la généraition du planning :
 # -Ajout d’un paramètre nb_aides  > si spécifié, tentative de forcer ce nombre d'aides lors de la génération du planning
-# -Ajout d’un paramètre pas_evenement pour déterminer l’unité de temps entre deux évènements (aujourd’hui calculé automatiquement) (plus grand pas > plus grand tableau > plus grande durée de génération du planning)
-# -Ajout d’un nouvel onglet dans les fichiers de casting (joueurs venant aider pour faire PNJ) pour personnaliser les planning PNJs
-# -Ajout d’un paramètre sessions_à_generer pour savoir quels casting on affiche, et quels planning sont à générer si volonté de ne pas tout générer
+# -Ajout d’un paramètre pas_evenement pour déterminer l’unité de temps entre deux évènements
+# (aujourd’hui calculé automatiquement) (plus grand pas > plus grand tableau >
+# plus grande durée de génération du planning)
+# -Ajout d’un nouvel onglet dans les fichiers de casting
+# (joueurs venant aider pour faire PNJ) pour personnaliser les planning PNJs
+# -Ajout d’un paramètre sessions_à_generer pour savoir quels casting on affiche,
+# et quels planning sont à générer si volonté de ne pas tout générer
 # -Ajout d’un paramètre pour prendre en compte le nombre de PNJs si celui-ci est connu
 
 # interfaces de constructions
@@ -104,6 +106,7 @@ def lire_et_recharger_gn(fichier_gn: str,
     visualisation(-100)
     pas_visualisation = 50 / 7.0
 
+    test_ok = False
     # Verification des fichiers d'entrée et chargement du fichier de config
     if fichier_gn.endswith('.ini'):
         test_ok, _, dict_config = g_io.verifier_fichier_gn_et_fournir_dict_config(fichier_gn, api_drive)
@@ -161,57 +164,62 @@ def lire_et_recharger_gn(fichier_gn: str,
     # visualisation(pas_visualisation)
     m_print("****** fin de la lecture des intrigues  *********")
 
-    ids_lus = g_io.extraire_pjs(mon_gn,
-                                api_drive=api_drive,
-                                api_doc=api_doc,
-                                singletest=singletest_perso,
-                                fast=fast_persos,
-                                verbal=verbal,
-                                m_print=m_print,
-                                visualisation=visualisation,
-                                taille_visualisation=pas_visualisation)
+    if mon_gn.get_dossiers_pjs():
+        ids_lus = g_io.extraire_pjs(mon_gn,
+                                    api_drive=api_drive,
+                                    api_doc=api_doc,
+                                    singletest=singletest_perso,
+                                    fast=fast_persos,
+                                    verbal=verbal,
+                                    m_print=m_print,
+                                    visualisation=visualisation,
+                                    taille_visualisation=pas_visualisation)
 
-    retirer_pjs_supprimees(mon_gn, ids_lus)
-    # visualisation(pas_visualisation)
-    m_print("****** fin de la lecture des pjs  *********")
+        retirer_pjs_supprimees(mon_gn, ids_lus)
+        # visualisation(pas_visualisation)
+        m_print("****** fin de la lecture des pjs  *********")
 
-    ids_lus = g_io.extraire_pnjs(mon_gn,
-                                 api_drive=api_drive,
-                                 api_doc=api_doc,
-                                 singletest=singletest_perso,
-                                 fast=fast_pnjs,
-                                 verbal=verbal,
-                                 m_print=m_print,
-                                 visualisation=visualisation,
-                                 taille_visualisation=pas_visualisation)
+    if mon_gn.get_dossiers_pnjs():
+        ids_lus = g_io.extraire_pnjs(mon_gn,
+                                     api_drive=api_drive,
+                                     api_doc=api_doc,
+                                     singletest=singletest_perso,
+                                     fast=fast_pnjs,
+                                     verbal=verbal,
+                                     m_print=m_print,
+                                     visualisation=visualisation,
+                                     taille_visualisation=pas_visualisation)
 
-    retirer_pnjs_supprimes(mon_gn, ids_lus)
-    # visualisation(pas_visualisation)
-    m_print("****** fin de la lecture des pnjs *********")
+        retirer_pnjs_supprimes(mon_gn, ids_lus)
+        # visualisation(pas_visualisation)
+        m_print("****** fin de la lecture des pnjs *********")
 
-    ids_lus = g_io.extraire_evenements(mon_gn,
+    if mon_gn.get_dossiers_evenements():
+        ids_lus = g_io.extraire_evenements(mon_gn,
+                                           api_drive=api_drive,
+                                           api_doc=api_doc,
+                                           fast=fast_evenements,
+                                           m_print=m_print,
+                                           visualisation=visualisation,
+                                           taille_visualisation=pas_visualisation
+                                           )
+
+        retirer_fiches_evenements_supprimes(mon_gn, ids_lus)
+        # visualisation(pas_visualisation)
+        m_print("****** fin de la lecture des évènements *********")
+
+    if mon_gn.get_dossiers_objets():
+        ids_lus = g_io.extraire_objets(mon_gn,
                                        api_drive=api_drive,
                                        api_doc=api_doc,
-                                       fast=fast_evenements,
+                                       fast=fast_objets,
                                        m_print=m_print,
                                        visualisation=visualisation,
                                        taille_visualisation=pas_visualisation
                                        )
-
-    retirer_fiches_evenements_supprimes(mon_gn, ids_lus)
-    # visualisation(pas_visualisation)
-    m_print("****** fin de la lecture des évènements *********")
-
-    ids_lus = g_io.extraire_objets(mon_gn,
-                                   api_drive=api_drive,
-                                   api_doc=api_doc,
-                                   fast=fast_objets,
-                                   m_print=m_print,
-                                   visualisation=visualisation,
-                                   taille_visualisation=pas_visualisation
-                                   )
-    retirer_objets_supprimes(mon_gn, ids_lus)
-    # visualisation(pas_visualisation)
+        retirer_objets_supprimes(mon_gn, ids_lus)
+        # visualisation(pas_visualisation)
+        m_print("****** fin de la lecture des objets *********")
 
     # liste_orgas = None
     # liste_noms_pnjs = None
@@ -419,7 +427,7 @@ def retirer_elements_supprimes(ids_lus: list[str], dict_reference: dict):
 def attrappeur_dexceptions(func):
     def wrapper(*args, **kwargs):
         # Check if 'm_print' is in the function signature
-        sig = signature(func)
+        # sig = signature(func)
         # m_print = kwargs.get('m_print') if 'm_print' in sig.parameters else print
         m_print = kwargs.get('m_print', print)
         logging.debug(f"lancement de {func.__name__}")

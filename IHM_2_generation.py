@@ -1,5 +1,6 @@
 import threading
 import tkinter as tk
+import traceback
 import webbrowser
 from tkinter import filedialog, ttk
 from tkinter.ttk import Progressbar
@@ -346,38 +347,52 @@ class Application(ttk.Frame):
             #         return
             #
             # print(f"fict config ay début de la régénération : {self.dict_config} / {type(self)}")
-            lire_et_recharger_gn(fichier_gn=self.get_fichier_en_cours(),
-                                 api_drive=self.api_drive,
-                                 api_doc=self.api_doc,
-                                 api_sheets=self.api_sheets,
-                                 aides_de_jeu=aide_de_jeu_var.get(),
-                                 fichier_erreurs_intrigues=fichier_erreurs_intrigues_var.get(),
-                                 fichier_erreurs_evenements=fichier_erreurs_evenements_var.get(),
-                                 generer_fichiers_pjs=generer_fichiers_pj_var.get(),
-                                 generer_fichiers_pnjs=generer_fichiers_pnjs_var.get(),
-                                 changelog=changelog_var.get(),
-                                 table_intrigues=table_intrigues_var.get(),
-                                 table_objets=table_objets_var.get(),
-                                 solveur_planning=solveur_planning_var.get(),
-                                 table_chrono=table_chrono_var.get(),
-                                 table_persos=table_persos_var.get(),
-                                 table_pnjs=table_pnjs_var.get(),
-                                 table_commentaires=table_commentaires_var.get(),
-                                 fast_intrigues=var_fast_intrigue.get(),
-                                 fast_persos=var_fast_fiches_pjs.get(),
-                                 fast_pnjs=var_fast_fiches_pnjs.get(),
-                                 fast_evenements=var_fast_evenements.get(),
-                                 fast_objets=var_fast_objets.get(),
-                                 sans_chargement_fichier=repartir_de_0_var.get(),
-                                 sauver_apres_operation=sauver_apres_operation_var.get(),
-                                 verbal=verbal_var.get(),
-                                 table_relations=table_relations_var.get(),
-                                 table_evenements=table_evenements_var.get(),
-                                 table_questionnaire=fichier_questionnaire_inscription_var.get(),
-                                 resume_par_perso=resume_par_perso_var.get(),
-                                 visualisation=faire_evoluer_barre,
-                                 m_print=afficher_message_statut
-                                 )
+            try:
+                lire_et_recharger_gn(fichier_gn=self.get_fichier_en_cours(),
+                                     api_drive=self.api_drive,
+                                     api_doc=self.api_doc,
+                                     api_sheets=self.api_sheets,
+                                     aides_de_jeu=aide_de_jeu_var.get(),
+                                     fichier_erreurs_intrigues=fichier_erreurs_intrigues_var.get(),
+                                     fichier_erreurs_evenements=fichier_erreurs_evenements_var.get(),
+                                     generer_fichiers_pjs=generer_fichiers_pj_var.get(),
+                                     generer_fichiers_pnjs=generer_fichiers_pnjs_var.get(),
+                                     changelog=changelog_var.get(),
+                                     table_intrigues=table_intrigues_var.get(),
+                                     table_objets=table_objets_var.get(),
+                                     solveur_planning=solveur_planning_var.get(),
+                                     table_chrono=table_chrono_var.get(),
+                                     table_persos=table_persos_var.get(),
+                                     table_pnjs=table_pnjs_var.get(),
+                                     table_commentaires=table_commentaires_var.get(),
+                                     fast_intrigues=var_fast_intrigue.get(),
+                                     fast_persos=var_fast_fiches_pjs.get(),
+                                     fast_pnjs=var_fast_fiches_pnjs.get(),
+                                     fast_evenements=var_fast_evenements.get(),
+                                     fast_objets=var_fast_objets.get(),
+                                     sans_chargement_fichier=repartir_de_0_var.get(),
+                                     sauver_apres_operation=sauver_apres_operation_var.get(),
+                                     verbal=verbal_var.get(),
+                                     table_relations=table_relations_var.get(),
+                                     table_evenements=table_evenements_var.get(),
+                                     table_questionnaire=fichier_questionnaire_inscription_var.get(),
+                                     resume_par_perso=resume_par_perso_var.get(),
+                                     visualisation=faire_evoluer_barre,
+                                     m_print=afficher_message_statut
+                                     )
+            except Exception as e:
+                # Afficher un message d'erreur à l'utilisateur
+                afficher_message_statut("Une erreur est survenue.")
+
+                # Récupérer la date et l'heure actuelles
+                now = datetime.datetime.now()
+                filename = now.strftime("%Y-%m-%d %H-%M-%S.%f crash.txt")
+
+                afficher_message_statut(f"Veuillez consulter le fichier de log et/ou {filename} pour plus de détails.")
+
+                # Enregistrer le traceback dans un fichier
+                with open(filename, "w") as file:
+                    file.write(traceback.format_exc())
 
         ok_button = ttk.Button(generer_labelframe, text="OK",
                                command=lambda: threading.Thread(target=t_lancer_regeneration).start()

@@ -3417,7 +3417,9 @@ def creer_dict_config(config: configparser.ConfigParser):
             valeur = config.get(section, clef)
             dict_config[clef_valeurs].append(valeur)
             dict_config[clef_nom].append(clef)
-            # todo : si remise à plat du dictionnaire de paramètres, renvoyer un dictionnaire plutot que deux listes
+            # todo : si remise à plat du dictionnaire de paramètres, renvoyer un dictionnaire nom:valeur plutot que
+            #  deux listes séparées qu'il faut faire correspondre pour savoir quel paramètre correspond à quel
+            #  nom de paramètre
 
     # intégration des dossiers intrigues et vérifications
 
@@ -3762,6 +3764,6 @@ def ajouter_archive_gn_aux_recherchables(api_drive, dossier_upload: str, fichier
 
         print(f"L'ID du dossier {dossier_upload} a été ajouté au fichier.")
     except HttpError as error:
-        print(f"Une erreur HTTP s'est produite: {error}")
+        print(f"Une erreur HTTP s'est produite en voulant ajouter le GN aux archives en ligne : {error}")
     except Exception as error:
-        print(f"Une erreur inattendue s'est produite: {error}")
+        print(f"Une erreur inattendue s'est produite en voulant ajouter le GN aux archives en ligne : {error}")
