@@ -238,6 +238,8 @@ def formatter_tableau_pour_export(tableau: list):
     for ligne in tableau:
         for cellule in ligne:
             to_return += f'{cellule}{SEPARATEUR_COLONNES}'
+            # a_inserer = cellule if len(cellule) else ' '
+            # to_return += f'{a_inserer}{SEPARATEUR_COLONNES}'
         to_return += SEPARATEUR_LIGNES
 
     # on enlève le dernier FIN LIGNE pour le remplacer par un FIN TABLEAU

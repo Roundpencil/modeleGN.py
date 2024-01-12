@@ -2092,7 +2092,7 @@ def is_document_being_edited(service, file_id):
         return None
 
 
-def write_to_doc(service, file_id, text: str, titre=False):
+def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
     # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
     formatting_requests = []
 
@@ -2277,6 +2277,8 @@ def write_to_doc(service, file_id, text: str, titre=False):
         #     }
         # ]
 
+        if verbal:
+            print(f"VERBAL : Requete write_to_doc : {requests}")
         # Execute the request.
         result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
         return result

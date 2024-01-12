@@ -501,7 +501,8 @@ def generer_texte_resume_intrigues_persos(mon_gn: GN, verbal=False):
     tab_brut = [
         {'orga': perso.orga_referent,
          'nom_perso': perso.nom,
-         'texte_recap': perso.str_recap_intrigues()
+         'texte_recap': '\n' + perso.str_recap_intrigues() + '\n' #contournement de erreurs d'écriture
+         # 'texte_recap': perso.str_recap_intrigues() if len(perso.str_recap_intrigues()) else ' '
          }
         for perso in mon_gn.get_dict_pj().values()
     ]
@@ -533,7 +534,7 @@ def ecrire_resume_intrigues_persos(mon_gn: GN, api_doc, api_drive, verbal=False,
                   f'- Implications par persos dans intrigues'
     mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
                                    id_dossier_archive=mon_gn.get_id_dossier_archive())
-    g_io.write_to_doc(api_doc, mon_id, texte_resume)
+    g_io.write_to_doc(api_doc, mon_id, texte_resume, verbal=True)
 
 
 @attrappeur_dexceptions
