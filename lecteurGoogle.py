@@ -245,7 +245,8 @@ def identifier_sections_fiche(labels_a_trouver, texte_document):
     table_debuts_fins_labels = {}
     for i in range(len(indexes)):
         try:
-            table_debuts_fins_labels[tous_les_indexes[i]] = tous_les_indexes[i + 1] - 1
+            # table_debuts_fins_labels[tous_les_indexes[i]] = tous_les_indexes[i + 1] - 1
+            table_debuts_fins_labels[tous_les_indexes[i]] = tous_les_indexes[i + 1]
             # print("pour l'index {0}, j'ai le couple {1}:{2}".format(i, tous_les_indexes[i], tous_les_indexes[i+1]))
         except IndexError:
             table_debuts_fins_labels[tous_les_indexes[i]] = len(texte_document)
