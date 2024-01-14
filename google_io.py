@@ -354,6 +354,9 @@ def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_e
     current_intrigue = Intrigue(nom=nom_intrigue, url=id_url, derniere_edition_fichier=last_file_edit)
     current_intrigue.modifie_par = derniere_modification_par
     dict_intrigues[id_url] = current_intrigue
+    # TODO : prendre texte cleané sans balises pour toutes les fonctions à part celles qui bénéficient vraiment du formattage :
+    #  scène, état de l'intrigue, etc, mais pas les tableeaux.
+    #  Pour ceux ou on garde raw, créer une seconde entrée pour la focntion
 
     # noms_persos = gn.liste_noms_pjs()
 
