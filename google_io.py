@@ -1019,6 +1019,7 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, table
 
         scene_a_ajouter.description = texte_a_ajouter
 
+
 def nettoyer_formattage(texte, balise_debut, balise_fin):
     # Regular expression pattern to find all occurrences of the tags
     pattern = f"({re.escape(balise_debut)}|{re.escape(balise_fin)})"
@@ -2128,8 +2129,29 @@ def is_document_being_edited(service, file_id):
         print(F'An error occurred: {error}')
         return None
 
+def trouver_tuples_formattage(input_string, start_delim, end_delim):
+    # Escape the delimiters to handle special regex characters
+    start_delim_escaped = re.escape(start_delim)
+    end_delim_escaped = re.escape(end_delim)
 
-def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
+    # Create the regex pattern
+    pattern = f'{start_delim_escaped}(.*?){end_delim_escaped}'
+
+    # Find all matches
+    matches = re.finditer(pattern, input_string, re.DOTALL)
+
+    # Create a list of tuples with start and end indices
+    result = []
+    for match in matches:
+        start = match.start()
+        end = match.end()
+        # length = end - start
+        # result.append((start, end, length))
+        result.append((start, end))
+
+    return result
+
+def write_to_doc(service, file_id, text: str, titre=False, verbal=True):
     # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
     formatting_requests = []
 
@@ -2137,6 +2159,7 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
     # pattern évolué pour ne plus prendre en compte les parenthèses
     url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
+    #requêtes pour le formattage, d'abord les URLS, ensuite les autres balises
     # requête non ajoutées à la fin car tant que création de colonne vides, décalage de l'offset qui fera planter
     for match in re.finditer(url_pattern, text):
         url = match.group()
@@ -2157,6 +2180,37 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
                 'fields': 'link'
             }
         })
+
+    # pour toutes les autres options de fomrmattage :
+    #   1. on trouve les tuples
+    #   2. on met à jour la requête de formattage pour mettre en forme
+    #   3. on met à jour la requete de nettoyage pour supprimer les bornes (en commençant par la fin)
+
+    for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
+        balise_debut = lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][0]
+        balise_fin = lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1]
+        # 1. on isole les positions
+        liste_tuples_positions = trouver_tuples_formattage(text, balise_debut, balise_fin)
+
+        #2. on crée le formattage
+        for start, end in liste_tuples_positions:
+            formatting_requests.append({
+                'updateTextStyle': {
+                    'range': {
+                        'startIndex': start + 1,
+                        'endIndex': end + 1,
+                    },
+                    'textStyle': {
+                        # f"'{clef_formattage}'": True
+                        f'{clef_formattage}': True
+                    },
+                    # 'fields': f"'{clef_formattage}'"
+                    'fields': f'{clef_formattage}'
+                }
+            })
+
+        #TODO 3. on fait une requête qui nettoie
+
 
     # a ce stade là, les endroits qui doivent être mis sous forme d'url sont identifiés
     # l'ancien code, fonctionnel

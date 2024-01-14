@@ -534,7 +534,7 @@ def ecrire_resume_intrigues_persos(mon_gn: GN, api_doc, api_drive, verbal=False,
                   f'- Implications par persos dans intrigues'
     mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent,
                                    id_dossier_archive=mon_gn.get_id_dossier_archive())
-    g_io.write_to_doc(api_doc, mon_id, texte_resume, verbal=True)
+    g_io.write_to_doc(api_doc, mon_id, texte_resume, verbal=False)
 
 
 @attrappeur_dexceptions
