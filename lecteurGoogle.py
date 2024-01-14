@@ -1,6 +1,8 @@
 from __future__ import print_function
 
 import os.path
+from enum import Enum
+
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -26,9 +28,35 @@ os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre de
 # quand on voudra refaire des liens
 DEBUT_TABLEAU = '\uE000' * 4
 FIN_TABLEAU = '\uE001' * 2
-SEPARATEUR_COLONNES = '\uE002'*2
+SEPARATEUR_COLONNES = '\uE002' * 2
 SEPARATEUR_LIGNES = '\uE003'
 FIN_LIGNE = SEPARATEUR_COLONNES + SEPARATEUR_LIGNES
+
+
+# balises ajoutées dans le texte pour pouvoir reconstituer les styles
+# source : https://developers.google.com/docs/api/reference/rest/v1/documents?hl=fr#paragraphstyle
+# class FORMATTAGE(Enum):
+#     PREFIXE_GRAS_ON = '<bold>'
+#     PREFIXE_GRAS_OFF = '</bold>'
+#     PREFIXE_ITALIQUE_ON = '<italic>'
+#     PREFIXE_ITALIQUE_OFF = '</italic>'
+#     PREFIXE_SOULIGNE_ON = '<souligné>'
+#     PREFIXE_SOULIGNE_OFF = '</souligné>'
+#     PREFIXE_BARRE_ON = '<barré>'
+#     PREFIXE_BARRE_OFF = '</barré>'
+#     PREFIXE_SMALLCAPS_ON = '<small_caps>'
+#     PREFIXE_SMALLCAPS_OFF = '</small_caps>'
+
+
+# VALEURS_FORMATTAGE = [f.value for f in FORMATTAGE]
+VALEURS_FORMATTAGE = {
+    'bold': ['<bold>', '</bold>'],
+    'underline': ['<underline>', '</underline>'],
+    'smallCaps': ['<smallCaps>', '</smallCaps>'],
+    'italic': ['<italic>', '</italic>'],
+    'strikethrough': ['<strikethrough>', '</strikethrough>']
+}
+
 
 # DEBUT_TABLEAU = '¤¤d¤¤'
 # FIN_TABLEAU = '¤¤f¤¤'
@@ -116,10 +144,38 @@ def read_paragraph_element(element):
         text_style = text_run.get('textStyle', {})
         hyperlink_info = text_style.get('link')
 
-        if hyperlink_info:
+        # if hyperlink_info:
+        #     url = f"{hyperlink_info.get('url')} "
+        #     if url:
+        #         content = ' '.join([content, url])
+
+        if hyperlink_info := text_style.get('link'):
             url = f"{hyperlink_info.get('url')} "
             if url:
                 content = ' '.join([content, url])
+
+        for clef_formattage in VALEURS_FORMATTAGE:
+            if text_style.get(clef_formattage):
+                content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
+                                   content,
+                                   VALEURS_FORMATTAGE[clef_formattage][1]])
+
+        #             = {
+
+#         if text_style.get('bold'):
+#             content = ''.join([FORMATTAGE.PREFIXE_GRAS_ON, content, FORMATTAGE.PREFIXE_GRAS_OFF])
+#
+#         if text_style.get('italic'):
+#             content = ''.join([FORMATTAGE.PREFIXE_ITALIQUE_ON, content, FORMATTAGE.PREFIXE_ITALIQUE_OFF])
+#
+#         if text_style.get('underline'):
+#             content = ''.join([FORMATTAGE.PREFIXE_SOULIGNE_ON, content, FORMATTAGE.PREFIXE_SOULIGNE_OFF])
+#
+#         if text_style.get('strikethrough'):
+#             content = ''.join([FORMATTAGE.PREFIXE_BARRE_ON, content, FORMATTAGE.PREFIXE_BARRE_OFF])
+#
+#         if text_style.get('smallCaps'):
+#             content = ''.join([FORMATTAGE.PREFIXE_SMALLCAPS_ON, content, FORMATTAGE.PREFIXE_SMALLCAPS_OFF])
 
     return content
 
@@ -231,6 +287,7 @@ def generer_liste_items(api_drive, nom_fichier):
     except HttpError as err:
         print(f'An error occurred: {err}')
         return None
+
 
 def formatter_tableau_pour_export(tableau: list):
     to_return = DEBUT_TABLEAU

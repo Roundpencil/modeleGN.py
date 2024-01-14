@@ -382,7 +382,6 @@ def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_e
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_intrigue)
     # print(f"debug : indexes = {indexes}")
 
-
     dict_methodes = {
         Labels.REFERENT: lambda x: intrigue_referent(x, current_intrigue, Labels.REFERENT.value),
         Labels.TODO: lambda x: intrigue_todo(x, current_intrigue, Labels.TODO.value),
@@ -818,7 +817,6 @@ def intrigue_objets(texte: str, current_intrigue: Intrigue):
         mon_objet.intrigue = current_intrigue
 
 
-
 def intrigue_scenesfx(texte: str, intrigue: Intrigue):
     # print(f" debug : texte fx = {texte}")
     tableau_evenements, nb_colonnes = reconstituer_tableau(texte)
@@ -986,15 +984,21 @@ def extraire_balise(input_balise: str, scene_a_ajouter: Scene, conteneur: Conten
 def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
     scenes = texte_scenes.split("###")
 
-    for scene in scenes:
-        if len(scene) < 10:
+    for scene_raw in scenes:
+
+        if len(scene_raw) < 10:
             continue
 
-        titre_scene = scene.splitlines()[0].strip()
+        # on crée une copie de scene_raw qui ne contient pas le formattage pour mieux extraire les balises et le texte
+        scene_clean = scene_raw
+        for valeur in lecteurGoogle.VALEURS_FORMATTAGE:
+            scene_clean = scene_clean.replace(valeur, "")
+
+        titre_scene = scene_clean.splitlines()[0].strip()
         scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
         scene_a_ajouter.modifie_par = conteneur.modifie_par
 
-        balises = re.findall(r'##.*', scene)
+        balises = re.findall(r'##.*', scene_clean)
         for balise in balises:
             if not extraire_balise(balise, scene_a_ajouter, conteneur, tableau_roles_existant):
                 texte_erreur = f"balise inconnue : {balise} dans le conteneur {nom_conteneur}"
@@ -1004,7 +1008,40 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, table
                                                    texte_erreur,
                                                    ErreurManager.ORIGINES.SCENE)
 
-        scene_a_ajouter.description = ''.join(scene.splitlines(keepends=True)[1 + len(balises):])
+        # et on reconstitue le texte à reprendre pour la description de la scène en reprenant scene_raw
+        # scene_a_ajouter.description = ''.join(scene_raw.splitlines(keepends=True)[1 + len(balises):])
+
+        texte_a_ajouter = ''.join(scene_raw.splitlines(keepends=True)[1 + len(balises):])
+        for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
+            texte_a_ajouter = nettoyer_formattage(texte_a_ajouter,
+                                                  lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][0],
+                                                  lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1])
+
+        scene_a_ajouter.description = texte_a_ajouter
+
+def nettoyer_formattage(texte, balise_debut, balise_fin):
+    # Regular expression pattern to find all occurrences of the tags
+    pattern = f"({re.escape(balise_debut)}|{re.escape(balise_fin)})"
+
+    # Splitting the text into parts and tags
+    parts = re.split(pattern, texte)
+
+    stack = []
+    valid_indices = set()
+
+    for idx, part in enumerate(parts):
+        if part == balise_debut:
+            stack.append(idx)
+        elif part == balise_fin and stack:
+            start_idx = stack.pop()
+            valid_indices.add(start_idx)
+            valid_indices.add(idx)
+
+    # Reconstruct the text with valid tags and text parts
+    cleaned_text = ''.join(part for idx, part in enumerate(parts) if
+                           idx in valid_indices or (part != balise_debut and part != balise_fin))
+
+    return cleaned_text
 
 
 def extraire_factions_scene(texte_lu: str, scene: Scene):
@@ -1372,7 +1409,6 @@ def evenement_lire_fiche(texte: str, current_evenement: FicheEvenement, texte_la
 
     dict_fiche = dict(tableau_fiche)
 
-
     current_evenement.code_evenement = dict_fiche.get(NomsLignes.CODE.value, "").strip()
     current_evenement.etat = dict_fiche.get(NomsLignes.ETAT.value, "").strip()
     current_evenement.referent = dict_fiche.get(NomsLignes.REFERENT.value, "").strip()
@@ -1466,7 +1502,8 @@ def evenement_lire_objets(texte: str, current_evenement: FicheEvenement, texte_l
         current_evenement.objets.add(objet)
 
 
-def evenement_lire_chrono(texte: str, current_evenement: ConteneurDEvenementsUnitaires, seuil_alerte_pnj=70, seuil_alerte_pj=70):
+def evenement_lire_chrono(texte: str, current_evenement: ConteneurDEvenementsUnitaires, seuil_alerte_pnj=70,
+                          seuil_alerte_pj=70):
     texte = retirer_premiere_ligne(texte)
     # # on regarde l'entete pour connaitre la taille du tableau,
     # # mais on prend le tableau sans entete pour terminer ce qu'il faut lire
