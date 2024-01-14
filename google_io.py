@@ -2184,8 +2184,11 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=True):
     # pour toutes les autres options de fomrmattage :
     #   1. on trouve les tuples
     #   2. on met à jour la requête de formattage pour mettre en forme
-    #   3. on met à jour la requete de nettoyage pour supprimer les bornes (en commençant par la fin)
+    #   3. on met à jour la requete de nettoyage pour supprimer les bornes
+    # puis (important !) on trie toutes les cleaning request en commençant par la fin
+    # pour ne pas fouttre le bazar dans les indexes
 
+    cleaning_requests = []
     for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
         balise_debut = lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][0]
         balise_fin = lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1]
@@ -2209,7 +2212,26 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=True):
                 }
             })
 
-        #TODO 3. on fait une requête qui nettoie
+            # 3. on fait une requête qui nettoie
+            cleaning_requests.append({
+                'deleteContentRange': {
+                    'range': {
+                        'startIndex': start+1,  # Starting index of the text to delete
+                        'endIndex': start+1+len(balise_debut)  # Ending index of the text to delete
+                    }
+                }
+            })
+            cleaning_requests.append({
+                'deleteContentRange': {
+                    'range': {
+                        'startIndex': end+1-len(balise_fin),  # Starting index of the text to delete
+                        'endIndex': end+1  # Ending index of the text to delete
+                    }
+                }
+            })
+
+        # une fois tout fini, on trie la cleaning request
+        cleaning_requests.sort(key=lambda x: x['deleteContentRange']['range']['startIndex'], reverse=True)
 
 
     # a ce stade là, les endroits qui doivent être mis sous forme d'url sont identifiés
@@ -2312,6 +2334,7 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=True):
 
         # ajouter le formattage à la requete d'insert
         requests += formatting_requests
+        requests += cleaning_requests
 
         # debug : code récupérer de slack, fontionnel, utilisé pour comprendre les offsets
         # requests = [
