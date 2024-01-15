@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import configparser
 import io
+import itertools
 import os
 from enum import Enum
 from typing import Optional
@@ -15,6 +16,8 @@ from modeleGN import *
 
 ID_FICHIER_ARCHIVES = '1tEXjKfiU8k_SU_jyVAoUQU1K9Gp77Cv0'
 
+
+# todo pour format : objets, pj / pnj(en cours), evenements
 
 def extraire_intrigues(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
                        visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
@@ -315,8 +318,8 @@ def extraire_elements_de_document(document, item, dict_reference: dict, fonction
     # print("et du coup, il est temps de créer un nouveau fichier")
     # à ce stade, soit on sait qu'elle n'existait pas, soit on l'a effacée pour la réécrire
     contenu_document = document.get('body').get('content')
-    text = lecteurGoogle.read_structural_elements(contenu_document)
-    text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
+    texte_avec_format = lecteurGoogle.read_structural_elements(contenu_document)
+    texte_avec_format = texte_avec_format.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
 
     # print(text) #test de la fonction récursive pour le texte
     # mon_objet = extraire_intrigue_de_texte(text, document.get('title'), item["id"], gn)
@@ -331,7 +334,8 @@ def extraire_elements_de_document(document, item, dict_reference: dict, fonction
     except Exception:
         derniere_modification_par = "Utilisateur inconnu"
 
-    mon_objet = fonction_extraction(text, document.get('title'), item["id"], last_file_edit, derniere_modification_par,
+    mon_objet = fonction_extraction(texte_avec_format, document.get('title'), item["id"], last_file_edit,
+                                    derniere_modification_par,
                                     dict_reference, verbal)
     # mon_objet.url = item["id"]
     # on enregistre la date de dernière mise à jour
@@ -344,7 +348,8 @@ def extraire_elements_de_document(document, item, dict_reference: dict, fonction
     return mon_objet
 
 
-def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_edit, derniere_modification_par,
+def extraire_intrigue_de_texte(texte_avec_format, nom_intrigue,
+                               id_url, last_file_edit, derniere_modification_par,
                                dict_intrigues,
                                verbal=False):
     # print("texte intrigue en entrée : ")
@@ -354,9 +359,6 @@ def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_e
     current_intrigue = Intrigue(nom=nom_intrigue, url=id_url, derniere_edition_fichier=last_file_edit)
     current_intrigue.modifie_par = derniere_modification_par
     dict_intrigues[id_url] = current_intrigue
-    # TODO : prendre texte cleané sans balises pour toutes les fonctions à part celles qui bénéficient vraiment du formattage :
-    #  scène, état de l'intrigue, etc, mais pas les tableeaux.
-    #  Pour ceux ou on garde raw, créer une seconde entrée pour la focntion
 
     # noms_persos = gn.liste_noms_pjs()
 
@@ -382,38 +384,46 @@ def extraire_intrigue_de_texte(texte_intrigue, nom_intrigue, id_url, last_file_e
 
     labels = [lab.value for lab in Labels]
 
-    indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_intrigue)
+    # indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_seul)
     # print(f"debug : indexes = {indexes}")
+    dict_sections = lecteurGoogle.text_2_dict_sections(labels, texte_avec_format)
 
     dict_methodes = {
-        Labels.REFERENT: lambda x: intrigue_referent(x, current_intrigue, Labels.REFERENT.value),
-        Labels.TODO: lambda x: intrigue_todo(x, current_intrigue, Labels.TODO.value),
-        Labels.PITCH: lambda x: intrigue_pitch(x, current_intrigue),
-        Labels.CROISEES: lambda x: intrigue_croisee(x, Labels.CROISEES.value),
-        Labels.PJS: lambda x: intrigue_pjs(x, current_intrigue),
-        Labels.PNJS: lambda x: intrigue_pnjs(x, current_intrigue),
-        Labels.REROLLS: lambda x: intrigue_rerolls(x, current_intrigue),
-        Labels.OBJETS: lambda x: intrigue_objets(x, current_intrigue),
-        Labels.SCENESFX: lambda x: intrigue_scenesfx(x, current_intrigue),
-        Labels.TIMELINE: lambda x: intrigue_timeline(x, current_intrigue),
-        Labels.SCENES: lambda x: intrigue_scenes(x, current_intrigue, Labels.SCENES.value),
-        Labels.RESOLUTION: lambda x: intrigue_resolution(x, current_intrigue),
-        Labels.NOTES: lambda x: intrigue_notes(x, current_intrigue),
-        Labels.QUESTIONNAIRE: lambda x: intrigue_questionnaire(x, current_intrigue),
-        Labels.RELATIONS_BI: lambda x: intrigue_relations_bi(x, current_intrigue),
-        Labels.RELATIONS_MULTI: lambda x: intrigue_relations_multi(x, current_intrigue),
+        Labels.REFERENT: lambda x, y: intrigue_referent(x, current_intrigue, Labels.REFERENT.value),
+        Labels.TODO: lambda x, y: intrigue_todo(x, current_intrigue, Labels.TODO.value),
+        Labels.PITCH: lambda x, y: intrigue_pitch(x, current_intrigue),
+        Labels.CROISEES: lambda x, y: intrigue_croisee(x, Labels.CROISEES.value),
+        Labels.PJS: lambda x, y: intrigue_pjs(x, current_intrigue),
+        Labels.PNJS: lambda x, y: intrigue_pnjs(x, current_intrigue),
+        Labels.REROLLS: lambda x, y: intrigue_rerolls(x, current_intrigue),
+        Labels.OBJETS: lambda x, y: intrigue_objets(x, current_intrigue),
+        Labels.SCENESFX: lambda x, y: intrigue_scenesfx(x, current_intrigue),
+        Labels.TIMELINE: lambda x, y: intrigue_timeline(x, current_intrigue),
+        Labels.SCENES: lambda x, y: intrigue_scenes(x, y, current_intrigue, Labels.SCENES.value),
+        Labels.RESOLUTION: lambda x, y: intrigue_resolution(x, current_intrigue),
+        Labels.NOTES: lambda x, y: intrigue_notes(x, current_intrigue),
+        Labels.QUESTIONNAIRE: lambda x, y: intrigue_questionnaire(x, current_intrigue),
+        Labels.RELATIONS_BI: lambda x, y: intrigue_relations_bi(x, current_intrigue),
+        Labels.RELATIONS_MULTI: lambda x, y: intrigue_relations_multi(x, current_intrigue),
         Labels.GRILLE_EVENEMENTS: lambda x: evenement_lire_chrono(x, current_intrigue)
     }
 
     for label in Labels:
-        if indexes[label.value]["debut"] == -1:
-            print(f"pas de {label.value} avec l'intrigue {nom_intrigue}")
-        else:
+        if paire := dict_sections.get(label.value):
             ma_methode = dict_methodes[label]
-            texte = texte_intrigue[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
-            # print(f"debug : texte label {label.value} = {texte}")
-            # ma_methode(texte, current_intrigue, label.value)
-            ma_methode(texte)
+            ma_methode(paire[0], paire[1])
+        else:
+            print(f"pas de {label.value} avec l'intrigue {nom_intrigue}")
+
+        # if indexes[label.value]["debut"] == -1:
+        #     print(f"pas de {label.value} avec l'intrigue {nom_intrigue}")
+        # else:
+        #     ma_methode = dict_methodes[label]
+        #     input_pure = texte_seul[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+        #     input_format = texte_avec_format[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+        #     # print(f"debug : texte label {label.value} = {texte}")
+        #     # ma_methode(texte, current_intrigue, label.value)
+        #     ma_methode(input_pure, input_format)
 
     return current_intrigue
 
@@ -835,9 +845,11 @@ def intrigue_timeline(texte: str, intrigue: Intrigue):
     intrigue.timeline = retirer_premiere_ligne(texte)
 
 
-def intrigue_scenes(texte: str, intrigue: Intrigue, texte_label: str):
-    texte = retirer_label(texte, texte_label)
-    texte2scenes(intrigue, intrigue.nom, texte)
+def intrigue_scenes(texte_pur: str, texte_formatte: str, intrigue: Intrigue, texte_label: str):
+    # texte = retirer_label(texte_pur, texte_label)
+    # pas besoin de formatter, on ne prendra jamais j'index 0 qui contiendra l'entete + plus toutes les merdes
+    # qui précèdent la première scène
+    texte2scenes(intrigue, intrigue.nom, texte_pur, texte_formatte)
 
 
 def intrigue_resolution(texte: str, intrigue: Intrigue):
@@ -984,24 +996,21 @@ def extraire_balise(input_balise: str, scene_a_ajouter: Scene, conteneur: Conten
     return False
 
 
-def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, tableau_roles_existant=True):
-    scenes = texte_scenes.split("###")
+def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, texte_scenes_avec_format,
+                 tableau_roles_existant=True):
+    scenes_pur = texte_scenes_pur.split("###")
+    scenes_avec_format = texte_scenes_avec_format.split("###")
 
-    for scene_raw in scenes:
+    for scene_texte_pur, scene_avec_format in itertools.islice(zip(scenes_pur, scenes_avec_format), 1, None):
 
-        if len(scene_raw) < 10:
+        if len(scene_texte_pur) < 10:
             continue
 
-        # on crée une copie de scene_raw qui ne contient pas le formattage pour mieux extraire les balises et le texte
-        scene_clean = scene_raw
-        for valeur in lecteurGoogle.VALEURS_FORMATTAGE:
-            scene_clean = scene_clean.replace(valeur, "")
-
-        titre_scene = scene_clean.splitlines()[0].strip()
+        titre_scene = scene_texte_pur.splitlines()[0].strip()
         scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
         scene_a_ajouter.modifie_par = conteneur.modifie_par
 
-        balises = re.findall(r'##.*', scene_clean)
+        balises = re.findall(r'##.*', scene_texte_pur)
         for balise in balises:
             if not extraire_balise(balise, scene_a_ajouter, conteneur, tableau_roles_existant):
                 texte_erreur = f"balise inconnue : {balise} dans le conteneur {nom_conteneur}"
@@ -1014,16 +1023,16 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes, table
         # et on reconstitue le texte à reprendre pour la description de la scène en reprenant scene_raw
         # scene_a_ajouter.description = ''.join(scene_raw.splitlines(keepends=True)[1 + len(balises):])
 
-        texte_a_ajouter = ''.join(scene_raw.splitlines(keepends=True)[1 + len(balises):])
+        texte_a_ajouter = ''.join(scene_avec_format.splitlines(keepends=True)[1 + len(balises):])
         for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
-            texte_a_ajouter = nettoyer_formattage(texte_a_ajouter,
+            texte_a_ajouter = corriger_formattage(texte_a_ajouter,
                                                   lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][0],
                                                   lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1])
 
         scene_a_ajouter.description = texte_a_ajouter
 
 
-def nettoyer_formattage(texte, balise_debut, balise_fin):
+def corriger_formattage(texte, balise_debut, balise_fin):
     # Regular expression pattern to find all occurrences of the tags
     pattern = f"({re.escape(balise_debut)}|{re.escape(balise_fin)})"
 
@@ -1714,17 +1723,20 @@ def retirer_label(texte: str, label: str):
     return texte[len(label):].strip()
 
 
-def extraire_pnj_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, dict_pnj,
+def extraire_pnj_de_texte(texte_persos_pur, texte_avec_format, nom_doc, id_url, last_file_edit,
+                          derniere_modification_par, dict_pnj,
                           verbal):
-    return extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, dict_pnj,
+    return extraire_persos_de_texte(texte_persos_pur, texte_avec_format, nom_doc, id_url, last_file_edit,
+                                    derniere_modification_par, dict_pnj,
                                     verbal=verbal, pj=TypePerso.EST_PNJ_HORS_JEU)
 
 
-def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, derniere_modification_par, dict_pj_pnj,
+def extraire_persos_de_texte(texte_persos_pur, texte_avec_format, nom_doc, id_url, last_file_edit,
+                             derniere_modification_par, dict_pj_pnj,
                              verbal=False, pj: TypePerso = TypePerso.EST_PJ):
     print(f"Lecture de {nom_doc}")
-    if len(texte_persos) < 800:
-        print(f"fiche {nom_doc} avec {len(texte_persos)} caractères est vide")
+    if len(texte_persos_pur) < 800:
+        print(f"fiche {nom_doc} avec {len(texte_persos_pur)} caractères est vide")
         # return  # dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
 
     nom_perso_en_cours = re.sub(r"^\d+\s*-", '', nom_doc).strip()
@@ -1734,7 +1746,7 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
     current_personnage.modifie_par = derniere_modification_par
     dict_pj_pnj[id_url] = current_personnage
 
-    texte_persos_low = texte_persos.lower()  # on passe en minuscule pour mieux trouver les chaines
+    texte_persos_low = texte_persos_pur.lower()  # on passe en minuscule pour mieux trouver les chaines
 
     class Labels(Enum):
         REFERENT = "orga référent : "
@@ -1760,46 +1772,25 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
 
     indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_persos_low)
 
-    # dict_methodes = {
-    #     Labels.REFERENT: personnage_referent,
-    #     Labels.JOUEUR: personnage_interprete,
-    #     Labels.JOUEUSE: personnage_interprete,
-    #     Labels.INTERPRETE: personnage_interprete,
-    #     Labels.PITCH: personnage_pitch,
-    #     Labels.COSTUME: personnage_costume,
-    #     Labels.FACTION1: personnage_faction1,
-    #     Labels.FACTION2: personnage_factions2,
-    #     Labels.GROUPES: personnage_groupes,
-    #     Labels.INTRIGUES: personnage_intrigues,
-    #     Labels.BIO: personnage_bio,
-    #     Labels.PSYCHO: personnage_psycho,
-    #     Labels.MOTIVATIONS: personnage_motivation,
-    #     Labels.CHRONOLOGIE: personnage_chronologie,
-    #     Labels.SCENES: personnage_scenes,
-    #     Labels.RELATIONS: personnage_relations,
-    #     Labels.RELATIONS_BI: personnage_relations_bi,
-    #     Labels.RELATIONS_MULTI: personnage_relations_multi
-    # }
-
     dict_methodes = {
-        Labels.REFERENT: lambda x: personnage_referent(x, current_personnage, Labels.REFERENT.value),
-        Labels.JOUEUR: lambda x: personnage_interprete(x, current_personnage, Labels.JOUEUR.value),
-        Labels.JOUEUSE: lambda x: personnage_interprete(x, current_personnage, Labels.JOUEUSE.value),
-        Labels.INTERPRETE: lambda x: personnage_interprete(x, current_personnage, Labels.INTERPRETE.value),
-        Labels.PITCH: lambda x: personnage_pitch(x, current_personnage),
-        Labels.COSTUME: lambda x: personnage_costume(x, current_personnage, Labels.COSTUME.value),
-        Labels.FACTION1: lambda x: personnage_faction1(x, current_personnage, Labels.FACTION1.value),
-        Labels.FACTION2: lambda x: personnage_factions2(x, current_personnage, Labels.FACTION2.value),
-        Labels.GROUPES: lambda x: personnage_groupes(x, current_personnage, Labels.GROUPES.value),
-        Labels.INTRIGUES: lambda x: personnage_intrigues(Labels.INTRIGUES.value),
-        Labels.BIO: lambda x: personnage_bio(x, current_personnage),
-        Labels.PSYCHO: lambda x: personnage_psycho(x, current_personnage),
-        Labels.MOTIVATIONS: lambda x: personnage_motivation(x, current_personnage),
-        Labels.CHRONOLOGIE: lambda x: personnage_chronologie(x, current_personnage),
-        Labels.SCENES: lambda x: personnage_scenes(x, current_personnage),
-        Labels.RELATIONS: lambda x: personnage_relations(Labels.RELATIONS.value),
-        Labels.RELATIONS_BI: lambda x: personnage_relations_bi(x, current_personnage),
-        Labels.RELATIONS_MULTI: lambda x: personnage_relations_multi(x, current_personnage)
+        Labels.REFERENT: lambda x, y: personnage_referent(x, current_personnage, Labels.REFERENT.value),
+        Labels.JOUEUR: lambda x, y: personnage_interprete(x, current_personnage, Labels.JOUEUR.value),
+        Labels.JOUEUSE: lambda x, y: personnage_interprete(x, current_personnage, Labels.JOUEUSE.value),
+        Labels.INTERPRETE: lambda x, y: personnage_interprete(x, current_personnage, Labels.INTERPRETE.value),
+        Labels.PITCH: lambda x, y: personnage_pitch(x, current_personnage),
+        Labels.COSTUME: lambda x, y: personnage_costume(x, current_personnage, Labels.COSTUME.value),
+        Labels.FACTION1: lambda x, y: personnage_faction1(x, current_personnage, Labels.FACTION1.value),
+        Labels.FACTION2: lambda x, y: personnage_factions2(x, current_personnage, Labels.FACTION2.value),
+        Labels.GROUPES: lambda x, y: personnage_groupes(x, current_personnage, Labels.GROUPES.value),
+        Labels.INTRIGUES: lambda x, y: personnage_intrigues(Labels.INTRIGUES.value),
+        Labels.BIO: lambda x, y: personnage_bio(x, current_personnage),
+        Labels.PSYCHO: lambda x, y: personnage_psycho(x, current_personnage),
+        Labels.MOTIVATIONS: lambda x, y: personnage_motivation(x, current_personnage),
+        Labels.CHRONOLOGIE: lambda x, y: personnage_chronologie(x, current_personnage),
+        Labels.SCENES: lambda x, y: personnage_scenes(x, current_personnage),
+        Labels.RELATIONS: lambda x, y: personnage_relations(Labels.RELATIONS.value),
+        Labels.RELATIONS_BI: lambda x, y: personnage_relations_bi(x, current_personnage),
+        Labels.RELATIONS_MULTI: lambda x, y: personnage_relations_multi(x, current_personnage)
     }
 
     for label in Labels:
@@ -1807,10 +1798,12 @@ def extraire_persos_de_texte(texte_persos, nom_doc, id_url, last_file_edit, dern
             print(f"pas de {label.value} avec le personnage {nom_perso_en_cours}")
         else:
             ma_methode = dict_methodes[label]
-            texte = texte_persos[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+            texte_section_pur = texte_persos_pur[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+            texte_section_avec_format = texte_avec_format[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+
             # print(f"debug : texte label {label.value} = {texte}")
             # ma_methode(texte, current_personnage, label.value)
-            ma_methode(texte)
+            ma_methode(texte_section_pur)
 
     # et on enregistre la date de dernière mise à jour de l'intrigue
     # perso_en_cours.lastProcessing = datetime.datetime.now()
@@ -1908,8 +1901,8 @@ def personnage_relations_multi(texte: str, perso_en_cours: Personnage):
     extraire_relation_multi(perso_en_cours, tableau_relation_multi_complet, avec_tableau_des_persos=False)
 
 
-def personnage_scenes(texte: str, perso_en_cours: Personnage):
-    texte2scenes(perso_en_cours, perso_en_cours.nom, texte, tableau_roles_existant=False)
+def personnage_scenes(texte_pur: str, texte_avec_format, perso_en_cours: Personnage):
+    texte2scenes(perso_en_cours, perso_en_cours.nom, texte_pur, texte_avec_format, tableau_roles_existant=False)
 
 
 def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, derniere_modification_par,
@@ -2132,6 +2125,7 @@ def is_document_being_edited(service, file_id):
         print(F'An error occurred: {error}')
         return None
 
+
 def trouver_tuples_formattage(input_string, start_delim, end_delim):
     # Escape the delimiters to handle special regex characters
     start_delim_escaped = re.escape(start_delim)
@@ -2154,6 +2148,7 @@ def trouver_tuples_formattage(input_string, start_delim, end_delim):
 
     return result
 
+
 def write_to_doc(service, file_id, text: str, titre=False, verbal=True):
     # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
     formatting_requests = []
@@ -2162,7 +2157,7 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=True):
     # pattern évolué pour ne plus prendre en compte les parenthèses
     url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
-    #requêtes pour le formattage, d'abord les URLS, ensuite les autres balises
+    # requêtes pour le formattage, d'abord les URLS, ensuite les autres balises
     # requête non ajoutées à la fin car tant que création de colonne vides, décalage de l'offset qui fera planter
     for match in re.finditer(url_pattern, text):
         url = match.group()
@@ -2198,7 +2193,7 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=True):
         # 1. on isole les positions
         liste_tuples_positions = trouver_tuples_formattage(text, balise_debut, balise_fin)
 
-        #2. on crée le formattage
+        # 2. on crée le formattage
         for start, end in liste_tuples_positions:
             formatting_requests.append({
                 'updateTextStyle': {
@@ -2219,23 +2214,22 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=True):
             cleaning_requests.append({
                 'deleteContentRange': {
                     'range': {
-                        'startIndex': start+1,  # Starting index of the text to delete
-                        'endIndex': start+1+len(balise_debut)  # Ending index of the text to delete
+                        'startIndex': start + 1,  # Starting index of the text to delete
+                        'endIndex': start + 1 + len(balise_debut)  # Ending index of the text to delete
                     }
                 }
             })
             cleaning_requests.append({
                 'deleteContentRange': {
                     'range': {
-                        'startIndex': end+1-len(balise_fin),  # Starting index of the text to delete
-                        'endIndex': end+1  # Ending index of the text to delete
+                        'startIndex': end + 1 - len(balise_fin),  # Starting index of the text to delete
+                        'endIndex': end + 1  # Ending index of the text to delete
                     }
                 }
             })
 
         # une fois tout fini, on trie la cleaning request
         cleaning_requests.sort(key=lambda x: x['deleteContentRange']['range']['startIndex'], reverse=True)
-
 
     # a ce stade là, les endroits qui doivent être mis sous forme d'url sont identifiés
     # l'ancien code, fonctionnel

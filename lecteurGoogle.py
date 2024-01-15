@@ -32,7 +32,6 @@ SEPARATEUR_COLONNES = '\uE002' * 2
 SEPARATEUR_LIGNES = '\uE003'
 FIN_LIGNE = SEPARATEUR_COLONNES + SEPARATEUR_LIGNES
 
-
 # balises ajoutées dans le texte pour pouvoir reconstituer les styles
 # source : https://developers.google.com/docs/api/reference/rest/v1/documents?hl=fr#paragraphstyle
 # class FORMATTAGE(Enum):
@@ -162,20 +161,20 @@ def read_paragraph_element(element):
 
         #             = {
 
-#         if text_style.get('bold'):
-#             content = ''.join([FORMATTAGE.PREFIXE_GRAS_ON, content, FORMATTAGE.PREFIXE_GRAS_OFF])
-#
-#         if text_style.get('italic'):
-#             content = ''.join([FORMATTAGE.PREFIXE_ITALIQUE_ON, content, FORMATTAGE.PREFIXE_ITALIQUE_OFF])
-#
-#         if text_style.get('underline'):
-#             content = ''.join([FORMATTAGE.PREFIXE_SOULIGNE_ON, content, FORMATTAGE.PREFIXE_SOULIGNE_OFF])
-#
-#         if text_style.get('strikethrough'):
-#             content = ''.join([FORMATTAGE.PREFIXE_BARRE_ON, content, FORMATTAGE.PREFIXE_BARRE_OFF])
-#
-#         if text_style.get('smallCaps'):
-#             content = ''.join([FORMATTAGE.PREFIXE_SMALLCAPS_ON, content, FORMATTAGE.PREFIXE_SMALLCAPS_OFF])
+    #         if text_style.get('bold'):
+    #             content = ''.join([FORMATTAGE.PREFIXE_GRAS_ON, content, FORMATTAGE.PREFIXE_GRAS_OFF])
+    #
+    #         if text_style.get('italic'):
+    #             content = ''.join([FORMATTAGE.PREFIXE_ITALIQUE_ON, content, FORMATTAGE.PREFIXE_ITALIQUE_OFF])
+    #
+    #         if text_style.get('underline'):
+    #             content = ''.join([FORMATTAGE.PREFIXE_SOULIGNE_ON, content, FORMATTAGE.PREFIXE_SOULIGNE_OFF])
+    #
+    #         if text_style.get('strikethrough'):
+    #             content = ''.join([FORMATTAGE.PREFIXE_BARRE_ON, content, FORMATTAGE.PREFIXE_BARRE_OFF])
+    #
+    #         if text_style.get('smallCaps'):
+    #             content = ''.join([FORMATTAGE.PREFIXE_SMALLCAPS_ON, content, FORMATTAGE.PREFIXE_SMALLCAPS_OFF])
 
     return content
 
@@ -222,40 +221,70 @@ def read_structural_elements(elements):
     return text + '\n'
 
 
-# renvoie un dictionnaire [label]["debut"/"fin"]
-def identifier_sections_fiche(labels_a_trouver, texte_document):
-    texte_document = texte_document.lower()
-    indexes = {
-        label: {"debut": texte_document.find(label)}
-        for label in labels_a_trouver
-    }
-    # indexes = dict()
-    # for label in labelsATrouver:
-    #     indexes[label] = {"debut": texte_document.find(label)}
-    # print("dictionnaire des labels : {0}".format(indexes))
+# # renvoie un dictionnaire [label]["debut"/"fin"]
+# def identifier_sections_fiche(labels_a_trouver, texte_document):
+#     texte_document = texte_document.lower()
+#     indexes = {
+#         label: {"debut": texte_document.find(label)}
+#         for label in labels_a_trouver
+#     }
+#     # indexes = dict()
+#     # for label in labelsATrouver:
+#     #     indexes[label] = {"debut": texte_document.find(label)}
+#     # print("dictionnaire des labels : {0}".format(indexes))
+#
+#     # maintenant, on aura besoin d'identifier pour chaque label où il se termine
+#     # pour cela on fait un dictionnaire ou la fin de chaque entrée est le début de la suivante
+#     # print("toutes les valeurs du tableau : {0}".format([x['debut'] for x in indexes.values()]))
+#     # on commence par extraire toutes les valeurs de début et les trier dans l'ordre
+#     tous_les_indexes = [x['debut'] for x in indexes.values()]
+#     tous_les_indexes.sort()
+#     # print("Tous les indexes : {0}".format(tous_les_indexes))
+#     # on crée une table qui associe à chaque début la section suivante
+#     table_debuts_fins_labels = {}
+#     for i in range(len(indexes)):
+#         try:
+#             # table_debuts_fins_labels[tous_les_indexes[i]] = tous_les_indexes[i + 1] - 1
+#             table_debuts_fins_labels[tous_les_indexes[i]] = tous_les_indexes[i + 1]
+#             # print("pour l'index {0}, j'ai le couple {1}:{2}".format(i, tous_les_indexes[i], tous_les_indexes[i+1]))
+#         except IndexError:
+#             table_debuts_fins_labels[tous_les_indexes[i]] = len(texte_document)
+#             break
+#     # enfin, on met à jour la table des labels pour avoir la fin à côté du début
+#     for label in labels_a_trouver:
+#         indexes[label]["fin"] = table_debuts_fins_labels[indexes[label]["debut"]]
+#         # print("label {0} : [{1}:{2}]".format(label, indexes[label]["debut"], indexes[label]["fin"]))
+#     return indexes
 
-    # maintenant, on aura besoin d'identifier pour chaque label où il se termine
-    # pour cela on fait un dictionnaire ou la fin de chaque entrée est le début de la suivante
-    # print("toutes les valeurs du tableau : {0}".format([x['debut'] for x in indexes.values()]))
-    # on commence par extraire toutes les valeurs de début et les trier dans l'ordre
-    tous_les_indexes = [x['debut'] for x in indexes.values()]
-    tous_les_indexes.sort()
-    # print("Tous les indexes : {0}".format(tous_les_indexes))
-    # on crée une table qui associe à chaque début la section suivante
-    table_debuts_fins_labels = {}
-    for i in range(len(indexes)):
-        try:
-            # table_debuts_fins_labels[tous_les_indexes[i]] = tous_les_indexes[i + 1] - 1
-            table_debuts_fins_labels[tous_les_indexes[i]] = tous_les_indexes[i + 1]
-            # print("pour l'index {0}, j'ai le couple {1}:{2}".format(i, tous_les_indexes[i], tous_les_indexes[i+1]))
-        except IndexError:
-            table_debuts_fins_labels[tous_les_indexes[i]] = len(texte_document)
-            break
-    # enfin, on met à jour la table des labels pour avoir la fin à côté du début
-    for label in labels_a_trouver:
-        indexes[label]["fin"] = table_debuts_fins_labels[indexes[label]["debut"]]
-        # print("label {0} : [{1}:{2}]".format(label, indexes[label]["debut"], indexes[label]["fin"]))
-    return indexes
+
+def text_2_dict_sections(noms_sections, texte_formatte):
+    sections = {}
+    texte_pur = retirer_balises_formattage(texte_formatte)
+
+    lignes_texte_pur = texte_pur.split('\n')
+    lignes_texte_formatte = texte_formatte.split('\n')
+    current_key = None
+
+    for ligne_texte_pur, ligne_texte_formatte in zip(lignes_texte_pur, lignes_texte_formatte):
+        # Check if the line starts with a keyword
+        for key in noms_sections:
+            if ligne_texte_pur.startswith(key):
+                current_key = key
+                sections[current_key] = [ligne_texte_pur.strip(), ligne_texte_formatte.strip()]
+                break
+            else:  # This else belongs to the for-loop
+                if current_key:
+                    sections[current_key][0] += '\n' + ligne_texte_pur.strip()
+                    sections[current_key][1] += '\n' + ligne_texte_formatte.strip()
+    return sections
+
+
+def retirer_balises_formattage(text):
+    to_return = text
+    for couple_balises in VALEURS_FORMATTAGE:
+        for balise in couple_balises:
+            to_return = to_return.replace(balise, '')
+    return to_return
 
 
 def generer_liste_items(api_drive, nom_fichier):
