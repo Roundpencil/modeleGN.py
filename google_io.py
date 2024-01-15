@@ -1009,19 +1009,24 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, t
 
     for ligne_pur, ligne_formatte in zip(lignes_texte_pur, lignes_texte_formatte):
         if ligne_pur.strip().startswith('###'):
+            # on commence par vider le stock dans la dernière scène enregistrée s'il y en a une, sinon on l'affiche
             texte_final = '\n'.join(description_en_cours)
+            for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
+                texte_final = corriger_formattage(texte_final,
+                                                  lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][0],
+                                                  lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1])
             if scene_a_ajouter:
                 scene_a_ajouter.description = texte_final
             else:
                 print(f"Attention, le texte <<{texte_final}>> lu dans l'intrigue "
                       f"ne fait partie d'aucune scène ")
             description_en_cours.clear()
-            titre_scene = ligne_pur[3:].strip()
+            titre_scene = ligne_pur.strip()[3:]
             scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
             scene_a_ajouter.modifie_par = conteneur.modifie_par
-        elif ligne_pur.startswith('##'):
+        elif ligne_pur.strip().startswith('##'):
             if scene_a_ajouter:
-                if not extraire_balise(ligne_pur, scene_a_ajouter, conteneur, tableau_roles_existant):
+                if not extraire_balise(ligne_pur.strip(), scene_a_ajouter, conteneur, tableau_roles_existant):
                     texte_erreur = f"balise inconnue : {ligne_pur} dans le conteneur {nom_conteneur}"
                     print(texte_erreur)
                     description_en_cours.append(ligne_formatte)
@@ -2389,6 +2394,7 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
 
         # ajouter le formattage à la requete d'insert
         requests += formatting_requests
+
         requests += cleaning_requests
 
         # debug : code récupérer de slack, fontionnel, utilisé pour comprendre les offsets
