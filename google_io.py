@@ -11,7 +11,6 @@ import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload, MediaIoBaseUpload
 
-import lecteurGoogle
 from modeleGN import *
 
 ID_FICHIER_ARCHIVES = '1tEXjKfiU8k_SU_jyVAoUQU1K9Gp77Cv0'
@@ -405,13 +404,13 @@ def extraire_intrigue_de_texte(texte_avec_format, nom_intrigue,
         Labels.QUESTIONNAIRE: lambda x, y: intrigue_questionnaire(x, current_intrigue),
         Labels.RELATIONS_BI: lambda x, y: intrigue_relations_bi(x, current_intrigue),
         Labels.RELATIONS_MULTI: lambda x, y: intrigue_relations_multi(x, current_intrigue),
-        Labels.GRILLE_EVENEMENTS: lambda x: evenement_lire_chrono(x, current_intrigue)
+        Labels.GRILLE_EVENEMENTS: lambda x, y: evenement_lire_chrono(x, current_intrigue)
     }
 
     for label in Labels:
         if paire := dict_sections.get(label.value):
             ma_methode = dict_methodes[label]
-            ma_methode(paire[0], paire[1])
+            ma_methode(paire['brut'], paire['formatté'])
         else:
             print(f"pas de {label.value} avec l'intrigue {nom_intrigue}")
 
@@ -997,39 +996,84 @@ def extraire_balise(input_balise: str, scene_a_ajouter: Scene, conteneur: Conten
 
 
 def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, texte_scenes_avec_format,
-                 tableau_roles_existant=True):
-    scenes_pur = texte_scenes_pur.split("###")
-    scenes_avec_format = texte_scenes_avec_format.split("###")
+                 tableau_roles_existant=True, verbal=True):
+    if verbal:
+        print(f"Je viens d'entrer dans une scène avec le texte formatté suivant : \n {texte_scenes_avec_format}")
 
-    for scene_texte_pur, scene_avec_format in itertools.islice(zip(scenes_pur, scenes_avec_format), 1, None):
+    processed_text = []
+    lignes_texte_pur = texte_scenes_pur.split('\n')
+    lignes_texte_formatte = texte_scenes_avec_format.split('\n')
 
-        if len(scene_texte_pur) < 10:
-            continue
+    scene_a_ajouter = None
+    description_en_cours = []
 
-        titre_scene = scene_texte_pur.splitlines()[0].strip()
-        scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
-        scene_a_ajouter.modifie_par = conteneur.modifie_par
+    for ligne_pur, ligne_formatte in zip(lignes_texte_pur, lignes_texte_formatte):
+        if ligne_pur.strip().startswith('###'):
+            texte_final = '\n'.join(description_en_cours)
+            if scene_a_ajouter:
+                scene_a_ajouter.description += texte_final
+            else:
+                print(f"Attention, le texte <<{texte_final}>> lu dans l'intrigue "
+                      f"ne fait partie d'aucune scène ")
+            description_en_cours.clear()
+            titre_scene = ligne_pur[3:].strip()
+            scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
+            scene_a_ajouter.modifie_par = conteneur.modifie_par
+        elif ligne_pur.startswith('##'):
+            if scene_a_ajouter:
+                if not extraire_balise(ligne_pur, scene_a_ajouter, conteneur, tableau_roles_existant):
+                    texte_erreur = f"balise inconnue : {ligne_pur} dans le conteneur {nom_conteneur}"
+                    print(texte_erreur)
+                    description_en_cours.append(ligne_formatte)
+                    conteneur.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+                                                       texte_erreur,
+                                                       ErreurManager.ORIGINES.SCENE)
+        else:
+            if scene_a_ajouter:
+                description_en_cours.append(ligne_formatte)
 
-        balises = re.findall(r'##.*', scene_texte_pur)
-        for balise in balises:
-            if not extraire_balise(balise, scene_a_ajouter, conteneur, tableau_roles_existant):
-                texte_erreur = f"balise inconnue : {balise} dans le conteneur {nom_conteneur}"
-                print(texte_erreur)
-                scene_a_ajouter.description += balise
-                conteneur.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
-                                                   texte_erreur,
-                                                   ErreurManager.ORIGINES.SCENE)
+    # ajouter la fin du code de la dernière scène
+    texte_final = '\n'.join(description_en_cours)
+    if scene_a_ajouter:
+        scene_a_ajouter.description += texte_final
 
-        # et on reconstitue le texte à reprendre pour la description de la scène en reprenant scene_raw
-        # scene_a_ajouter.description = ''.join(scene_raw.splitlines(keepends=True)[1 + len(balises):])
+    return processed_text
 
-        texte_a_ajouter = ''.join(scene_avec_format.splitlines(keepends=True)[1 + len(balises):])
-        for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
-            texte_a_ajouter = corriger_formattage(texte_a_ajouter,
-                                                  lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][0],
-                                                  lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1])
 
-        scene_a_ajouter.description = texte_a_ajouter
+# def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, texte_scenes_avec_format,
+#                  tableau_roles_existant=True):
+#     scenes_pur = texte_scenes_pur.split("###")
+#     scenes_avec_format = texte_scenes_avec_format.split("###")
+#
+#     for scene_texte_pur, scene_avec_format in itertools.islice(zip(scenes_pur, scenes_avec_format), 1, None):
+#
+#         if len(scene_texte_pur) < 10:
+#             continue
+#
+#         titre_scene = scene_texte_pur.splitlines()[0].strip()
+#         scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
+#         scene_a_ajouter.modifie_par = conteneur.modifie_par
+#
+#         balises = re.findall(r'##.*', scene_texte_pur)
+#         for balise in balises:
+#             if not extraire_balise(balise, scene_a_ajouter, conteneur, tableau_roles_existant):
+#                 texte_erreur = f"balise inconnue : {balise} dans le conteneur {nom_conteneur}"
+#                 print(texte_erreur)
+#                 scene_a_ajouter.description += balise
+#                 conteneur.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING,
+#                                                    texte_erreur,
+#                                                    ErreurManager.ORIGINES.SCENE)
+#
+#         # et on reconstitue le texte à reprendre pour la description de la scène en reprenant scene_raw
+#         # scene_a_ajouter.description = ''.join(scene_raw.splitlines(keepends=True)[1 + len(balises):])
+#
+#         texte_a_ajouter = ''.join(scene_avec_format.splitlines(keepends=True)[1 + len(balises):])
+#         for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
+#             texte_a_ajouter = corriger_formattage(texte_a_ajouter,
+#                                                   lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][0],
+#                                                   lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1])
+#
+#         scene_a_ajouter.description = texte_a_ajouter
 
 
 def corriger_formattage(texte, balise_debut, balise_fin):
@@ -1313,8 +1357,8 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
         AUTRES = "informations supplémentaires"
 
     labels = [e.value for e in Labels]
-    indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_evenement.lower())
-
+    # indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_evenement.lower())
+    dict_sections = lecteurGoogle.text_2_dict_sections(labels, texte_evenement)
     dict_methodes = {
         Labels.FICHE: lambda x: evenement_lire_fiche(x, current_evenement, Labels.FICHE.value),
         Labels.SYNOPSIS: lambda x: evenement_lire_synopsis(x, current_evenement),
@@ -1329,19 +1373,30 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
 
     # lire les sections dans le fichier et appliquer la bonne méthode
     for label in Labels:
-        if indexes[label.value]["debut"] == -1:
-            if label != Labels.CHRONO:
-                print(f"pas de {label.value} avec l'évènement {nom_evenement_en_cours}")
-                texte_erreur = f"Le label {label.value} n'a pas été trouvé"
-                current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
-                                                                texte_erreur,
-                                                                ErreurManager.ORIGINES.LECTURE_EVENEMENT)
-
+        if paire := dict_sections.get(label.value):
+            ma_methode = dict_methodes[label]
+            ma_methode(paire['brut'])
         else:
-            texte_section = texte_evenement[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
-            methode_a_appliquer = dict_methodes[label]
-            # methode_a_appliquer(texte_section, current_evenement, label.value)
-            methode_a_appliquer(texte_section)
+            print(f"pas de {label.value} avec l'évènement {nom_evenement_en_cours}")
+            texte_erreur = f"Le label {label.value} n'a pas été trouvé"
+            current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                            texte_erreur,
+                                                            ErreurManager.ORIGINES.LECTURE_EVENEMENT)
+
+    # for label in Labels:
+    #     if indexes[label.value]["debut"] == -1:
+    #         if label != Labels.CHRONO:
+    #             print(f"pas de {label.value} avec l'évènement {nom_evenement_en_cours}")
+    #             texte_erreur = f"Le label {label.value} n'a pas été trouvé"
+    #             current_evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+    #                                                             texte_erreur,
+    #                                                             ErreurManager.ORIGINES.LECTURE_EVENEMENT)
+    #
+    #     else:
+    #         texte_section = texte_evenement[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+    #         methode_a_appliquer = dict_methodes[label]
+    #         # methode_a_appliquer(texte_section, current_evenement, label.value)
+    #         methode_a_appliquer(texte_section)
 
     # on vérifie ensuite qu'on a bien une chrono, sinon on la force et elle sera remplie par défaut
     # if indexes[Labels.CHRONO.value]["debut"] == -1:
@@ -1723,20 +1778,20 @@ def retirer_label(texte: str, label: str):
     return texte[len(label):].strip()
 
 
-def extraire_pnj_de_texte(texte_persos_pur, texte_avec_format, nom_doc, id_url, last_file_edit,
+def extraire_pnj_de_texte(texte_avec_format, nom_doc, id_url, last_file_edit,
                           derniere_modification_par, dict_pnj,
                           verbal):
-    return extraire_persos_de_texte(texte_persos_pur, texte_avec_format, nom_doc, id_url, last_file_edit,
+    return extraire_persos_de_texte(texte_avec_format, nom_doc, id_url, last_file_edit,
                                     derniere_modification_par, dict_pnj,
                                     verbal=verbal, pj=TypePerso.EST_PNJ_HORS_JEU)
 
 
-def extraire_persos_de_texte(texte_persos_pur, texte_avec_format, nom_doc, id_url, last_file_edit,
+def extraire_persos_de_texte(texte_avec_format, nom_doc, id_url, last_file_edit,
                              derniere_modification_par, dict_pj_pnj,
                              verbal=False, pj: TypePerso = TypePerso.EST_PJ):
     print(f"Lecture de {nom_doc}")
-    if len(texte_persos_pur) < 800:
-        print(f"fiche {nom_doc} avec {len(texte_persos_pur)} caractères est vide")
+    if len(texte_avec_format) < 800:
+        print(f"fiche {nom_doc} avec {len(texte_avec_format)} caractères est vide")
         # return  # dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
 
     nom_perso_en_cours = re.sub(r"^\d+\s*-", '', nom_doc).strip()
@@ -1746,7 +1801,7 @@ def extraire_persos_de_texte(texte_persos_pur, texte_avec_format, nom_doc, id_ur
     current_personnage.modifie_par = derniere_modification_par
     dict_pj_pnj[id_url] = current_personnage
 
-    texte_persos_low = texte_persos_pur.lower()  # on passe en minuscule pour mieux trouver les chaines
+    # texte_persos_low = texte_persos_pur.lower()  # on passe en minuscule pour mieux trouver les chaines
 
     class Labels(Enum):
         REFERENT = "orga référent : "
@@ -1770,8 +1825,8 @@ def extraire_persos_de_texte(texte_persos_pur, texte_avec_format, nom_doc, id_ur
 
     labels = [label.value for label in Labels]
 
-    indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_persos_low)
-
+    # indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_persos_low)
+    dict_sections = lecteurGoogle.text_2_dict_sections(labels, texte_avec_format)
     dict_methodes = {
         Labels.REFERENT: lambda x, y: personnage_referent(x, current_personnage, Labels.REFERENT.value),
         Labels.JOUEUR: lambda x, y: personnage_interprete(x, current_personnage, Labels.JOUEUR.value),
@@ -1787,23 +1842,30 @@ def extraire_persos_de_texte(texte_persos_pur, texte_avec_format, nom_doc, id_ur
         Labels.PSYCHO: lambda x, y: personnage_psycho(x, current_personnage),
         Labels.MOTIVATIONS: lambda x, y: personnage_motivation(x, current_personnage),
         Labels.CHRONOLOGIE: lambda x, y: personnage_chronologie(x, current_personnage),
-        Labels.SCENES: lambda x, y: personnage_scenes(x, current_personnage),
+        Labels.SCENES: lambda x, y: personnage_scenes(x, y, current_personnage),
         Labels.RELATIONS: lambda x, y: personnage_relations(Labels.RELATIONS.value),
         Labels.RELATIONS_BI: lambda x, y: personnage_relations_bi(x, current_personnage),
         Labels.RELATIONS_MULTI: lambda x, y: personnage_relations_multi(x, current_personnage)
     }
 
     for label in Labels:
-        if indexes[label.value]["debut"] == -1:
-            print(f"pas de {label.value} avec le personnage {nom_perso_en_cours}")
-        else:
+        if paire := dict_sections.get(label.value):
             ma_methode = dict_methodes[label]
-            texte_section_pur = texte_persos_pur[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
-            texte_section_avec_format = texte_avec_format[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+            ma_methode(paire['brut'], paire['formatté'])
+        else:
+            print(f"pas de {label.value} avec le personnage {nom_perso_en_cours}")
 
-            # print(f"debug : texte label {label.value} = {texte}")
-            # ma_methode(texte, current_personnage, label.value)
-            ma_methode(texte_section_pur)
+    # for label in Labels:
+    #     if indexes[label.value]["debut"] == -1:
+    #         print(f"pas de {label.value} avec le personnage {nom_perso_en_cours}")
+    #     else:
+    #         ma_methode = dict_methodes[label]
+    #         texte_section_pur = texte_persos_pur[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+    #         texte_section_avec_format = texte_avec_format[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+    #
+    #         # print(f"debug : texte label {label.value} = {texte}")
+    #         # ma_methode(texte, current_personnage, label.value)
+    #         ma_methode(texte_section_pur)
 
     # et on enregistre la date de dernière mise à jour de l'intrigue
     # perso_en_cours.lastProcessing = datetime.datetime.now()
@@ -1946,20 +2008,9 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
 
     labels = [label.value for label in Labels]
 
-    indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_objets_low)
+    # indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_objets_low)
+    dict_sections = lecteurGoogle.text_2_dict_sections(labels, texte_objets)
 
-    # dict_methodes = {
-    #     Labels.REFERENT: objets_referent,
-    #     Labels.INTRIGUE: objets_noms_intrigues,
-    #     Labels.INTRIGUES: objets_noms_intrigues,
-    #     Labels.UTILITE: objets_utilite,
-    #     Labels.BUDGET: objets_budget,
-    #     Labels.RECOMMANDATION: objets_recommandation,
-    #     Labels.MATERIAUX: objets_materiaux,
-    #     Labels.MOODBOARD: objets_moodboard,
-    #     Labels.DESCRIPTION: objets_description,
-    #     Labels.FX: objets_effets_speciaux
-    # }
     dict_methodes = {
         Labels.REFERENT: lambda x: objets_referent(x, current_objet, Labels.REFERENT.value),
         Labels.INTRIGUE: lambda x: objets_noms_intrigues(Labels.INTRIGUE.value),
@@ -1974,14 +2025,21 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
     }
 
     for label in Labels:
-        if indexes[label.value]["debut"] == -1:
-            print(f"pas de {label.value} avec l'objet {nom_objet_en_cours}")
-        else:
+        if paire := dict_sections.get(label.value):
             ma_methode = dict_methodes[label]
-            texte = texte_objets[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
-            # print(f"debug : texte label {label.value} = {texte}")
-            # ma_methode(texte, current_objet, label.value)
-            ma_methode(texte)
+            ma_methode(paire['brut'])
+        else:
+            print(f"pas de {label.value} avec l'objet {nom_objet_en_cours}")
+
+    # for label in Labels:
+    #     if indexes[label.value]["debut"] == -1:
+    #         print(f"pas de {label.value} avec l'objet {nom_objet_en_cours}")
+    #     else:
+    #         ma_methode = dict_methodes[label]
+    #         texte = texte_objets[indexes[label.value]["debut"]:indexes[label.value]["fin"]]
+    #         # print(f"debug : texte label {label.value} = {texte}")
+    #         # ma_methode(texte, current_objet, label.value)
+    #         ma_methode(texte)
 
     # et on enregistre la date de dernière mise à jour de l'intrigue
     current_objet.set_last_processing(datetime.datetime.now())

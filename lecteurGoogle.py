@@ -257,33 +257,80 @@ def read_structural_elements(elements):
 #     return indexes
 
 
-def text_2_dict_sections(noms_sections, texte_formatte):
+def text_2_dict_sections(noms_sections, texte_formatte, verbal=False):
+    if verbal:
+        print(f"Je suis en train de lire les sections d'un fichier, dont le texte brut est \n {texte_formatte}")
     sections = {}
     texte_pur = retirer_balises_formattage(texte_formatte)
 
     lignes_texte_pur = texte_pur.split('\n')
     lignes_texte_formatte = texte_formatte.split('\n')
     current_key = None
+    current_brut = []
+    current_formatte = []
 
     for ligne_texte_pur, ligne_texte_formatte in zip(lignes_texte_pur, lignes_texte_formatte):
-        # Check if the line starts with a keyword
-        for key in noms_sections:
-            if ligne_texte_pur.startswith(key):
-                current_key = key
-                sections[current_key] = [ligne_texte_pur.strip(), ligne_texte_formatte.strip()]
-                break
-            else:  # This else belongs to the for-loop
-                if current_key:
-                    sections[current_key][0] += '\n' + ligne_texte_pur.strip()
-                    sections[current_key][1] += '\n' + ligne_texte_formatte.strip()
+        if any(ligne_texte_pur.lower().strip().startswith(key) for key in noms_sections):
+            if current_key:
+                sections[current_key] = {
+                    'brut': '\n'.join(current_brut),
+                    'formatté': '\n'.join(current_formatte)
+                }
+            current_key = next(section for section in noms_sections if ligne_texte_pur.lower().startswith(section))
+            current_brut = [ligne_texte_pur.strip()]
+            current_formatte = [ligne_texte_formatte.strip()]
+        else:
+            current_brut.append(ligne_texte_pur.strip())
+            current_formatte.append(ligne_texte_formatte.strip())
+        #
+        # # Check if the line starts with a keyword
+        # for key in noms_sections:
+        #     if verbal:
+        #         print(f"Je suis en train de vérifier la clef {key} pour la chaine {ligne_texte_pur.lower().strip()}")
+        #     if ligne_texte_pur.lower().strip().startswith(key):
+        #         if current_key:
+        #             sections[current_key] = {
+        #                 'brut': '\n'.join(current_brut),
+        #                 'formatté': '\n'.join(current_formatte)
+        #             }
+        #         current_key = key
+        #         current_brut = [ligne_texte_pur.strip()]
+        #         current_formatte = [ligne_texte_formatte.strip()]
+        #         break
+        #
+        #     # else:  # This else belongs to the for-loop
+        #     #     if current_key:
+        #     #         current_brut.append(ligne_texte_pur.strip())
+        #     #         current_formatte.append(ligne_texte_formatte.strip())
+        #     #     break
+        # if len(current_brut) > 1:
+        #     current_brut.append(ligne_texte_pur.strip())
+        #     current_formatte.append(ligne_texte_formatte.strip())
+
+    # on ajoute la dernière clef
+    if current_key:
+        sections[current_key] = {
+            'brut': '\n'.join(current_brut),
+            'formatté': '\n'.join(current_formatte)
+        }
+
+    if verbal:
+        print(f"A la fin de mes passages section valait {sections}")
     return sections
 
 
-def retirer_balises_formattage(text):
+def retirer_balises_formattage(text, verbal=False):
     to_return = text
-    for couple_balises in VALEURS_FORMATTAGE:
+    for couple_balises in VALEURS_FORMATTAGE.values():
         for balise in couple_balises:
+            if verbal:
+                print(f'je suis en train de supprimer la balise {balise} \n'
+                      f'texte avant : {to_return}')
             to_return = to_return.replace(balise, '')
+            if verbal:
+                print(f'texte après : {to_return}')
+    if verbal:
+        print(f'Après retirage des balises, le texte vaut : {to_return}')
     return to_return
 
 
