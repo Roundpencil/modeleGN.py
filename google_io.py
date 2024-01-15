@@ -996,7 +996,7 @@ def extraire_balise(input_balise: str, scene_a_ajouter: Scene, conteneur: Conten
 
 
 def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, texte_scenes_avec_format,
-                 tableau_roles_existant=True, verbal=True):
+                 tableau_roles_existant=True, verbal=False):
     if verbal:
         print(f"Je viens d'entrer dans une scène avec le texte formatté suivant : \n {texte_scenes_avec_format}")
 
@@ -1011,7 +1011,7 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, t
         if ligne_pur.strip().startswith('###'):
             texte_final = '\n'.join(description_en_cours)
             if scene_a_ajouter:
-                scene_a_ajouter.description += texte_final
+                scene_a_ajouter.description = texte_final
             else:
                 print(f"Attention, le texte <<{texte_final}>> lu dans l'intrigue "
                       f"ne fait partie d'aucune scène ")
@@ -2207,7 +2207,7 @@ def trouver_tuples_formattage(input_string, start_delim, end_delim):
     return result
 
 
-def write_to_doc(service, file_id, text: str, titre=False, verbal=True):
+def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
     # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
     formatting_requests = []
 

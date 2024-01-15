@@ -276,7 +276,8 @@ def text_2_dict_sections(noms_sections, texte_formatte, verbal=False):
                     'brut': '\n'.join(current_brut),
                     'formatté': '\n'.join(current_formatte)
                 }
-            current_key = next(section for section in noms_sections if ligne_texte_pur.lower().startswith(section))
+            print(f"DEBUG : ligne où une clef a été trouvée : {ligne_texte_pur}")
+            current_key = next(section for section in noms_sections if ligne_texte_pur.strip().lower().startswith(section))
             current_brut = [ligne_texte_pur.strip()]
             current_formatte = [ligne_texte_formatte.strip()]
         else:
