@@ -98,6 +98,7 @@ def creer_lecteurs_google_apis():
                 creds.refresh(Request())
             except Exception as e:
                 print("Erreur lors du rafraichissement du token : ", e)
+                raise e
         else:
             flow = InstalledAppFlow.from_client_config(
                 credentials.app_creds_dic,
