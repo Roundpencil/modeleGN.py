@@ -1039,6 +1039,10 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, t
 
     # ajouter la fin du code de la dernière scène
     texte_final = '\n'.join(description_en_cours)
+    for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
+        texte_final = corriger_formattage(texte_final,
+                                          lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][0],
+                                          lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1])
     if scene_a_ajouter:
         scene_a_ajouter.description = texte_final
 
