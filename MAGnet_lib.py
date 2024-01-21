@@ -946,56 +946,94 @@ def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
                 f": personnage en cours de synthèse : {perso.nom}")
 
         # ajout des informations issues des fiches :
-        texte_perso = ""
-        texte_perso += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orga_referent}) : \n"
-        texte_perso += f"type de personnage : {perso.string_type_personnage()} \n"
-        texte_perso += f"résumé de la bio : \n"
-        texte_perso += f"{perso.description} \n"
-
-        texte_perso += f"Psychologie : \n"
-        texte_perso += f"{perso.concept} \n"
-
-        texte_perso += f"Motivations et objectifs : \n"
-        # logging.debug(f"driver avant insertion {perso.driver}")
-        texte_perso += f"{perso.driver} \n"
-
-        texte_perso += f"Chronologie : \n "
-        texte_perso += f"{perso.datesClefs} \n"
-
-        texte_perso += "\n *** Intrigues : *** \n"
-        texte_perso += perso.str_recap_intrigues()
-
-        texte_perso += "\n *** Relations : *** \n"
-        texte_perso += perso.str_relations()
-
-        # ajout des informations issues des interventions (si pnj):
-        if len(perso.intervient_comme) > 0:
-            texte_perso += "\n *** briefs pour les interventions dans les évènements : *** \n"
-            texte_perso += '\n'.join([i.str_pour_squelette() for i in perso.intervient_comme])
-
-        # ajout des informations issues des infos pour evènement:
-        if len(perso.informations_evenements) > 0:
-            texte_perso += "\n *** informations à fournir pour organiser les évènements : *** \n"
-            # texte_perso += '\n'.join([i.str_pour_squelette() for i in perso.informations_evenements])
-            tab_evts = [['évènement', 'infos à fournir']]
-            tab_evts.extend(evt.row_infos_evenement_pour_squelette() for evt in perso.informations_evenements)
-            texte_perso += lecteurGoogle.formatter_tableau_pour_export(tab_evts)
-
-        # ajout des informations issues des intrigues :
-
-        texte_perso += "\n *** Scenes associées : *** \n"
-        mes_scenes = []
-        for role in perso.roles:
-            mes_scenes.extend(iter(role.scenes))
-        mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=mon_gn.get_date_gn())
-        # print(f'DEBUG = personnage en cours de génération des scènes = {perso.nom}, {perso.url}')
-        for scene in mes_scenes:
-            # print(scene)
-            texte_perso += scene.str_pour_squelette(mon_gn.get_date_gn()) + '\n'
-        texte_perso += '****************************************************** \n'
+        texte_perso = generer_squelette_perso(mon_gn, perso)
         squelettes_persos[perso.nom] = texte_perso
 
     return squelettes_persos
+
+
+# def generer_squelette_perso(mon_gn, perso):
+#     texte_perso = ""
+#     texte_perso += f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orga_referent}) : \n"
+#     texte_perso += f"type de personnage : {perso.string_type_personnage()} \n"
+#     texte_perso += f"résumé de la bio : \n"
+#     texte_perso += f"{perso.description} \n"
+#     texte_perso += f"Psychologie : \n"
+#     texte_perso += f"{perso.concept} \n"
+#     texte_perso += f"Motivations et objectifs : \n"
+#     # logging.debug(f"driver avant insertion {perso.driver}")
+#     texte_perso += f"{perso.driver} \n"
+#     texte_perso += f"Chronologie : \n "
+#     texte_perso += f"{perso.datesClefs} \n"
+#     texte_perso += "\n *** Intrigues : *** \n"
+#     texte_perso += perso.str_recap_intrigues()
+#     texte_perso += "\n *** Relations : *** \n"
+#     texte_perso += perso.str_relations()
+#     # ajout des informations issues des interventions (si pnj):
+#     if len(perso.intervient_comme) > 0:
+#         texte_perso += "\n *** briefs pour les interventions dans les évènements : *** \n"
+#         texte_perso += '\n'.join([i.str_pour_squelette() for i in perso.intervient_comme])
+#     # ajout des informations issues des infos pour evènement:
+#     if len(perso.informations_evenements) > 0:
+#         texte_perso += "\n *** informations à fournir pour organiser les évènements : *** \n"
+#         # texte_perso += '\n'.join([i.str_pour_squelette() for i in perso.informations_evenements])
+#         tab_evts = [['évènement', 'infos à fournir']]
+#         tab_evts.extend(evt.row_infos_evenement_pour_squelette() for evt in perso.informations_evenements)
+#         texte_perso += lecteurGoogle.formatter_tableau_pour_export(tab_evts)
+#     # ajout des informations issues des intrigues :
+#     texte_perso += "\n *** Scenes associées : *** \n"
+#     mes_scenes = []
+#     for role in perso.roles:
+#         mes_scenes.extend(iter(role.scenes))
+#     mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=mon_gn.get_date_gn())
+#     # print(f'DEBUG = personnage en cours de génération des scènes = {perso.nom}, {perso.url}')
+#     for scene in mes_scenes:
+#         # print(scene)
+#         texte_perso += scene.str_pour_squelette(mon_gn.get_date_gn()) + '\n'
+#     texte_perso += '****************************************************** \n'
+#     return texte_perso
+
+def generer_squelette_perso(mon_gn, perso):
+    elements = [
+        f"Début du squelette pour {perso.nom} (Orga Référent : {perso.orga_referent}) :",
+        f"type de personnage : {perso.string_type_personnage()}",
+        "résumé de la bio :",
+        perso.description,
+        "Psychologie :",
+        perso.concept,
+        "Motivations et objectifs :",
+        perso.driver,
+        "Chronologie :",
+        perso.datesClefs,
+        "\n *** Intrigues : ***",
+        perso.str_recap_intrigues(),
+        "\n *** Relations : ***",
+        perso.str_relations()
+    ]
+
+    if perso.intervient_comme:
+        interventions = '\n'.join(i.str_pour_squelette() for i in perso.intervient_comme)
+        elements.append("\n *** briefs pour les interventions dans les évènements : ***")
+        elements.append(interventions)
+
+    if perso.informations_evenements:
+        tab_evts = [['évènement', 'infos à fournir']] + \
+                   [evt.row_infos_evenement_pour_squelette() for evt in perso.informations_evenements]
+        elements.append("\n *** informations à fournir pour organiser les évènements : ***")
+        elements.append(lecteurGoogle.formatter_tableau_pour_export(tab_evts))
+
+    mes_scenes = []
+    for role in perso.roles:
+        mes_scenes.extend(iter(role.scenes))
+    mes_scenes = Scene.trier_scenes(mes_scenes, date_gn=mon_gn.get_date_gn())
+
+    scenes_str = '\n'.join(scene.str_pour_squelette(mon_gn.get_date_gn()) for scene in mes_scenes)
+    elements.append("\n *** Scenes associées : ***")
+    elements.append(scenes_str)
+
+    elements.append('******************************************************')
+
+    return '\n'.join(elements)
 
 
 def ecrire_squelettes_localement(mon_gn: GN, prefixe=None, pj=True):

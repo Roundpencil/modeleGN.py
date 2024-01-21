@@ -14,12 +14,12 @@ from googleapiclient.errors import HttpError
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/documents.readonly']
 
-os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1' #permet de mélanger l'ordre des tokens dans la déclaration
+os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'  # permet de mélanger l'ordre des tokens dans la déclaration
 
-folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA" #le folder des intrigues de Chalacta
+folderid = "1toM693dBuKl8OPMDmCkDix0z6xX9syjA"  # le folder des intrigues de Chalacta
+
 
 def main():
-
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -43,8 +43,8 @@ def main():
 
         # Call the Drive v3 API
         results = service.files().list(
-            pageSize = 100,
-            q = "'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents", fields = "nextPageToken, files(id, name)").execute()
+            pageSize=100,
+            q="'1toM693dBuKl8OPMDmCkDix0z6xX9syjA' in parents", fields="nextPageToken, files(id, name)").execute()
         items = results.get('files', [])
 
         if not items:
@@ -64,7 +64,8 @@ def main():
                 # print('Titre document : {}'.format(document.get('title')))
                 # print(document.get('title')[0:2])
 
-                if document.get('title')[0:2] == "33": # alors on est dans les bonnes affaires de timagua, qui sert de pilote
+                if document.get('title')[
+                   0:2] == "33":  # alors on est dans les bonnes affaires de timagua, qui sert de pilote
                     print("intrigue timagua trouvée")
                     contenuDocument = document.get('body').get('content')
                     text = read_structural_elements(contenuDocument)
@@ -79,6 +80,7 @@ def main():
     except HttpError as error:
         # Handle errors from drive API.
         print(f'An error occurred: {error}')
+
 
 def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue):
     currentIntrigue = Intrigue(nom=nomIntrigue)
@@ -97,9 +99,9 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue):
         # print("texte de la section7_:_" + section[0:7])
 
         if section[0:6] == " Pitch":
-        # if section[0:10] == '### Pitch':
-        # if debutSection == "### Pitch":
-            #choper le pitch
+            # if section[0:10] == '### Pitch':
+            # if debutSection == "### Pitch":
+            # choper le pitch
             currentIntrigue.pitch = ''.join(section.splitlines(keepends=True)[1:])
             # print("section pitch trouvée : " + section)
             # print("pitch isolé after découpage : " + ''.join(section.splitlines(keepends=True)[1:]))
@@ -136,8 +138,7 @@ def extraireIntrigueDeTexte(texteIntrigue, nomIntrigue):
                 else:
                     print("input_balise inconnue : " + balise)
 
-
-            sceneAAjouter.description = ''.join(section.splitlines(keepends=True)[1+len(balises):])
+            sceneAAjouter.description = ''.join(section.splitlines(keepends=True)[1 + len(balises):])
             print("texte de la scene apres insertion : " + sceneAAjouter.description)
 
             pass

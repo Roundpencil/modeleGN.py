@@ -1040,7 +1040,7 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, t
     # ajouter la fin du code de la dernière scène
     texte_final = '\n'.join(description_en_cours)
     if scene_a_ajouter:
-        scene_a_ajouter.description += texte_final
+        scene_a_ajouter.description = texte_final
 
     return processed_text
 
