@@ -1000,7 +1000,7 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, t
     if verbal:
         print(f"Je viens d'entrer dans une scène avec le texte formatté suivant : \n {texte_scenes_avec_format}")
 
-    processed_text = []
+    # processed_text = []
     lignes_texte_pur = texte_scenes_pur.split('\n')
     lignes_texte_formatte = texte_scenes_avec_format.split('\n')
 
@@ -1009,17 +1009,9 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, t
 
     for ligne_pur, ligne_formatte in zip(lignes_texte_pur, lignes_texte_formatte):
         if ligne_pur.strip().startswith('###'):
-            # on commence par vider le stock dans la dernière scène enregistrée s'il y en a une, sinon on l'affiche
-            texte_final = '\n'.join(description_en_cours)
-            for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
-                texte_final = corriger_formattage(texte_final,
-                                                  lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][0],
-                                                  lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1])
-            if scene_a_ajouter:
-                scene_a_ajouter.description = texte_final
-            else:
-                print(f"Attention, le texte <<{texte_final}>> lu dans l'intrigue "
-                      f"ne fait partie d'aucune scène ")
+            #on "vide" la scène en cours avant d'en recommencer une nouvelle
+            ajouter_description_scene(conteneur, description_en_cours, scene_a_ajouter)
+
             description_en_cours.clear()
             titre_scene = ligne_pur.strip()[3:]
             scene_a_ajouter = conteneur.ajouter_scene(titre_scene)
@@ -1038,6 +1030,20 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, t
                 description_en_cours.append(ligne_formatte)
 
     # ajouter la fin du code de la dernière scène
+    # texte_final = '\n'.join(description_en_cours)
+    # for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
+    #     texte_final = corriger_formattage(texte_final,
+    #                                       lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][0],
+    #                                       lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1])
+    # if scene_a_ajouter:
+    #     scene_a_ajouter.description = texte_final
+    ajouter_description_scene(conteneur, description_en_cours, scene_a_ajouter)
+
+    # return processed_text
+
+
+def ajouter_description_scene(conteneur, description_en_cours, scene_a_ajouter):
+    # on commence par vider le stock dans la dernière scène enregistrée s'il y en a une, sinon on l'affiche
     texte_final = '\n'.join(description_en_cours)
     for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
         texte_final = corriger_formattage(texte_final,
@@ -1045,8 +1051,13 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, t
                                           lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1])
     if scene_a_ajouter:
         scene_a_ajouter.description = texte_final
-
-    return processed_text
+    elif texte_final.strip():
+        message = f"Attention, le texte <<{repr(texte_final)}>> lu dans l'intrigue " \
+                  f"ne fait partie d'aucune scène "
+        print(message)
+        conteneur.error_log.ajouter_erreur(ErreurManager.NIVEAUX.WARNING, message, ErreurManager.ORIGINES.SCENE)
+        # print(f"Attention, le texte <<{texte_final}>> lu dans l'intrigue "
+        #       f"ne fait partie d'aucune scène ")
 
 
 # def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, texte_scenes_avec_format,

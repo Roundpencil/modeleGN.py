@@ -273,6 +273,8 @@ def text_2_dict_sections(noms_sections, texte_formatte, verbal=False):
     for ligne_texte_pur, ligne_texte_formatte in zip(lignes_texte_pur, lignes_texte_formatte):
         if any(ligne_texte_pur.lower().strip().startswith(key) for key in noms_sections):
             if current_key:
+                if current_key in sections:
+                    print(f"Erreur, la section {current_key} est présente deux fois dans le fichier source")
                 sections[current_key] = {
                     'brut': '\n'.join(current_brut),
                     'formatté': '\n'.join(current_formatte)
@@ -311,6 +313,8 @@ def text_2_dict_sections(noms_sections, texte_formatte, verbal=False):
 
     # on ajoute la dernière clef
     if current_key:
+        if current_key in sections:
+            print(f"Erreur, la section {current_key} est présente deux fois dans le fichier source")
         sections[current_key] = {
             'brut': '\n'.join(current_brut),
             'formatté': '\n'.join(current_formatte)
