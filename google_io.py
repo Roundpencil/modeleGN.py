@@ -3302,12 +3302,20 @@ def reconstituer_tableau(texte_lu: str, sans_la_premiere_ligne=True):
     seront ignorées dans le tableau reconstitué.
     """
 
-    # logging.debug(f"chaine en entrée = {repr(texte_lu)}")
-    last_hash_index = texte_lu.rfind(lecteurGoogle.FIN_LIGNE)
-    if last_hash_index == -1:
+    # # logging.debug(f"chaine en entrée = {repr(texte_lu)}")
+    # last_hash_index = texte_lu.rfind(lecteurGoogle.FIN_LIGNE)
+    # if last_hash_index == -1:
+    #     return [], 0
+    #
+    # texte_tableau = texte_lu[:last_hash_index]
+    # A TESTER : version alternative du nettoyage des chaines
+    pattern = f"{lecteurGoogle.DEBUT_TABLEAU}(.*?){lecteurGoogle.FIN_TABLEAU}"
+
+    match = re.search(pattern, texte_lu, re.DOTALL)
+    if not match:
         return [], 0
 
-    texte_tableau = texte_lu[:last_hash_index]
+    texte_tableau = match.group(1)
 
     # texte_tableau = texte_lu[:last_hash_index + 1]
     # logging.debug(f"chaine réduite = {repr(texte_tableau)}")
