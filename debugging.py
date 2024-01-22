@@ -1,9 +1,15 @@
 from MAGnet import *
 def kalitt_debug():
-    gn: GN = GN.load('archive chalacta.mgn')
+    nom_perso = 'Brance'
+    nom_gn = 'archive chalacta.mgn'
+    debug_perso_gn(nom_gn, nom_perso)
+
+
+def debug_perso_gn(nom_gn, nom_perso):
+    gn: GN = GN.load(nom_gn)
     noms = [perso.nom for perso in gn.personnages.values()]
     # print(noms)
-    kalitt = next(perso for perso in gn.personnages.values() if 'Brance' in perso.nom)
+    kalitt = next(perso for perso in gn.personnages.values() if nom_perso in perso.nom)
     texte_kalitt = generer_squelette_perso(gn, kalitt)
     # print(texte_kalitt)
     api_drive, api_doc, sheet = lecteurGoogle.creer_lecteurs_google_apis()
@@ -16,4 +22,6 @@ def kalitt_debug():
     )
 
 
-kalitt_debug()
+# kalitt_debug()
+
+debug_perso_gn('Demo.mgn', 'Corwin')

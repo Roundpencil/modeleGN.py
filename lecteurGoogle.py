@@ -210,11 +210,14 @@ def read_structural_elements(elements):
             # The text in table cells are in nested Structural Elements and tables may be
             # nested.
             table = value.get('table')
+            text += DEBUT_TABLEAU
             for row in table.get('tableRows'):
                 cells = row.get('tableCells')
                 for cell in cells:
                     text += read_structural_elements(cell.get('content')) + SEPARATEUR_COLONNES
                 text += SEPARATEUR_LIGNES
+            text = text[:-1 * len(FIN_LIGNE)] + FIN_TABLEAU
+
         elif 'tableOfContents' in value:
             # The text in the TOC is also in a Structural Element.
             toc = value.get('tableOfContents')
