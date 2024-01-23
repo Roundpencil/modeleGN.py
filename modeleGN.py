@@ -948,7 +948,7 @@ class Scene:
                 a_ajouter.append(f" {nb_warnings} warnings et")
             if nb_cmt := self.conteneur.get_nb_commentaires_ouverts():
                 a_ajouter.append(f" {nb_cmt} commentaires non résolus et")
-            to_return += ''.join(a_ajouter)[:-2]
+            to_return += ''.join(a_ajouter)[:-3]
             to_return += f". N'oubliez pas de vérifier qu'il n'y a pas d'impact sur cette scène avant de l'écrire.  " \
                          f"{soulign[1]}"
         # to_return += f"pitch  : {self.pitch} \n"
