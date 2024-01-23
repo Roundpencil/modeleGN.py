@@ -221,6 +221,8 @@ def lire_et_recharger_gn(fichier_gn: str,
         # visualisation(pas_visualisation)
         m_print("****** fin de la lecture des objets *********")
 
+
+    m_print("****** fin de la lecture du drive *********")
     # liste_orgas = None
     # liste_noms_pnjs = None
     pnjs_lus = None
@@ -231,6 +233,8 @@ def lire_et_recharger_gn(fichier_gn: str,
     # # debuggage
     # if sauver_apres_operation:
     #     mon_gn.save(nom_fichier_sauvegarde)
+
+    m_print("****** reconstruction du GN : lecture des PJs et PNJs *********")
 
     if (sheet_id := mon_gn.get_id_pjs_et_pnjs()) is not None:
         # dans ce cas on a un tableau global avec toutes les données > on le lit
@@ -266,6 +270,7 @@ def lire_et_recharger_gn(fichier_gn: str,
         mon_gn.forcer_import_pjs(pjs_lus, verbal=verbal)
         logging.debug("PJs forcés ok")
 
+    m_print("****** reconstruction du GN : reconstruction des factions (si applicable) *********")
     g_io.extraire_factions(mon_gn, api_doc=api_doc, verbal=verbal)
     # print(f"gn.factions = {gn.factions}")
     logging.debug("factions lues")
@@ -275,6 +280,7 @@ def lire_et_recharger_gn(fichier_gn: str,
     # # ajouté pour debug SUPPRIMER IMPERATIVEMENT
     # mon_gn.save(nom_fichier_sauvegarde)
 
+    m_print("* reconstruction du GN : mise à jour de tous les liens entre persos, intrigues, scenes objets et évènements *")
     mon_gn.rebuild_links(verbal)
 
     if sauver_apres_operation:
@@ -284,7 +290,6 @@ def lire_et_recharger_gn(fichier_gn: str,
 
     # visualisation(25)
 
-    m_print("****** fin de la lecture du drive *********")
     # pas_visualisation = 25.0 / 14.0
     m_print("*******************************************")
     m_print("*******************************************")
@@ -437,6 +442,7 @@ def attrappeur_dexceptions(func):
         except Exception as e:
             message = f"[{func.__name__}] a rencontré un problème, le fichier ne sera pas généré"
             logging.debug(f"{message} : {e}")
+            print(f"{message} : {e}")
             m_print(message)
 
     return wrapper

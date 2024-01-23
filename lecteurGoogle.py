@@ -34,20 +34,8 @@ FIN_LIGNE = SEPARATEUR_COLONNES + SEPARATEUR_LIGNES
 
 # balises ajoutées dans le texte pour pouvoir reconstituer les styles
 # source : https://developers.google.com/docs/api/reference/rest/v1/documents?hl=fr#paragraphstyle
-# class FORMATTAGE(Enum):
-#     PREFIXE_GRAS_ON = '<bold>'
-#     PREFIXE_GRAS_OFF = '</bold>'
-#     PREFIXE_ITALIQUE_ON = '<italic>'
-#     PREFIXE_ITALIQUE_OFF = '</italic>'
-#     PREFIXE_SOULIGNE_ON = '<souligné>'
-#     PREFIXE_SOULIGNE_OFF = '</souligné>'
-#     PREFIXE_BARRE_ON = '<barré>'
-#     PREFIXE_BARRE_OFF = '</barré>'
-#     PREFIXE_SMALLCAPS_ON = '<small_caps>'
-#     PREFIXE_SMALLCAPS_OFF = '</small_caps>'
 
 
-# VALEURS_FORMATTAGE = [f.value for f in FORMATTAGE]
 VALEURS_FORMATTAGE = {
     'bold': ['<bold>', '</bold>'],
     'underline': ['<underline>', '</underline>'],
@@ -97,8 +85,20 @@ def creer_lecteurs_google_apis():
             try:
                 creds.refresh(Request())
             except Exception as e:
-                print("Erreur lors du rafraichissement du token : ", e)
-                raise e
+                print(f"Erreur lors du rafraichissement du token : {e}, tentative de suppression")
+                try:
+                    os.remove('token.json')  # Delete the current token file
+                    flow = InstalledAppFlow.from_client_config(
+                        credentials.app_creds_dic,
+                        SCOPES)
+
+                    # flow = InstalledAppFlow.from_client_secrets_file(
+                    #     'credentials.json', SCOPES)
+                    creds = flow.run_local_server(port=0)
+                except Exception as e2:
+                    print("Erreur lors de la seconde tentative de rafraichissement du token : ", e2)
+                    # Handle the second refresh error as needed
+                    raise e2
         else:
             flow = InstalledAppFlow.from_client_config(
                 credentials.app_creds_dic,

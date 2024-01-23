@@ -787,7 +787,7 @@ class Scene:
                  pitch="Pas de description simple", date_absolue: datetime = None,
                  description="Pas de description complète", lieu=None,
                  actif=True):
-        self.conteneur = conteneur
+        self.conteneur: ConteneurDeScene = conteneur
         self.date = date  # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
         # l'évènement
         self.date_absolue = date_absolue
@@ -934,6 +934,17 @@ class Scene:
         to_return += f"dernières éditions : intrigue : {self.conteneur.lastFileEdit}  " \
                      f"/ scène : {self.derniere_mise_a_jour} \n"
         to_return += f"url intrigue : {self.conteneur.get_full_url()} \n"
+        if self.conteneur.error_log.nb_erreurs():
+            soulign = lecteurGoogle.VALEURS_FORMATTAGE['underline']
+            a_ajouter = [f"{soulign[0]}/!\ Attention, l'intrigue dont est issue cette scène compte"]
+            iwe = self.conteneur.error_log.info_warning_errors()
+            if nb_erreurs := iwe[ErreurManager.NIVEAUX.ERREUR]:
+                a_ajouter.append(f" {nb_erreurs} erreurs et")
+            if nb_warnings := iwe[ErreurManager.NIVEAUX.WARNING]:
+                a_ajouter.append(f" {nb_warnings} warnings et")
+            to_return += ''.join(a_ajouter)[:-2]
+            to_return += f". N'oubliez pas de vérifier qu'il n'y a pas d'impact sur cette scène avant de l'écrire.  " \
+                         f"{soulign[1]} '\n"
         # to_return += f"pitch  : {self.pitch} \n"
         # to_return += f"description : \n {self.description} \n"
         to_return += f"\n {self.description} \n"
@@ -2127,6 +2138,13 @@ class ErreurManager:
 
     def nb_erreurs(self):
         return len([e for e in self.erreurs if e.niveau >= ErreurManager.NIVEAUX.WARNING])
+
+    def info_warning_errors(self):
+        to_return = {niveau: 0 for niveau in self.NIVEAUX}
+        for e in self.erreurs:
+            to_return[e.niveau] += 1
+        return to_return
+
 
     def ajouter_erreur(self, niveau: NIVEAUX, message, origine: ORIGINES):
         self.erreurs.append(self.ErreurAssociation(niveau, message, origine))
