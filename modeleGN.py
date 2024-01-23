@@ -75,8 +75,8 @@ class ConteneurDeScene:
         self.url = url
         self.nom = nom
         self.input_questionnaire_inscription = []
-
         self.lastProcessing = last_processing or datetime.datetime.now() - datetime.timedelta(days=500 * 365)
+        self.commentaires = []
 
     def get_last_processing(self):
         return self.lastProcessing
@@ -179,6 +179,12 @@ class ConteneurDeScene:
                         print("mais pas la même description !")
                     break
 
+    def ajouter_commentaires(self, commentaires: list):
+        self.commentaires.extend(commentaires)
+
+    def get_nb_commentaires_ouverts(self):
+        return len(self.commentaires)
+
 
 class ConteneurDEvenementsUnitaires(ABC):
     def __init__(self, referent="", code_evenement="", intrigue=None, nom="", erreur_manager=None):
@@ -267,6 +273,7 @@ class ConteneurDEvenementsUnitaires(ABC):
 
     def get_noms_pjs_concernes(self):
         return list(self.pjs_concernes_evenement.keys())
+
 
 # personnage
 class Personnage(ConteneurDeScene):
@@ -619,9 +626,9 @@ class Intrigue(ConteneurDeScene, ConteneurDEvenementsUnitaires):
         #     last_processing = datetime.datetime.now() - datetime.timedelta(days=500 * 365)
         # self.lastProcessing = last_processing
 
-        self.lastFileEdit = derniere_edition_fichier
+        # supprimé car doublon avec ConteneurDeScene
+        # self.lastFileEdit = derniere_edition_fichier
         self.objets = set()
-        self.commentaires = []
         self.codes_evenements_raw = []
         self.evenements = set()
 
@@ -703,9 +710,6 @@ class Intrigue(ConteneurDeScene, ConteneurDEvenementsUnitaires):
 
     def get_heure_de_fin(self):
         return max(intervention.heure_fin for intervention in self.interventions)
-
-    def ajouter_commentaires(self, commentaires: list):
-        self.commentaires.extend(commentaires)
 
     # vérifier que le personnge que l'on souhaite associer à un rôle n'est pas déjà associé à un autre rôle
     # dans le même conteneur
@@ -934,7 +938,7 @@ class Scene:
         to_return += f"dernières éditions : intrigue : {self.conteneur.lastFileEdit}  " \
                      f"/ scène : {self.derniere_mise_a_jour} \n"
         to_return += f"url intrigue : {self.conteneur.get_full_url()} \n"
-        if self.conteneur.error_log.nb_erreurs():
+        if self.conteneur.error_log.nb_erreurs() or self.conteneur.get_nb_commentaires_ouverts():
             soulign = lecteurGoogle.VALEURS_FORMATTAGE['underline']
             a_ajouter = [f"{soulign[0]}/!\ Attention, l'intrigue dont est issue cette scène compte"]
             iwe = self.conteneur.error_log.info_warning_errors()
@@ -942,9 +946,11 @@ class Scene:
                 a_ajouter.append(f" {nb_erreurs} erreurs et")
             if nb_warnings := iwe[ErreurManager.NIVEAUX.WARNING]:
                 a_ajouter.append(f" {nb_warnings} warnings et")
+            if nb_cmt := self.conteneur.get_nb_commentaires_ouverts():
+                a_ajouter.append(f" {nb_cmt} commentaires non résolus et")
             to_return += ''.join(a_ajouter)[:-2]
             to_return += f". N'oubliez pas de vérifier qu'il n'y a pas d'impact sur cette scène avant de l'écrire.  " \
-                         f"{soulign[1]} '\n"
+                         f"{soulign[1]}"
         # to_return += f"pitch  : {self.pitch} \n"
         # to_return += f"description : \n {self.description} \n"
         to_return += f"\n {self.description} \n"
@@ -2144,7 +2150,6 @@ class ErreurManager:
         for e in self.erreurs:
             to_return[e.niveau] += 1
         return to_return
-
 
     def ajouter_erreur(self, niveau: NIVEAUX, message, origine: ORIGINES):
         self.erreurs.append(self.ErreurAssociation(niveau, message, origine))

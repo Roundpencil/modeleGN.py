@@ -22,6 +22,6 @@ def debug_perso_gn(nom_gn, nom_perso):
     )
 
 
-# kalitt_debug()
+kalitt_debug()
 
-debug_perso_gn('Demo.mgn', 'Corwin')
+# debug_perso_gn('Demo.mgn', 'Corwin')
