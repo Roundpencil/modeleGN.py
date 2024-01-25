@@ -943,13 +943,13 @@ class Scene:
             a_ajouter = [f"{soulign[0]}/!\ Attention, l'intrigue dont est issue cette scène compte"]
             iwe = self.conteneur.error_log.info_warning_errors()
             if nb_erreurs := iwe[ErreurManager.NIVEAUX.ERREUR]:
-                s = 's' if nb_erreurs else''
+                s = 's' if nb_erreurs > 1 else''
                 a_ajouter.append(f" {nb_erreurs} erreur{s} et")
             if nb_warnings := iwe[ErreurManager.NIVEAUX.WARNING]:
-                s = 's' if nb_warnings else''
+                s = 's' if nb_warnings > 1 else''
                 a_ajouter.append(f" {nb_warnings} warning{s} et")
             if nb_cmt := self.conteneur.get_nb_commentaires_ouverts():
-                s = 's' if nb_cmt else''
+                s = 's' if nb_cmt > 1 else''
                 a_ajouter.append(f" {nb_cmt} commentaire{s} non résolu{s} et")
             to_return += ''.join(a_ajouter)[:-3]
             to_return += f". N'oubliez pas de vérifier qu'il n'y a pas d'impact sur cette scène avant de l'écrire." \
