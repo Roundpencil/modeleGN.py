@@ -1443,7 +1443,7 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
 def evenement_lire_fiche(texte: str, current_evenement: FicheEvenement, texte_label: str):
     texte = retirer_premiere_ligne(texte)
     tableau_fiche, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
-    # print(f"debug : tableau fiche évènement {current_evenement.nom_evenement}, {tableau_fiche} ")
+    # print(f"DEBUG : tableau fiche évènement {current_evenement.nom_evenement}, {tableau_fiche} ")
     if nb_colonnes != 2:
         logging.debug(f"format incorrect de tableau pour {texte_label} : {tableau_fiche}")
         texte_erreur = f"format incorrect de tableau pour {texte_label}"
@@ -1496,6 +1496,7 @@ def evenement_lire_fiche(texte: str, current_evenement: FicheEvenement, texte_la
     # print(f"debug : tableau evènement après  harmonisation : {[ligne[0] for ligne in tableau_fiche]}")
 
     dict_fiche = dict(tableau_fiche)
+    # print(f"DEBUG : dict_fiche évènement {dict_fiche}")
 
     current_evenement.code_evenement = dict_fiche.get(NomsLignes.CODE.value, "").strip()
     current_evenement.etat = dict_fiche.get(NomsLignes.ETAT.value, "").strip()
@@ -1504,6 +1505,9 @@ def evenement_lire_fiche(texte: str, current_evenement: FicheEvenement, texte_la
     current_evenement.lieu = dict_fiche.get(NomsLignes.LIEU.value, "").strip()
     current_evenement.date = dict_fiche.get(NomsLignes.JOUR.value, "").strip()
     current_evenement.heure_de_demarrage = dict_fiche.get(NomsLignes.HEURE_DEBUT.value, "").strip()
+    print(f"DEBUG : heure début évènement {dict_fiche.get(NomsLignes.HEURE_DEBUT.value, '').strip()} : "
+          f"{type(dict_fiche.get(NomsLignes.HEURE_DEBUT.value, '').strip())}")
+
     current_evenement.heure_de_fin = dict_fiche.get(NomsLignes.HEURE_FIN.value, "").strip()
     current_evenement.declencheur = dict_fiche.get(NomsLignes.DECLENCHEUR.value, "").strip()
     current_evenement.consequences_evenement = dict_fiche.get(NomsLignes.CONSEQUENCES.value, "").strip()
@@ -1714,7 +1718,7 @@ def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvene
         print(f"DEBUG : heure à incrémenter : {time_str} et heure debut evenemtn = {current_conteneur_evenement.heure_de_demarrage_par_defaut()}")
 
         if not time_str:
-            time_str = current_conteneur_evenement.heure_de_demarrage_par_defaut(),
+            time_str = current_conteneur_evenement.heure_de_demarrage_par_defaut()
 
         print(f"DEBUG : heure à incrémenter : {time_str}")
 

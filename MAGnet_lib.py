@@ -1356,7 +1356,7 @@ def generer_table_chrono_condensee_raw(gn: GN):
     return tableau_sortie
 
 
-@attrappeur_dexceptions
+# @attrappeur_dexceptions
 def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_print=print):
     m_print("******* génération du planning évènementiel ******************")
 
@@ -1389,8 +1389,8 @@ def generer_tables_planning_evenementiel(mon_gn: GN):
     sessions = mon_gn.get_liste_sessions_froms_pnjs()
 
     # faire un premier onglet sans session
-    tables_planning, texte_erreur = {'evenementiel générique': cpe.creer_planning_evenementiel(mon_gn)}
-
+    evenementiel_generique, texte_erreur = cpe.creer_planning_evenementiel(mon_gn)
+    tables_planning = {'evenementiel générique': evenementiel_generique}
     for session in sessions:
         tables_planning[session] = cpe.creer_planning_evenementiel(mon_gn, session=session)
 
