@@ -241,23 +241,32 @@ def recherche_dichotomique_aides(evenements, min_aides=0, max_aides=100, aides_c
                                       consever_liens_aides_pnjs=consever_liens_aides_pnjs)
 
 
-def determiner_pas(evenements: list[ConteneurDEvenementsUnitaires]):
+def determiner_pas(evenements: list[ConteneurDEvenementsUnitaires], verbal = True):
     minutes = {'0'}
     for evenement in evenements:
-        with contextlib.suppress(Exception):
-            minutes.add(evenement.get_heure_de_demarrage().split('h')[1])
-            minutes.add(evenement.get_heure_de_fin().split('h')[1])
+        # with contextlib.suppress(Exception):
+        #     minutes.add(evenement.get_heure_de_demarrage().split('h')[1])
+        #     minutes.add(evenement.get_heure_de_fin().split('h')[1])
+        # si le code ci-dessous ne marche pas, décommenter, et réécrire heure_debut et heure fin dans conteneur
+        # d'evenement pour recalculer à la volée. en effet, si on remplit les évènements à la construction,
+        # on n'a plus besoin d'avoir une heure en edur dans le tableau
+        for intervention in evenement.interventions:
+            with contextlib.suppress(Exception):
+                minutes.add(intervention.heure_debut.split('h')[1])
+                minutes.add(intervention.heure_debut.split('h')[1])
 
     print(f"debug : minutes avant rationalisation : {minutes}")
     maximum = max(int(m) for m in minutes if m.isnumeric())
     print(f"debug : pas trouvé avant arrondi = {maximum}")
     if maximum == 0:
-        return 60
+        pas = 60
     elif maximum <= 30:
-        return 30
+        pas = 30
     else:
-        return 15
-
+        pas = 15
+    if verbal:
+        print(f"VERBAL : j'ai calculé le pas pour les évènements et il est de {pas}")
+        return pas
 
 def preparer_donnees_pour_ortools(gn: GN, pas=None, avec_corrections=True):
     if pas is None:
