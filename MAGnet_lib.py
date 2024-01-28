@@ -1360,7 +1360,15 @@ def generer_table_chrono_condensee_raw(gn: GN):
 def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_print=print):
     m_print("******* génération du planning évènementiel ******************")
 
-    tables_planning = generer_tables_planning_evenementiel(mon_gn)
+    tables_planning, texte_erreur = generer_tables_planning_evenementiel(mon_gn)
+
+    texte_erreur_concat = '\n'.join(texte_erreur)
+    logging.debug('erreurs dans la préparation des évènements pour la création de planning : ')
+    logging.debug(texte_erreur_concat)
+    print(f"DEBUG : erreurs evenements pre ORTOOLS : {texte_erreur_concat}")
+    #todo : l'écrire dans un fichier et l'afficher dans le m_print
+    #todo : faire en sorte que si un évènement 'n pas d'heure de fin, cela reste zero
+    # et pas l'heure de fin de l'évènement
 
     # faire un onglet par session
     # voir si on ne peut pas chopper le paramètre des sessions qu'on veut explorer (sera utile aussi pour les squelettes)
@@ -1379,12 +1387,12 @@ def generer_tables_planning_evenementiel(mon_gn: GN):
     sessions = mon_gn.get_liste_sessions_froms_pnjs()
 
     # faire un premier onglet sans session
-    tables_planning = {'evenementiel générique': cpe.creer_planning_evenementiel(mon_gn)}
+    tables_planning, texte_erreur = {'evenementiel générique': cpe.creer_planning_evenementiel(mon_gn)}
 
     for session in sessions:
         tables_planning[session] = cpe.creer_planning_evenementiel(mon_gn, session=session)
 
-    return tables_planning
+    return tables_planning, texte_erreur
 
 
 def generer_table_chrono_condensee(tableau_raw, date_gn):

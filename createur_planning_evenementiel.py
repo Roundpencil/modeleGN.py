@@ -274,7 +274,7 @@ def preparer_donnees_pour_ortools(gn: GN, pas=None, avec_corrections=True):
         pas = determiner_pas(gn.lister_tous_les_conteneurs_evenements_unitaires())
         print(f'debug : pas final = {pas}')
 
-    texte_erreurs = ""
+    texte_erreurs = []
     # evenements = evenements_2_dict_ortools(gn.evenements.values(), pas, texte_erreurs)
     evenements = evenements_2_dict_ortools(gn.lister_tous_les_conteneurs_evenements_unitaires(), pas, texte_erreurs)
 
@@ -347,7 +347,7 @@ def pas_2_h(heure_en_pas, pas):
     return f"J{jour} - {minutes // 60}h{str(minutes % 60).zfill(2)}"
 
 
-def evenements_2_dict_ortools(liste_evenements: list[ConteneurDEvenementsUnitaires], pas, texte_erreurs):
+def evenements_2_dict_ortools(liste_evenements: list[ConteneurDEvenementsUnitaires], pas, texte_erreurs: list[str]):
     evenements_formattes = []
     for evenement in liste_evenements:
         for i, intervention in enumerate(evenement.interventions, start=1):
@@ -375,7 +375,7 @@ def evenements_2_dict_ortools(liste_evenements: list[ConteneurDEvenementsUnitair
                                 }
                 evenements_formattes.append(current_dict)
             else:
-                texte_erreurs += f"Attention, l'intervention {nom_intervention} n'implique aucun PNJ"
+                texte_erreurs.append(f"Attention, l'intervention {nom_intervention} n'implique aucun PNJ")
     return evenements_formattes
 
 
@@ -435,10 +435,6 @@ def creer_planning_evenementiel(gn: GN, pas=None,
         return [['aucun évènement dans le GN']]
 
     evenements, pas, texte_erreurs = preparer_donnees_pour_ortools(gn, pas=pas, avec_corrections=avec_corrections)
-    print(f'DEBUG : {evenements}')
-    logging.debug('erreurs dans la préparation des évènements pour la création de planning : ')
-    logging.debug(texte_erreurs)
-    print(f"DEBUG : erreurs evenements pre ORTOOLS : {texte_erreurs}")
 
     # ajouter les affectations prédéfinies et en déduire les aides connus
     # modele affectations_predefinies = pnj > personne
@@ -494,7 +490,7 @@ def creer_planning_evenementiel(gn: GN, pas=None,
     # on re_converti les pas en Jours et heures
     for row in table_planning[1:]:
         row[0] = pas_2_h(row[0], pas)
-    return table_planning
+    return table_planning, texte_erreurs
 
 if __name__ == '__main__':
     main()
