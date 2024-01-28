@@ -1362,14 +1362,6 @@ def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_prin
 
     tables_planning, texte_erreur = generer_tables_planning_evenementiel(mon_gn)
 
-    texte_erreur_concat = '\n'.join(texte_erreur)
-    logging.debug('erreurs dans la préparation des évènements pour la création de planning : ')
-    logging.debug(texte_erreur_concat)
-    print(f"DEBUG : erreurs evenements pre ORTOOLS : {texte_erreur_concat}")
-    #todo : l'écrire dans un fichier et l'afficher dans le m_print
-    #todo : faire en sorte que si un évènement 'n pas d'heure de fin, cela reste zero
-    # et pas l'heure de fin de l'évènement
-
     # faire un onglet par session
     # voir si on ne peut pas chopper le paramètre des sessions qu'on veut explorer (sera utile aussi pour les squelettes)
     parent = mon_gn.get_dossier_outputs_drive()
@@ -1381,6 +1373,16 @@ def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_prin
         g_io.ecrire_table_google_sheets(api_sheets, tables_planning[session], file_id, feuille=session)
     g_io.supprimer_feuille_1(api_sheets, file_id)
 
+    if texte_erreur:
+        m_print("Une ou plusieurs erreurs ont été identifiées pendant le calcul du planning, "
+                "vérifiez le fichier d'erreur associé")
+        texte_erreur_concat = '\n'.join(texte_erreur)
+        logging.debug('erreurs dans la préparation des évènements pour la création de planning : ')
+        logging.debug(texte_erreur_concat)
+        print(f"DEBUG : erreurs evenements pre ORTOOLS : {texte_erreur_concat}")
+        #todo : l'écrire dans un fichier et l'afficher dans le m_print
+        #todo : faire en sorte que si un évènement 'n pas d'heure de fin, cela reste zero
+        # et pas l'heure de fin de l'évènement
 
 def generer_tables_planning_evenementiel(mon_gn: GN):
     # identifier toutes les sessions

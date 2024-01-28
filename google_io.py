@@ -1009,7 +1009,7 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, t
 
     for ligne_pur, ligne_formatte in zip(lignes_texte_pur, lignes_texte_formatte):
         if ligne_pur.strip().startswith('###'):
-            #on "vide" la scène en cours avant d'en recommencer une nouvelle
+            # on "vide" la scène en cours avant d'en recommencer une nouvelle
             ajouter_description_scene(conteneur, description_en_cours, scene_a_ajouter)
 
             description_en_cours.clear()
@@ -1696,11 +1696,58 @@ def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvene
     #       f"description={description if description != '' else current_evenement.synopsis},"
     #       )
 
+    # ce code est commenté car il créeait des évnèement dont la fin 'nétait pas spécifiés
+    # et qui pouvaient durer des heures sans que les rédacteurs ne s'en rendent compte
+    # intervention = EvenementUnitaire(jour=jour if jour != '' else current_conteneur_evenement.date_par_defaut(),
+    #                                  heure_debut=heure_debut if heure_debut != ''
+    #                                  else current_conteneur_evenement.heure_de_demarrage_par_defaut(),
+    #                                  heure_fin=heure_fin if heure_fin != ''
+    #                                  else current_conteneur_evenement.heure_de_fin_par_defaut(),
+    #                                  description=description if description != ''
+    #                                  else current_conteneur_evenement.synopsis_par_defaut(),
+    #                                  conteneur_dinterventions=current_conteneur_evenement,
+    #                                  lieu=lieu if lieu != ''
+    #                                  else current_conteneur_evenement.lieu_par_defaut()
+    #                                  )
+
+    def ajouter_une_minute(time_str: str):
+        print(f"DEBUG : heure à incrémenter : {time_str} et heure debut evenemtn = {current_conteneur_evenement.heure_de_demarrage_par_defaut()}")
+
+        if not time_str:
+            time_str = current_conteneur_evenement.heure_de_demarrage_par_defaut(),
+
+        print(f"DEBUG : heure à incrémenter : {time_str}")
+
+        # Splitting the string by 'h' and taking only the first two elements
+        parts = time_str.split('h')[:2]
+
+        # Extracting the hour and minute (if minute is not given, default to 0)
+        try:
+            hour = int(parts[0])
+        except ValueError:
+            hour = 0
+
+        try:
+            minute = int(parts[1]) if len(parts) > 1 else 0
+        except ValueError:
+            minute = 0
+
+        # Adding one minute
+        minute += 1
+        if minute == 60:
+            minute = 0
+            hour += 1
+            if hour == 24:
+                hour = 0
+
+        # Formatting the new time
+        return f"{hour:02d}h{minute:02d}"
+
     intervention = EvenementUnitaire(jour=jour if jour != '' else current_conteneur_evenement.date_par_defaut(),
                                      heure_debut=heure_debut if heure_debut != ''
                                      else current_conteneur_evenement.heure_de_demarrage_par_defaut(),
                                      heure_fin=heure_fin if heure_fin != ''
-                                     else current_conteneur_evenement.heure_de_fin_par_defaut(),
+                                     else ajouter_une_minute(heure_debut),
                                      description=description if description != ''
                                      else current_conteneur_evenement.synopsis_par_defaut(),
                                      conteneur_dinterventions=current_conteneur_evenement,

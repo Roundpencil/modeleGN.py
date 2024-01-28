@@ -60,6 +60,18 @@ def normaliser_nom_gn(nom_archive: str):
     return nom_archive if nom_archive.endswith('.mgn') else f'{nom_archive}.mgn'
 
 
+class DateEnJeu:
+    def __init__(self, jour=1, heure=0, minute=0):
+        self.minutes = minute + heure * 60 + jour * 24 * 60
+
+    def __str__(self):
+        total_minutes = self.minutes
+        jours = total_minutes // (24 * 60)
+        total_minutes %= (24 * 60)
+        heures = total_minutes // 60
+        minutes = total_minutes % 60
+        return f"J{jours} {heures}h{minutes:02d}"
+
 # une superclasse qui représente un fichier qui content des scènes, avec les rôles associés
 # donc y compris les propriétés du fichier où elle se trouve (notamment date de changement)
 # Attention, personnage hérite de cette classe, et contient donc deu types de rôles :
