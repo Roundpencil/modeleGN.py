@@ -1356,7 +1356,7 @@ def generer_table_chrono_condensee_raw(gn: GN):
     return tableau_sortie
 
 
-# @attrappeur_dexceptions
+@attrappeur_dexceptions
 def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_print=print):
     m_print("******* génération du planning évènementiel ******************")
 
@@ -1380,9 +1380,7 @@ def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_prin
         logging.debug('erreurs dans la préparation des évènements pour la création de planning : ')
         logging.debug(texte_erreur_concat)
         print(f"DEBUG : erreurs evenements pre ORTOOLS : {texte_erreur_concat}")
-        #todo : l'écrire dans un fichier et l'afficher dans le m_print
-        #todo : faire en sorte que si un évènement 'n pas d'heure de fin, cela reste zero
-        # et pas l'heure de fin de l'évènement
+        #todo : écrire les erreurs dans un fichier
 
 def generer_tables_planning_evenementiel(mon_gn: GN):
     # identifier toutes les sessions
