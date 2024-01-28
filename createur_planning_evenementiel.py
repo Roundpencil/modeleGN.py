@@ -343,7 +343,8 @@ def pas_2_h(heure_en_pas, pas):
     minutes = (heure_en_pas % MULTIPLICATEURS_MINUTES) * pas
     # jour = heure_en_pas // 100
     # minutes = (heure_en_pas % 100) * pas
-    return f"J{jour} - {minutes // 60}h{minutes % 60}"
+    # return f"J{jour} - {minutes // 60}h{minutes % 60}"
+    return f"J{jour} - {minutes // 60}h{str(minutes % 60).zfill(2)}"
 
 
 def evenements_2_dict_ortools(liste_evenements: list[ConteneurDEvenementsUnitaires], pas, texte_erreurs):
