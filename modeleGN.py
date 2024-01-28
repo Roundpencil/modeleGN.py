@@ -61,8 +61,16 @@ def normaliser_nom_gn(nom_archive: str):
 
 
 class DateEnJeu:
-    def __init__(self, jour=1, heure=0, minute=0):
-        self.minutes = minute + heure * 60 + jour * 24 * 60
+    def __init__(self, minutes=0):
+        self.minutes = minutes
+
+    @staticmethod
+    def date_from_jmh(jour=1, heure=0, minute=0):
+        minutes = minute + heure * 60 + jour * 24 * 60
+        return DateEnJeu(minutes)
+
+    def creer_date_incrementee(self, minutes: int):
+        return DateEnJeu(self.minutes + minutes)
 
     def __str__(self):
         total_minutes = self.minutes
@@ -71,6 +79,7 @@ class DateEnJeu:
         heures = total_minutes // 60
         minutes = total_minutes % 60
         return f"J{jours} {heures}h{minutes:02d}"
+
 
 # une superclasse qui représente un fichier qui content des scènes, avec les rôles associés
 # donc y compris les propriétés du fichier où elle se trouve (notamment date de changement)
