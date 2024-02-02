@@ -1,6 +1,5 @@
 import threading
 import tkinter as tk
-import traceback
 import webbrowser
 from tkinter import filedialog, ttk
 from tkinter.ttk import Progressbar
