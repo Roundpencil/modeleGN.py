@@ -1505,8 +1505,8 @@ def evenement_lire_fiche(texte: str, current_evenement: FicheEvenement, texte_la
     current_evenement.lieu = dict_fiche.get(NomsLignes.LIEU.value, "").strip()
     current_evenement.date = dict_fiche.get(NomsLignes.JOUR.value, "").strip()
     current_evenement.heure_de_demarrage = dict_fiche.get(NomsLignes.HEURE_DEBUT.value, "").strip()
-    print(f"DEBUG : heure début évènement {dict_fiche.get(NomsLignes.HEURE_DEBUT.value, '').strip()} : "
-          f"{type(dict_fiche.get(NomsLignes.HEURE_DEBUT.value, '').strip())}")
+    # print(f"DEBUG : heure début évènement {dict_fiche.get(NomsLignes.HEURE_DEBUT.value, '').strip()} : "
+    #       f"{type(dict_fiche.get(NomsLignes.HEURE_DEBUT.value, '').strip())}")
 
     current_evenement.heure_de_fin = dict_fiche.get(NomsLignes.HEURE_FIN.value, "").strip()
     current_evenement.declencheur = dict_fiche.get(NomsLignes.DECLENCHEUR.value, "").strip()
@@ -1715,12 +1715,12 @@ def evenement_extraire_ligne_chrono(current_conteneur_evenement: ConteneurDEvene
     #                                  )
 
     def ajouter_une_minute(time_str: str):
-        print(f"DEBUG : heure à incrémenter : {time_str} et heure debut evenemtn = {current_conteneur_evenement.heure_de_demarrage_par_defaut()}")
+        # print(f"DEBUG : heure à incrémenter : {time_str} et heure debut evenemtn = {current_conteneur_evenement.heure_de_demarrage_par_defaut()}")
 
         if not time_str:
             time_str = current_conteneur_evenement.heure_de_demarrage_par_defaut()
 
-        print(f"DEBUG : heure à incrémenter : {time_str}")
+        # print(f"DEBUG : heure à incrémenter : {time_str}")
 
         # Splitting the string by 'h' and taking only the first two elements
         parts = time_str.split('h')[:2]
