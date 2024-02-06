@@ -1133,7 +1133,7 @@ def extraire_infos_scene(texte_lu: str, scene: Scene):
             scene.infos.add(section.strip())
 
 
-def extraire_qui_scene(liste_noms, conteneur, scene_a_ajouter, verbal=True, seuil=80,
+def extraire_qui_scene(liste_noms, conteneur, scene_a_ajouter, verbal=False, seuil=80,
                        avec_tableau_des_persos: bool = True):
     roles = [r.strip() for r in liste_noms.split(",") if len(r.strip()) > 0]
     scene_a_ajouter.noms_roles_lus = roles
