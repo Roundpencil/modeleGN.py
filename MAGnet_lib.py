@@ -1,5 +1,6 @@
 import csv
 import os
+import traceback
 from inspect import signature
 
 import createur_planning_evenementiel as cpe
@@ -442,6 +443,7 @@ def attrappeur_dexceptions(func):
         except Exception as e:
             message = f"[{func.__name__}] a rencontré un problème, le fichier ne sera pas généré"
             logging.debug(f"{message} : {e}")
+            logging.debug(traceback.format_exc())
             print(f"{message} : {e}")
             m_print(message)
 
@@ -531,6 +533,7 @@ def generer_texte_resume_intrigues_persos(mon_gn: GN, verbal=False):
 
 @attrappeur_dexceptions
 def ecrire_resume_intrigues_persos(mon_gn: GN, api_doc, api_drive, verbal=False, m_print=print):
+
     m_print("******* resume des intrigues par perso ******************")
 
     parent = mon_gn.get_dossier_outputs_drive()
