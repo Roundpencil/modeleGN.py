@@ -141,7 +141,7 @@ def extraire_tous_items_dossier(api_drive, folder_id):
 api_drive, _, _ = creer_lecteurs_google_apis()
 root_folder_id = '1_oKXTTD7BtKSI_EWqTjUJ-2jrT_W_e8j'  # le fichier archive
 # root_folder_id = '1CjJPn5Srbka1gqMNt7oAG7pmX-qvgGKN'  # fichier simple de test
-email_address = 'trocmep@gmail.com'
+email_address = 'emeric.montagnese@gmail.com'
 remove_permission_for_email_recursive(api_drive, root_folder_id, email_address)
 
 

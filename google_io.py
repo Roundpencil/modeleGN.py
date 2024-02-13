@@ -411,7 +411,7 @@ def extraire_intrigue_de_texte(texte_avec_format, nom_intrigue,
         if paire := dict_sections.get(label.value):
             ma_methode = dict_methodes[label]
             ma_methode(paire['brut'], paire['formatté'])
-        else:
+        elif verbal:
             print(f"pas de {label.value} avec l'intrigue {nom_intrigue}")
 
         # if indexes[label.value]["debut"] == -1:
