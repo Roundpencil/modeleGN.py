@@ -2324,20 +2324,44 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
 
         # 2. on crée le formattage
         for start, end in liste_tuples_positions:
-            formatting_requests.append({
-                'updateTextStyle': {
-                    'range': {
-                        'startIndex': start + 1,
-                        'endIndex': end + 1,
-                    },
-                    'textStyle': {
-                        # f"'{clef_formattage}'": True
-                        f'{clef_formattage}': True
-                    },
-                    # 'fields': f"'{clef_formattage}'"
-                    'fields': f'{clef_formattage}'
-                }
-            })
+            if clef_formattage == 'backgroundColor':
+                formatting_requests.append({
+                    'updateTextStyle': {
+                        'range': {
+                            'startIndex': start + 1,
+                            'endIndex': end + 1,
+                        },
+                        'textStyle': {
+                            # f"'{clef_formattage}'": True
+                            "backgroundColor": {
+                                "color": {
+                                    "rgbColor": {
+                                        "red": 1.0,
+                                        "green": 0.95,
+                                        "blue": 0.8
+                                    }
+                                }
+                            }
+                        },
+                        # 'fields': f"'{clef_formattage}'"
+                        'fields': f'{clef_formattage}'
+                    }
+                })
+            else:
+                formatting_requests.append({
+                    'updateTextStyle': {
+                        'range': {
+                            'startIndex': start + 1,
+                            'endIndex': end + 1,
+                        },
+                        'textStyle': {
+                            # f"'{clef_formattage}'": True
+                            f'{clef_formattage}': True
+                        },
+                        # 'fields': f"'{clef_formattage}'"
+                        'fields': f'{clef_formattage}'
+                    }
+                })
 
             # 3. on fait une requête qui nettoie
             cleaning_requests.append({

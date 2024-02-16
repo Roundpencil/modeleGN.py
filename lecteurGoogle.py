@@ -41,7 +41,8 @@ VALEURS_FORMATTAGE = {
     'underline': ['<underline>', '</underline>'],
     'smallCaps': ['<smallCaps>', '</smallCaps>'],
     'italic': ['<italic>', '</italic>'],
-    'strikethrough': ['<strikethrough>', '</strikethrough>']
+    'strikethrough': ['<strikethrough>', '</strikethrough>'],
+    'backgroundColor': ['<backgroundColor>', '</backgroundColor>']
 }
 
 
@@ -160,22 +161,6 @@ def read_paragraph_element(element):
                                    content,
                                    VALEURS_FORMATTAGE[clef_formattage][1]])
 
-        #             = {
-
-    #         if text_style.get('bold'):
-    #             content = ''.join([FORMATTAGE.PREFIXE_GRAS_ON, content, FORMATTAGE.PREFIXE_GRAS_OFF])
-    #
-    #         if text_style.get('italic'):
-    #             content = ''.join([FORMATTAGE.PREFIXE_ITALIQUE_ON, content, FORMATTAGE.PREFIXE_ITALIQUE_OFF])
-    #
-    #         if text_style.get('underline'):
-    #             content = ''.join([FORMATTAGE.PREFIXE_SOULIGNE_ON, content, FORMATTAGE.PREFIXE_SOULIGNE_OFF])
-    #
-    #         if text_style.get('strikethrough'):
-    #             content = ''.join([FORMATTAGE.PREFIXE_BARRE_ON, content, FORMATTAGE.PREFIXE_BARRE_OFF])
-    #
-    #         if text_style.get('smallCaps'):
-    #             content = ''.join([FORMATTAGE.PREFIXE_SMALLCAPS_ON, content, FORMATTAGE.PREFIXE_SMALLCAPS_OFF])
 
     return content
 
