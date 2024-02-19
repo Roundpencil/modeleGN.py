@@ -933,11 +933,12 @@ class Scene:
         #       f'({self.conteneur.get_full_url()})')
         # print(f'{ [r.nom for r in self.roles]}')
         # print(f'{self.roles_et_confiance}')
+        gras = lecteurGoogle.VALEURS_FORMATTAGE['bold']
         to_return = ""
 
         heure = f'- heure = {self.get_heure_debut()}' if self.get_heure_debut() else ''
-        to_return += f"titre scène : {self.titre} " \
-                     f"- date  : {self.get_formatted_date(date_gn, avec_heure=False)} {heure}\n"
+        to_return += f"{gras[0]}titre scène : {self.titre} " \
+                     f"- date  : {self.get_formatted_date(date_gn, avec_heure=False)} {heure}{gras[1]}\n"
         if self.lieu:
             to_return += f"lieu : {self.lieu} \n"
         str_roles_persos = 'Roles (Perso) : '

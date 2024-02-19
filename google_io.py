@@ -2552,95 +2552,95 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
         return None
 
 
-def write_to_doc_old(service, file_id, text: str, titre=False):
-    # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
-    formatting_requests = []
+# def write_to_doc_old(service, file_id, text: str, titre=False):
+#     # le code qui ajoute la détection et la construction d'une requete pour les urls à formatter
+#     formatting_requests = []
+#
+#     # url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+#     # pattern évolué pour ne plus prendre en compte les parenthèses
+#     url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+#
+#     for match in re.finditer(url_pattern, text):
+#         url = match.group()
+#         start = match.start()
+#         end = match.end()
+#
+#         formatting_requests.append({
+#             'updateTextStyle': {
+#                 'range': {
+#                     'startIndex': start + 1,
+#                     'endIndex': end + 1,
+#                 },
+#                 'textStyle': {
+#                     'link': {
+#                         'url': url
+#                     }
+#                 },
+#                 'fields': 'link'
+#             }
+#         })
+#
+#     # l'ancien code, fonctionnel
+#     try:
+#         requests = [{
+#             'insertText': {
+#                 'location': {
+#                     'index': 1
+#                 },
+#                 'text': text
+#             }
+#         }]
+#
+#         # ajouter le formattage à la requete d'insert
+#         requests += formatting_requests
+#
+#         # Execute the request.
+#         result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
+#         return result
+#     except HttpError as error:
+#         print(F'An error occurred: {error}')
+#         return None
 
-    # url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
-    # pattern évolué pour ne plus prendre en compte les parenthèses
-    url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
-    for match in re.finditer(url_pattern, text):
-        url = match.group()
-        start = match.start()
-        end = match.end()
-
-        formatting_requests.append({
-            'updateTextStyle': {
-                'range': {
-                    'startIndex': start + 1,
-                    'endIndex': end + 1,
-                },
-                'textStyle': {
-                    'link': {
-                        'url': url
-                    }
-                },
-                'fields': 'link'
-            }
-        })
-
-    # l'ancien code, fonctionnel
-    try:
-        requests = [{
-            'insertText': {
-                'location': {
-                    'index': 1
-                },
-                'text': text
-            }
-        }]
-
-        # ajouter le formattage à la requete d'insert
-        requests += formatting_requests
-
-        # Execute the request.
-        result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
-        return result
-    except HttpError as error:
-        print(F'An error occurred: {error}')
-        return None
-
-
-def formatter_titres_scenes_dans_squelettes(service, file_id):
-    try:
-        # get the document
-        doc = service.documents().get(documentId=file_id).execute()
-
-        # initialize the request list
-        requests = []
-
-        # loop through the paragraphs of the document
-        for para in doc.get('body').get('content'):
-            # check if the paragraph is a text run and starts with "titre scène"
-            if 'paragraph' in para and para.get('paragraph').get('elements')[0].get('textRun').get(
-                    'content').startswith("titre scène"):
-                # create the update request
-                requests.append({
-                    'updateTextStyle': {
-                        'range': {
-                            'startIndex': para.get('startIndex'),
-                            'endIndex': para.get('endIndex')
-                        },
-                        'textStyle': {
-                            'bold': True,
-                            'fontSize': {
-                                'magnitude': 12,
-                                'unit': 'PT'
-                            }
-                        },
-                        'fields': 'bold,fontSize'
-                    }
-                })
-        if len(requests) != 0:
-            # execute the requests
-            result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
-            return result
-        else:
-            return None
-    except HttpError as error:
-        print(F'An error occurred: {error}')
-        return None
+# def formatter_titres_scenes_dans_squelettes(service, file_id):
+#     try:
+#         # get the document
+#         doc = service.documents().get(documentId=file_id).execute()
+#
+#         # initialize the request list
+#         requests = []
+#
+#         # loop through the paragraphs of the document
+#         for para in doc.get('body').get('content'):
+#             # check if the paragraph is a text run and starts with "titre scène"
+#             if 'paragraph' in para and para.get('paragraph').get('elements')[0].get('textRun').get(
+#                     'content').startswith("titre scène"):
+#                 # create the update request
+#                 requests.append({
+#                     'updateTextStyle': {
+#                         'range': {
+#                             'startIndex': para.get('startIndex'),
+#                             'endIndex': para.get('endIndex')
+#                         },
+#                         'textStyle': {
+#                             'bold': True,
+#                             'fontSize': {
+#                                 'magnitude': 12,
+#                                 'unit': 'PT'
+#                             }
+#                         },
+#                         'fields': 'bold,fontSize'
+#                     }
+#                 })
+#         if len(requests) != 0:
+#             # execute the requests
+#             result = service.documents().batchUpdate(documentId=file_id, body={'requests': requests}).execute()
+#             return result
+#         else:
+#             return None
+#     except HttpError as error:
+#         print(F'An error occurred: {error}')
+#         return None
 
 
 def creer_fichier(service_drive, nom_fichier: str, id_parent: str, type_mime: str, m_print=print,
