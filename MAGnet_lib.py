@@ -647,7 +647,7 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
         # trier les couples nom, score par ordre de score
         scores[original_nom].sort(key=lambda x: x[1])
 
-    # rechercher le solution : initiatilisation des variables
+    # rechercher la solution : initialisation des variables
     solution = []
     solution_trouvee = False
 
@@ -680,8 +680,10 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
         # Si ce n'est pas le cas, on mettra à jour la solution en trouvant le nom d'origine qui était associé au nom
         # en doublon le plus faible et en cherchant les solutions alternatives
 
-        # on parcourre les clefs pour vérifier lesquelles sont en double,
-        # sachant qu'elles sont triées par ordre du plus faible au plus fort
+        # on parcourt les clefs pour identifier s'il y en a en double.
+        # dans ce cas, cela veut dire qu'un meme nom est proposé deux fois : il faudra réessayer avec une autre solution
+        # sachant qu'elles sont triées par ordre du score le plus faible au plus fort,
+        # donc pour virer la clef la plus faible, il faut comparer à toutes les valeurs suivantes
         if verbal:
             print(f"Je m'apprête à commencer une itération avec la solution suivante :\n"
                   f"{solution}")

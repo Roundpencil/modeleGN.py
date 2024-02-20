@@ -156,11 +156,26 @@ def read_paragraph_element(element):
                 content = ' '.join([content, url])
 
         for clef_formattage in VALEURS_FORMATTAGE:
-            if text_style.get(clef_formattage):
+            if clef_formattage == 'backgroundColor':
+                backgroundColor = text_style.get('backgroundColor', {}).get('color', {})
+                if backgroundColor:  # Checks if backgroundColor is not empty
+                    rgbColor = backgroundColor.get('rgbColor', {})
+                    # Checks if the color is not transparent, blank, or white
+                    if rgbColor and not (
+                            rgbColor.get('red', 0) == 1 and rgbColor.get('green', 0) == 1 and rgbColor.get('blue',
+                                                                                                           0) == 1):
+                        content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
+                                           content,
+                                           VALEURS_FORMATTAGE[clef_formattage][1]])
+            elif text_style.get(clef_formattage):
                 content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
                                    content,
                                    VALEURS_FORMATTAGE[clef_formattage][1]])
 
+            # if text_style.get(clef_formattage):
+            #     content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
+            #                        content,
+            #                        VALEURS_FORMATTAGE[clef_formattage][1]])
 
     return content
 
