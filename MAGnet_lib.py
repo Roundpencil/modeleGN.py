@@ -849,7 +849,8 @@ def generer_tableau_changelog_sur_drive(mon_gn: GN, api_drive, api_sheets, m_pri
     for ma_scene in toutes_les_scenes:
         dict_scene = {'nom_scene': ma_scene.titre,
                       'date': ma_scene.derniere_mise_a_jour.strftime("%Y-%m-%d %H:%M:%S"),
-                      'qui': ma_scene.modifie_par, 'document': ma_scene.conteneur.get_full_url()
+                      'qui': ma_scene.modifie_par, 'intrigue': ma_scene.conteneur.get_nom(),
+                      'document': ma_scene.conteneur.get_full_url()
                       }
         dict_orgas = {}
         # dict_scene['dict_orgas'] = dict_orgas

@@ -60,6 +60,8 @@ def normaliser_nom_gn(nom_archive: str):
     return nom_archive if nom_archive.endswith('.mgn') else f'{nom_archive}.mgn'
 
 
+# une classe pour gérer toutes les dates en jeu et permettre notamment de gérer les heures paèrs minuit
+# non utilisée à date
 class DateEnJeu:
     def __init__(self, minutes=0):
         self.minutes = minutes
@@ -98,6 +100,9 @@ class ConteneurDeScene:
         self.input_questionnaire_inscription = []
         self.lastProcessing = last_processing or datetime.datetime.now() - datetime.timedelta(days=500 * 365)
         self.commentaires = []
+
+    def get_nom(self):
+        return self.nom
 
     def get_last_processing(self):
         return self.lastProcessing

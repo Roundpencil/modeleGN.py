@@ -2844,13 +2844,14 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
         }).execute()
 
     # write data to the "tous" worksheet
-    values = [["nom_scene", "date", "qui", "document"] + list(dict_orgas_persos.keys())]
+    values = [["nom_scene", "date", "qui", 'intrigue', "document"] + list(dict_orgas_persos.keys())]
     if verbal:
         print(f"en-tetes = {values}")
 
     for scene_orgas in tableau_scenes_orgas:
         dict_scene, dict_orgas = scene_orgas
-        row = [dict_scene["nom_scene"], dict_scene["date"], dict_scene["qui"], dict_scene["document"]]
+        row = [dict_scene["nom_scene"], dict_scene["date"], dict_scene["qui"], dict_scene["intrigue"],
+               dict_scene["document"]]
 
         for orga in dict_orgas_persos:
             if orga in dict_orgas:
@@ -2878,12 +2879,13 @@ def exporter_changelog(tableau_scenes_orgas, spreadsheet_id, dict_orgas_persos, 
         # for orga_set in dict_orgas_persos.values():
         #     persos.extend(orga_set)
         persos = list(dict_orgas_persos[orga])
-        values = [["nom_scene", "date", "qui", "document"] + persos]
+        values = [["nom_scene", "date", "qui", 'intrigue', "document"] + persos]
         if verbal:
             print(f"en-tetes = {values}")
         for scene_orgas in tableau_scenes_orgas:
             dict_scene, dict_orgas = scene_orgas
-            row = [dict_scene["nom_scene"], dict_scene["date"], dict_scene["qui"], dict_scene["document"]]
+            row = [dict_scene["nom_scene"], dict_scene["date"], dict_scene["qui"], dict_scene["intrigue"],
+                   dict_scene["document"]]
 
             croix = []
             for perso in dict_orgas_persos[orga]:
