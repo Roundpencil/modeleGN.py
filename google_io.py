@@ -1670,7 +1670,7 @@ def evenement_lire_chrono_depuis_tableau(current_conteneur_evenement: ConteneurD
     #                                                                   )
 
     liste_dict_lignes = generer_liste_de_dict_from_tableau(tableau_interventions, colonnes,
-                                                           current_conteneur_evenement.erreur_manager, verbal=True)
+                                                           current_conteneur_evenement.erreur_manager, verbal=False)
 
     for dict_ligne in liste_dict_lignes:
         evenement_extraire_ligne_chrono(current_conteneur_evenement, dict_ligne, NomsColonnes,
