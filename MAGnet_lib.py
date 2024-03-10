@@ -1543,7 +1543,7 @@ def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets, m_print=pr
 
 def generer_tableau_recap_persos(gn: GN):
     # to_return = []
-    to_return = [["Nom Perso", "Orga Référent", "Points", "Densité d'intrigue", "Intrigues"]]
+    to_return = [["Nom Perso", "Orga Référent", "Points", "Nombre d'intrigue", "Intrigues"]]
     for perso in gn.get_dict_pj().values():
         # table_perso = [role.conteneur.nom for role in perso.roles]
         table_perso = [lien_vers_hyperlink(role.conteneur.get_full_url(), role.conteneur.nom) for role in perso.roles]
@@ -1557,8 +1557,10 @@ def generer_tableau_recap_persos(gn: GN):
         pip = sum(tableau_pip)
         taille_pip = len(tableau_pip)
 
-        densite = pip / taille_pip if taille_pip > 0 else 0
-        table_perso = [perso.nom] + [perso.orga_referent] + [pip] + [f"{densite:.2f}"] + table_perso
+        # nb_intrigues = pip / taille_pip if taille_pip > 0 else 0
+
+        # table_perso = [perso.nom] + [perso.orga_referent] + [pip] + [f"{nb_intrigues:.2f}"] + table_perso
+        table_perso = [perso.nom] + [perso.orga_referent] + [pip] + [taille_pip] + table_perso
         to_return.append(table_perso)
 
     return to_return
