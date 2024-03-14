@@ -845,8 +845,21 @@ class Scene:
         self.roles_et_confiance[role] = (nom_brut, score)
 
     def get_heure_debut(self):
+        # if self.heure_debut:
+        #     return self.heure_debut
         if self.heure_debut:
-            return self.heure_debut
+            # Check if heure_debut matches the formats using regular expression
+            match = re.match(r'^(\d{1,2})h(\d{2})?$', self.heure_debut)
+            if match:
+                # Extract hour and minute, if minute is None, replace with '00'
+                hour, minute = match.groups()
+                minute = minute if minute else '00'
+                # Format to ensure two digits for hour and minute
+                formatted_time = f"{int(hour):02d}h{minute}"
+                return formatted_time
+            else:
+                # Return the original heure_debut if it doesn't match the expected format
+                return self.heure_debut
         return self.date_absolue.strftime('%H:%M:%S') if self.date_absolue else None
 
     def get_date(self):
@@ -944,6 +957,7 @@ class Scene:
         heure = f'- heure = {self.get_heure_debut()}' if self.get_heure_debut() else ''
         to_return += f"{gras[0]}titre scène : {self.titre} " \
                      f"- date  : {self.get_formatted_date(date_gn, avec_heure=False)} {heure}{gras[1]}\n"
+        to_return += f"url intrigue : {self.conteneur.get_full_url()} \n"
         if self.lieu:
             to_return += f"lieu : {self.lieu} \n"
         str_roles_persos = 'Roles (Perso) : '
@@ -964,7 +978,6 @@ class Scene:
         # to_return += f"dernière édition de la scène : {self.derniere_mise_a_jour} \n"
         to_return += f"dernières éditions : intrigue : {self.conteneur.lastFileEdit}  " \
                      f"/ scène : {self.derniere_mise_a_jour} \n"
-        to_return += f"url intrigue : {self.conteneur.get_full_url()} \n"
         if self.conteneur.error_log.nb_erreurs() or self.conteneur.get_nb_commentaires_ouverts():
             soulign = lecteurGoogle.VALEURS_FORMATTAGE['underline']
             a_ajouter = [f"{soulign[0]}/!\ Attention, l'intrigue dont est issue cette scène compte"]
