@@ -849,7 +849,8 @@ class Scene:
         #     return self.heure_debut
         if self.heure_debut:
             # Check if heure_debut matches the formats using regular expression
-            match = re.match(r'^(\d{1,2})h(\d{2})?$', self.heure_debut)
+            # match = re.match(r'^(\d{1,2})h(\d{2})?$', self.heure_debut)
+            match = re.match(r'^(\d{1,2})\s*h\s*(\d{2})?$', self.heure_debut)
             if match:
                 # Extract hour and minute, if minute is None, replace with '00'
                 hour, minute = match.groups()
