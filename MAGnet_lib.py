@@ -1694,8 +1694,11 @@ def generer_textes_infos(gn: GN):
     # on met toutes les scènes dans une string
     to_return = ""
     for info in dict_infos:
+        mes_scenes = Scene.trier_scenes(dict_infos[info], date_gn=gn.get_date_gn())
+
         to_return += f"Scènes associées à {info} : \n"
-        for scene in dict_infos[info]:
+        # for scene in dict_infos[info]:
+        for scene in mes_scenes:
             to_return += scene.str_pour_squelette() + '\n'
         to_return += '***************************** \n'
     return to_return

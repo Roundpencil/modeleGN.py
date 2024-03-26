@@ -1,5 +1,6 @@
 from googleapiclient.errors import HttpError
 
+import lecteurGoogle
 from MAGnet import *
 from lecteurGoogle import creer_lecteurs_google_apis
 
@@ -174,7 +175,7 @@ def inserer_image_dans_google_doc(image_id, doc_id, position, drive_service, doc
     image_url = image_file.get('webViewLink')
 
     # Créer une requête pour insérer l'image dans le Google Doc
-    requests = [
+    request = [
         {
             'insertInlineImage': {
                 'location': {
@@ -198,7 +199,7 @@ def inserer_image_dans_google_doc(image_id, doc_id, position, drive_service, doc
     # # Exécuter la requête
     # result = docs_service.documents().batchUpdate(documentId=doc_id, body={'requests': requests}).execute()
     # print(f'Image insérée avec succès : {result}')
-    return requests
+    return request
 
 
 def lister_images_dans_dossier(folder_id, drive_service):
@@ -259,8 +260,41 @@ def trouver_clefs_plus_longues_et_positions(dictionnaire, texte):
     resultats = [[cle, pos] for pos, cle in positions_et_clefs.items()]
     return resultats
 
+
 def test_inclusion_images():
     api_drive, api_doc, _ = creer_lecteurs_google_apis()
     # donner un dossier source image, un fichier texte
+    dossier_image = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
+    item_id = '1syyJGdBK2Kkar5UgWNsRWyiU1_plAQfEFeZFX9XWnbo'
 
-    # lister toutes les photos des
+    #lire le texte d'origine
+    document = api_doc.documents().get(documentId=item_id).execute()
+    contenu_document = document.get('body').get('content')
+    texte_avec_format = lecteurGoogle.read_structural_elements(contenu_document)
+    texte_avec_format = texte_avec_format.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
+    print(texte_avec_format)
+
+    # lister toutes les photos du dossier source
+    dic_photos = lister_images_dans_dossier(dossier_image, api_drive)
+    print(dic_photos)
+
+    dic_photos = prendre_en_compte_prenoms_dans_dico_images(dic_photos)
+    print(dic_photos)
+
+    #trouver les emplacements des clefs
+    liste_clef_pos = trouver_clefs_plus_longues_et_positions(dic_photos, texte_avec_format)
+    print(liste_clef_pos)
+
+    #créer la requete
+    for clef, position in liste_clef_pos:
+        img_id = dic_photos[clef]
+        request = inserer_image_dans_google_doc(image_id=img_id, doc_id=item_id,
+                                                position=position, drive_service=api_drive, docs_service=api_doc)
+        print(request)
+
+    # créer un nouveau document pour accueillir la fiche enrichie
+
+    # exporter la fiche enrichie dans le document
+
+
+test_inclusion_images()
