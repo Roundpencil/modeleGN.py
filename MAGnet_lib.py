@@ -44,7 +44,7 @@ from modeleGN import *
 #  objectifs : se passer et du fichier de config, et de la nécessité de télécharger un mgn
 #  quand on vérifie la validité du dict config du fichier GN, en profiter pour le loader et séparer les fcontions selon si on a utilisé .ini ou .mgn
 # todo : renommer Evmenet en FicheEvemenet et Intervention en Evenement
-#
+# problème desécurté à craquer
 
 # confort / logique
 # todo : refaire version console
