@@ -128,7 +128,7 @@ def creer_lecteurs_google_apis():
     return api_drive, lecteur_doc, lecteur_sheets
 
 
-def read_paragraph_element(element):
+def read_paragraph_element(element, extraire_formattage=True):
     """Returns the text in the given ParagraphElement, including any hyperlinks.
 
     Args:
@@ -136,46 +136,48 @@ def read_paragraph_element(element):
 
     Returns:
         str: The text content of the element, with hyperlinks expanded.
+        :param extraire_formattage:
     """
     content = ''
     text_run = element.get('textRun')
 
     if text_run:
         content = text_run.get('content', '')
-        text_style = text_run.get('textStyle', {})
-        hyperlink_info = text_style.get('link')
+        if extraire_formattage:
+            text_style = text_run.get('textStyle', {})
+            hyperlink_info = text_style.get('link')
 
-        # if hyperlink_info:
-        #     url = f"{hyperlink_info.get('url')} "
-        #     if url:
-        #         content = ' '.join([content, url])
+            # if hyperlink_info:
+            #     url = f"{hyperlink_info.get('url')} "
+            #     if url:
+            #         content = ' '.join([content, url])
 
-        if hyperlink_info := text_style.get('link'):
-            url = f"{hyperlink_info.get('url')} "
-            if url:
-                content = ' '.join([content, url])
+            if hyperlink_info := text_style.get('link'):
+                url = f"{hyperlink_info.get('url')} "
+                if url:
+                    content = ' '.join([content, url])
 
-        for clef_formattage in VALEURS_FORMATTAGE:
-            if clef_formattage == 'backgroundColor':
-                backgroundColor = text_style.get('backgroundColor', {}).get('color', {})
-                if backgroundColor:  # Checks if backgroundColor is not empty
-                    rgbColor = backgroundColor.get('rgbColor', {})
-                    # Checks if the color is not transparent, blank, or white
-                    if rgbColor and not (
-                            rgbColor.get('red', 0) == 1 and rgbColor.get('green', 0) == 1 and rgbColor.get('blue',
-                                                                                                           0) == 1):
-                        content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
-                                           content,
-                                           VALEURS_FORMATTAGE[clef_formattage][1]])
-            elif text_style.get(clef_formattage):
-                content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
-                                   content,
-                                   VALEURS_FORMATTAGE[clef_formattage][1]])
+            for clef_formattage in VALEURS_FORMATTAGE:
+                if clef_formattage == 'backgroundColor':
+                    backgroundColor = text_style.get('backgroundColor', {}).get('color', {})
+                    if backgroundColor:  # Checks if backgroundColor is not empty
+                        rgbColor = backgroundColor.get('rgbColor', {})
+                        # Checks if the color is not transparent, blank, or white
+                        if rgbColor and not (
+                                rgbColor.get('red', 0) == 1 and rgbColor.get('green', 0) == 1 and rgbColor.get('blue',
+                                                                                                               0) == 1):
+                            content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
+                                               content,
+                                               VALEURS_FORMATTAGE[clef_formattage][1]])
+                elif text_style.get(clef_formattage):
+                    content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
+                                       content,
+                                       VALEURS_FORMATTAGE[clef_formattage][1]])
 
-            # if text_style.get(clef_formattage):
-            #     content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
-            #                        content,
-            #                        VALEURS_FORMATTAGE[clef_formattage][1]])
+                # if text_style.get(clef_formattage):
+                #     content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
+                #                        content,
+                #                        VALEURS_FORMATTAGE[clef_formattage][1]])
 
     return content
 
@@ -193,19 +195,20 @@ def read_paragraph_element(element):
 #     # return text_run.get('content')
 
 
-def read_structural_elements(elements):
+def read_structural_elements(elements, extraire_formattage=True):
     """Recurses through a list of Structural Elements to read a document's text where text may be
         in nested elements.
 
         Args:
             elements: a list of Structural Elements.
+            :param extraire_formattage:
     """
     text = ''
     for value in elements:
         if 'paragraph' in value:
             elements = value.get('paragraph').get('elements')
             for elem in elements:
-                text += read_paragraph_element(elem)
+                text += read_paragraph_element(elem, extraire_formattage=extraire_formattage)
         elif 'table' in value:
             # The text in table cells are in nested Structural Elements and tables may be
             # nested.

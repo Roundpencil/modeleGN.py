@@ -2218,10 +2218,10 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
     return 0
 
 
-def lire_google_doc(api_doc, id_doc):
+def lire_google_doc(api_doc, id_doc, extraire_formattage=True):
     document = api_doc.documents().get(documentId=id_doc).execute()
     contenu_document = document.get('body').get('content')
-    text = lecteurGoogle.read_structural_elements(contenu_document)
+    text = lecteurGoogle.read_structural_elements(contenu_document, extraire_formattage=extraire_formattage)
     text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
     return text
 
