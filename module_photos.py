@@ -326,6 +326,8 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
     #### insérer les images
     api_doc.documents().batchUpdate(documentId=new_file_id, body={'requests': requetes}).execute()
 
+
+##### code pour tster le module photos
 sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
 folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
 
