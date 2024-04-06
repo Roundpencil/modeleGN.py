@@ -347,32 +347,67 @@ def retirer_balises_formattage(text, verbal=False):
     return to_return
 
 
+# def generer_liste_items(api_drive, nom_fichier):
+#     # nom_fichier = nom_fichier
+#
+#     # faire la requête pour lire tous les dossiers en entrée
+#
+#     if len(nom_fichier) < 1:
+#         print("erreur, aucun mon_id dans l'input")
+#         return -1
+#
+#     requete = "".join(f"'{mon_id}' in parents or " for mon_id in nom_fichier)
+#
+#     requete = requete[:-3]
+#     logging.debug(f"requete = {requete}")
+#
+#     # pour tenter de comprendre comment on spécifie le mimetype
+#     # requete = "mimeType == application/vnd.google-apps.document"
+#
+#     try:
+#         # Call the Drive v3 API
+#         results = api_drive.files().list(
+#             pageSize=200, q=requete,
+#             fields="nextPageToken, files(id, name, modifiedTime, lastModifyingUser)").execute()
+#
+#         items = results.get('files',
+#                             [])  # le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues
+#         print(f"j'ai trouvé {len(items)} items ")
+#         return items
+#     except HttpError as err:
+#         print(f'An error occurred: {err}')
+#         return None
 def generer_liste_items(api_drive, nom_fichier):
-    # nom_fichier = nom_fichier
-
-    # faire la requête pour lire tous les dossiers en entrée
-
     if len(nom_fichier) < 1:
         print("erreur, aucun mon_id dans l'input")
         return -1
 
     requete = "".join(f"'{mon_id}' in parents or " for mon_id in nom_fichier)
-
     requete = requete[:-3]
     logging.debug(f"requete = {requete}")
 
-    # pour tenter de comprendre comment on spécifie le mimetype
-    # requete = "mimeType == application/vnd.google-apps.document"
+    items = []  # Initialise une liste vide pour stocker les résultats
+    page_token = None  # Initialise le token de page pour la pagination
 
     try:
-        # Call the Drive v3 API
-        results = api_drive.files().list(
-            pageSize=200, q=requete,
-            fields="nextPageToken, files(id, name, modifiedTime, lastModifyingUser)").execute()
+        while True:
+            # Appel de l'API avec gestion de la pagination
+            results = api_drive.files().list(
+                pageSize=200,
+                q=requete,
+                fields="nextPageToken, files(id, name, modifiedTime, lastModifyingUser)",
+                pageToken=page_token  # Utilise le token de page actuel
+            ).execute()
 
-        items = results.get('files',
-                            [])  # le q = trucs est l'identifiant du dossier drive qui contient toutes les intrigues
-        print(f"j'ai trouvé {len(items)} items ")
+            # Ajoute les fichiers de cette page à la liste des items
+            items.extend(results.get('files', []))
+
+            # Met à jour le token de page avec le prochain, s'il existe
+            page_token = results.get('nextPageToken', None)
+            if page_token is None:
+                break  # Si aucun token de page suivant, fin de la boucle
+
+        print(f"j'ai trouvé {len(items)} items")
         return items
     except HttpError as err:
         print(f'An error occurred: {err}')
