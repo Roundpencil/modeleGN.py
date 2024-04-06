@@ -16,8 +16,6 @@ from modeleGN import *
 ID_FICHIER_ARCHIVES = '1tEXjKfiU8k_SU_jyVAoUQU1K9Gp77Cv0'
 
 
-# todo pour format : objets, pj / pnj(en cours), evenements
-
 def extraire_intrigues(mon_gn: GN, api_drive, api_doc, singletest="-01", verbal=False, fast=True, m_print=print,
                        visualisation=lambda x: print("barre de visualisation virtuelle : +", x),
                        taille_visualisation=100.0):
@@ -2171,7 +2169,9 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
         return -1
 
     # on commence par effacer les factions existantes pour éviter les doublons
-    # todo : réécrire et débugger
+    # todo : trouver une amnière de vérifier si les factions marchent bien
+    #  ou sont la cause des roles sans persos inexpliqués.
+    #  si oui,  réécrire et débugger
 
     mon_gn.clear_all_factions()
 

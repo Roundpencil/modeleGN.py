@@ -50,16 +50,13 @@ from modeleGN import *
 # todo : refaire version console
 
 # fiches de persos
-# todo : ajouter un code qui parcourre ajouter les images dans les fiches de perso
-#  parcourir toute une fiche de perso,
-#   identfie la première apparition de chaque PJ
-#   trouver sa photo dans le tableau des PJs
-#   ajouter la photo a côté de son nom
-#   parcours reverse si compliqué avec les numéros des caractères
+# todo : finaliser la gestion des images :
+#  fichier de paramètre
+#  GUI pour appeleler module image
 
 # utilité du code
 # todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
-# todo : regarder s'il faut virer  les last modfied dans le GN
+# todo : regarder s'il faut virer  les last modfied dans le GN (sert-il àquleque chose?)
 # todo : changer tous les paramètres de MAGnet_lib par une classe ou un dictionnaire pour accelérer le design
 #   vérifier l'usage de la GUI 3 qui utilise can write
 
