@@ -210,10 +210,38 @@ requests = [
     }
 ]
 
-# Exécuter la requête
-try:
-    result = api_doc.documents().batchUpdate(documentId=document_id, body={'requests': requests}).execute()
-    print("L'image a été insérée avec succès.")
-except Exception as e:
-    print(f"Erreur lors de l'insertion de l'image : {e}")
+# # Exécuter la requête
+# try:
+#     result = api_doc.documents().batchUpdate(documentId=document_id, body={'requests': requests}).execute()
+#     print("L'image a été insérée avec succès.")
+# except Exception as e:
+#     print(f"Erreur lors de l'insertion de l'image : {e}")
+
+
+def lister_images_avec_exntension_dans_dossier(folder_id, drive_service, extension='png'):
+    images_dict = {}
+
+    # Définir la requête pour rechercher des fichiers d'images dans le dossier spécifié
+    query = f"'{folder_id}' in parents and (mimeType='image/jpeg' or mimeType='image/png') and trashed = false"
+    page_token = None  # Initialiser le token de pagination à None
+
+    while True:  # Commencer une boucle pour gérer la pagination
+        response = drive_service.files().list(q=query,
+                                              spaces='drive',
+                                              fields='nextPageToken, files(id, name)',
+                                              orderBy='createdTime',
+                                              pageToken=page_token).execute()  # Ajouter pageToken à la requête
+
+        # Extraire le nom de fichier sans extension et l'ID, et les ajouter au dictionnaire
+        for file in response.get('files', []):
+            # Supprimer l'extension du fichier pour obtenir le nom de l'image
+            name = file.get('name')
+            extension = name.split('.')[-1].strip()
+            if extension == extension:
+                print(name)
+
+        page_token = response.get('nextPageToken')  # Récupérer le nextPageToken de la réponse
+
+        if not page_token:  # Si il n'y a pas de nextPageToken, c'est la fin des résultats
+            break  # Sortir de la boucle
 

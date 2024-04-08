@@ -7,21 +7,48 @@ from lecteurGoogle import *
 import google_io as g_io
 
 
+# def lister_images_dans_dossier(folder_id, drive_service):
+#     images_dict = {}
+#
+#     # Définir la requête pour rechercher des fichiers d'images dans le dossier spécifié
+#     query = f"'{folder_id}' in parents and (mimeType='image/jpeg' or mimeType='image/png') and trashed = false"
+#     response = drive_service.files().list(q=query,
+#                                           spaces='drive',
+#                                           fields='files(id, name)',
+#                                           orderBy='createdTime').execute()
+#
+#     # Extraire le nom de fichier sans extension et l'ID, et les ajouter au dictionnaire
+#     for file in response.get('files', []):
+#         # Supprimer l'extension du fichier pour obtenir le nom de l'image
+#         file_name_without_extension = '.'.join(file.get('name').split('.')[:-1]).strip()
+#         images_dict[file_name_without_extension] = file.get('id')
+#
+#     return images_dict
+
 def lister_images_dans_dossier(folder_id, drive_service):
     images_dict = {}
 
     # Définir la requête pour rechercher des fichiers d'images dans le dossier spécifié
     query = f"'{folder_id}' in parents and (mimeType='image/jpeg' or mimeType='image/png') and trashed = false"
-    response = drive_service.files().list(q=query,
-                                          spaces='drive',
-                                          fields='files(id, name)',
-                                          orderBy='createdTime').execute()
+    page_token = None  # Initialiser le token de pagination à None
 
-    # Extraire le nom de fichier sans extension et l'ID, et les ajouter au dictionnaire
-    for file in response.get('files', []):
-        # Supprimer l'extension du fichier pour obtenir le nom de l'image
-        file_name_without_extension = '.'.join(file.get('name').split('.')[:-1]).strip()
-        images_dict[file_name_without_extension] = file.get('id')
+    while True:  # Commencer une boucle pour gérer la pagination
+        response = drive_service.files().list(q=query,
+                                              spaces='drive',
+                                              fields='nextPageToken, files(id, name)',
+                                              orderBy='createdTime',
+                                              pageToken=page_token).execute()  # Ajouter pageToken à la requête
+
+        # Extraire le nom de fichier sans extension et l'ID, et les ajouter au dictionnaire
+        for file in response.get('files', []):
+            # Supprimer l'extension du fichier pour obtenir le nom de l'image
+            file_name_without_extension = '.'.join(file.get('name').split('.')[:-1]).strip()
+            images_dict[file_name_without_extension] = file.get('id')
+
+        page_token = response.get('nextPageToken')  # Récupérer le nextPageToken de la réponse
+
+        if not page_token:  # Si il n'y a pas de nextPageToken, c'est la fin des résultats
+            break  # Sortir de la boucle
 
     return images_dict
 
@@ -233,8 +260,8 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur):
             'location': {'index': position},
             'uri': image_url,
             'objectSize': {
-                'height': {'magnitude': 50, 'unit': 'PT'},
-                'width': {'magnitude': 50, 'unit': 'PT'}
+                'height': {'magnitude': 100, 'unit': 'PT'},
+                'width': {'magnitude': 100, 'unit': 'PT'}
             }
         }
     }
@@ -244,7 +271,7 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur):
         'updateTextStyle': {
             'range': {
                 'startIndex': position,
-                'endIndex': position + longueur+1
+                'endIndex': position + longueur + 1
             },
             'textStyle': {
                 'bold': True
@@ -298,7 +325,6 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
     for image in sorted(image_a_inserer, key=lambda x: x[1], reverse=True):
         requetes.extend(requete_pour_inserer_img_et_formatter(dict_img_id[image[0]], image[1], len(image[2])))
 
-
     print(requetes)
 
     ##### copier le fichier source et le renommer
@@ -328,12 +354,24 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
 
 
 ##### code pour tster le module photos
-sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
-folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
+def tester_module_photo():
+    sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
+    folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
 
-file_id = '1syyJGdBK2Kkar5UgWNsRWyiU1_plAQfEFeZFX9XWnbo'
-destination_folder_id = '1LV5rFP4JNxDEa5OT00qeNFLok4ZE2oKe'
+    file_id = '1syyJGdBK2Kkar5UgWNsRWyiU1_plAQfEFeZFX9XWnbo'
+    destination_folder_id = '1LV5rFP4JNxDEa5OT00qeNFLok4ZE2oKe'
 
+    api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+    copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
 
-api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
+def tester_module_photo_chalacta():
+    sheet_id = '1JL7vkZkZ-3Alll1NDnf6V97ITSamucLnAos-PqWK_hY'
+    folder_id = '1EcxSMpcwE0dZDIjVTHGp6R6mtsPgH77l'
+
+    file_id = '1gBa214Y_KfjcMdjvtS0QsS72mHPkTyB5-joKiKclyaM'
+    destination_folder_id = '1LV5rFP4JNxDEa5OT00qeNFLok4ZE2oKe'
+
+    api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+    copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
+
+# tester_module_photo()
