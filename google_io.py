@@ -3916,6 +3916,7 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
             nom = items[0]['name']
             last_save_online = nom.split(' - ')[0]
             if last_save_online <= last_save_connu:
+                # todo : utiliser une autre valeur car décalage ave l'upload qui fait que c'est toujours téléchargé
                 m_print("La version locale est la dernière à jour, pas besoin de télécharger")
                 return None
 
