@@ -357,9 +357,15 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
 def tester_module_photo():
     sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
     folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
+def test_module():
+    sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
+    folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
 
     file_id = '1syyJGdBK2Kkar5UgWNsRWyiU1_plAQfEFeZFX9XWnbo'
     destination_folder_id = '1LV5rFP4JNxDEa5OT00qeNFLok4ZE2oKe'
+
+    api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+    copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
 
     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
