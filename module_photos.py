@@ -305,6 +305,8 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
 
     dict_img_indexes = {}
     for img in dico_photos_motsclefs:
+        if not img:
+            continue
         dict_img_indexes[img] = trouver_mots_phrases_plus_long(dico_photos_motsclefs[img], text)
         dict_img_indexes[img].sort(key=lambda x: x[0])
     print(dict_img_indexes)
@@ -371,11 +373,13 @@ def test_module():
     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
 
 def tester_module_photo_chalacta():
-    sheet_id = '1JL7vkZkZ-3Alll1NDnf6V97ITSamucLnAos-PqWK_hY'
-    folder_id = '1EcxSMpcwE0dZDIjVTHGp6R6mtsPgH77l'
+    sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
+    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n' #photos S1 chalacta
 
     file_id = '1gBa214Y_KfjcMdjvtS0QsS72mHPkTyB5-joKiKclyaM'
+    file_id = '1Ej13kppMDJnPEbAK2mC88TGAWnA48x818Wm33VS7oqw' ## fiche Kyle talus
     destination_folder_id = '1LV5rFP4JNxDEa5OT00qeNFLok4ZE2oKe'
+    destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
 
     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
