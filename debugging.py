@@ -173,7 +173,8 @@ def verifier_acces_image(image_id, api_drive):
         if 'permissions' in file_metadata:
             print("Permissions :")
             for perm in file_metadata['permissions']:
-                print(f"- Type : {perm.get('type')}, Rôle : {perm.get('role')}, Email : {perm.get('emailAddress', 'N/A')}")
+                print(
+                    f"- Type : {perm.get('type')}, Rôle : {perm.get('role')}, Email : {perm.get('emailAddress', 'N/A')}")
         else:
             print("Permissions : Non listées (vous n'avez peut-être pas le droit de voir les permissions)")
 
@@ -182,33 +183,35 @@ def verifier_acces_image(image_id, api_drive):
         print(f"Erreur lors de la vérification de l'accès : {e}")
         return False  # Accès non vérifié
 
+
 # # Remplacez 'Votre_Image_ID' par l'ID de votre image
-api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-verifier_acces_image('1dd4-_fgHjIiUMjXtRFZsaZPwZmuonc6T', api_drive)
-
-
-# ID de votre document Google Docs
-document_id = '1iF6aE93CO-e77jRh9CHEEyh7ZYazNSb5kwOKQrmyeg4'
-
-# URL de l'image à insérer
-image_id ='1dd4-_fgHjIiUMjXtRFZsaZPwZmuonc6T'
-image_url = f'https://drive.google.com/uc?export=view&id={image_id}'
+# api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+# verifier_acces_image('1dd4-_fgHjIiUMjXtRFZsaZPwZmuonc6T', api_drive)
+#
+#
+# # ID de votre document Google Docs
+# document_id = '1iF6aE93CO-e77jRh9CHEEyh7ZYazNSb5kwOKQrmyeg4'
+#
+# # URL de l'image à insérer
+# image_id ='1dd4-_fgHjIiUMjXtRFZsaZPwZmuonc6T'
+# image_url = f'https://drive.google.com/uc?export=view&id={image_id}'
 
 # drive_service.files().get(fileId=imageId, fields="webContentLink")
 
 # Requête pour insérer l'image
-requests = [
-    {
-        'insertInlineImage': {
-            'location': {'index': 1},
-            'uri': image_url,
-            'objectSize': {
-                'height': {'magnitude': 50, 'unit': 'PT'},
-                'width': {'magnitude': 50, 'unit': 'PT'}
-            }
-        }
-    }
-]
+# requests = [
+#     {
+#         'insertInlineImage': {
+#             'location': {'index': 1},
+#             'uri': image_url,
+#             'objectSize': {
+#                 'height': {'magnitude': 50, 'unit': 'PT'},
+#                 'width': {'magnitude': 50, 'unit': 'PT'}
+#             }
+#         }
+#     }
+# ]
+
 
 # # Exécuter la requête
 # try:
@@ -244,4 +247,36 @@ def lister_images_avec_exntension_dans_dossier(folder_id, drive_service, extensi
 
         if not page_token:  # Si il n'y a pas de nextPageToken, c'est la fin des résultats
             break  # Sortir de la boucle
+
+
+##################### debugging factions
+
+def voiture_balais_factions():
+    factions = ['Course',
+                'Daymio',
+                'Cercle oblique',
+                'Réseau freedom',
+                'CDP',
+                'Médecins',
+                'Milice',
+                'Empire',
+                'tous les personnages joueurs']
+    gn = GN.load('archive chalacta.mgn')
+
+    scenes = gn.lister_toutes_les_scenes()
+    a_corriger = set()
+
+    for nom_faction in factions:
+        for scene in scenes:
+            score = process.extractOne(nom_faction, scene.nom_factions)
+            if score and score[1] > 80:
+                print(f"{score[0]}, {score[1]}")
+                # alors on a un match
+                a_corriger.add(scene)
+
+    tri = Scene.trier_scenes(a_corriger)
+    texte = '\n\n'.join([scene.str_pour_squelette() for scene in tri])
+    dr, do, sh = lecteurGoogle.creer_lecteurs_google_apis()
+    g_io.write_to_doc(do, '1xboOGtTJtnmOt6ITcEZ7NCcLTN6qhzGN9VaM5R4WobE', texte, 'titre')
+
 
