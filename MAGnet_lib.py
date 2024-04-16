@@ -39,7 +39,7 @@ from modeleGN import *
 #  nouveau paramètre à ajouter : sessions_à_generer pour savoir quels casting on affiche, et quel génération on fait
 
 # à faire - plus long
-# todo : faire quelque part une liste de tous les dossiers ou se trouvent des *.mng (cf. chat gpt)
+# todo : faire quelque part une liste de tous les dossiers ou se trouvent des *.mng
 #  vérifier auxquels a acces l'utilisateur quand il lance le programme, puis lui proposer de télécahrger les siens.
 #  objectifs : se passer et du fichier de config, et de la nécessité de télécharger un mgn
 #  quand on vérifie la validité du dict config du fichier GN, en profiter pour le loader et séparer les fcontions selon si on a utilisé .ini ou .mgn

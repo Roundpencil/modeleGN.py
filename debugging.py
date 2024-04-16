@@ -280,3 +280,39 @@ def voiture_balais_factions():
     g_io.write_to_doc(do, '1xboOGtTJtnmOt6ITcEZ7NCcLTN6qhzGN9VaM5R4WobE', texte, 'titre')
 
 
+def tableau_intrigues_persos():
+    gn = GN.load('archive chalacta.mgn')
+
+    dico = {perso: [] for perso in gn.personnages.values()}
+    for intrigue in gn.intrigues.values():
+        for role in intrigue.rolesContenus.values():
+            if perso := role.personnage:
+                dico[perso].append(intrigue)
+
+    intrigues = list(gn.intrigues.values())
+
+    # output = [[''] + [intrigue.nom for intrigue in intrigues]]
+    # for perso in dico:
+    #     if 'pierre' not in perso.orga_referent.lower():
+    #         continue
+    #     to_add = [perso.nom]
+    #     for intrigue in dico[perso]:
+    #         for i in intrigues:
+    #             to_add.append(1 if i == intrigue else 0)
+    #     output.append(to_add)
+
+    output = []
+    mes_persos = [perso for perso in gn.personnages.values() if 'pierre' in perso.orga_referent.lower()]
+    output.append([''] + [perso.nom for perso in mes_persos])
+
+    for intrigue in intrigues:
+        to_add = [intrigue.nom]
+        for perso in mes_persos:
+            to_add.append(1 if intrigue in dico[perso] else 0)
+        output.append(to_add)
+    _, _, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
+    mon_id = '1HeJI-ECICzVvMzzefku721Vk6Hggc8cF9WClnCGDTUM'
+    g_io.ecrire_table_google_sheets(api_sheets, output, mon_id, "persos Civils")
+
+
+
