@@ -262,7 +262,8 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur):
             'objectSize': {
                 'height': {'magnitude': 100, 'unit': 'PT'},
                 'width': {'magnitude': 100, 'unit': 'PT'}
-            }
+            },
+            'WrapStrategy': 'WRAP_TEXT'
         }
     }
 
@@ -376,10 +377,9 @@ def tester_module_photo_chalacta():
     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
     folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n' #photos S1 chalacta
 
-    file_id = '1gBa214Y_KfjcMdjvtS0QsS72mHPkTyB5-joKiKclyaM'
-    file_id = '1Ej13kppMDJnPEbAK2mC88TGAWnA48x818Wm33VS7oqw' ## fiche Kyle talus
-    destination_folder_id = '1LV5rFP4JNxDEa5OT00qeNFLok4ZE2oKe'
-    destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
+    file_id = '1Les3Sr500Ta8W6QJrSLFFajmpCyOsOxFrthTXFYbRTI' ## fiche test Lars
+    destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
+    # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
 
     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)

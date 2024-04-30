@@ -1,10 +1,6 @@
 from googleapiclient.errors import HttpError
 
-import lecteurGoogle
 from MAGnet import *
-from lecteurGoogle import creer_lecteurs_google_apis
-
-import re
 
 
 def kalitt_debug():
@@ -221,7 +217,7 @@ def verifier_acces_image(image_id, api_drive):
 #     print(f"Erreur lors de l'insertion de l'image : {e}")
 
 
-def lister_images_avec_exntension_dans_dossier(folder_id, drive_service, extension='png'):
+def lister_images_avec_extension_dans_dossier(folder_id, drive_service, extension='png'):
     images_dict = {}
 
     # Définir la requête pour rechercher des fichiers d'images dans le dossier spécifié
