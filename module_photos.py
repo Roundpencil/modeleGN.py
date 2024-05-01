@@ -262,8 +262,7 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur):
             'objectSize': {
                 'height': {'magnitude': 100, 'unit': 'PT'},
                 'width': {'magnitude': 100, 'unit': 'PT'}
-            },
-            'wrapStrategy': 'WRAP'
+            }
         }
     }
 

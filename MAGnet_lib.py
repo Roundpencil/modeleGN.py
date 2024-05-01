@@ -932,11 +932,23 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
         m_print(f'{prefixe} : {nom_perso}')
         visualisation(pas_visualisation)
 
-        # pas d'archivage car le dossier a déjà été archivé
-        file_id = g_io.creer_google_doc(api_drive, nom_fichier, nouveau_dossier,
-                                        id_dossier_archive=None)
-        g_io.write_to_doc(api_doc, file_id, texte, titre=nom_fichier)
-        # g_io.formatter_titres_scenes_dans_squelettes(api_doc, file_id)
+        nb_tries = 0
+        max_tries = 3
+        while True:
+            try:
+                # pas d'archivage car le dossier a déjà été archivé
+                file_id = g_io.creer_google_doc(api_drive, nom_fichier, nouveau_dossier,
+                                                id_dossier_archive=None)
+                g_io.write_to_doc(api_doc, file_id, texte, titre=nom_fichier)
+                # g_io.formatter_titres_scenes_dans_squelettes(api_doc, file_id)
+                break
+            except Exception as e:
+                nb_tries += 1
+                if nb_tries < max_tries:
+                    m_print(f"Une erreur est survenue, nouvelle tentative ({nb_tries}/{max_tries})")
+                    print(f"Exception attrappée durant la génération : {e}")
+                else:
+                    raise e
 
 
 def squelettes_par_perso(mon_gn: GN, pj=True, m_print=print):
