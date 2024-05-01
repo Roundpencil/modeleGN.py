@@ -944,7 +944,7 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
                 break
             except Exception as e:
                 nb_tries += 1
-                if nb_tries < max_tries:
+                if nb_tries <= max_tries:
                     m_print(f"Une erreur est survenue, nouvelle tentative ({nb_tries}/{max_tries})")
                     print(f"Exception attrappée durant la génération : {e}")
                 else:
