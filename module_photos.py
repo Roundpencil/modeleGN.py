@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import re
 from datetime import datetime
 
+import lecteurGoogle
 from lecteurGoogle import *
 import google_io as g_io
 
@@ -292,7 +293,7 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur):
 ##### test lire photos
 def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
                                    id_sheet_photos_aliases, id_dossier_images,
-                                   id_doc_source, id_dossier_output):
+                                   id_doc_source, id_dossier_output, offset=0):
     dico_photos_motsclefs = lire_table_photos(api_sheets, id_sheet_photos_aliases)
 
     dico_photos_motsclefs = nettoyer_doublons_souschaines(dico_photos_motsclefs)
@@ -325,7 +326,7 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
 
     requetes = []
     for image in sorted(image_a_inserer, key=lambda x: x[1], reverse=True):
-        requetes.extend(requete_pour_inserer_img_et_formatter(dict_img_id[image[0]], image[1], len(image[2])))
+        requetes.extend(requete_pour_inserer_img_et_formatter(dict_img_id[image[0]], image[1] + offset, len(image[2])))
 
     print(requetes)
 
@@ -377,10 +378,30 @@ def tester_module_photo_chalacta():
     folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n' #photos S1 chalacta
 
     file_id = '1Les3Sr500Ta8W6QJrSLFFajmpCyOsOxFrthTXFYbRTI' ## fiche test Lars
+    file_id = '1U1OYQPipSYBZrwknPMKIW5qgywhVHoeK1QXen3Xy0us' ## fiche réelle Lars
     destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
+    # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
+    offset = 2
+    api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+    copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id, offset)
+
+
+def tester_module_photo_dossier_chalacta():
+    sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
+    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n' #photos S1 chalacta
+
+    # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
+    parent = ['1sApU23J6e4lFZ0OmDtghq40T1Iw5vMTY']
     # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
 
     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-    copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
+
+    ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, parent)]
+    racine_pj = '1C53BHHW9xjCWgTVRlBlBCU9Vbmosxv0k'
+    destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_pj, "output photos")
+    print(f"ids fichiers {ids}")
+    offset = 2
+    for file_id in ids:
+        copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id, offset=2)
 
 # tester_module_photo()
