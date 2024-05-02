@@ -254,7 +254,6 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur):
     print(f'image_id = {image_id}')
 
     image_url = f'https://drive.google.com/uc?export=view&id={image_id}'
-
     # Créer une requête pour insérer l'image dans le Google Doc
     insert_image_request = {
         'insertInlineImage': {
@@ -349,7 +348,8 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
 
     requetes = []
     for image in sorted(image_a_inserer, key=lambda x: x[1], reverse=True):
-        requetes.extend(requete_pour_inserer_img_et_formatter(dict_img_id[image[0]], image[1] + offset, len(image[2])))
+        if image[1] > 1:
+            requetes.extend(requete_pour_inserer_img_et_formatter(dict_img_id[image[0]], image[1] + offset, len(image[2])))
 
     print(requetes)
 
@@ -431,5 +431,24 @@ def tester_module_photo_dossier_chalacta():
     for file_id in ids:
         copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
                                        destination_folder_id, offset=2)
+
+def tester_module_photo_imperiaux():
+    sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
+    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
+
+    # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
+    parent = ['1T_lUrwfTP4dZd_GH0a54pLjsu7Evnqml'] #dossier ou lire tout
+    # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
+
+    api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+
+    ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, parent)]
+    racine_sortie = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn'
+    destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "demo imperiaux")
+    print(f"ids fichiers {ids}")
+    offset = 0
+    for file_id in ids:
+        copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
+                                       destination_folder_id, offset=offset)
 
 
