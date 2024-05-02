@@ -267,6 +267,29 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur):
         }
     }
 
+    ## update chat gpt - ne marche pas
+    # insert_image_request = {
+    #     'insertInlineImage': {
+    #         'location': {'index': position},
+    #         'uri': image_url,
+    #         'objectSize': {
+    #             'height': {'magnitude': 100, 'unit': 'PT'},
+    #             'width': {'magnitude': 100, 'unit': 'PT'}
+    #         },
+    #         'imageProperties': {
+    #             'positioning': {
+    #                 'layout': 'wrapText',  # Options may include: 'wrapText', 'breakText', etc.
+    #                 'wrapOffset': {  # Optional: provide offset values if applicable
+    #                     'top': 5,
+    #                     'bottom': 5,
+    #                     'left': 5,
+    #                     'right': 5
+    #                 }
+    #             }
+    #         }
+    #     }
+    # }
+
     # Créer une requête pour mettre en gras le texte
     bold_text_request = {
         'updateTextStyle': {
@@ -360,6 +383,8 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
 def tester_module_photo():
     sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
     folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
+
+
 def test_module():
     sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
     folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
@@ -373,22 +398,24 @@ def test_module():
     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
 
+
 def tester_module_photo_chalacta():
     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
-    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n' #photos S1 chalacta
+    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
 
-    file_id = '1Les3Sr500Ta8W6QJrSLFFajmpCyOsOxFrthTXFYbRTI' ## fiche test Lars
-    file_id = '1U1OYQPipSYBZrwknPMKIW5qgywhVHoeK1QXen3Xy0us' ## fiche réelle Lars
-    destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
+    file_id = '1Les3Sr500Ta8W6QJrSLFFajmpCyOsOxFrthTXFYbRTI'  ## fiche test Lars
+    file_id = '1U1OYQPipSYBZrwknPMKIW5qgywhVHoeK1QXen3Xy0us'  ## fiche réelle Lars
+    destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn'  ## répertoire tmp de MAGnet
     # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
     offset = 2
     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-    copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id, offset)
+    copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id,
+                                   offset)
 
 
 def tester_module_photo_dossier_chalacta():
     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
-    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n' #photos S1 chalacta
+    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
 
     # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
     parent = ['1sApU23J6e4lFZ0OmDtghq40T1Iw5vMTY']
@@ -402,6 +429,7 @@ def tester_module_photo_dossier_chalacta():
     print(f"ids fichiers {ids}")
     offset = 2
     for file_id in ids:
-        copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id, offset=2)
+        copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
+                                       destination_folder_id, offset=2)
 
-# tester_module_photo()
+
