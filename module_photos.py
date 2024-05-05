@@ -429,15 +429,20 @@ def tester_module_photo_dossier_chalacta():
     print(f"ids fichiers {ids}")
     offset = 2
     for file_id in ids:
-        copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
-                                       destination_folder_id, offset=2)
+        # copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
+        #                                destination_folder_id, offset=2)
+        try:
+            copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
+                                           destination_folder_id, offset=offset)
+        except Exception as e:
+            continue
 
 def tester_module_photo_imperiaux():
     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
     folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
 
     # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
-    parent = ['1T_lUrwfTP4dZd_GH0a54pLjsu7Evnqml'] #dossier ou lire tout
+    parent = ['1hqGr7eyliCkJxVcvcMmljoriH3LlRUlW'] #dossier ou lire tout
     # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
 
     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
@@ -448,7 +453,33 @@ def tester_module_photo_imperiaux():
     print(f"ids fichiers {ids}")
     offset = 0
     for file_id in ids:
-        copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
-                                       destination_folder_id, offset=offset)
+        try:
+            copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
+                                           destination_folder_id, offset=offset)
+        except Exception as e:
+            continue
 
+def photos_manu():
+    sheet_id = '1X-UKfYAcRVmGbbxvAgN7k_MPkyQcEoofBQoToL63GBM'
+    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
+
+    # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
+    parent = ['1BsTNOtnVK3RglGhbFoOeoBEQqNw3b6AP'] #dossier ou lire tout
+    # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
+
+    api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+
+    ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, parent)]
+    racine_sortie = '1xYPlwiQMPrKmry0aENzJejp8ETIqXmPP'
+    destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "presque prod Manu")
+    print(f"ids fichiers {ids}")
+    offset = 0
+    for file_id in ids:
+        # copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
+        #                                destination_folder_id, offset=offset)
+        try:
+            copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
+                                           destination_folder_id, offset=offset)
+        except Exception as e:
+            continue
 
