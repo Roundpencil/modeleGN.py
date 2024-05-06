@@ -311,4 +311,76 @@ def tableau_intrigues_persos():
     g_io.ecrire_table_google_sheets(api_sheets, output, mon_id, "persos Civils")
 
 
+from googleapiclient.errors import HttpError
 
+
+def list_docs_and_create_sheet(drive_service, sheets_service, folder_id, output_folder_id):
+    try:
+        # Query to search for Google Docs in the specified folder
+        # query = f"'{folder_id}' in parents"
+        # # query = f"'{folder_id}' in parents and mimeType='application/vnd.google-apps.document'"
+        # print(f"query = {query}")
+        # results = drive_service.files().list(q=query, fields="files(id, name, modifiedTime)").execute()
+        # files = results.get('files', [])
+        results = drive_service.files().list(
+            pageSize=100,
+            q=f"'{folder_id}' in parents", fields="nextPageToken, files(id, name, modifiedTime)").execute()
+        files = results.get('files', [])
+
+        print(f"file = {files}")
+
+        # Create a new Google Sheet in the specified output folder
+        spreadsheet_body = {
+            'properties': {
+                'title': 'Google Docs List'
+            },
+            'sheets': [{
+                'properties': {
+                    'title': 'Docs'
+                }
+            }]
+        }
+        sheet = sheets_service.spreadsheets().create(body=spreadsheet_body, fields='spreadsheetId').execute()
+        spreadsheet_id = sheet.get('spreadsheetId')
+
+        # Prepare the data for the Google Sheet
+        values = [["File ID", "Name", "Last Change"]]
+        values.extend([[file['id'], file['name'], file['modifiedTime']] for file in files])
+
+        # Write data to the Google Sheet
+        data_body = {
+            'values': values
+        }
+        sheets_service.spreadsheets().values().update(
+            spreadsheetId=spreadsheet_id,
+            range='Docs!A1',
+            valueInputOption='USER_ENTERED',
+            body=data_body
+        ).execute()
+
+        print("ping pre")
+        # # Move the created sheet to the desired folder
+        # drive_service.files().update(
+        #     fileId=spreadsheet_id,
+        #     addParents=output_folder_id,
+        #     removeParents=sheet['spreadsheetId'],
+        #     fields='id, parents'
+        # ).execute()
+        file_id = g_io.creer_google_sheet(drive_service, "liste Charles", output_folder_id)
+        g_io.ecrire_table_google_sheets(sheets_service, values, file_id, feuille="tout")
+
+        print("ping post")
+
+        print(f"Spreadsheet created with ID: {spreadsheet_id}")
+        return spreadsheet_id
+
+    except HttpError as error:
+        print(f'An error occurred: {error}')
+        return None
+
+
+def lister_fichiers_charles():
+    dr, _, sh = lecteurGoogle.creer_lecteurs_google_apis()
+    folder_id = '1KC6lFBPAz2BF-iFKbXXcRtXBa-RYdn65'
+    output = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn'
+    list_docs_and_create_sheet(dr, sh, folder_id, output)
