@@ -379,8 +379,42 @@ def list_docs_and_create_sheet(drive_service, sheets_service, folder_id, output_
         return None
 
 
-def lister_fichiers_charles():
+def lister_fichiers_objets_charles():
     dr, _, sh = lecteurGoogle.creer_lecteurs_google_apis()
     folder_id = '1KC6lFBPAz2BF-iFKbXXcRtXBa-RYdn65'
     output = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn'
     list_docs_and_create_sheet(dr, sh, folder_id, output)
+
+def creer_synthese_actions_pnjs():
+    gn = GN.load('archive chalacta.mgn')
+    dico = {}
+    toutes_interventions = []
+    # for evenement in gn.evenements.values():
+    for evenement in gn.lister_tous_les_conteneurs_evenements_unitaires():
+        toutes_interventions.extend(evenement.interventions)
+
+    for intervention in toutes_interventions:
+        intervenants = intervention.liste_intervenants
+        for intervenant in intervenants:
+            clef = intervenant.str_avec_perso()
+            if clef not in dico:
+                dico[clef] = []
+            dico[clef].append(intervention)
+
+    to_R = ""
+
+    for intervenant in dico:
+        to_R += f"{intervenant} \n : "
+        tableau = [["Jour", "Heure", "Description", "Provenance"]]
+        dico[intervenant] = sorted(dico[intervenant], key=lambda x: [x.jour_formatte(), x.heure_debut_formattee()])
+
+        for element in dico[intervenant]:
+            tableau.append([element.jour_formatte(), element.heure_debut_formattee(), element.description, element.evenement.nom_evenement])
+        to_R += lecteurGoogle.formatter_tableau_pour_export(tableau)
+        to_R += '\n\n\n'
+
+    dr, do, sh = lecteurGoogle.creer_lecteurs_google_apis()
+    id = '1Nly0HQGziW6wAMFh13v9f0jG_jIjE3lEAZVrpwFtKNg'
+    g_io.write_to_doc(
+        do, id, to_R, verbal=True
+    )

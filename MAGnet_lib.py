@@ -1038,6 +1038,7 @@ def generer_squelette_perso(mon_gn, perso):
         elements.append(interventions)
 
     if perso.informations_evenements:
+        # tab_evts = [['évènement', 'J', 'Heure', 'Description', 'infos à fournir']] + \
         tab_evts = [['évènement', 'infos à fournir']] + \
                    [evt.row_infos_evenement_pour_squelette() for evt in perso.informations_evenements]
         elements.append("\n *** informations à fournir pour organiser les évènements : ***")
