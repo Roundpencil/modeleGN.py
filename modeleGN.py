@@ -300,6 +300,10 @@ class ConteneurDEvenementsUnitaires(ABC):
     def get_noms_pjs_concernes(self):
         return list(self.pjs_concernes_evenement.keys())
 
+    @abstractmethod
+    def get_referent(self):
+        pass
+
 
 # personnage
 class Personnage(ConteneurDeScene):
@@ -771,6 +775,9 @@ class Intrigue(ConteneurDeScene, ConteneurDEvenementsUnitaires):
         # personnage.pj = max(personnage.pj, role_a_associer.pj)
         personnage.roles.add(role_a_associer)
         return 0
+
+    def get_referent(self):
+        return self.orga_referent
 
 
 # relations
@@ -2305,6 +2312,9 @@ class FicheEvenement(ConteneurDEvenementsUnitaires):
 
     def get_full_url(self):
         return f"https://docs.google.com/document/d/{self.id_url}"
+
+    def get_referent(self):
+        return self.referent
 
 
 # une classe pour la rétrocompatibilité, devra être supprimée à terme

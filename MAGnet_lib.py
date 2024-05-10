@@ -1961,7 +1961,7 @@ def generer_table_evenements(gn: GN):
                  '\n'.join(pj_pour_tableau),
                  nom_intrigue,
                  intervention.get_nom_conteneur(),
-                 intervention.get_referent()
+                 intervention.evenement.get_referent()
                  ]
         # ligne = [intervention.evenement.code_evenement,
         #          intervention.jour_formatte(),

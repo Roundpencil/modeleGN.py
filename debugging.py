@@ -385,7 +385,7 @@ def lister_fichiers_objets_charles():
     output = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn'
     list_docs_and_create_sheet(dr, sh, folder_id, output)
 
-def creer_synthese_actions_pnjs():
+def creer_synthese_actions_en_jeu_par_pnjs():
     gn = GN.load('archive chalacta.mgn')
     dico = {}
     toutes_interventions = []

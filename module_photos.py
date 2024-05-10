@@ -315,8 +315,8 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur):
 ##### test lire photos
 def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
                                    id_sheet_photos_aliases, id_dossier_images,
-                                   id_doc_source, id_dossier_output, offset=0):
-    dico_photos_motsclefs = lire_table_photos(api_sheets, id_sheet_photos_aliases)
+                                   id_doc_source, id_dossier_output, sheet_name='Feuille 1', offset=0):
+    dico_photos_motsclefs = lire_table_photos(api_sheets, id_sheet_photos_aliases, sheet_name=sheet_name)
 
     dico_photos_motsclefs = nettoyer_doublons_souschaines(dico_photos_motsclefs)
     print(dico_photos_motsclefs)
@@ -451,11 +451,11 @@ def tester_module_photo_imperiaux():
     racine_sortie = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn'
     destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "demo imperiaux")
     print(f"ids fichiers {ids}")
-    offset = 0
+    offset = 2
     for file_id in ids:
         try:
             copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
-                                           destination_folder_id, offset=offset)
+                                           destination_folder_id, offset=offset, sheet_name='Session 1')
         except Exception as e:
             continue
 
@@ -479,7 +479,7 @@ def photos_manu():
         #                                destination_folder_id, offset=offset)
         try:
             copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
-                                           destination_folder_id, offset=offset)
+                                           destination_folder_id, offset=offset, sheet_name='Session 1')
         except Exception as e:
             continue
 
