@@ -465,12 +465,10 @@ def fusionner_colonnes(a: list, b: list):
         return None
     result = []
     for x, y in zip(a, b):
-        if (x is not None and x != '') and (y is not None and y != ''):
+        if x and y:
             return None
-        elif x is None or x == '':
-            result.append(y)
-        else:
-            result.append(x)
+        result.append(x or y or None)
+
     return result
 
 def recurrer_table_evenementiel(colonnes_ok, table_test, current_solutions):
