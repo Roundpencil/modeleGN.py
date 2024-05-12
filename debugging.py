@@ -460,7 +460,9 @@ def creer_synthese_actions_en_jeu_par_pnjs():
 #     recurrer_table_evenementiel(colonnes_ok, donnee_test, solution)
 #     return solution
 
-def fusionner_colonnes(a: list, b: list):
+def fusionner_colonnes(a: list, b: list, verbal=0):
+    if verbal:
+        print(f"{'  '  * verbal} tentative de fusion : \n   {a} \n   {b}")
     if len(a) != len(b):
         return None
     result = []
@@ -468,21 +470,32 @@ def fusionner_colonnes(a: list, b: list):
         if x and y:
             return None
         result.append(x or y or None)
-
+    if verbal:
+        print(f"{'  '  * verbal}>résutat : {result}")
     return result
 
-def recurrer_table_evenementiel(colonnes_ok, table_test, current_solutions):
+def recurrer_table_evenementiel(colonnes_ok, table_test, current_solutions, verbal=1):
     for i in range(len(table_test)):
         colonnes_figes = colonnes_ok + table_test[:i]
         colonne_a_fusionner = table_test[i]
         colonnes_a_tester = table_test[i + 1:]
+        if verbal:
+            print(f"{'  '  * verbal} colonnes figées : {colonnes_figes}")
+            print(f"{'  '  * verbal} colonne a fusionner {colonne_a_fusionner}")
+            print(f"{'  '  * verbal} colonne a tester {colonnes_a_tester}")
+
         for j in range(len(colonnes_a_tester)):
             current_colonne = colonnes_a_tester[j]
-            colonne_fusionnee = fusionner_colonnes(colonne_a_fusionner, current_colonne)
+            colonne_fusionnee = fusionner_colonnes(colonne_a_fusionner, current_colonne, verbal)
             if colonne_fusionnee:
-                new_fixed = colonnes_figes + [colonne_fusionnee] + colonnes_a_tester[j + 1:]
-                recurrer_table_evenementiel(colonnes_ok, new_fixed, current_solutions)
-    current_solutions.append(colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester)
+                # new_fixed = colonnes_figes + [colonne_fusionnee] + colonnes_a_tester[j + 1:]
+                # recurrer_table_evenementiel(new_fixed, colonnes_a_tester[j+1:], current_solutions)
+                nouvelle_table = colonnes_a_tester[:j] + [colonne_fusionnee] + colonnes_a_tester[j+1:]
+                recurrer_table_evenementiel(colonnes_figes, nouvelle_table,
+                                            current_solutions, verbal+1 if verbal else 0)
+        if verbal: # est-ce que l'erreur ce n'est pas que le dernier recurrer n'est aps pris en compte
+            print(f"{'  '  * verbal} Solution ajoutée : {colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester}")
+        current_solutions.append(colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester)
 
 def fournir_solutions(donnee_test):
     solution = []
@@ -498,4 +511,18 @@ def tester_recursion():
         ['2023-01-01', '2023-01-02', '2023-01-03', None, '2023-01-05'],
         ['', 'high', 'medium', 'low', None]
     ]
+
+    donnee_test = [
+        ['event1', 'event2', None, 'event4', ''],
+        [None, 'collision', 'event3', None, 'event5'],
+        [None, None,'fill 1a', None, 'fill 1b'],
+        ['', '', 'fill2', '', ''],
+        ['', '', '', '', 'fill3']
+    ]
+
+    # donnee_test = [
+    #     ['event1', 'event2', None, 'event4', ''],
+    #     ['poy', 'poy',None, None, 'fill 1b'],
+    #     ['', '', 'fill2', '', ''],
+    # ]
     return fournir_solutions(donnee_test)
