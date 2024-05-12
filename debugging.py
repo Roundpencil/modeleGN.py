@@ -385,6 +385,7 @@ def lister_fichiers_objets_charles():
     output = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn'
     list_docs_and_create_sheet(dr, sh, folder_id, output)
 
+
 def creer_synthese_actions_en_jeu_par_pnjs():
     gn = GN.load('archive chalacta.mgn')
     dico = {}
@@ -409,7 +410,8 @@ def creer_synthese_actions_en_jeu_par_pnjs():
         dico[intervenant] = sorted(dico[intervenant], key=lambda x: [x.jour_formatte(), x.heure_debut_formattee()])
 
         for element in dico[intervenant]:
-            tableau.append([element.jour_formatte(), element.heure_debut_formattee(), element.description, element.evenement.nom_evenement])
+            tableau.append([element.jour_formatte(), element.heure_debut_formattee(), element.description,
+                            element.evenement.nom_evenement])
         to_R += lecteurGoogle.formatter_tableau_pour_export(tableau)
         to_R += '\n\n\n'
 
@@ -418,3 +420,84 @@ def creer_synthese_actions_en_jeu_par_pnjs():
     g_io.write_to_doc(
         do, id, to_R, verbal=True
     )
+
+
+#### reboot création table PNJ
+
+# def fusionner_colonnes(a: list, b: list):
+#     if len(a) != len(b):
+#         return None  # Return None if lists are not of the same size
+#
+#     result = []
+#     for x, y in zip(a, b):
+#         if (x is not None and x != '') and (y is not None and y != ''):
+#             return None  # Mixing not possible if both elements are non-zero or non-None
+#         elif x is None or x == '':
+#             result.append(y)  # Add element from b if corresponding element in a is None or empty
+#         else:
+#             result.append(x)  # Add element from a otherwise
+#     return result
+#
+#
+# def recurrer_table_evenementiel(colonnes_ok: list[list], table_test: list[list], current_solutions: list[list[list]]):
+#     for i in range(len(table_test)):
+#         colonnes_figes = colonnes_ok + table_test[:i - 1]
+#         colonne_a_fusionner = table_test[i]
+#         colonnes_a_tester = table_test[i + 1:]
+#         for j in range(len(colonnes_a_tester)):
+#             current_colonne = colonnes_a_tester[j]
+#             colonne_fusionnee = fusionner_colonnes(colonne_a_fusionner, current_colonne)
+#             if colonne_fusionnee:
+#                 colonnes_figes.append(colonnes_a_tester[:j - 1])
+#                 nouvelle_table = [colonne_fusionnee].extend(colonnes_a_tester[j + 1:])
+#                 recurrer_table_evenementiel(colonnes_ok, nouvelle_table, current_solutions)
+#         # à ce stade là on a fini de parcourir tous les i, j : on a une solution
+#         current_solutions.append(colonnes_figes + table_test)
+#
+# def fournir_solutions(donnee_test:list[list]):
+#     solution = []
+#     colonnes_ok = []
+#     recurrer_table_evenementiel(colonnes_ok, donnee_test, solution)
+#     return solution
+
+def fusionner_colonnes(a: list, b: list):
+    if len(a) != len(b):
+        return None
+    result = []
+    for x, y in zip(a, b):
+        if (x is not None and x != '') and (y is not None and y != ''):
+            return None
+        elif x is None or x == '':
+            result.append(y)
+        else:
+            result.append(x)
+    return result
+
+def recurrer_table_evenementiel(colonnes_ok, table_test, current_solutions):
+    for i in range(len(table_test)):
+        colonnes_figes = colonnes_ok + table_test[:i]
+        colonne_a_fusionner = table_test[i]
+        colonnes_a_tester = table_test[i + 1:]
+        for j in range(len(colonnes_a_tester)):
+            current_colonne = colonnes_a_tester[j]
+            colonne_fusionnee = fusionner_colonnes(colonne_a_fusionner, current_colonne)
+            if colonne_fusionnee:
+                new_fixed = colonnes_figes + [colonne_fusionnee] + colonnes_a_tester[j + 1:]
+                recurrer_table_evenementiel(colonnes_ok, new_fixed, current_solutions)
+    current_solutions.append(colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester)
+
+def fournir_solutions(donnee_test):
+    solution = []
+    colonnes_ok = []
+    recurrer_table_evenementiel(colonnes_ok, donnee_test, solution)
+    return solution
+
+def tester_recursion():
+    donnee_test = [
+        ['event1', 'event2', None, 'event4', ''],
+        [None, 'collision', 'event3', None, 'event5'],
+        ['start', None, 'stop', 'continue', None],
+        ['2023-01-01', '2023-01-02', '2023-01-03', None, '2023-01-05'],
+        ['', 'high', 'medium', 'low', None]
+    ]
+    return fournir_solutions(donnee_test)
