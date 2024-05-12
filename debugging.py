@@ -507,14 +507,6 @@ def tester_recursion():
     donnee_test = [
         ['event1', 'event2', None, 'event4', ''],
         [None, 'collision', 'event3', None, 'event5'],
-        ['start', None, 'stop', 'continue', None],
-        ['2023-01-01', '2023-01-02', '2023-01-03', None, '2023-01-05'],
-        ['', 'high', 'medium', 'low', None]
-    ]
-
-    donnee_test = [
-        ['event1', 'event2', None, 'event4', ''],
-        [None, 'collision', 'event3', None, 'event5'],
         [None, None,'fill 1a', None, 'fill 1b'],
         ['', '', 'fill2', '', ''],
         ['', '', '', '', 'fill3']
