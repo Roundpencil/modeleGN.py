@@ -493,7 +493,7 @@ def recurrer_table_evenementiel(colonnes_ok, table_test, current_solutions, verb
                 nouvelle_table = colonnes_a_tester[:j] + [colonne_fusionnee] + colonnes_a_tester[j+1:]
                 recurrer_table_evenementiel(colonnes_figes, nouvelle_table,
                                             current_solutions, verbal+1 if verbal else 0)
-        if verbal: # est-ce que l'erreur ce n'est pas que le dernier recurrer n'est aps pris en compte
+        if verbal: 
             print(f"{'  '  * verbal} Solution ajoutée : {colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester}")
         current_solutions.append(colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester)
 

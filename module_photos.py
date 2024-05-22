@@ -67,11 +67,12 @@ def base_nom_prenom(nom_secable):
     return to_return
 
 
-def lire_table_photos(api_sheets, sheet_id, sheet_name='Feuille 1', separateur=';'):
+def lire_table_photos(api_sheets, sheet_id, sheet_name='Feuille 1', separateur=';', verbal=False):
     result = api_sheets.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name,
                                                     majorDimension="ROWS").execute()
     values = result.get('values', [])
-    print(values)
+    if verbal:
+        print(values)
     to_return = {}
     for value in values[1:]:
         value = value + [''] * (5 - len(value))
@@ -247,11 +248,12 @@ def eviter_recouvrement(dict_img_positions):
     return to_return
 
 
-def requete_pour_inserer_img_et_formatter(image_id, position, longueur):
+def requete_pour_inserer_img_et_formatter(image_id, position, longueur, verbal=False):
     # Obtenir l'URL de l'image depuis Google Drive
     # image_file = drive_service.files().get(fileId=image_id, fields='webViewLink').execute()
     # image_url = image_file.get('webViewLink')
-    print(f'image_id = {image_id}')
+    if verbal:
+        print(f'image_id = {image_id}')
 
     image_url = f'https://drive.google.com/uc?export=view&id={image_id}'
     # Créer une requête pour insérer l'image dans le Google Doc
@@ -315,14 +317,16 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur):
 ##### test lire photos
 def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
                                    id_sheet_photos_aliases, id_dossier_images,
-                                   id_doc_source, id_dossier_output, sheet_name='Feuille 1', offset=0):
-    dico_photos_motsclefs = lire_table_photos(api_sheets, id_sheet_photos_aliases, sheet_name=sheet_name)
+                                   id_doc_source, id_dossier_output, sheet_name='Feuille 1', offset=0, verbal=False):
+    dico_photos_motsclefs = lire_table_photos(api_sheets, id_sheet_photos_aliases, sheet_name=sheet_name, verbal=verbal)
 
     dico_photos_motsclefs = nettoyer_doublons_souschaines(dico_photos_motsclefs)
-    print(dico_photos_motsclefs)
+    if verbal:
+        print(dico_photos_motsclefs)
 
     dict_img_id = lister_images_dans_dossier(id_dossier_images, api_drive)
-    print(dict_img_id)
+    if verbal:
+        print(dict_img_id)
 
     text = g_io.lire_google_doc(api_doc, id_doc_source, extraire_formattage=False)
 
@@ -332,7 +336,8 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
             continue
         dict_img_indexes[img] = trouver_mots_phrases_plus_long(dico_photos_motsclefs[img], text)
         dict_img_indexes[img].sort(key=lambda x: x[0])
-    print(dict_img_indexes)
+    if verbal:
+        print(dict_img_indexes)
 
     # test_data_multiple_overlap = {
     #     "img1": [[0, "hello"], [20, "world"]],
@@ -341,7 +346,8 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
     # }
 
     image_a_inserer = eviter_recouvrement(dict_img_indexes)
-    print(image_a_inserer)
+    if verbal:
+        print(image_a_inserer)
 
     # requetes = [requete_pour_inserer_img_et_formatter(dict_img_id[image[0]], image[1], len(image[2])) for
     #             image in sorted(image_a_inserer, key=lambda x: x[1], reverse=True)]
@@ -350,8 +356,8 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
     for image in sorted(image_a_inserer, key=lambda x: x[1], reverse=True):
         if image[1] > 1:
             requetes.extend(requete_pour_inserer_img_et_formatter(dict_img_id[image[0]], image[1] + offset, len(image[2])))
-
-    print(requetes)
+    if verbal:
+        print(requetes)
 
     ##### copier le fichier source et le renommer
     # Known Document ID and Destination Folder ID
@@ -376,7 +382,7 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
                              fields='id, parents').execute()
 
     #### insérer les images
-    api_doc.documents().batchUpdate(documentId=new_file_id, body={'requests': requetes}).execute()
+    return api_doc.documents().batchUpdate(documentId=new_file_id, body={'requests': requetes}).execute()
 
 
 ##### code pour tster le module photos
@@ -439,10 +445,11 @@ def tester_module_photo_dossier_chalacta():
 
 def tester_module_photo_imperiaux(offset = 0):
     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
-    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
+    # folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
+    folder_id = '1Y4ONHyZtVkzAuo4EqbubZSrh8hjbJy_O'  # photos S2 chalacta
 
     # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
-    parent = ['1hqGr7eyliCkJxVcvcMmljoriH3LlRUlW'] #dossier ou lire tout
+    parent = ['1178b_XzkLaE7t9Kp80uyFuFnZrqANtLz'] #dossier ou lire tout
     # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
 
     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
@@ -455,14 +462,16 @@ def tester_module_photo_imperiaux(offset = 0):
     for file_id in ids:
         try:
             copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
-                                           destination_folder_id, offset=offset, sheet_name='Session 1')
+                                           destination_folder_id, offset=offset, sheet_name='Session 2')
         except Exception as e:
+            print(e)
             continue
 
 def photos_manu():
     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
-    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
-
+    sheet_id = '1gYUOpaxMoBSI2HR25veuz7y9mUFyPTSM1Srg9webIvk'
+    # folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
+    folder_id = '1Y4ONHyZtVkzAuo4EqbubZSrh8hjbJy_O'  # photos S2 chalacta
     # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
     parent = ['1BsTNOtnVK3RglGhbFoOeoBEQqNw3b6AP'] #dossier ou lire tout
     # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
@@ -478,9 +487,12 @@ def photos_manu():
         # copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
         #                                destination_folder_id, offset=offset)
         try:
-            copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
+            print(f"id en cours : {file_id}")
+            retour = copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
                                            destination_folder_id, offset=offset, sheet_name='Session 1')
+            print(f"retour : {retour}")
         except Exception as e:
+            print(f"exception : {e}")
             continue
 def photos_unitaire():
     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
