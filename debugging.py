@@ -422,47 +422,11 @@ def creer_synthese_actions_en_jeu_par_pnjs():
     )
 
 
-#### reboot création table PNJ
-
-# def fusionner_colonnes(a: list, b: list):
-#     if len(a) != len(b):
-#         return None  # Return None if lists are not of the same size
-#
-#     result = []
-#     for x, y in zip(a, b):
-#         if (x is not None and x != '') and (y is not None and y != ''):
-#             return None  # Mixing not possible if both elements are non-zero or non-None
-#         elif x is None or x == '':
-#             result.append(y)  # Add element from b if corresponding element in a is None or empty
-#         else:
-#             result.append(x)  # Add element from a otherwise
-#     return result
-#
-#
-# def recurrer_table_evenementiel(colonnes_ok: list[list], table_test: list[list], current_solutions: list[list[list]]):
-#     for i in range(len(table_test)):
-#         colonnes_figes = colonnes_ok + table_test[:i - 1]
-#         colonne_a_fusionner = table_test[i]
-#         colonnes_a_tester = table_test[i + 1:]
-#         for j in range(len(colonnes_a_tester)):
-#             current_colonne = colonnes_a_tester[j]
-#             colonne_fusionnee = fusionner_colonnes(colonne_a_fusionner, current_colonne)
-#             if colonne_fusionnee:
-#                 colonnes_figes.append(colonnes_a_tester[:j - 1])
-#                 nouvelle_table = [colonne_fusionnee].extend(colonnes_a_tester[j + 1:])
-#                 recurrer_table_evenementiel(colonnes_ok, nouvelle_table, current_solutions)
-#         # à ce stade là on a fini de parcourir tous les i, j : on a une solution
-#         current_solutions.append(colonnes_figes + table_test)
-#
-# def fournir_solutions(donnee_test:list[list]):
-#     solution = []
-#     colonnes_ok = []
-#     recurrer_table_evenementiel(colonnes_ok, donnee_test, solution)
-#     return solution
+#### reboot création table PNJ >>> ce code marche
 
 def fusionner_colonnes(a: list, b: list, verbal=0):
     if verbal:
-        print(f"{'  '  * verbal} tentative de fusion : \n   {a} \n   {b}")
+        print(f"{'  ' * verbal} tentative de fusion : \n   {a} \n   {b}")
     if len(a) != len(b):
         return None
     result = []
@@ -471,8 +435,9 @@ def fusionner_colonnes(a: list, b: list, verbal=0):
             return None
         result.append(x or y or None)
     if verbal:
-        print(f"{'  '  * verbal}>résutat : {result}")
+        print(f"{'  ' * verbal}>résutat : {result}")
     return result
+
 
 def recurrer_table_evenementiel(colonnes_ok, table_test, current_solutions, verbal=1):
     for i in range(len(table_test)):
@@ -480,9 +445,9 @@ def recurrer_table_evenementiel(colonnes_ok, table_test, current_solutions, verb
         colonne_a_fusionner = table_test[i]
         colonnes_a_tester = table_test[i + 1:]
         if verbal:
-            print(f"{'  '  * verbal} colonnes figées : {colonnes_figes}")
-            print(f"{'  '  * verbal} colonne a fusionner {colonne_a_fusionner}")
-            print(f"{'  '  * verbal} colonne a tester {colonnes_a_tester}")
+            print(f"{'  ' * verbal} colonnes figées : {colonnes_figes}")
+            print(f"{'  ' * verbal} colonne a fusionner {colonne_a_fusionner}")
+            print(f"{'  ' * verbal} colonne a tester {colonnes_a_tester}")
 
         for j in range(len(colonnes_a_tester)):
             current_colonne = colonnes_a_tester[j]
@@ -490,12 +455,13 @@ def recurrer_table_evenementiel(colonnes_ok, table_test, current_solutions, verb
             if colonne_fusionnee:
                 # new_fixed = colonnes_figes + [colonne_fusionnee] + colonnes_a_tester[j + 1:]
                 # recurrer_table_evenementiel(new_fixed, colonnes_a_tester[j+1:], current_solutions)
-                nouvelle_table = colonnes_a_tester[:j] + [colonne_fusionnee] + colonnes_a_tester[j+1:]
+                nouvelle_table = colonnes_a_tester[:j] + [colonne_fusionnee] + colonnes_a_tester[j + 1:]
                 recurrer_table_evenementiel(colonnes_figes, nouvelle_table,
-                                            current_solutions, verbal+1 if verbal else 0)
-        if verbal: 
-            print(f"{'  '  * verbal} Solution ajoutée : {colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester}")
+                                            current_solutions, verbal + 1 if verbal else 0)
+        if verbal:
+            print(f"{'  ' * verbal} Solution ajoutée : {colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester}")
         current_solutions.append(colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester)
+
 
 def fournir_solutions(donnee_test):
     solution = []
@@ -503,11 +469,12 @@ def fournir_solutions(donnee_test):
     recurrer_table_evenementiel(colonnes_ok, donnee_test, solution)
     return solution
 
+
 def tester_recursion():
     donnee_test = [
         ['event1', 'event2', None, 'event4', ''],
         [None, 'collision', 'event3', None, 'event5'],
-        [None, None,'fill 1a', None, 'fill 1b'],
+        [None, None, 'fill 1a', None, 'fill 1b'],
         ['', '', 'fill2', '', ''],
         ['', '', '', '', 'fill3']
     ]
@@ -518,3 +485,113 @@ def tester_recursion():
     #     ['', '', 'fill2', '', ''],
     # ]
     return fournir_solutions(donnee_test)
+
+
+# ******** fonction pour commencer à intégrer les évènements en ignorant les doublons ***********************
+
+def heure_en_pas(j_formatte: str, h_formattee: str, pas: int, jplusun=False) -> int:
+    # Extract the day number from j_formatte
+    try:
+        day_number = int(j_formatte[1:])
+    except Exception:
+        day_number = 0
+
+    if jplusun:
+        day_number += 1
+
+    # Extract the hour and minute from h_formattee
+    hour, minute = map(int, h_formattee.split('h'))
+
+    # Calculate the total number of minutes (pas)
+    total_minutes = (day_number * 24 * 60) + (hour * 60) + minute
+
+    return total_minutes // pas
+
+
+# # Example usage:
+# result = heure_en_pas("J5", "21h34", 1)
+# print(result)  # Output: 76894
+
+
+def wip_creation_planning():
+    pas = 15
+    gn = GN.load('archive Chalacta.mgn')
+    min_date = sys.maxsize
+    max_date = 0
+
+    dico_briefs, max_date, min_date = preparer_donnees_pour_planning(gn, max_date, min_date, pas)
+
+    # maintenant, on enlève les recouvrements
+    output = dico_brief2tableau_interventions(dico_briefs, max_date, min_date)
+
+    # a ce statde la, on a  :
+    #  - un dictionnaire avec tous les PJs et des tableaux d'évènements
+    #  - le min et le max en pas qu'il y a sur le jeu
+
+    # on veut donc :
+    # préparer les données sous la forme d'un tableau qui lie, une fois fini, lie les aides aux personnages
+    # isoler les personnages en doubles à deux endroits à la fois et leur crééer de l'ubiquité
+    return fournir_solutions(output)
+
+
+def dico_brief2tableau_interventions(dico_briefs, max_date, min_date):
+    output = []
+    for intervenant in dico_briefs:
+        stock = dico_briefs[intervenant]
+        go_on = True
+        nb_recursions = 0
+        while go_on:
+            ligne = [None] * (max_date - min_date + 1)
+            futur_stock = []
+            for i, element in enumerate(stock):
+                ou_chercher = stock[i + 1:]
+                start = element[0]
+                end = element[1]
+                integrable = True
+                for autre_element in ou_chercher:
+                    if autre_element[0] < start < autre_element[1] or autre_element[0] < end < autre_element[1]:
+                        # alors on a un recouvrement
+                        integrable = False
+                        break
+                if integrable:
+                    suffixe = f"_{nb_recursions}" if nb_recursions else ""
+                    ligne[start - min_date:end + 1 - min_date] = \
+                        [f"{intervenant}{nb_recursions} - {element[3]}"] * (end - start + 1)
+                else:
+                    futur_stock.append(element)
+            go_on = len(futur_stock)
+            print(f"futur stock = {futur_stock}")
+            stock = futur_stock
+            print(f"stock = {stock}")
+            nb_recursions += 1
+            output.append(ligne)
+    return output
+
+
+def preparer_donnees_pour_planning(gn, max_date, min_date, pas):
+    dico_briefs = {}
+    conteneurs_evts = gn.lister_tous_les_conteneurs_evenements_unitaires()
+    for conteneur in conteneurs_evts:
+        for intervention in conteneur.interventions:
+            h_debut = intervention.heure_debut_formattee()
+            jour = intervention.jour_formatte()
+            debut_en_pas = heure_en_pas(jour, h_debut, pas)
+
+            h_fin = intervention.heure_fin_formattee()
+            if h_fin:
+                fin_en_pas = heure_en_pas(jour, h_fin, pas)
+                if fin_en_pas < debut_en_pas:
+                    fin_en_pas = heure_en_pas(jour, h_fin, pas, jplusun=True)
+            else:
+                fin_en_pas = debut_en_pas
+
+            intervenants = intervention.liste_intervenants
+            for intervenant in intervenants:
+                clef = intervenant.str_avec_perso()
+                if clef not in dico_briefs:
+                    dico_briefs[clef] = []
+                dico_briefs[clef].append([debut_en_pas, fin_en_pas, intervention.description, conteneur.nom_evenement])
+
+            min_date = min(min_date, debut_en_pas)
+            max_date = max(max_date, fin_en_pas)
+    return dico_briefs, max_date, min_date
