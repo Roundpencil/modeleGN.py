@@ -523,10 +523,12 @@ def recurrer_table_evenementiel_v2(colonnes_source):
     for i in range_source:
         for j in range(i + 1, len(colonnes_source)):
             if resultat := fusionner_colonnes(colonnes_source[i], colonnes_source[j], 0):
-                dictionnaire_combinaisons[{i, j}] = resultat
+                dictionnaire_combinaisons[(i, j)] = resultat
                 table_n2.append({i, j})
 
+    print(f"niveau = {niveau}, len = {len(tables[niveau])}")
     while len(tables[niveau]) > 0:
+        print(f"niveau = {niveau}, len = {len(tables[niveau])}")
         # sinon, on calcule la table de niveau N+1
         tables_n_precedent = tables[niveau]
         niveau += 1
