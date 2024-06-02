@@ -463,6 +463,98 @@ def recurrer_table_evenementiel(colonnes_ok, table_test, current_solutions, verb
         current_solutions.append(colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester)
 
 
+# def recurrer_table_evenementiel_optim(colonnes_ok, table_test, current_solutions, verbal=1):
+#     # on trie les colonnes dans l'ordre de la plus grande à la plus petite en taille
+#     # on arrete quand on a une solurtion moins optim
+#     # on entre dans la récursion là ou on s'tait arrété
+#
+#     for i in range(len(table_test)):
+#         colonnes_figes = colonnes_ok + table_test[:i]
+#         colonne_a_fusionner = table_test[i]
+#         colonnes_a_tester = table_test[i + 1:]
+#         if verbal:
+#             print(f"{'  ' * verbal} colonnes figées : {colonnes_figes}")
+#             print(f"{'  ' * verbal} colonne a fusionner {colonne_a_fusionner}")
+#             print(f"{'  ' * verbal} colonne a tester {colonnes_a_tester}")
+#
+#         for j in range(len(colonnes_a_tester)):
+#             current_colonne = colonnes_a_tester[j]
+#             colonne_fusionnee = fusionner_colonnes(colonne_a_fusionner, current_colonne, verbal)
+#             if colonne_fusionnee:
+#                 # new_fixed = colonnes_figes + [colonne_fusionnee] + colonnes_a_tester[j + 1:]
+#                 # recurrer_table_evenementiel(new_fixed, colonnes_a_tester[j+1:], current_solutions)
+#                 nouvelle_table = colonnes_a_tester[:j] + [colonne_fusionnee] + colonnes_a_tester[j + 1:]
+#                 recurrer_table_evenementiel(colonnes_figes, nouvelle_table,
+#                                             current_solutions, verbal + 1 if verbal else 0)
+#         if verbal:
+#             print(f"{'  ' * verbal} Solution ajoutée : {colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester}")
+#         current_solutions.append(colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester)
+
+
+# invariant :
+# - j'ai une solution en cours d'ellaboration
+# - j'ai une colonne à teste
+# - j'ai une colonne contre lquelle la tester
+# SI mes dex colonnes sont fusionnables,
+#   je récurrentre entre un monde et j'ai fusionnée et un monde ou je n'iapas fusionné
+#       et je passe à la colonne suivante
+# SINON
+#       je passe à la suivante
+
+def recurrer_table_evenementiel_v2(colonnes_source):
+    # hypotèse : il existe une combianison ABC  SSI AB, AC et BC sont des solutions possibles
+    # hypothèse 2 : il existe une combinaison ABCD SSI ABC est possible et AD, BC, et CD sont possibles
+    # et ainsi de suite
+    # ainsi, je jeps réduire la recherche de solutions en prenant les paires et en cherchant toutes les combianaisons possibles
+    # ensuite, je prends toutes les paires de plus haut niveau et je redescende en décomposant mon problème
+
+    # invariant : j'ai une table de niveau N
+    # SI il existe une table de niveau N+1 avec au moins un élément ALORS jer cherche une table de niveau N+2
+    # SINON  j'ai fini de trouver mes  solutions
+
+    # initialisation : création table niveau 2
+    niveau = 2
+    tables = {niveau: []}
+    table_n2 = tables[2]
+    dictionnaire_combinaisons = {}
+
+    range_source = range(len(colonnes_source))
+
+    for i in range_source:
+        for j in range(i + 1, len(colonnes_source)):
+            if resultat := fusionner_colonnes(colonnes_source[i], colonnes_source[j], 0):
+                dictionnaire_combinaisons[{i, j}] = resultat
+                table_n2.append({i, j})
+
+    while len(tables[niveau]) > 0:
+        # sinon, on calcule la table de niveau N+1
+        tables_n_precedent = tables[niveau]
+        niveau += 1
+        tables[niveau] = []
+        # pour chaque élément qui a une solution A0...aN-1 au niveau N-1
+        for solution_n_precedent in tables_n_precedent:
+            elements_a_tester = [x for x in range_source if x not in solution_n_precedent]
+            # pour chaque élément B du set de base qui est différent des composantes de la solution (éléments à tester)
+            for element_a_tester in elements_a_tester:
+                ajout_ok = True
+                for element_solution_prececent in solution_n_precedent:
+
+                    # je cherche si (A0, B) ... (An, B) sont toutes des solutions valables
+                    set_a_tester = {element_a_tester, element_solution_prececent}
+                    if set_a_tester not in tables[2]:
+                        ajout_ok = False
+                        break
+
+                #           SIOUI : ALORS il existe une solution (A0, ..., AN, B)
+                if ajout_ok:
+                    tables[niveau].append(solution_n_precedent | {element_a_tester})
+            #               j'enregistre que la solution existe dans la table[niveau] sous forme de set
+            #               j'enregistre qu'à la clef de cette solution correspond la solution
+            #               >> pas la peine, certaines solutions ne seront jamais calculées !!!
+
+    return tables
+
+
 def fournir_solutions(donnee_test):
     solution = []
     colonnes_ok = []
