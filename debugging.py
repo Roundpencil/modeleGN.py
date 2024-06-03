@@ -517,8 +517,8 @@ def recurrer_table_evenementiel_v2(colonnes_source):
     tables = {niveau: []}
     table_n2 = tables[2]
     dictionnaire_combinaisons = {}
-
-    range_source = range(len(colonnes_source))
+    nb_col_source = len(colonnes_source)
+    range_source = range(nb_col_source)
 
     for i in range_source:
         for j in range(i + 1, len(colonnes_source)):
@@ -535,7 +535,8 @@ def recurrer_table_evenementiel_v2(colonnes_source):
         tables[niveau] = []
         # pour chaque élément qui a une solution A0...aN-1 au niveau N-1
         for solution_n_precedent in tables_n_precedent:
-            elements_a_tester = [x for x in range_source if x not in solution_n_precedent]
+            max_n_precedent = max(solution_n_precedent)
+            elements_a_tester = [x for x in range(max_n_precedent+1, nb_col_source) if x not in solution_n_precedent]
             # pour chaque élément B du set de base qui est différent des composantes de la solution (éléments à tester)
             for element_a_tester in elements_a_tester:
                 ajout_ok = True
@@ -553,6 +554,8 @@ def recurrer_table_evenementiel_v2(colonnes_source):
             #               j'enregistre que la solution existe dans la table[niveau] sous forme de set
             #               j'enregistre qu'à la clef de cette solution correspond la solution
             #               >> pas la peine, certaines solutions ne seront jamais calculées !!!
+    if not len(tables[niveau]):
+        del tables[niveau]
 
     return tables
 
