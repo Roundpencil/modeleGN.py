@@ -607,7 +607,8 @@ def wip_creation_planning():
     # préparer les données sous la forme d'un tableau qui lie, une fois fini, lie les aides aux personnages
     # isoler les personnages en doubles à deux endroits à la fois et leur crééer de l'ubiquité
     # return fournir_solutions(output)
-    return recurrer_table_evenementiel_v2(output)
+    # return recurrer_table_evenementiel_v2(output)
+    return table_evenementiel_monte_carlo(output)
 
 
 def dico_brief2tableau_interventions(dico_briefs, max_date, min_date):
@@ -678,7 +679,7 @@ def preparer_donnees_pour_planning(gn, max_date, min_date, pas):
 from random import *
 
 
-def recurrer_table_evenementiel_monte_carlo(colonnes_source):
+def table_evenementiel_monte_carlo(colonnes_source):
     # hypotèse : il existe une combianison ABC  SSI AB, AC et BC sont des solutions possibles
     # hypothèse 2 : il existe une combinaison ABCD SSI ABC est possible et AD, BC, et CD sont possibles
     # et ainsi de suite
@@ -742,7 +743,7 @@ def recurrer_table_evenementiel_monte_carlo(colonnes_source):
         indice_nouvelle_colonne = premier_indice_libre
         premier_indice_libre += 1
 
-        solution[indice_nouvelle_colonne] = {colonne_source, colonne_candidate}
+        solution[indice_nouvelle_colonne] = solution[colonne_source] | solution[colonne_candidate]
         del solution[colonne_source]
         del solution[colonne_candidate]
 
@@ -750,8 +751,13 @@ def recurrer_table_evenementiel_monte_carlo(colonnes_source):
         partenaires_source = dico_candidats[colonne_source]
         partenaires_candidats = dico_candidats[colonne_candidate]
 
+        partenaires_source.remove(colonne_candidate)
+        partenaires_candidats.remove(colonne_source)
+
         # on calcule qui gagne les deux
         intersection = partenaires_candidats & partenaires_source
+        if len(intersection):
+            dico_candidats[indice_nouvelle_colonne] = intersection
 
         # on nettoie et met à jour
         for partenaire in intersection:
@@ -770,8 +776,8 @@ def recurrer_table_evenementiel_monte_carlo(colonnes_source):
         del dico_candidats[colonne_source]
         del dico_candidats[colonne_candidate]
 
-    print(dico_candidats)
-    # print(colonnees_resolues)
-    print(premier_indice_libre)
+        print(dico_candidats)
+        print(premier_indice_libre)
+        print(solution)
 
     return solution
