@@ -588,7 +588,7 @@ def heure_en_pas(j_formatte: str, h_formattee: str, pas: int, jplusun=False) -> 
 # print(result)  # Output: 76894
 
 
-def wip_creation_planning():
+def wip_creation_planning(recursion=50):
     pas = 15
     gn = GN.load('archive Chalacta.mgn')
     min_date = sys.maxsize
@@ -608,7 +608,20 @@ def wip_creation_planning():
     # isoler les personnages en doubles à deux endroits à la fois et leur crééer de l'ubiquité
     # return fournir_solutions(output)
     # return recurrer_table_evenementiel_v2(output)
-    return table_evenementiel_monte_carlo(output)
+    mink = len(output)
+    best = output
+    for i in range(recursion):
+        k = table_evenementiel_monte_carlo(output)
+        if not k:
+            print("solution sous optimale")
+        elif len(k) < mink:
+            best = k
+            mink = len(k)
+            print(f"mink = {mink}")
+
+    # return best
+    sol_complete = indices2solution(best, output)
+    return sol_complete
 
 
 def dico_brief2tableau_interventions(dico_briefs, max_date, min_date):
@@ -637,9 +650,9 @@ def dico_brief2tableau_interventions(dico_briefs, max_date, min_date):
                 else:
                     futur_stock.append(element)
             go_on = len(futur_stock)
-            print(f"futur stock = {futur_stock}")
+            # print(f"futur stock = {futur_stock}")
             stock = futur_stock
-            print(f"stock = {stock}")
+            # print(f"stock = {stock}")
             nb_recursions += 1
             output.append(ligne)
     return output
@@ -679,7 +692,7 @@ def preparer_donnees_pour_planning(gn, max_date, min_date, pas):
 from random import *
 
 
-def table_evenementiel_monte_carlo(colonnes_source):
+def table_evenementiel_monte_carlo(colonnes_source, mink=sys.maxsize):
     # hypotèse : il existe une combianison ABC  SSI AB, AC et BC sont des solutions possibles
     # hypothèse 2 : il existe une combinaison ABCD SSI ABC est possible et AD, BC, et CD sont possibles
     # et ainsi de suite
@@ -721,8 +734,12 @@ def table_evenementiel_monte_carlo(colonnes_source):
         dico_candidats[a].add(b)
         dico_candidats[b].add(a)
 
-    # colonnees_resolues = [n for n in range_source if n not in dico_candidats.keys()]
-    solution = {n: {n} for n in range_source}
+    # un dictionnaire qui permet de stocker les colonnes qu'on ne peut plus combiner, et comment elles ont été composées
+    solutions = {n: {n} for n in range_source if n not in dico_candidats.keys()}
+
+    # un dictionnaire qui permet de se souvenir de comment chaque colonne a été composée
+    combinaisons = {n: {n} for n in dico_candidats.keys()}
+    # combinaisons = {n: {n} for n in range_source}
 
     premier_indice_libre = nb_col_source
 
@@ -743,9 +760,9 @@ def table_evenementiel_monte_carlo(colonnes_source):
         indice_nouvelle_colonne = premier_indice_libre
         premier_indice_libre += 1
 
-        solution[indice_nouvelle_colonne] = solution[colonne_source] | solution[colonne_candidate]
-        del solution[colonne_source]
-        del solution[colonne_candidate]
+        combinaisons[indice_nouvelle_colonne] = combinaisons[colonne_source] | combinaisons[colonne_candidate]
+        del combinaisons[colonne_source]
+        del combinaisons[colonne_candidate]
 
         # on met à jour la table des combinatoires avec la nouvelle colonne fusionnée
         partenaires_source = dico_candidats[colonne_source]
@@ -756,28 +773,64 @@ def table_evenementiel_monte_carlo(colonnes_source):
 
         # on calcule qui gagne les deux
         intersection = partenaires_candidats & partenaires_source
+
+        # et on met à jour
         if len(intersection):
             dico_candidats[indice_nouvelle_colonne] = intersection
+            for partenaire in intersection:
+                dico_candidats[partenaire].add(indice_nouvelle_colonne)
+        else:
+            # si il n'y a personne en commun, c'est qu'on a atteint la limite
+            # cette colonne rejoint les solutions
+            solutions[indice_nouvelle_colonne] = combinaisons[indice_nouvelle_colonne]
 
         # on nettoie et met à jour
-        for partenaire in intersection:
-            dico_candidats[partenaire].add(indice_nouvelle_colonne)
-
         for partenaire in partenaires_source:
             dico_candidats[partenaire].remove(colonne_source)
             if not len(dico_candidats[partenaire]):
                 del dico_candidats[partenaire]
+                solutions[partenaire] = combinaisons[partenaire]
 
         for partenaire in partenaires_candidats:
             dico_candidats[partenaire].remove(colonne_candidate)
             if not len(dico_candidats[partenaire]):
                 del dico_candidats[partenaire]
+                solutions[partenaire] = combinaisons[partenaire]
 
         del dico_candidats[colonne_source]
         del dico_candidats[colonne_candidate]
+        if len(solutions) >= mink:
+            print(f"mink = {mink}, len(solutions) = {len(solutions)}")
+            return None
 
-        print(dico_candidats)
-        print(premier_indice_libre)
-        print(solution)
+        # print(dico_candidats)
+        # print(premier_indice_libre)
+        # print(solution)
 
-    return solution
+    # on dépile les solutions
+    def deplier_valeur(set_de_depart: set):
+        for valeur in set_de_depart:
+            if valeur >= nb_col_source:
+                set_de_depart.remove(valeur)
+                set_de_depart |= deplier_valeur(combinaisons[valeur])
+        return set_de_depart
+
+    # print(f"nb_colonnes = {nb_col_source}")
+    solution_depliee = {}
+    for key in solutions:
+        solution_depliee[key] = deplier_valeur(solutions[key])
+
+    return solution_depliee
+    # return solutions
+
+
+def indices2solution(solution_depliee, colonnes_source):
+    solution_complete = []
+    for key in solution_depliee:
+        print(f"clef en cours : {key}")
+        indices_colonnes = list(solution_depliee[key])
+        to_add = colonnes_source[indices_colonnes[0]]
+        for indice in indices_colonnes[1:]:
+            to_add = fusionner_colonnes(to_add, colonnes_source[indice])
+        solution_complete.append(to_add)
+    return solution_complete
