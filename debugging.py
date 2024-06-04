@@ -245,37 +245,6 @@ def lister_images_avec_extension_dans_dossier(folder_id, drive_service, extensio
             break  # Sortir de la boucle
 
 
-##################### debugging factions
-
-def voiture_balais_factions():
-    factions = ['Course',
-                'Daymio',
-                'Cercle oblique',
-                'Réseau freedom',
-                'CDP',
-                'Médecins',
-                'Milice',
-                'Empire',
-                'tous les personnages joueurs']
-    gn = GN.load('archive chalacta.mgn')
-
-    scenes = gn.lister_toutes_les_scenes()
-    a_corriger = set()
-
-    for nom_faction in factions:
-        for scene in scenes:
-            score = process.extractOne(nom_faction, scene.nom_factions)
-            if score and score[1] > 80:
-                print(f"{score[0]}, {score[1]}")
-                # alors on a un match
-                a_corriger.add(scene)
-
-    tri = Scene.trier_scenes(a_corriger)
-    texte = '\n\n'.join([scene.str_pour_squelette() for scene in tri])
-    dr, do, sh = lecteurGoogle.creer_lecteurs_google_apis()
-    g_io.write_to_doc(do, '1xboOGtTJtnmOt6ITcEZ7NCcLTN6qhzGN9VaM5R4WobE', texte, 'titre')
-
-
 def tableau_intrigues_persos():
     gn = GN.load('archive chalacta.mgn')
 
@@ -422,6 +391,7 @@ def creer_synthese_actions_en_jeu_par_pnjs():
     )
 
 
+######################################################################
 #### reboot création table PNJ >>> ce code marche
 
 def fusionner_colonnes(a: list, b: list, verbal=0):
@@ -536,7 +506,7 @@ def recurrer_table_evenementiel_v2(colonnes_source):
         # pour chaque élément qui a une solution A0...aN-1 au niveau N-1
         for solution_n_precedent in tables_n_precedent:
             max_n_precedent = max(solution_n_precedent)
-            elements_a_tester = [x for x in range(max_n_precedent+1, nb_col_source) if x not in solution_n_precedent]
+            elements_a_tester = [x for x in range(max_n_precedent + 1, nb_col_source) if x not in solution_n_precedent]
             # pour chaque élément B du set de base qui est différent des composantes de la solution (éléments à tester)
             for element_a_tester in elements_a_tester:
                 ajout_ok = True
@@ -564,6 +534,15 @@ def fournir_solutions(donnee_test):
     colonnes_ok = []
     recurrer_table_evenementiel(colonnes_ok, donnee_test, solution)
     return solution
+
+
+donnee_test = [
+    ['event1', 'event2', None, 'event4', ''],
+    [None, 'collision', 'event3', None, 'event5'],
+    [None, None, 'fill 1a', None, 'fill 1b'],
+    ['', '', 'fill2', '', ''],
+    ['', '', '', '', 'fill3']
+]
 
 
 def tester_recursion():
@@ -692,3 +671,107 @@ def preparer_donnees_pour_planning(gn, max_date, min_date, pas):
             min_date = min(min_date, debut_en_pas)
             max_date = max(max_date, fin_en_pas)
     return dico_briefs, max_date, min_date
+
+
+####################### v3 de la focntion en approche monte carlo
+
+from random import *
+
+
+def recurrer_table_evenementiel_monte_carlo(colonnes_source):
+    # hypotèse : il existe une combianison ABC  SSI AB, AC et BC sont des solutions possibles
+    # hypothèse 2 : il existe une combinaison ABCD SSI ABC est possible et AD, BC, et CD sont possibles
+    # et ainsi de suite
+    # ainsi, je jeps réduire la recherche de solutions en prenant les paires et en cherchant toutes les combianaisons possibles
+    # ensuite, je prends toutes les paires de plus haut niveau et je redescende en décomposant mon problème
+
+    # invariant : j'ai une table de niveau N
+    # SI il existe une table de niveau N+1 avec au moins un élément ALORS jer cherche une table de niveau N+2
+    # SINON  j'ai fini de trouver mes  solutions
+
+    # initialisation : création table niveau 2
+    niveau = 2
+    tables = {niveau: []}
+    table_n2 = tables[2]
+    dictionnaire_combinaisons = {}
+    nb_col_source = len(colonnes_source)
+    range_source = range(nb_col_source)
+
+    for i in range_source:
+        for j in range(i + 1, len(colonnes_source)):
+            if resultat := fusionner_colonnes(colonnes_source[i], colonnes_source[j], 0):
+                dictionnaire_combinaisons[(i, j)] = resultat
+                table_n2.append({i, j})
+
+    # à ce stade là on a toutes les combinaisons niveau 2
+
+    ### on commence par setuper toutes les variables dont on aura besoin
+    # dico_candidats = {-1: []} # on itnitialise -1 pour avoir tout dans la brique de base
+    dico_candidats = {}  # on itnitialise -1 pour avoir tout dans la brique de base
+    for a, b in table_n2:
+        if a not in dico_candidats:
+            dico_candidats[a] = set()
+            # dico_candidats[a] = [-1]
+            # dico_candidats[-1].append(a)
+        if b not in dico_candidats:
+            dico_candidats[b] = set()
+            # dico_candidats[b] = [-1]
+            # dico_candidats[-1].append(b)
+        dico_candidats[a].add(b)
+        dico_candidats[b].add(a)
+
+    # colonnees_resolues = [n for n in range_source if n not in dico_candidats.keys()]
+    solution = {n: {n} for n in range_source}
+
+    premier_indice_libre = nb_col_source
+
+    # invariant : on a une colonne source, et plusieurs colonnes candidates
+    # on chosit une colonne candidate aléatoirement
+    # on la fusionne
+    # on retire la colonne candidate des colonnes existantes et la colonne fucionnée pour en faire une nouvelle
+    # on met à jour la table des combinatoires avec la nouvelle colonne fusionnée
+    # on garde quelque part les "recettes" des colonnes fusionnées
+    # si une colonne ne peut plus fusionner avec rien (tableau vide), elle devient résolue
+
+    while dico_candidats:
+        # on chosit deux colonnes candidate aléatoirement
+        colonne_source = choices(list(dico_candidats.keys()))[0]
+        colonne_candidate = choices(list(dico_candidats[colonne_source]))[0]
+
+        # on retire la colonne candidate des colonnes existantes et la colonne fucionnée pour en faire une nouvelle
+        indice_nouvelle_colonne = premier_indice_libre
+        premier_indice_libre += 1
+
+        solution[indice_nouvelle_colonne] = {colonne_source, colonne_candidate}
+        del solution[colonne_source]
+        del solution[colonne_candidate]
+
+        # on met à jour la table des combinatoires avec la nouvelle colonne fusionnée
+        partenaires_source = dico_candidats[colonne_source]
+        partenaires_candidats = dico_candidats[colonne_candidate]
+
+        # on calcule qui gagne les deux
+        intersection = partenaires_candidats & partenaires_source
+
+        # on nettoie et met à jour
+        for partenaire in intersection:
+            dico_candidats[partenaire].add(indice_nouvelle_colonne)
+
+        for partenaire in partenaires_source:
+            dico_candidats[partenaire].remove(colonne_source)
+            if not len(dico_candidats[partenaire]):
+                del dico_candidats[partenaire]
+
+        for partenaire in partenaires_candidats:
+            dico_candidats[partenaire].remove(colonne_candidate)
+            if not len(dico_candidats[partenaire]):
+                del dico_candidats[partenaire]
+
+        del dico_candidats[colonne_source]
+        del dico_candidats[colonne_candidate]
+
+    print(dico_candidats)
+    # print(colonnees_resolues)
+    print(premier_indice_libre)
+
+    return solution
