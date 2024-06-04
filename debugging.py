@@ -554,8 +554,7 @@ def recurrer_table_evenementiel_v2(colonnes_source):
             #               j'enregistre que la solution existe dans la table[niveau] sous forme de set
             #               j'enregistre qu'à la clef de cette solution correspond la solution
             #               >> pas la peine, certaines solutions ne seront jamais calculées !!!
-    if not len(tables[niveau]):
-        del tables[niveau]
+    del tables[niveau]
 
     return tables
 
@@ -628,7 +627,8 @@ def wip_creation_planning():
     # on veut donc :
     # préparer les données sous la forme d'un tableau qui lie, une fois fini, lie les aides aux personnages
     # isoler les personnages en doubles à deux endroits à la fois et leur crééer de l'ubiquité
-    return fournir_solutions(output)
+    # return fournir_solutions(output)
+    return recurrer_table_evenementiel_v2(output)
 
 
 def dico_brief2tableau_interventions(dico_briefs, max_date, min_date):
