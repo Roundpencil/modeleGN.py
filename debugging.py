@@ -583,6 +583,21 @@ def heure_en_pas(j_formatte: str, h_formattee: str, pas: int, jplusun=False) -> 
     return total_minutes // pas
 
 
+def pas_en_heure(nombre_de_pas: int, pas: int) -> str:
+    # Calcul du nombre total de minutes
+    total_minutes = nombre_de_pas * pas
+
+    # Calcul du nombre de jours, heures et minutes
+    jour = total_minutes // (24 * 60)
+    minutes_restantes = total_minutes % (24 * 60)
+    heure = minutes_restantes // 60
+    minute = minutes_restantes % 60
+
+    # Formattage du résultat
+    resultat = f"J{jour}, {heure:02d}h{minute:02d}"
+    return resultat
+
+
 # # Example usage:
 # result = heure_en_pas("J5", "21h34", 1)
 # print(result)  # Output: 76894
@@ -597,7 +612,7 @@ def wip_creation_planning(recursion=50):
     dico_briefs, max_date, min_date = preparer_donnees_pour_planning(gn, max_date, min_date, pas)
 
     # maintenant, on enlève les recouvrements
-    output = dico_brief2tableau_interventions(dico_briefs, max_date, min_date)
+    output, noms_persos = dico_brief2tableau_interventions(dico_briefs, max_date, min_date)
 
     # a ce statde la, on a  :
     #  - un dictionnaire avec tous les PJs et des tableaux d'évènements
@@ -619,13 +634,17 @@ def wip_creation_planning(recursion=50):
             mink = len(k)
             print(f"mink = {mink}")
 
+    # onrefait les entêtes
+    heures = [pas_en_heure(i, pas) for i in range(min_date, max_date+1)]
+
     # return best
-    sol_complete = indices2solution(best, output)
+    sol_complete = indices2solution(best, output, heures, noms_persos)
     return sol_complete
 
 
 def dico_brief2tableau_interventions(dico_briefs, max_date, min_date):
     output = []
+    noms_persos = []
     for intervenant in dico_briefs:
         stock = dico_briefs[intervenant]
         go_on = True
@@ -655,7 +674,8 @@ def dico_brief2tableau_interventions(dico_briefs, max_date, min_date):
             # print(f"stock = {stock}")
             nb_recursions += 1
             output.append(ligne)
-    return output
+            noms_persos.append(intervenant)
+    return output, noms_persos
 
 
 def preparer_donnees_pour_planning(gn, max_date, min_date, pas):
@@ -824,13 +844,21 @@ def table_evenementiel_monte_carlo(colonnes_source, mink=sys.maxsize):
     # return solutions
 
 
-def indices2solution(solution_depliee, colonnes_source):
-    solution_complete = []
-    for key in solution_depliee:
-        print(f"clef en cours : {key}")
+def indices2solution(solution_depliee, colonnes_source, colonne_heure, noms_persos):
+    solution_complete = [['', ''] + colonne_heure]
+    for i, key in enumerate(solution_depliee, start=1):
+        current_names = []
+        # print(f"clef en cours : {key}")
         indices_colonnes = list(solution_depliee[key])
         to_add = colonnes_source[indices_colonnes[0]]
+        current_names = [noms_persos[indices_colonnes[0]]]
         for indice in indices_colonnes[1:]:
             to_add = fusionner_colonnes(to_add, colonnes_source[indice])
+            current_names.append(noms_persos[indice])
+
+        to_add = [f"PNJ {i}"] + ["/ ".join(current_names)] + to_add
         solution_complete.append(to_add)
-    return solution_complete
+    # puis on inverse la matrice
+    # return solution_complete
+    return [[solution_complete[j][i] for j in range(len(solution_complete))] for i in range(len(solution_complete[0]))]
+
