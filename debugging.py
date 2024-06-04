@@ -277,7 +277,7 @@ def tableau_intrigues_persos():
         output.append(to_add)
     _, _, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()
     mon_id = '1HeJI-ECICzVvMzzefku721Vk6Hggc8cF9WClnCGDTUM'
-    g_io.ecrire_table_google_sheets(api_sheets, output, mon_id, "persos Civils")
+    g_io.write_to_sheet(api_sheets, output, mon_id, "persos Civils")
 
 
 from googleapiclient.errors import HttpError
@@ -336,7 +336,7 @@ def list_docs_and_create_sheet(drive_service, sheets_service, folder_id, output_
         #     fields='id, parents'
         # ).execute()
         file_id = g_io.creer_google_sheet(drive_service, "liste Charles", output_folder_id)
-        g_io.ecrire_table_google_sheets(sheets_service, values, file_id, feuille="tout")
+        g_io.write_to_sheet(sheets_service, values, file_id, feuille="tout")
 
         print("ping post")
 

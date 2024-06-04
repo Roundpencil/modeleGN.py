@@ -898,8 +898,8 @@ def creer_table_intrigues_sur_drive(mon_gn: GN, api_sheets, api_drive, m_print=p
     mon_id = g_io.creer_google_sheet(api_drive, nom_fichier, dossier_export,
                                      id_dossier_archive=mon_gn.get_id_dossier_archive())
     # extraire_texte_de_google_doc.exporter_table_intrigue(api_doc, nom_fichier, dossier_export, df)
-    # extraire_texte_de_google_doc.ecrire_table_google_sheets(api_sheets, df, mon_id)
-    g_io.ecrire_table_google_sheets(api_sheets, table_intrigues, mon_id)
+    # extraire_texte_de_google_doc.write_to_sheet(api_sheets, df, mon_id)
+    g_io.write_to_sheet(api_sheets, table_intrigues, mon_id)
 
 
 @attrappeur_dexceptions
@@ -1349,8 +1349,8 @@ def ecrire_table_objet_dans_drive(mon_gn: GN, api_drive, api_sheets, m_print=pri
                   f'- Table des objets'
     mon_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
                                      id_dossier_archive=mon_gn.get_id_dossier_archive())
-    g_io.ecrire_table_google_sheets(api_sheets, table_detaillee, mon_id, "lus dans les fiches")
-    g_io.ecrire_table_google_sheets(api_sheets, table_condensee, mon_id, "objets uniques")
+    g_io.write_to_sheet(api_sheets, table_detaillee, mon_id, "lus dans les fiches")
+    g_io.write_to_sheet(api_sheets, table_condensee, mon_id, "objets uniques")
     g_io.supprimer_feuille_1(api_sheets, mon_id)
 
 
@@ -1386,7 +1386,7 @@ def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_prin
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
                                       id_dossier_archive=mon_gn.get_id_dossier_archive())
     for session in tables_planning.keys():
-        g_io.ecrire_table_google_sheets(api_sheets, tables_planning[session], file_id, feuille=session)
+        g_io.write_to_sheet(api_sheets, tables_planning[session], file_id, feuille=session)
     g_io.supprimer_feuille_1(api_sheets, file_id)
 
     if texte_erreur:
@@ -1544,10 +1544,10 @@ def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets, m_print=pr
                   f'- synthèse chrono'
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
                                       id_dossier_archive=mon_gn.get_id_dossier_archive())
-    g_io.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="condensée")
-    g_io.ecrire_table_google_sheets(api_sheets, table_complete, file_id, feuille="étendue")
-    g_io.ecrire_table_google_sheets(api_sheets, table_chrono_scenes, file_id,
-                                    feuille="toutes les scènes")
+    g_io.write_to_sheet(api_sheets, table_simple, file_id, feuille="condensée")
+    g_io.write_to_sheet(api_sheets, table_complete, file_id, feuille="étendue")
+    g_io.write_to_sheet(api_sheets, table_chrono_scenes, file_id,
+                        feuille="toutes les scènes")
     g_io.supprimer_feuille_1(api_sheets, file_id)
 
 
@@ -1586,7 +1586,7 @@ def ecrire_table_persos(mon_gn: GN, api_drive, api_sheets, m_print=print):
                   f'- synthèse des intrigues par personnage'
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
                                       id_dossier_archive=mon_gn.get_id_dossier_archive())
-    g_io.ecrire_table_google_sheets(api_sheets, table, file_id)
+    g_io.write_to_sheet(api_sheets, table, file_id)
 
 
 def generer_table_pnjs_etendue(gn: GN, verbal=False):
@@ -1668,12 +1668,12 @@ def ecrire_table_pnj(mon_gn: GN, api_drive, api_sheets, m_print=print):
                   f'- table des PNJs'
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
                                       id_dossier_archive=mon_gn.get_id_dossier_archive())
-    g_io.ecrire_table_google_sheets(api_sheets, table_simple, file_id, feuille="En synthèse")
-    g_io.ecrire_table_google_sheets(api_sheets, table_etendue, file_id, feuille="Vision détaillée")
+    g_io.write_to_sheet(api_sheets, table_simple, file_id, feuille="En synthèse")
+    g_io.write_to_sheet(api_sheets, table_etendue, file_id, feuille="Vision détaillée")
     if mon_gn.get_mode_association() == GN.ModeAssociation.AUTO:
         table_pnj_dedup = generer_table_pnj_dedupliquee(mon_gn)
-        g_io.ecrire_table_google_sheets(api_sheets, table_pnj_dedup, file_id,
-                                        feuille="Suggestion liste dedupliquée")
+        g_io.write_to_sheet(api_sheets, table_pnj_dedup, file_id,
+                            feuille="Suggestion liste dedupliquée")
     g_io.supprimer_feuille_1(api_sheets, file_id)
 
 
@@ -1833,10 +1833,10 @@ def ecrire_table_commentaires(mon_gn: GN, api_drive, api_doc, api_sheets, m_prin
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
                                       id_dossier_archive=mon_gn.get_id_dossier_archive())
     for auteur in dict_auteurs_tableaux:
-        g_io.ecrire_table_google_sheets(api_sheets, dict_auteurs_tableaux[auteur], file_id,
-                                        feuille=auteur)
-    g_io.ecrire_table_google_sheets(api_sheets, tableau_global, file_id,
-                                    feuille="tableau global")
+        g_io.write_to_sheet(api_sheets, dict_auteurs_tableaux[auteur], file_id,
+                            feuille=auteur)
+    g_io.write_to_sheet(api_sheets, tableau_global, file_id,
+                        feuille="tableau global")
     g_io.supprimer_feuille_1(api_sheets, file_id)
 
 
@@ -1913,7 +1913,7 @@ def ecrire_table_relation(mon_gn: GN, api_drive, api_sheets, m_print=print):
 
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
                                       id_dossier_archive=mon_gn.get_id_dossier_archive())
-    g_io.ecrire_table_google_sheets(api_sheets, tab_relations, file_id)
+    g_io.write_to_sheet(api_sheets, tab_relations, file_id)
 
 
 def generer_table_evenements(gn: GN):
@@ -1997,7 +1997,7 @@ def ecrire_table_evenements(mon_gn: GN, api_drive, api_sheets, m_print=print):
 
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
                                       id_dossier_archive=mon_gn.get_id_dossier_archive())
-    g_io.ecrire_table_google_sheets(api_sheets, tab_evenements, file_id)
+    g_io.write_to_sheet(api_sheets, tab_evenements, file_id)
 
 
 def generer_table_questionnaire(gn: GN):
@@ -2052,7 +2052,7 @@ def ecrire_table_questionnaire(gn: GN, api_drive, api_sheets, m_print=print):
 
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
                                       id_dossier_archive=gn.get_id_dossier_archive())
-    g_io.ecrire_table_google_sheets(api_sheets, tab_questionnaire, file_id)
+    g_io.write_to_sheet(api_sheets, tab_questionnaire, file_id)
 
 
 def fichier_ini_defaut():

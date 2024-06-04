@@ -2941,8 +2941,8 @@ def expand_grid(api_sheets, spreadsheet_id, sheet_id, table):
         print(f'An error occurred: {error}')
 
 
-# def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id, feuille="Feuille 1", avec_formules=True):
-def ecrire_table_google_sheets(api_sheets, table, spreadsheet_id, feuille=None, avec_formules=True):
+# def write_to_sheet(api_sheets, table, spreadsheet_id, feuille="Feuille 1", avec_formules=True):
+def write_to_sheet(api_sheets, table, spreadsheet_id, feuille=None, avec_formules=True):
     #
     # if avec_formules:
     #     ecrire_table_google_sheets_avec_formules(api_sheets, table, spreadsheet_id, feuille=feuille)
@@ -2971,7 +2971,7 @@ def ecrire_table_google_sheets_sans_formules(api_sheets, table, spreadsheet_id, 
         except HttpError as error:
             print(f'An error occurred: {error}')
 
-    # def ecrire_table_google_sheets(api_doc, df, spreadsheet_id):
+    # def write_to_sheet(api_doc, df, spreadsheet_id):
     try:
         body = {'range': ma_range,
                 'values': table,
