@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import configparser
 import io
-import itertools
 import os
 from enum import Enum
 from typing import Optional
@@ -555,6 +554,7 @@ def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles: 
         en_tetes_bruts (list[str]): Liste des en-têtes tels que lus dans le tableau brut.
         noms_colonnes_cibles (list[str]): Liste des noms de colonnes attendus ou cibles.
         erreur_manager (ErreurManager): Gestionnaire des erreurs pour enregistrer les problèmes rencontrés.
+        verbal: Pour afficher des messages d'erreurs
 
     Returns:
         list[str]: Liste des en-têtes rectifiés correspondant aux noms de colonnes cibles.
@@ -562,6 +562,8 @@ def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles: 
     Note:
         Si les résultats de la correspondance sont jugés insuffisants, une autre approche plus complexe
         peut être envisagée au prix d'une diminution de la performance globale.
+        :param erreur_manager:
+        :param verbal:
     """
 
     # si on a en entrée un tableau vide, alors on renvoie un tableau vide pour obtenir un dictionnaire avec une clef
@@ -1183,20 +1185,20 @@ def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, avec_tableau_des_
             avec_tableau_des_persos: Un booléen qui indique si la fonction doit utiliser un tableau de référence
                                      des personnages (True par défaut). Si False, les rôles sont créés sans référence.
 
-        Returns:
-            Une liste composée de sous-listes tripartites. Chaque sous-liste correspond à un rôle analysé et contient
-            les éléments suivants :
-            - Le nom du rôle (`str`): la désignation textuelle exacte du rôle telle qu'elle apparaît dans la liste des
-            rôles fournie.
-            - L'instance du rôle (`Role` ou `None`): l'objet représentant le rôle associé à ce nom dans le conteneur de
-            scènes, ou `None` si aucune correspondance n'est trouvée.
-            - Le score de correspondance (`int`): une valeur numérique indiquant le degré de certitude de l'association.
-            Un score de 100 signale une concordance directe et indiscutable avec un rôle connu dans le conteneur. Si un tableau de référence est consulté pour l'association, ce score reflète la proximité de la correspondance entre le nom fourni et les noms connus, avec des valeurs potentiellement inférieures à 100 pour les correspondances moins précises.
+        Returns: Une liste composée de sous-listes tripartites. Chaque sous-liste correspond à un rôle analysé et
+        contient les éléments suivants : - Le nom du rôle (`str`): la désignation textuelle exacte du rôle telle
+        qu'elle apparaît dans la liste des rôles fournie. - L'instance du rôle (`Role` ou `None`): l'objet
+        représentant le rôle associé à ce nom dans le conteneur de scènes, ou `None` si aucune correspondance n'est
+        trouvée. - Le score de correspondance (`int`): une valeur numérique indiquant le degré de certitude de
+        l'association. Un score de 100 signale une concordance directe et indiscutable avec un rôle connu dans le
+        conteneur. Si un tableau de référence est consulté pour l'association, ce score reflète la proximité de la
+        correspondance entre le nom fourni et les noms connus, avec des valeurs potentiellement inférieures à 100
+        pour les correspondances moins précises.
 
 
         Exemple d'utilisation:
-            >>> conteneur = ConteneurDeScene()
-            >>> qui_2_roles(['Gardien', 'Voleur'], conteneur)
+            >>> conteneur_test = ConteneurDeScene()
+            >>> qui_2_roles(['Gardien', 'Voleur'], conteneur_test)
             [['Gardien', <objet Role Gardien>, 100], ['Voleur', <objet Role Voleur>, 100]]
 
         Note:

@@ -1086,11 +1086,10 @@ class GN:
         self.evenements = {}  # clef : id google
         self.objets_de_reference = {}  # clef : id google
 
-        # todo : est-ce que ces variables servent à quelque chose?
-        self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN
-        self.oldestUpdatePJ = None  # contient al dernière date d'update d'une intrigue dans le GN
-        self.oldestUpdatedIntrigue = ""  # contient l'id de la dernière intrigue updatée dans le GN
-        self.oldestUpdatedPJ = ""  # contient l'id du dernier PJ updaté dans le GN
+        # self.oldestUpdateIntrigue = None  # contient al dernière date d'update d'une intrigue dans le GN
+        # self.oldestUpdatePJ = None  # contient al dernière date d'update d'une intrigue dans le GN
+        # self.oldestUpdatedIntrigue = ""  # contient l'id de la dernière intrigue updatée dans le GN
+        # self.oldestUpdatedPJ = ""  # contient l'id du dernier PJ updaté dans le GN
 
         self.version = ma_version
 
@@ -1201,24 +1200,25 @@ class GN:
                 perso = self.personnages.pop(key_personnage)
                 perso.clear()
 
-    # permet de mettre à jour la date d'intrigue la plus ancienne
-    # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
-    # Tant que les modifs dans google sont postérieures à la date de dernière modif > les prendre en compte
-    # Après > arréter
-    def update_oldest_update(self):
-        if pairesDatesIdIntrigues := {
-            intrigue.lastProcessing: intrigue.url
-            for intrigue in self.intrigues.values()
-        }:
-            self.oldestUpdateIntrigue = min(pairesDatesIdIntrigues.keys())
-            self.oldestUpdatedIntrigue = pairesDatesIdIntrigues[self.oldestUpdateIntrigue]
 
-        if pairesDatesIdPJ := {
-            pj.lastProcessing: pj.url for pj in self.personnages.values() if pj.est_un_pj()
-        }:
-            self.oldestUpdatePJ = min(pairesDatesIdPJ.keys())
-            # print(f"oldestdate pj : {self.oldestUpdatePJ} ")
-            self.oldestUpdatedPJ = pairesDatesIdPJ[self.oldestUpdatePJ]
+    # # permet de mettre à jour la date d'intrigue la plus ancienne
+    # # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
+    # # Tant que les modifs dans google sont postérieures à la date de dernière modif > les prendre en compte
+    # # Après > arréter
+    # def update_oldest_update(self):
+    #     if pairesDatesIdIntrigues := {
+    #         intrigue.lastProcessing: intrigue.url
+    #         for intrigue in self.intrigues.values()
+    #     }:
+    #         self.oldestUpdateIntrigue = min(pairesDatesIdIntrigues.keys())
+    #         self.oldestUpdatedIntrigue = pairesDatesIdIntrigues[self.oldestUpdateIntrigue]
+    #
+    #     if pairesDatesIdPJ := {
+    #         pj.lastProcessing: pj.url for pj in self.personnages.values() if pj.est_un_pj()
+    #     }:
+    #         self.oldestUpdatePJ = min(pairesDatesIdPJ.keys())
+    #         # print(f"oldestdate pj : {self.oldestUpdatePJ} ")
+    #         self.oldestUpdatedPJ = pairesDatesIdPJ[self.oldestUpdatePJ]
 
     def save(self, filename=None, last_save=None):
         if last_save:
@@ -1413,7 +1413,7 @@ class GN:
 
     def rebuild_links(self, verbal=False):
         self.clear_all_associations()
-        self.update_oldest_update()
+        # self.update_oldest_update()
         self.ajouter_roles_issus_de_factions()
         self.associer_pnj_a_roles()
         self.associer_pj_a_roles()
