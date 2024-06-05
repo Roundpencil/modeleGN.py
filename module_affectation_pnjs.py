@@ -99,7 +99,7 @@ def creer_planning(gn: GN, recursion=50, pas=15):
     sol_complete = indices2solution(best, output, heures, noms_persos)
     return sol_complete
 
-# TODO : vérifier que la fonction de recouvrement calcule bien les choses
+# todo : quand un pnj se recouvre avec lui-même fusionner les deux
 # TODO : prendre en compte les PNJs infiltrés et permanenes
 # TODO : rajouter une amnière de forcer le statut minimal d'un PNJ dans le tablea des noms des PNJs
 
@@ -122,7 +122,7 @@ def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=Tru
                 end = element[1]
                 integrable = True
                 for autre_element in ou_chercher:
-                    if autre_element[0] < start < autre_element[1] or autre_element[0] < end < autre_element[1]:
+                    if autre_element[0] <= start <= autre_element[1] or autre_element[0] <= end <= autre_element[1]:
                         # alors on a un recouvrement
                         integrable = False
                         if verbal:
