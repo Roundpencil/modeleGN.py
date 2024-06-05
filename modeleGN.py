@@ -15,7 +15,7 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.2.20240506"
+VERSION = "1.2.20240605"
 VERSION_MODELE = "1.2.20231127"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
