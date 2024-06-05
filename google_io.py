@@ -3916,7 +3916,6 @@ def telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, save_
             nom = items[0]['name']
             last_save_online = nom.split(' - ')[0]
             if last_save_online <= last_save_connu:
-                # todo : utiliser une autre valeur car décalage ave l'upload qui fait que c'est toujours téléchargé
                 m_print("La version locale est la dernière à jour, pas besoin de télécharger")
                 return None
 
@@ -3959,6 +3958,7 @@ def charger_gn(nom_archive: str, source_folder_id: str, dest_folder: str, api_dr
 
     # print(f"DEBUG : dict_config = {dict_config}")
 
+
     if api_drive:
         m_print("téléchargement de la dernière version de l'archive...")
         if telecharger_derniere_archive(source_folder_id, dest_folder, api_drive, nom_archive, last_save_connu,
@@ -3975,6 +3975,12 @@ def charger_gn_from_dict(dict_config: dict, api_drive=None, m_print=print, updat
     nom_archive = normaliser_nom_gn(dict_config['nom_fichier_sauvegarde'])
     dest_folder = dict_config['dossier_local_fichier_sauvegarde']
     source_folder_id = dict_config.get('dossier_output')
+    chemin_archive = os.path.join(dest_folder, nom_archive)
+
+    archive_locale = GN.load(chemin_archive, dict_config=dict_config, m_print=m_print, creer_si_erreur=False)
+    if archive_locale:
+        last_save_connu = archive_locale.get_last_save()
+
     return charger_gn(nom_archive, source_folder_id, dest_folder, api_drive, m_print=m_print,
                       dict_config=dict_config if updater_dict_config else None,
                       last_save_connu=last_save_connu)

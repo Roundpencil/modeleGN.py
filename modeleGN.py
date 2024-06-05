@@ -1364,7 +1364,7 @@ class GN:
 
     @staticmethod
     def load(filename, dict_config: dict = None, update_version: bool = True, m_print=print,
-             ignore_older_version=False):
+             ignore_older_version=False, creer_si_erreur=True):
         try:
             mon_fichier = open(filename, 'rb')
             gn = pickle.load(mon_fichier)
@@ -1387,16 +1387,19 @@ class GN:
 
             return gn
         except FileNotFoundError:
-            if dict_config:
-                message = f"pas de fichier {filename} trouvé, création d'un fichier mgn"
-                logging.debug(message)
-                m_print(message)
-                gn = GN(dict_config=dict_config)
-                return gn
+            if creer_si_erreur:
+                if dict_config:
+                    message = f"pas de fichier {filename} trouvé, création d'un fichier mgn"
+                    logging.debug(message)
+                    m_print(message)
+                    gn = GN(dict_config=dict_config)
+                    return gn
+                else:
+                    message = f"pas de fichier {filename} trouvé, et pas de paramètre pour en créer un nouveau. Abandon."
+                    logging.debug(message)
+                    m_print(message)
+                    return None
             else:
-                message = f"pas de fichier {filename} trouvé, et pas de paramètre pour en créer un nouveau. Abandon."
-                logging.debug(message)
-                m_print(message)
                 return None
         except ValueError as v:
             logging.debug(f'{v}')
