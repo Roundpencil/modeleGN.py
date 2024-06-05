@@ -462,12 +462,33 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue):
         DESCRIPTION = "Résumé de l’implication"
         TYPE_PERSONNAGE = "Type de Personnage"
 
-    dict_headers = generer_dict_header_vers_no_colonne(en_tetes=tableau_pjs[0],
-                                                       noms_colonnes=[nom_col.value for nom_col in NomsColonnes],
-                                                       erreur_manager=current_intrigue.error_log)
-    # noms_colonnes = [nc.value for nc in NomsColonnes]
-    # headers = tableau_pjs[0]
-    # dict_headers = generer_dict_header_vers_no_colonne(headers, noms_colonnes, current_intrigue.error_log)
+    # dict_headers = generer_dict_header_vers_no_colonne(en_tetes=tableau_pjs[0],
+    #                                                    noms_colonnes=[nom_col.value for nom_col in NomsColonnes],
+    #                                                    erreur_manager=current_intrigue.error_log)
+    # # noms_colonnes = [nc.value for nc in NomsColonnes]
+    # # headers = tableau_pjs[0]
+    # # dict_headers = generer_dict_header_vers_no_colonne(headers, noms_colonnes, current_intrigue.error_log)
+    #
+    # grille_types_persos = {"PJ": TypePerso.EST_PJ,
+    #                        "PNJ": TypePerso.EST_PNJ_HORS_JEU,
+    #                        "Reroll": TypePerso.EST_REROLL,
+    #                        "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
+    #                        "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
+    #                        "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
+    #                        "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
+    #
+    # for ligne in tableau_pjs[1:]:
+    #     nom = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
+    #     logging.debug(f"value  ={NomsColonnes.NOM_PERSO.value}, nom = {nom}")
+    #     description = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
+    #     pipi = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.PIP_I.value, 0)
+    #     pipr = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.PIP_R.value, 0)
+    #     sexe = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.GENRE.value, "i")
+    #     type_intrigue = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.TYPE_INTRIGUE.value, "")
+    #     niveau_implication = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.IMPLICATION.value, "")
+    #     pip_globaux = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.PIP.value, 0)
+    #     type_personnage_brut = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.TYPE_PERSONNAGE.value,
+    #                                                           "PJ")
 
     grille_types_persos = {"PJ": TypePerso.EST_PJ,
                            "PNJ": TypePerso.EST_PNJ_HORS_JEU,
@@ -477,18 +498,22 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue):
                            "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
                            "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
 
-    for ligne in tableau_pjs[1:]:
-        nom = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
+    liste_dicos_pjs = generer_liste_de_dict_from_tableau(tableau_pjs,
+                                                         noms_colonnes=[nom_col.value for nom_col in NomsColonnes],
+                                                         erreur_manager=current_intrigue.error_log)
+
+    for dico_pj in liste_dicos_pjs:
+        nom = dico_pj.get(NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
         logging.debug(f"value  ={NomsColonnes.NOM_PERSO.value}, nom = {nom}")
-        description = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
-        pipi = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.PIP_I.value, 0)
-        pipr = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.PIP_R.value, 0)
-        sexe = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.GENRE.value, "i")
-        type_intrigue = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.TYPE_INTRIGUE.value, "")
-        niveau_implication = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.IMPLICATION.value, "")
-        pip_globaux = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.PIP.value, 0)
-        type_personnage_brut = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.TYPE_PERSONNAGE.value,
-                                                              "PJ")
+        description = dico_pj.get(NomsColonnes.DESCRIPTION.value, "")
+        pipi = dico_pj.get(NomsColonnes.PIP_I.value, 0)
+        pipr = dico_pj.get(NomsColonnes.PIP_R.value, 0)
+        sexe = dico_pj.get(NomsColonnes.GENRE.value, "i")
+        type_intrigue = dico_pj.get(NomsColonnes.TYPE_INTRIGUE.value, "")
+        niveau_implication = dico_pj.get(NomsColonnes.IMPLICATION.value, "")
+        pip_globaux = dico_pj.get(NomsColonnes.PIP.value, 0)
+        type_personnage_brut = dico_pj.get(NomsColonnes.TYPE_PERSONNAGE.value, "PJ")
+
         type_personnage_brut = process.extractOne(type_personnage_brut, grille_types_persos.keys())[0]
         type_perso = grille_types_persos[type_personnage_brut]
 
@@ -502,9 +527,11 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue):
             pip_globaux = 0
             pipi = liste_pips[0] + pipi
             pipr = liste_pips[1] + pipr
-        affectation = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.AFFECTATION.value, "")
-        logging.debug(f"Tableau des headers : {dict_headers}")
-        logging.debug(f"ligne = {ligne}")
+        # affectation = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.AFFECTATION.value, "")
+        affectation = dico_pj.get(NomsColonnes.AFFECTATION.value, "")
+
+        # logging.debug(f"Tableau des headers : {dict_headers}")
+        # logging.debug(f"ligne = {ligne}")
         logging.debug(f"lecture associée : "
                       f"{[nom, description, pipi, pipr, sexe, type_intrigue, niveau_implication, pip_globaux, affectation]}")
         role_a_ajouter = Role(current_intrigue,
@@ -523,18 +550,17 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue):
         current_intrigue.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
 
 
-def generer_dict_header_vers_no_colonne(en_tetes, noms_colonnes, erreur_manager: ErreurManager):
-    """
-    Associe les entêtes du tableau aux noms de colonnes prévus et renvoie un dictionnaire avec les correspondances.
-
-    :param en_tetes: Liste des entêtes du tableau.
-    :param noms_colonnes: Liste des noms de colonnes attendus.
-    :param erreur_manager: Instance d'ErreurManager pour gérer les erreurs.
-    :return: Dictionnaire avec les correspondances entre les entêtes et les noms de colonnes.
-    """
-    # todo : supprimer cette fonction et passer par la focntion de dictionnaire à la place
-    tab_rectifie = normaliser_en_tete_tableau(en_tetes, noms_colonnes, erreur_manager)
-    return {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
+# def generer_dict_header_vers_no_colonne(en_tetes, noms_colonnes, erreur_manager: ErreurManager):
+#     """
+#     Associe les entêtes du tableau aux noms de colonnes prévus et renvoie un dictionnaire avec les correspondances.
+#
+#     :param en_tetes: Liste des entêtes du tableau.
+#     :param noms_colonnes: Liste des noms de colonnes attendus.
+#     :param erreur_manager: Instance d'ErreurManager pour gérer les erreurs.
+#     :return: Dictionnaire avec les correspondances entre les entêtes et les noms de colonnes.
+#     """
+#     tab_rectifie = normaliser_en_tete_tableau(en_tetes, noms_colonnes, erreur_manager)
+#     return {en_tete: i for i, en_tete in enumerate(tab_rectifie)}
 
 
 def normaliser_en_tete_tableau(en_tetes_bruts: list[str], noms_colonnes_cibles: list[str],
@@ -628,23 +654,23 @@ def generer_liste_de_dict_from_tableau(tableau_avec_en_tetes, noms_colonnes, err
     return to_return
 
 
-def en_tete_vers_valeur_dans_ligne(ligne_tableau: list[str], dict_header_vers_no_colonne: dict, header_value, default):
-    """
-    Récupère la valeur d'une colonne spécifique dans une ligne de tableau en utilisant le mappage des entêtes.
-
-    :param ligne_tableau: Liste des valeurs de la ligne du tableau.
-    :param dict_header_vers_no_colonne: Dictionnaire avec les correspondances entre les entêtes et les noms de colonnes.
-    :param header_value: Entête de la colonne à rechercher.
-    :param default: Valeur par défaut à renvoyer si l'entête n'est pas trouvée.
-    :return: Valeur de la colonne correspondant à l'entête donnée ou la valeur par défaut si l'entête n'est pas trouvée.
-    """
-    logging.debug(f"header / table header {header_value} {dict_header_vers_no_colonne.get(header_value)}")
-    logging.debug(f"ligne : {ligne_tableau}")
-    debug_value = dict_header_vers_no_colonne.get(header_value)
-    if debug_value is not None:
-        logging.debug(f"pour la valeur {debug_value} : {ligne_tableau[debug_value]}")
-    index = dict_header_vers_no_colonne.get(header_value)
-    return ligne_tableau[index] if index is not None else default
+# def en_tete_vers_valeur_dans_ligne(ligne_tableau: list[str], dict_header_vers_no_colonne: dict, header_value, default):
+#     """
+#     Récupère la valeur d'une colonne spécifique dans une ligne de tableau en utilisant le mappage des entêtes.
+#
+#     :param ligne_tableau: Liste des valeurs de la ligne du tableau.
+#     :param dict_header_vers_no_colonne: Dictionnaire avec les correspondances entre les entêtes et les noms de colonnes.
+#     :param header_value: Entête de la colonne à rechercher.
+#     :param default: Valeur par défaut à renvoyer si l'entête n'est pas trouvée.
+#     :return: Valeur de la colonne correspondant à l'entête donnée ou la valeur par défaut si l'entête n'est pas trouvée.
+#     """
+#     logging.debug(f"header / table header {header_value} {dict_header_vers_no_colonne.get(header_value)}")
+#     logging.debug(f"ligne : {ligne_tableau}")
+#     debug_value = dict_header_vers_no_colonne.get(header_value)
+#     if debug_value is not None:
+#         logging.debug(f"pour la valeur {debug_value} : {ligne_tableau[debug_value]}")
+#     index = dict_header_vers_no_colonne.get(header_value)
+#     return ligne_tableau[index] if index is not None else default
 
 
 def intrigue_pnjs(texte: str, current_intrigue: Intrigue, seuil_type_perso=85):
@@ -657,7 +683,7 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, seuil_type_perso=85):
                                           ErreurManager.ORIGINES.SCENE)
         return
 
-    header = tableau_pnjs[0]
+    # header = tableau_pnjs[0]
 
     class NomsColonnes(Enum):
         AFFECTATION = "Affecté à"
@@ -668,8 +694,6 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, seuil_type_perso=85):
         DESCRIPTION = "Résumé de l’implication"
         TYPE_PERSONNAGE = "Intervention"
 
-    noms_colonnes = [c.value for c in NomsColonnes]
-    dict_headers = generer_dict_header_vers_no_colonne(header, noms_colonnes, current_intrigue.error_log)
 
     grille_types_persos = {"PNJ": TypePerso.EST_PNJ_HORS_JEU,
                            "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
@@ -677,14 +701,51 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, seuil_type_perso=85):
                            "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
                            "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
 
-    for pnj in tableau_pnjs[1:]:
-        affectation = en_tete_vers_valeur_dans_ligne(pnj, dict_headers, NomsColonnes.AFFECTATION.value, "")
-        genre = en_tete_vers_valeur_dans_ligne(pnj, dict_headers, NomsColonnes.GENRE.value, "i")
-        nom = en_tete_vers_valeur_dans_ligne(pnj, dict_headers, NomsColonnes.NOM_PERSO.value, "")
-        implication = en_tete_vers_valeur_dans_ligne(pnj, dict_headers, NomsColonnes.IMPLICATION.value, "")
-        description = en_tete_vers_valeur_dans_ligne(pnj, dict_headers, NomsColonnes.DESCRIPTION.value, "")
-        type_personnage_brut = en_tete_vers_valeur_dans_ligne(pnj, dict_headers, NomsColonnes.TYPE_PERSONNAGE.value,
-                                                              "PNJ Hors Jeu")
+    # noms_colonnes = [c.value for c in NomsColonnes]
+    # dict_headers = generer_dict_header_vers_no_colonne(header, noms_colonnes, current_intrigue.error_log)
+    #
+    # for pnj in tableau_pnjs[1:]:
+    #     affectation = en_tete_vers_valeur_dans_ligne(pnj, dict_headers, NomsColonnes.AFFECTATION.value, "")
+    #     genre = en_tete_vers_valeur_dans_ligne(pnj, dict_headers, NomsColonnes.GENRE.value, "i")
+    #     nom = en_tete_vers_valeur_dans_ligne(pnj, dict_headers, NomsColonnes.NOM_PERSO.value, "")
+    #     implication = en_tete_vers_valeur_dans_ligne(pnj, dict_headers, NomsColonnes.IMPLICATION.value, "")
+    #     description = en_tete_vers_valeur_dans_ligne(pnj, dict_headers, NomsColonnes.DESCRIPTION.value, "")
+    #     type_personnage_brut = en_tete_vers_valeur_dans_ligne(pnj, dict_headers, NomsColonnes.TYPE_PERSONNAGE.value,
+    #                                                           "PNJ Hors Jeu")
+    #     score_type_perso = process.extractOne(type_personnage_brut, grille_types_persos.keys())
+    #
+    #     if score_type_perso[1] < seuil_type_perso:
+    #         type_perso = TypePerso.EST_PNJ_HORS_JEU
+    #     else:
+    #         type_personnage = score_type_perso[0]
+    #         type_perso = grille_types_persos[type_personnage]
+    #
+    #     nom, alias = separer_nom_et_alias(nom.split("http")[0])
+    #
+    #     pnj_a_ajouter = Role(current_intrigue,
+    #                          nom=nom,
+    #                          description=description,
+    #                          pj=type_perso,
+    #                          niveau_implication=implication,
+    #                          perimetre_intervention=type_personnage_brut,
+    #                          genre=genre,
+    #                          affectation=affectation,
+    #                          alias_dans_intrigue=alias)
+    #
+    #     # du coup, on peut l'ajouter aux intrigues
+    #     current_intrigue.rolesContenus[pnj_a_ajouter.nom] = pnj_a_ajouter
+
+    noms_colonnes = [c.value for c in NomsColonnes]
+
+    liste_dicos_pnjs = generer_liste_de_dict_from_tableau(tableau_pnjs, noms_colonnes, current_intrigue.error_log)
+    for dico_pnj in liste_dicos_pnjs:
+        affectation = dico_pnj.get(NomsColonnes.AFFECTATION.value, "")
+        genre = dico_pnj.get(NomsColonnes.GENRE.value, "i")
+        nom = dico_pnj.get(NomsColonnes.NOM_PERSO.value, "")
+        implication = dico_pnj.get(NomsColonnes.IMPLICATION.value, "")
+        description = dico_pnj.get(NomsColonnes.DESCRIPTION.value, "")
+        type_personnage_brut = dico_pnj.get(NomsColonnes.TYPE_PERSONNAGE.value, "PNJ Hors Jeu")
+
         score_type_perso = process.extractOne(type_personnage_brut, grille_types_persos.keys())
 
         if score_type_perso[1] < seuil_type_perso:
@@ -748,27 +809,41 @@ def intrigue_rerolls(texte: str, current_intrigue: Intrigue):
         DESCRIPTION = "Résumé de l’implication"
 
     noms_colonnes = [nc.value for nc in NomsColonnes]
-    headers = tableau_rerolls[0]
-    dict_headers = generer_dict_header_vers_no_colonne(headers, noms_colonnes, current_intrigue.error_log)
+    # headers = tableau_rerolls[0]
+    # dict_headers = generer_dict_header_vers_no_colonne(headers, noms_colonnes, current_intrigue.error_log)
+    #
+    # for ligne in tableau_rerolls[1:]:
+    #     nom = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
+    #     logging.debug(f"value  ={NomsColonnes.NOM_PERSO.value}, nom = {nom}")
+    #     description = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
+    #     pipi = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.PIP_I.value, 0)
+    #     pipr = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.PIP_R.value, 0)
+    #     sexe = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.GENRE.value, "i")
+    #     type_intrigue = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.TYPE_INTRIGUE.value, "")
+    #     niveau_implication = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.IMPLICATION.value, "")
+    #     pip_globaux = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.PIP.value, 0)
 
-    for ligne in tableau_rerolls[1:]:
-        nom = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
+    liste_dicos_rerolls = generer_liste_de_dict_from_tableau(tableau_rerolls, noms_colonnes, current_intrigue.error_log)
+
+    for dico_reroll in liste_dicos_rerolls:
+        nom = dico_reroll.get(NomsColonnes.NOM_PERSO.value, "rôle sans nom :(")
         logging.debug(f"value  ={NomsColonnes.NOM_PERSO.value}, nom = {nom}")
-        description = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.DESCRIPTION.value, "")
-        pipi = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.PIP_I.value, 0)
-        pipr = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.PIP_R.value, 0)
-        sexe = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.GENRE.value, "i")
-        type_intrigue = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.TYPE_INTRIGUE.value, "")
-        niveau_implication = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.IMPLICATION.value, "")
-        pip_globaux = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.PIP.value, 0)
+        description = dico_reroll.get(NomsColonnes.DESCRIPTION.value, "")
+        pipi = dico_reroll.get(NomsColonnes.PIP_I.value, 0)
+        pipr = dico_reroll.get(NomsColonnes.PIP_R.value, 0)
+        sexe = dico_reroll.get(NomsColonnes.GENRE.value, "i")
+        type_intrigue = dico_reroll.get(NomsColonnes.TYPE_INTRIGUE.value, "")
+        niveau_implication = dico_reroll.get(NomsColonnes.IMPLICATION.value, "")
+        pip_globaux = dico_reroll.get(NomsColonnes.PIP.value, 0)
 
         if len(liste_pips := str(pip_globaux).split('/')) == 2:
             pip_globaux = 0
             pipi = liste_pips[0] + pipi
             pipr = liste_pips[1] + pipr
-        affectation = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.AFFECTATION.value, "")
-        logging.debug(f"Tableau des headers : {dict_headers}")
-        logging.debug(f"ligne = {ligne}")
+        affectation = dico_reroll.get(NomsColonnes.AFFECTATION.value, "")
+
+        # logging.debug(f"Tableau des headers : {dict_headers}")
+        # logging.debug(f"ligne = {ligne}")
         logging.debug(f"lecture associée : "
                       f"{[nom, description, pipi, pipr, sexe, type_intrigue, niveau_implication, pip_globaux, affectation]}")
         nom, alias = separer_nom_et_alias(nom.split("http")[0])
@@ -3959,7 +4034,6 @@ def charger_gn(nom_archive: str, source_folder_id: str, dest_folder: str, api_dr
     chemin_archive = os.path.join(dest_folder, nom_archive)
 
     # print(f"DEBUG : dict_config = {dict_config}")
-
 
     if api_drive:
         m_print("téléchargement de la dernière version de l'archive...")
