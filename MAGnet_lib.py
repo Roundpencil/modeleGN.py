@@ -44,7 +44,7 @@ from modeleGN import *
 #  objectifs : se passer et du fichier de config, et de la nécessité de télécharger un mgn
 #  quand on vérifie la validité du dict config du fichier GN, en profiter pour le loader et séparer les fcontions selon si on a utilisé .ini ou .mgn
 # todo : renommer Evmenet en FicheEvemenet et Intervention en Evenement
-# problème desécurté à craquer
+#  problème desécurté à craquer
 
 # confort / logique
 # todo : refaire version console
@@ -56,7 +56,6 @@ from modeleGN import *
 
 # utilité du code
 # todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
-# todo : regarder s'il faut virer  les last modfied dans le GN (sert-il àquleque chose?)
 # todo : changer tous les paramètres de MAGnet_lib par une classe ou un dictionnaire pour accelérer le design
 #   vérifier l'usage de la GUI 3 qui utilise can write
 
