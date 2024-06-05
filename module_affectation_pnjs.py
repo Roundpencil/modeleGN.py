@@ -1,5 +1,6 @@
 from modeleGN import *
 import google_io as g_io
+from random import *
 
 
 def fusionner_colonnes(a: list, b: list, verbal=0):
@@ -55,14 +56,6 @@ def pas_en_heure(nombre_de_pas: int, pas: int) -> str:
 # result = heure_en_pas("J5", "21h34", 1)
 # print(result)  # Output: 76894
 
-
-def tester_creation_planning():
-    gn = GN.load('archive Chalacta.mgn')
-    k = creer_planning(gn)
-    _, _, sh = lecteurGoogle.creer_lecteurs_google_apis()
-    g_io.write_to_sheet(sh, k, '17v9re5w-03BJ8b4tbMTPpgRA-o2Z6uIB-j6s2bD05k4')
-
-
 def creer_planning(gn: GN, recursion=50, pas=15):
     min_date = sys.maxsize
     max_date = 0
@@ -99,7 +92,7 @@ def creer_planning(gn: GN, recursion=50, pas=15):
     sol_complete = indices2solution(best, output, heures, noms_persos)
     return sol_complete
 
-# todo : quand un pnj se recouvre avec lui-même fusionner les deux
+
 # TODO : prendre en compte les PNJs infiltrés et permanenes
 # TODO : rajouter une amnière de forcer le statut minimal d'un PNJ dans le tablea des noms des PNJs
 
@@ -113,7 +106,7 @@ def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=Tru
         while go_on:
             ligne = [None] * (max_date - min_date + 1)
             futur_stock = []
-            nom_a_afficher = intervenant + (f"_{nb_recursions}" if nb_recursions else "")
+            nom_a_afficher = intervenant + (f"_{nb_recursions + 1}" if nb_recursions else "")
 
             for i, element in enumerate(stock):
 
@@ -124,6 +117,10 @@ def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=Tru
                 for autre_element in ou_chercher:
                     if autre_element[0] <= start <= autre_element[1] or autre_element[0] <= end <= autre_element[1]:
                         # alors on a un recouvrement
+                        # todo : quand un evenement se recouvre avec lui-même
+                        #  fusionner les deux
+                        #  supprimer celui qui se recouvre du stock
+                        #  trouver un moyen de refaire tourner le stock sans ajouter artificiellement un indice  
                         integrable = False
                         if verbal:
                             print(f"j'ai trouvé un élément non intégrable pour {nom_a_afficher} : "
@@ -179,8 +176,6 @@ def preparer_donnees_pour_planning(gn: GN, max_date, min_date, pas):
 
 ####################### v3 de la focntion en approche monte carlo
 
-from random import *
-
 
 def table_evenementiel_monte_carlo(colonnes_source, mink=sys.maxsize):
     # hypotèse : il existe une combianison ABC  SSI AB, AC et BC sont des solutions possibles
@@ -195,8 +190,9 @@ def table_evenementiel_monte_carlo(colonnes_source, mink=sys.maxsize):
 
     # initialisation : création table niveau 2
     niveau = 2
-    tables = {niveau: []}
-    table_n2 = tables[2]
+    # tables = {niveau: []}
+    # table_n2 = tables[2]
+    table_n2 = []
     dictionnaire_combinaisons = {}
     nb_col_source = len(colonnes_source)
     range_source = range(nb_col_source)
@@ -246,7 +242,7 @@ def table_evenementiel_monte_carlo(colonnes_source, mink=sys.maxsize):
         colonne_source = choices(list(dico_candidats.keys()))[0]
         colonne_candidate = choices(list(dico_candidats[colonne_source]))[0]
 
-        # on retire la colonne candidate des colonnes existantes et la colonne fucionnée pour en faire une nouvelle
+        # on retire la colonne candidate des colonnes existantes et la colonne fusionnée pour en faire une nouvelle
         indice_nouvelle_colonne = premier_indice_libre
         premier_indice_libre += 1
 
@@ -331,3 +327,9 @@ def indices2solution(solution_depliee, colonnes_source, colonne_heure, noms_pers
     # puis on inverse la matrice
     # return solution_complete
     return [[solution_complete[j][i] for j in range(len(solution_complete))] for i in range(len(solution_complete[0]))]
+
+def tester_creation_planning():
+    gn = GN.load('archive Chalacta.mgn')
+    k = creer_planning(gn)
+    _, _, sh = lecteurGoogle.creer_lecteurs_google_apis()
+    g_io.write_to_sheet(sh, k, '17v9re5w-03BJ8b4tbMTPpgRA-o2Z6uIB-j6s2bD05k4')

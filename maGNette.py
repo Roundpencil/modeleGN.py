@@ -113,18 +113,6 @@ def main():
     if not args.nosave:
         monGN.save(nom_fichier_sauvegarde)
 
-    # todo: appel dans la foulée de dedupe PNJ pour faire le ménage?
-    # todo : utiliser l'objet CSV pour générer les CSV
-
-    # todo : passer la gestion des dates via un objet date time, et ajouter une variable avec la date du GN (0 par défaut)
-
-    # todo : ajouter des fiches relations, qui décrivent l'évolution des relations entre les personnages,
-    #  et qui devraient servir de base pour les lire
-
-    # todo générer les relations lues dans un tableau des relations
-
-
-
     print("****************************")
     print("****************************")
     print("****************************")
