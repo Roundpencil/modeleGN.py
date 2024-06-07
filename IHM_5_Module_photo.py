@@ -60,13 +60,13 @@ def sauver_fichier_ini_photos(fichier_photos_entry, dossier_photo_entry, input_e
     config = configparser.ConfigParser()
 
     # Add a section
-    config.add_section('Settings')
+    config.add_section('Module Photo')
 
     # Set the parameters in the section
-    config.set('Settings', 'fichier_photos_entry', fichier_photos_entry)
-    config.set('Settings', 'dossier_photo_entry', dossier_photo_entry)
-    config.set('Settings', 'input_entry', input_entry)
-    config.set('Settings', 'output_entry', output_entry)
+    config.set('Module Photo', 'fichier_photos_entry', fichier_photos_entry)
+    config.set('Module Photo', 'dossier_photo_entry', dossier_photo_entry)
+    config.set('Module Photo', 'input_entry', input_entry)
+    config.set('Module Photo', 'output_entry', output_entry)
 
     # Write the parameters to the ini file
     with open(ini_file_name, 'w') as configfile:
