@@ -386,118 +386,126 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
     return api_doc.documents().batchUpdate(documentId=new_file_id, body={'requests': requetes}).execute()
 
 
-##### code pour tster le module photos
-def tester_module_photo():
-    sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
-    folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
+# ##### code pour tster le module photos
+# def tester_module_photo():
+#     sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
+#     folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
+#
+#
+# def test_module():
+#     sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
+#     folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
+#
+#     file_id = '1syyJGdBK2Kkar5UgWNsRWyiU1_plAQfEFeZFX9XWnbo'
+#     destination_folder_id = '1LV5rFP4JNxDEa5OT00qeNFLok4ZE2oKe'
+#
+#     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+#     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
+#
+#     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+#     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
+#
+#
+# def tester_module_photo_chalacta():
+#     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
+#     folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
+#
+#     file_id = '1Les3Sr500Ta8W6QJrSLFFajmpCyOsOxFrthTXFYbRTI'  ## fiche test Lars
+#     file_id = '1U1OYQPipSYBZrwknPMKIW5qgywhVHoeK1QXen3Xy0us'  ## fiche réelle Lars
+#     destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn'  ## répertoire tmp de MAGnet
+#     # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
+#     offset = 2
+#     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+#     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id,
+#                                    offset)
+#
+#
+# def tester_module_photo_dossier_chalacta():
+#     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
+#     folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
+#
+#     # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
+#     parent = ['1sApU23J6e4lFZ0OmDtghq40T1Iw5vMTY']
+#     # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
+#
+#     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+#
+#     ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, parent)]
+#     racine_pj = '1C53BHHW9xjCWgTVRlBlBCU9Vbmosxv0k'
+#     destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_pj, "output photos")
+#     print(f"ids fichiers {ids}")
+#     offset = 2
+#     for file_id in ids:
+#         # copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
+#         #                                destination_folder_id, offset=2)
+#         try:
+#             copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
+#                                            destination_folder_id, offset=offset)
+#         except Exception as e:
+#             continue
+#
+#
+# def tester_module_photo_imperiaux(offset=0):
+#     sheet_id = '1pdqZdiKec0alZNU5xUtcFUBaZpNH2v44ueQFY4S3Mxs'
+#     # folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
+#     folder_id = '1Y4ONHyZtVkzAuo4EqbubZSrh8hjbJy_O'  # photos S2 chalacta
+#
+#     # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
+#     parent = ['1178b_XzkLaE7t9Kp80uyFuFnZrqANtLz']  # dossier ou lire tout
+#     destination_folder_id = '1-oQmv4A1XInaL_y6gk27vOLCGpkwRdad' #V1 avec photos civils
+#
+#     # api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+#     #
+#     # ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, parent)]
+#     # racine_sortie = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn'
+#     # destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "demo imperiaux")
+#     # print(f"ids fichiers {ids}")
+#     # # offset = 0
+#     # for file_id in ids:
+#     #     try:
+#     #         copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
+#     #                                        destination_folder_id, offset=offset, sheet_name='Session 2')
+#     #     except Exception as e:
+#     #         print(e)
+#     #         continue
+#     sortir_dossier_photos(folder_id, parent, sheet_id, destination_folder_id, offset=2)
+#     sortir_dossier_photos(folder_id, parent, sheet_id, destination_folder_id, offset=0)
+#
+# def photos_manu():
+#     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
+#     sheet_id = '1gYUOpaxMoBSI2HR25veuz7y9mUFyPTSM1Srg9webIvk'
+#     # folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
+#     folder_id = '1Y4ONHyZtVkzAuo4EqbubZSrh8hjbJy_O'  # photos S2 chalacta
+#     # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
+#     parent = ['1BsTNOtnVK3RglGhbFoOeoBEQqNw3b6AP']  # dossier ou lire tout
+#     # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
+#     racine_sortie = '1xYPlwiQMPrKmry0aENzJejp8ETIqXmPP'
+#
+#     sortir_dossier_photos(folder_id, parent, sheet_id, racine_sortie)
+#
+#
+# def phtos_civils(offset):
+#     sheet_id = '1pdqZdiKec0alZNU5xUtcFUBaZpNH2v44ueQFY4S3Mxs'
+#     # folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
+#     folder_id = '1Y4ONHyZtVkzAuo4EqbubZSrh8hjbJy_O'  # photos S2 chalacta
+#     # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
+#     parent = ['1sApU23J6e4lFZ0OmDtghq40T1Iw5vMTY']  # dossier ou lire tout
+#     destination_folder_id = '1C53BHHW9xjCWgTVRlBlBCU9Vbmosxv0k'
+#
+#     sortir_dossier_photos(folder_id, parent, sheet_id, destination_folder_id, offset=offset)
 
 
-def test_module():
-    sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
-    folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
-
-    file_id = '1syyJGdBK2Kkar5UgWNsRWyiU1_plAQfEFeZFX9XWnbo'
-    destination_folder_id = '1LV5rFP4JNxDEa5OT00qeNFLok4ZE2oKe'
-
-    api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-    copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
-
-    api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-    copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
+# def sortir_dossier_photos(folder_id, parent, sheet_id, racine_sortie, offset=0):
+#     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+#     copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id, offset, parent, racine_sortie,
+#                                       sheet_id)
 
 
-def tester_module_photo_chalacta():
-    sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
-    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
-
-    file_id = '1Les3Sr500Ta8W6QJrSLFFajmpCyOsOxFrthTXFYbRTI'  ## fiche test Lars
-    file_id = '1U1OYQPipSYBZrwknPMKIW5qgywhVHoeK1QXen3Xy0us'  ## fiche réelle Lars
-    destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn'  ## répertoire tmp de MAGnet
-    # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
-    offset = 2
-    api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-    copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id,
-                                   offset)
-
-
-def tester_module_photo_dossier_chalacta():
-    sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
-    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
-
-    # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
-    parent = ['1sApU23J6e4lFZ0OmDtghq40T1Iw5vMTY']
-    # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
-
-    api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-
-    ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, parent)]
-    racine_pj = '1C53BHHW9xjCWgTVRlBlBCU9Vbmosxv0k'
-    destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_pj, "output photos")
-    print(f"ids fichiers {ids}")
-    offset = 2
-    for file_id in ids:
-        # copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
-        #                                destination_folder_id, offset=2)
-        try:
-            copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
-                                           destination_folder_id, offset=offset)
-        except Exception as e:
-            continue
-
-
-def tester_module_photo_imperiaux(offset=0):
-    sheet_id = '1pdqZdiKec0alZNU5xUtcFUBaZpNH2v44ueQFY4S3Mxs'
-    # folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
-    folder_id = '1Y4ONHyZtVkzAuo4EqbubZSrh8hjbJy_O'  # photos S2 chalacta
-
-    # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
-    parent = ['1178b_XzkLaE7t9Kp80uyFuFnZrqANtLz']  # dossier ou lire tout
-    destination_folder_id = '1-oQmv4A1XInaL_y6gk27vOLCGpkwRdad' #V1 avec photos civils
-
-    # api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-    #
-    # ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, parent)]
-    # racine_sortie = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn'
-    # destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "demo imperiaux")
-    # print(f"ids fichiers {ids}")
-    # # offset = 0
-    # for file_id in ids:
-    #     try:
-    #         copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
-    #                                        destination_folder_id, offset=offset, sheet_name='Session 2')
-    #     except Exception as e:
-    #         print(e)
-    #         continue
-    sortir_dossier_photos(folder_id, parent, sheet_id, destination_folder_id, offset=2)
-    sortir_dossier_photos(folder_id, parent, sheet_id, destination_folder_id, offset=0)
-
-def photos_manu():
-    sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
-    sheet_id = '1gYUOpaxMoBSI2HR25veuz7y9mUFyPTSM1Srg9webIvk'
-    # folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
-    folder_id = '1Y4ONHyZtVkzAuo4EqbubZSrh8hjbJy_O'  # photos S2 chalacta
-    # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
-    parent = ['1BsTNOtnVK3RglGhbFoOeoBEQqNw3b6AP']  # dossier ou lire tout
-    # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
-    racine_sortie = '1xYPlwiQMPrKmry0aENzJejp8ETIqXmPP'
-
-    sortir_dossier_photos(folder_id, parent, sheet_id, racine_sortie)
-
-
-def phtos_civils(offset):
-    sheet_id = '1pdqZdiKec0alZNU5xUtcFUBaZpNH2v44ueQFY4S3Mxs'
-    # folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
-    folder_id = '1Y4ONHyZtVkzAuo4EqbubZSrh8hjbJy_O'  # photos S2 chalacta
-    # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
-    parent = ['1sApU23J6e4lFZ0OmDtghq40T1Iw5vMTY']  # dossier ou lire tout
-    destination_folder_id = '1C53BHHW9xjCWgTVRlBlBCU9Vbmosxv0k'
-
-    sortir_dossier_photos(folder_id, parent, sheet_id, destination_folder_id, offset=offset)
-
-
-def sortir_dossier_photos(folder_id, parent, sheet_id, racine_sortie, offset=0):
-    api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-    ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, parent)]
+def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id, offset, dossier_sources_fiches,
+                                      racine_sortie,
+                                      sheet_id):
+    print(f"{folder_id}, {offset}, {dossier_sources_fiches},{racine_sortie},{sheet_id}")
+    ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, dossier_sources_fiches)]
     destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "Fiches avec photo")
     print(f"ids fichiers {ids}")
     # offset = 0
@@ -513,21 +521,20 @@ def sortir_dossier_photos(folder_id, parent, sheet_id, racine_sortie, offset=0):
             print(f"exception : {e}")
             continue
 
-
-def photos_unitaire():
-    sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
-    folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
-
-    # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
-    parent = ['1BsTNOtnVK3RglGhbFoOeoBEQqNw3b6AP']  # dossier ou lire tout
-    # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
-
-    api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-
-    id = '1G2BxSQdNugGrVysWMPxTZ3ZuocBsLGlXl_HLxeFwYfs'  # fichier à lire
-    racine_sortie = '1xYPlwiQMPrKmry0aENzJejp8ETIqXmPP'
-    destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "presque prod Manu")
-
-    offset = 0
-    copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, id,
-                                   destination_folder_id, offset=offset, sheet_name='Session 1')
+# def photos_unitaire():
+#     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
+#     folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
+#
+#     # destination_folder_id = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn' ## répertoire tmp de MAGnet
+#     parent = ['1BsTNOtnVK3RglGhbFoOeoBEQqNw3b6AP']  # dossier ou lire tout
+#     # destination_folder_id = '1Ci6v1aQKDx5H2IZsTa44CBbvQ0xbAoNX' #V1 avec photos civils
+#
+#     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
+#
+#     id = '1G2BxSQdNugGrVysWMPxTZ3ZuocBsLGlXl_HLxeFwYfs'  # fichier à lire
+#     racine_sortie = '1xYPlwiQMPrKmry0aENzJejp8ETIqXmPP'
+#     destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "presque prod Manu")
+#
+#     offset = 0
+#     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, id,
+#                                    destination_folder_id, offset=offset, sheet_name='Session 1')

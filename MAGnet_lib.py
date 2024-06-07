@@ -38,6 +38,8 @@ from modeleGN import *
 #  nouvel onglet dans les fichiers de castings : aides par sessions (plutot que de prendre les pré-affectation) et les utiliser
 #  nouveau paramètre à ajouter : sessions_à_generer pour savoir quels casting on affiche, et quel génération on fait
 
+# todo : vérifier qu'on peut choisir de 'nutiliser MAGnet que pour les évènements
+
 # à faire - plus long
 # todo : faire quelque part une liste de tous les dossiers ou se trouvent des *.mng
 #  vérifier auxquels a acces l'utilisateur quand il lance le programme, puis lui proposer de télécahrger les siens.

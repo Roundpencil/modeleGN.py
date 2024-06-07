@@ -4,8 +4,9 @@ from tkinter import ttk, filedialog
 import tkinter as tk
 
 import IHM_2_generation
-import google_io as g_io
 import lecteurGoogle
+
+from IHM_lib import *
 
 from tkinter import messagebox
 
@@ -408,16 +409,6 @@ class WidgetEntree(ttk.Frame):
     def get_tuple_champ_entree(self):
         return self.prefixe_parametre + self.nom_parametre_var.get(), self.valeur_parametre.get()
         # return self.prefixe_parametre + self.nom_parametre_var.get(), self.valeur_parametre_var.get()
-
-
-class GidEntry(ttk.Entry):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def get(self) -> str:
-        raw = super().get()
-        print(f"debug : raw = {raw} / mixed = {g_io.extraire_id_google_si_possible(raw)}")
-        return g_io.extraire_id_google_si_possible(raw)[0]
 
 
 if __name__ == "__main__":

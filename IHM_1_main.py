@@ -6,6 +6,7 @@ from tkinter import ttk, messagebox, filedialog
 import IHM_2_generation
 import IHM_3_nouveau_GN
 import IHM_4_editer_config
+import IHM_5_Module_photo
 import lecteurGoogle
 
 
@@ -20,7 +21,7 @@ class MAGnetMainGUI(ttk.Frame):
         self.api_sheets = api_sheets
         self.current_window = None
 
-        #déclration du menu
+        # déclration du menu
         # menu = tk.Menu(self)
         # self.master.config(menu=menu)
         #
@@ -44,7 +45,9 @@ class MAGnetMainGUI(ttk.Frame):
         menu1.add_command(label="Nouveau GN...", command=self.nouveau_gn)
         menu1.add_command(label="Nouveau fichier de configuration", command=self.nouvelle_config)
         menu1.add_command(label="Editer fichier de configuration...", command=self.editer_config)
-        menu1.add_command(label="Mouliner ", command=self.ecran_mouliner)
+        menu1.add_command(label="Mouliner", command=self.ecran_mouliner)
+        menu1.add_command(label="Créer un planning PNJs", command=self.ecran_planning)
+        menu1.add_command(label="Module Photos", command=self.ecran_photos)
         menu1.add_command(label="Quitter ", command=self.quitter)
 
         # Create an "Aide et Références" drop-down menu
@@ -77,11 +80,11 @@ class MAGnetMainGUI(ttk.Frame):
             return
 
         future_fenetre = IHM_4_editer_config.FenetreEditionConfig(self.winfo_toplevel(), self.api_drive, config_parser,
-                                                           file_path)
+                                                                  file_path)
         self.change_window(future_fenetre)
 
     def nouvelle_config(self):
-        future_fenetre = IHM_4_editer_config .FenetreEditionConfig(self.winfo_toplevel(), self.api_drive)
+        future_fenetre = IHM_4_editer_config.FenetreEditionConfig(self.winfo_toplevel(), self.api_drive)
         self.change_window(future_fenetre)
 
     def nouveau_gn(self):
@@ -90,11 +93,21 @@ class MAGnetMainGUI(ttk.Frame):
 
     def ecran_mouliner(self):
         future_fenetre = IHM_2_generation.Application(self.winfo_toplevel(),
-                                                api_drive=self.api_drive,
-                                                api_doc=self.api_doc,
-                                                api_sheets=self.api_sheets,
-                                                )
+                                                      api_drive=self.api_drive,
+                                                      api_doc=self.api_doc,
+                                                      api_sheets=self.api_sheets,
+                                                      )
         self.change_window(future_fenetre)
+
+    def ecran_planning(self):
+        #todo : créer écran planning
+        pass
+
+    def ecran_photos(self):
+        future_fenetre = IHM_5_Module_photo.GUIPhotos(self.winfo_toplevel(), api_drive=self.api_drive,
+                                                      api_doc=self.api_doc, api_sheets=self.api_sheets)
+        self.change_window(future_fenetre)
+        pass
 
     def ouvrir_manuel(self):
         webbrowser.open_new("https://docs.google.com/document/d"
@@ -106,7 +119,6 @@ class MAGnetMainGUI(ttk.Frame):
     def historique_versions(self):
         webbrowser.open_new("https://docs.google.com/document/d/"
                             "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q/edit?usp=sharing")
-
 
     def change_window(self, new_window):
         if self.current_window:
