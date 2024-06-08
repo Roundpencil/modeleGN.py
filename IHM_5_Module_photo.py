@@ -23,7 +23,7 @@ class GUIPhotos(ttk.Frame):
         inserphotos_labelframe.grid(row=50, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
 
         load_button = ttk.Button(inserphotos_labelframe, text="Charger fichier ini",
-                               command=lambda: charger_fichier_photo(self))
+                                 command=lambda: charger_fichier_photo(self))
         load_button.grid(row=1, column=0, columnspan=4, sticky='e', padx=(10, 10))
 
         current_file_label = ttk.Label(inserphotos_labelframe, text="Fichier avec référence photos / noms persos")
@@ -53,18 +53,18 @@ class GUIPhotos(ttk.Frame):
 
         ok_button = ttk.Button(inserphotos_labelframe, text="OK",
                                command=lambda: copier_dossier_et_enrichir_photos(
-            api_doc=api_doc,
-            api_drive=api_drive,
-            api_sheets=api_sheets,
-            folder_id=self.dossier_photo_entry.get(),
-            offset=self.offset_entry.get(),
-            dossier_sources_fiches=self.input_entry.get(),
-            racine_sortie=self.output_entry.get(),
-            sheet_id=self.fichier_photos_entry.get()))
+                                   api_doc=api_doc,
+                                   api_drive=api_drive,
+                                   api_sheets=api_sheets,
+                                   folder_id=self.dossier_photo_entry.get(),
+                                   offset=self.offset_entry.get(),
+                                   dossier_sources_fiches=self.input_entry.get(),
+                                   racine_sortie=self.output_entry.get(),
+                                   sheet_id=self.fichier_photos_entry.get()))
         ok_button.grid(row=40, column=30, columnspan=1, sticky='e', padx=(10, 10))
 
         save_button = ttk.Button(inserphotos_labelframe, text="Sauver fichier ini",
-                               command=lambda: sauver_fichier_ini_photos(self))
+                                 command=lambda: sauver_fichier_ini_photos(self))
         save_button.grid(row=40, column=20, columnspan=1, sticky='e', padx=(10, 10))
 
 
@@ -113,7 +113,7 @@ def sauver_fichier_ini_photos(guiphoto: GUIPhotos):
             config.add_section('Module Photos')
 
         # Set the parameters in the section
-        config.set('Module Photos', 'fichier_photos_entry', guiphoto.fichier_photos_entry.get() )
+        config.set('Module Photos', 'fichier_photos_entry', guiphoto.fichier_photos_entry.get())
         config.set('Module Photos', 'dossier_photo_entry', guiphoto.dossier_photo_entry.get())
         config.set('Module Photos', 'input_entry', guiphoto.input_entry.get())
         config.set('Module Photos', 'output_entry', guiphoto.output_entry.get())
@@ -142,7 +142,15 @@ def charger_fichier_photo(guiphoto: GUIPhotos):
         messagebox.showerror("Erreur", f"Erreur lors de l'ouverture du fichier .ini :\n{e}")
         return
 
-    guiphoto.fichier_photos_entry.insert(0, config_parser.get("Module Photos", 'fichier_photos_entry', fallback="non"))
-    guiphoto.dossier_photo_entry.insert(0, config_parser.get("Module Photos", 'dossier_photo_entry', fallback="non"))
-    guiphoto.input_entry.insert(0, config_parser.get("Module Photos", 'input_entry', fallback="non"))
-    guiphoto.output_entry.insert(0, config_parser.get("Module Photos", 'output_entry', fallback="non"))
+    entrees = config_parser.items('Module Photo - Sommaire')
+    dico_sortie = {nom_affiche: {'nom_section': 0,
+                                 'fichier_photos_entry': 1,
+                                 'dossier_photo_entry': 2,
+                                 'input_entry': 3,
+                                 'output_entry': 4,
+                                 'onglet': 5} for nom_section, nom_affiche in entrees}
+
+    guiphoto.fichier_photos_entry.insert(0, config_parser.get("Module Photos", 'fichier_photos_entry', fallback=""))
+    guiphoto.dossier_photo_entry.insert(0, config_parser.get("Module Photos", 'dossier_photo_entry', fallback=""))
+    guiphoto.input_entry.insert(0, config_parser.get("Module Photos", 'input_entry', fallback=""))
+    guiphoto.output_entry.insert(0, config_parser.get("Module Photos", 'output_entry', fallback=""))
