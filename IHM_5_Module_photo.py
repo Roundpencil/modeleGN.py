@@ -11,16 +11,16 @@ import os
 
 #### structure du fichier ini attendu :
 # [Module Photos - Sommaire]
-# TEST = youpi!
-# WOOP = WOOP
+# TEST = civils
+# WOOP = Zooooooo
 #
-# [Module Photos - TEST]
-# fichier_photos_entry = fichier photos
-# dossier_photo_entry = dossier photos
-# input_entry = dossier inputs !!!!!!!!
-# output_entry = dossier sortie
+# [Module Photos - test]
+# fichier_photos_entry = 1pdqZdiKec0alZNU5xUtcFUBaZpNH2v44ueQFY4S3Mxs
+# dossier_photo_entry = 1Y4ONHyZtVkzAuo4EqbubZSrh8hjbJy_O
+# input_entry = 1sApU23J6e4lFZ0OmDtghq40T1Iw5vMTY
+# output_entry = 1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn
 #
-# [Module Photos - WOOP]
+# [Module Photos - woop]
 # fichier_photos_entry = fichier photos 2
 # dossier_photo_entry = dossier photos 2
 # input_entry = dossier inputs 2
