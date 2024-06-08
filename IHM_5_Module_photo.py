@@ -13,6 +13,8 @@ import os
 class GUIPhotos(ttk.Frame):
     def __init__(self, parent, api_drive, api_doc, api_sheets):
         super().__init__(parent)
+        self.dico_nom_id = {}
+        self.configparser = configparser.ConfigParser()
         photo_window = self
         photo_window.winfo_toplevel().title("Module Photo")
         photo_window.grid_propagate(True)
@@ -23,8 +25,23 @@ class GUIPhotos(ttk.Frame):
         inserphotos_labelframe.grid(row=50, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
 
         load_button = ttk.Button(inserphotos_labelframe, text="Charger fichier ini",
-                                 command=lambda: charger_fichier_photo(self))
+                                 command=lambda: action_bouton_charger(self))
         load_button.grid(row=1, column=0, columnspan=4, sticky='e', padx=(10, 10))
+
+        # ajout d'un dropdown menu pour selectionner la configuration pré-enregistrée
+        # Create a StringVar to hold the selected value
+        self.dropdown_selected_option = tk.StringVar()
+
+        # Create the dropdown menu
+        self.dropdown = ttk.Combobox(inserphotos_labelframe, textvariable=self.dropdown_selected_option)
+
+        # Bind the selection event to the on_select function
+        self.dropdown.bind("<<ComboboxSelected>>", lambda event: on_select(event, self.configparser, self,
+                                                                           self.dropdown_selected_option.get()))
+        self.dropdown.grid(row=4, column=0, columnspan=1, sticky='w')
+        # todo  : ajouter des boutons renommer / ajouter / supprimer à droite (avec des icones?)
+        # todo ajouter un sélecteur d'onglet, et un bouton "rafraichir" à côté
+        #  pour sélectionner le bon onglet présent dans la feuille
 
         current_file_label = ttk.Label(inserphotos_labelframe, text="Fichier avec référence photos / noms persos")
         current_file_label.grid(row=5, column=0, columnspan=2, sticky='w')
@@ -67,29 +84,19 @@ class GUIPhotos(ttk.Frame):
                                  command=lambda: sauver_fichier_ini_photos(self))
         save_button.grid(row=40, column=20, columnspan=1, sticky='e', padx=(10, 10))
 
+    def set_configparser(self, configparser):
+        self.configparser = configparser
 
-# def sauver_fichier_ini_photos(fichier_photos_entry, dossier_photo_entry, input_entry, output_entry):
-#     # Create a config parser object
-#     config = configparser.ConfigParser()
-#
-#     # Add a section
-#     config.add_section('Module Photo')
-#
-#     # Set the parameters in the section
-#     config.set('Module Photo', 'fichier_photos_entry', fichier_photos_entry)
-#     config.set('Module Photo', 'dossier_photo_entry', dossier_photo_entry)
-#     config.set('Module Photo', 'input_entry', input_entry)
-#     config.set('Module Photo', 'output_entry', output_entry)
-#
-#     # Write the parameters to the ini file
-#     with open(ini_file_name, 'w') as configfile:
-#         config.write(configfile)
+    def set_dico_nom_id(self, dico_nom_id):
+        self.dico_nom_id = dico_nom_id
+
+
+def on_select(event, configparser, guiphoto, field):
+    config_2_fields(configparser, guiphoto, field)
 
 
 def sauver_fichier_ini_photos(guiphoto: GUIPhotos):
-    # Create a Tkinter root window
-    # root = tk.Tk()
-    # root.withdraw()  # Hide the root window
+    # todo : réécrire cette fcontion pour coller à la structure sommaire _ ids psécifiques
 
     # Open a file dialog to let the user select an existing file or write a new one
     ini_file_name = filedialog.asksaveasfilename(
@@ -127,7 +134,19 @@ def sauver_fichier_ini_photos(guiphoto: GUIPhotos):
         print("No file selected")
 
 
-def charger_fichier_photo(guiphoto: GUIPhotos):
+def action_bouton_charger(guiphoto: GUIPhotos):
+    if not (config_parser := charger_fichier_config(guiphoto)):
+        return -1
+
+    dico_nom_id = upgrader_valeurs_dropdown(config_parser, guiphoto)
+
+    guiphoto.set_configparser(config_parser)
+    guiphoto.set_dico_nom_id(dico_nom_id)
+
+    return 0
+
+
+def charger_fichier_config(gui_photo: GUIPhotos):
     file_path = filedialog.askopenfilename(filetypes=[("Fichiers INI", "*.ini")])
 
     if not file_path:
@@ -138,19 +157,37 @@ def charger_fichier_photo(guiphoto: GUIPhotos):
 
     try:
         config_parser.read(file_path)
+        return config_parser
     except configparser.ParsingError as e:
         messagebox.showerror("Erreur", f"Erreur lors de l'ouverture du fichier .ini :\n{e}")
-        return
+        return None
 
-    entrees = config_parser.items('Module Photo - Sommaire')
-    dico_sortie = {nom_affiche: {'nom_section': 0,
-                                 'fichier_photos_entry': 1,
-                                 'dossier_photo_entry': 2,
-                                 'input_entry': 3,
-                                 'output_entry': 4,
-                                 'onglet': 5} for nom_section, nom_affiche in entrees}
 
-    guiphoto.fichier_photos_entry.insert(0, config_parser.get("Module Photos", 'fichier_photos_entry', fallback=""))
-    guiphoto.dossier_photo_entry.insert(0, config_parser.get("Module Photos", 'dossier_photo_entry', fallback=""))
-    guiphoto.input_entry.insert(0, config_parser.get("Module Photos", 'input_entry', fallback=""))
-    guiphoto.output_entry.insert(0, config_parser.get("Module Photos", 'output_entry', fallback=""))
+def upgrader_valeurs_dropdown(configparser: configparser.ConfigParser, gui_photo: GUIPhotos):
+    entrees = configparser.items('Module Photos - Sommaire')
+
+    dico_nom_id = {nom_a_afficher: code for code, nom_a_afficher in entrees}
+    tous_les_noms = list(dico_nom_id.keys())
+    gui_photo.dropdown['values'] = tous_les_noms
+    gui_photo.dropdown_selected_option.set(tous_les_noms[0])
+
+    config_2_fields(config_parser=configparser, gui_photo=gui_photo, field=dico_nom_id[tous_les_noms[0]])
+    return dico_nom_id
+
+
+def config_2_fields(config_parser: configparser.ConfigParser, gui_photo: GUIPhotos, field: str):
+    # entrees = config_parser.items('Module Photo - Sommaire')
+    # dico_sortie = {nom_affiche: {'nom_section': 0,
+    #                              'fichier_photos_entry': 1,
+    #                              'dossier_photo_entry': 2,
+    #                              'input_entry': 3,
+    #                              'output_entry': 4,
+    #                              'onglet': 5} for nom_section, nom_affiche in entrees}
+    gui_photo.fichier_photos_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'fichier_photos_entry',
+                                                               fallback="non"))
+    gui_photo.dossier_photo_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'dossier_photo_entry',
+                                                              fallback="non"))
+    gui_photo.input_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'input_entry', fallback="non"))
+    gui_photo.output_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'output_entry', fallback="non"))
+    gui_photo.offset_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'offset', fallback="non"))
+
