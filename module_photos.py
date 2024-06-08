@@ -516,6 +516,7 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
             print(f"id en cours : {file_id}")
             retour = copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
                                                     destination_folder_id, offset=offset, sheet_name='Session 2')
+            # todo : changer la fcontion pour ne pas recharger à chaque itération le truc
             print(f"retour : {retour}")
         except Exception as e:
             print(f"exception : {e}")

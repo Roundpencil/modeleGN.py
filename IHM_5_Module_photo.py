@@ -9,6 +9,23 @@ from tkinter import filedialog
 import configparser
 import os
 
+#### structure du fichier ini attendu :
+# [Module Photos - Sommaire]
+# TEST = youpi!
+# WOOP = WOOP
+#
+# [Module Photos - TEST]
+# fichier_photos_entry = fichier photos
+# dossier_photo_entry = dossier photos
+# input_entry = dossier inputs !!!!!!!!
+# output_entry = dossier sortie
+#
+# [Module Photos - WOOP]
+# fichier_photos_entry = fichier photos 2
+# dossier_photo_entry = dossier photos 2
+# input_entry = dossier inputs 2
+# output_entry = dossier sortie 2
+
 
 class GUIPhotos(ttk.Frame):
     def __init__(self, parent, api_drive, api_doc, api_sheets):
@@ -39,7 +56,10 @@ class GUIPhotos(ttk.Frame):
         self.dropdown.bind("<<ComboboxSelected>>", lambda event: on_select(event, self.configparser, self,
                                                                            self.dropdown_selected_option.get()))
         self.dropdown.grid(row=4, column=0, columnspan=1, sticky='w')
-        # todo  : ajouter des boutons renommer / ajouter / supprimer à droite (avec des icones?)
+        # todo  : ajouter des boutons
+        #  renommer
+        #  enregistrer configuration actuelle avec un nouveau nom
+        #  supprimer à droite (avec des icones?)
         # todo ajouter un sélecteur d'onglet, et un bouton "rafraichir" à côté
         #  pour sélectionner le bon onglet présent dans la feuille
 
@@ -91,12 +111,16 @@ class GUIPhotos(ttk.Frame):
         self.dico_nom_id = dico_nom_id
 
 
-def on_select(event, configparser, guiphoto, field):
-    config_2_fields(configparser, guiphoto, field)
+def on_select(event, config_parser, guiphoto, nom, verbal=False):
+    field = guiphoto.dico_nom_id[nom]
+    if verbal:
+        print(f"nom : {nom} - field : {field}")
+    config_2_fields(config_parser, guiphoto, field)
 
 
 def sauver_fichier_ini_photos(guiphoto: GUIPhotos):
-    # todo : réécrire cette fcontion pour coller à la structure sommaire _ ids psécifiques
+    # todo : réécrire cette fcontion pour coller à la structure sommaire _ ids psécifiques (cf intro)
+    # bien noter que les noms sont enregistrés en minuscules
 
     # Open a file dialog to let the user select an existing file or write a new one
     ini_file_name = filedialog.asksaveasfilename(
@@ -176,18 +200,19 @@ def upgrader_valeurs_dropdown(configparser: configparser.ConfigParser, gui_photo
 
 
 def config_2_fields(config_parser: configparser.ConfigParser, gui_photo: GUIPhotos, field: str):
-    # entrees = config_parser.items('Module Photo - Sommaire')
-    # dico_sortie = {nom_affiche: {'nom_section': 0,
-    #                              'fichier_photos_entry': 1,
-    #                              'dossier_photo_entry': 2,
-    #                              'input_entry': 3,
-    #                              'output_entry': 4,
-    #                              'onglet': 5} for nom_section, nom_affiche in entrees}
+    field = field.lower()
+
+    gui_photo.fichier_photos_entry.delete(0, 'end')
+    gui_photo.dossier_photo_entry.delete(0, 'end')
+    gui_photo.input_entry.delete(0, 'end')
+    gui_photo.output_entry.delete(0, 'end')
+    gui_photo.offset_entry.delete(0, 'end')
+
     gui_photo.fichier_photos_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'fichier_photos_entry',
-                                                               fallback="non"))
+                                                               fallback=""))
     gui_photo.dossier_photo_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'dossier_photo_entry',
-                                                              fallback="non"))
-    gui_photo.input_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'input_entry', fallback="non"))
-    gui_photo.output_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'output_entry', fallback="non"))
-    gui_photo.offset_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'offset', fallback="non"))
+                                                              fallback=""))
+    gui_photo.input_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'input_entry', fallback=""))
+    gui_photo.output_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'output_entry', fallback=""))
+    gui_photo.offset_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'offset', fallback=""))
 
