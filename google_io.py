@@ -935,9 +935,9 @@ def intrigue_notes(texte: str, intrigue: Intrigue):
 
 
 def intrigue_questionnaire(texte: str, intrigue: Intrigue):
-    # todo : ajouter questionnaire dans les fiches de perso
-
     tab_questions, nb_colonnes = reconstituer_tableau(texte, sans_la_premiere_ligne=False)
+    if not tab_questions or not nb_colonnes:
+        return
 
     class NomsColonnes(Enum):
         QUESTION = "Question à inclure dans le questionnaire"
@@ -2246,9 +2246,6 @@ def extraire_factions(mon_gn: GN, api_doc, verbal=True):
         return -1
 
     # on commence par effacer les factions existantes pour éviter les doublons
-    # todo : trouver une amnière de vérifier si les factions marchent bien
-    #  ou sont la cause des roles sans persos inexpliqués.
-    #  si oui,  réécrire et débugger
 
     mon_gn.clear_all_factions()
 

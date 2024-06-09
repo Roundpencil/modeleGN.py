@@ -40,26 +40,32 @@ from modeleGN import *
 
 # todo : vérifier qu'on peut choisir de 'nutiliser MAGnet que pour les évènements
 
-# à faire - plus long
-# todo : faire quelque part une liste de tous les dossiers ou se trouvent des *.mng
-#  vérifier auxquels a acces l'utilisateur quand il lance le programme, puis lui proposer de télécahrger les siens.
-#  objectifs : se passer et du fichier de config, et de la nécessité de télécharger un mgn
-#  quand on vérifie la validité du dict config du fichier GN, en profiter pour le loader et séparer les fcontions selon si on a utilisé .ini ou .mgn
-# todo : renommer Evmenet en FicheEvemenet et Intervention en Evenement
-#  problème desécurté à craquer
-
-# confort / logique
-# todo : refaire version console
-
 # fiches de persos
 # todo : finaliser la gestion des images :
 #  fichier de paramètre
-#  GUI pour appeleler module image
+#  GUI pour appeleler module image :
+#  ajouter section parametre aux fichier GN, le charger, proposer le contenu pour mettre àjour,
+#  premettre de marcher avec un ini pour que les gns n'aient pas à tout créer,
+#  et un mgn pour qu'il n'y ait qu'un seul fichier pour les utilisateurs MAGnet
+
 
 # utilité du code
 # todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
 # todo : changer tous les paramètres de MAGnet_lib par une classe ou un dictionnaire pour accelérer le design
 #   vérifier l'usage de la GUI 3 qui utilise can write
+
+# à faire - plus long
+# todo : faire quelque part une liste de tous les dossiers ou se trouvent des *.mng
+#  vérifier auxquels a acces l'utilisateur quand il lance le programme, puis lui proposer de télécahrger les siens.
+#  objectifs : se passer et du fichier de config, et de la nécessité de télécharger un mgn
+#  quand on vérifie la validité du dict config du fichier GN, en profiter pour le loader et séparer les fcontions selon si on a utilisé .ini ou .mgn
+#  problème desécurté à craquer
+
+# todo : renommer Evmenet en FicheEvemenet et Intervention en Evenement
+
+# confort / logique
+# todo : refaire version console
+
 
 
 def print_progress(v: float):
