@@ -1,6 +1,8 @@
 import dataclasses
+import traceback
 from dataclasses import dataclass
 import re
+from datetime import datetime
 from datetime import datetime
 
 import lecteurGoogle
@@ -268,29 +270,6 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur, verbal=F
         }
     }
 
-    ## update chat gpt - ne marche pas
-    # insert_image_request = {
-    #     'insertInlineImage': {
-    #         'location': {'index': position},
-    #         'uri': image_url,
-    #         'objectSize': {
-    #             'height': {'magnitude': 100, 'unit': 'PT'},
-    #             'width': {'magnitude': 100, 'unit': 'PT'}
-    #         },
-    #         'imageProperties': {
-    #             'positioning': {
-    #                 'layout': 'wrapText',  # Options may include: 'wrapText', 'breakText', etc.
-    #                 'wrapOffset': {  # Optional: provide offset values if applicable
-    #                     'top': 5,
-    #                     'bottom': 5,
-    #                     'left': 5,
-    #                     'right': 5
-    #                 }
-    #             }
-    #         }
-    #     }
-    # }
-
     # Créer une requête pour mettre en gras le texte
     bold_text_request = {
         'updateTextStyle': {
@@ -315,21 +294,31 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur, verbal=F
 
 
 ##### test lire photos
-def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
-                                   id_sheet_photos_aliases, id_dossier_images,
-                                   id_doc_source, id_dossier_output, sheet_name='Feuille 1', offset=0, verbal=False):
-    dico_photos_motsclefs = lire_table_photos(api_sheets, id_sheet_photos_aliases, sheet_name=sheet_name, verbal=verbal)
+def lire_dictionnaires_copier_fiche_inserer_photos(api_drive, api_doc, api_sheets,
+                                                   id_sheet_photos_aliases, id_dossier_images,
+                                                   id_doc_source, id_dossier_output, sheet_name='Feuille 1', offset=0,
+                                                   verbal=False):
+    dico_photos_motsclefs, dict_img_id = preparer_donnees_photos(api_drive, api_sheets, id_dossier_images,
+                                                                 id_sheet_photos_aliases, sheet_name, verbal)
 
+    return copier_fiche_inserer_photos(api_doc, api_drive, dico_photos_motsclefs, dict_img_id, id_doc_source,
+                                       id_dossier_output, offset, verbal)
+
+
+def preparer_donnees_photos(api_drive, api_sheets, id_dossier_images, id_sheet_photos_aliases, sheet_name, verbal):
+    dico_photos_motsclefs = lire_table_photos(api_sheets, id_sheet_photos_aliases, sheet_name=sheet_name, verbal=verbal)
     dico_photos_motsclefs = nettoyer_doublons_souschaines(dico_photos_motsclefs)
     if verbal:
         print(dico_photos_motsclefs)
-
     dict_img_id = lister_images_dans_dossier(id_dossier_images, api_drive)
     if verbal:
         print(dict_img_id)
+    return dico_photos_motsclefs, dict_img_id
 
+
+def copier_fiche_inserer_photos(api_doc, api_drive, dico_photos_motsclefs, dict_img_id, id_doc_source,
+                                id_dossier_output, offset, verbal):
     text = g_io.lire_google_doc(api_doc, id_doc_source, extraire_formattage=False)
-
     dict_img_indexes = {}
     for img in dico_photos_motsclefs:
         if not img:
@@ -338,20 +327,16 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
         dict_img_indexes[img].sort(key=lambda x: x[0])
     if verbal:
         print(dict_img_indexes)
-
     # test_data_multiple_overlap = {
     #     "img1": [[0, "hello"], [20, "world"]],
     #     "img2": [[3, "bonjour"], [5, "salut"], [25, "monde"]],
     #     "img3": [[1, "hola"], [15, "mundo"]]
     # }
-
     image_a_inserer = eviter_recouvrement(dict_img_indexes)
     if verbal:
         print(image_a_inserer)
-
     # requetes = [requete_pour_inserer_img_et_formatter(dict_img_id[image[0]], image[1], len(image[2])) for
     #             image in sorted(image_a_inserer, key=lambda x: x[1], reverse=True)]
-
     requetes = []
     for image in sorted(image_a_inserer, key=lambda x: x[1], reverse=True):
         if image[1] > 1:
@@ -359,32 +344,60 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
                 requete_pour_inserer_img_et_formatter(dict_img_id[image[0]], image[1] + offset, len(image[2])))
     if verbal:
         print(requetes)
-
     ##### copier le fichier source et le renommer
     # Known Document ID and Destination Folder ID
-
     # Getting the current date in the format YYYY-MM-DD
-    today_date = datetime.now().strftime('%Y-%m-%d')
-
+    today_date = datetime.now().strftime("%Y-%m-%d %H:%M")
     # Step 1: Get the name of the original document
     original_file = api_drive.files().get(fileId=id_doc_source, fields='name').execute()
     original_name = original_file.get('name')
-
     # Step 2: Copy and Rename the Document
     new_name = f"{original_name} - Enrichi MAGnet {today_date}"
     copied_file = {'name': new_name}
     new_file = api_drive.files().copy(fileId=id_doc_source, body=copied_file).execute()
-
     new_file_id = new_file['id']  # This is the ID of the new document
-
     # Step 3: Move the Copy to the New Folder
     api_drive.files().update(fileId=new_file_id,
                              addParents=id_dossier_output,
                              fields='id, parents').execute()
-
     #### insérer les images
     return api_doc.documents().batchUpdate(documentId=new_file_id, body={'requests': requetes}).execute()
 
+
+def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id, offset, dossier_sources_fiches,
+                                      racine_sortie,
+                                      sheet_id, nom_onglet="Feuille 1", verbal=True):
+    if verbal:
+        print(f"{folder_id}, {offset}, {dossier_sources_fiches},{racine_sortie},{sheet_id}")
+
+    ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, dossier_sources_fiches)]
+    destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "Fiches avec photo")
+
+    if verbal:
+        print(f"ids fichiers {ids}")
+    # offset = 0
+
+    dico_photos_motsclefs, dict_img_id = preparer_donnees_photos(api_drive, api_sheets, folder_id,
+                                                                 sheet_id, nom_onglet, verbal)
+
+    destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie,
+                                                     f'{datetime.now().strftime("%Y-%m-%d %H:%M")} '
+                                                     f'- enrichissement photos')
+
+    for file_id in ids:
+        # copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
+        #                                destination_folder_id, offset=offset)
+        try:
+            if verbal:
+                print(f"id en cours : {file_id}")
+            retour = copier_fiche_inserer_photos(api_doc, api_drive, dico_photos_motsclefs, dict_img_id, file_id,
+                                                 destination_folder_id, offset, verbal)
+
+            print(f"retour : {retour}")
+        except Exception as e:
+            print(f"exception : {e}")
+            traceback.print_exc()
+            continue
 
 # ##### code pour tster le module photos
 # def tester_module_photo():
@@ -500,27 +513,6 @@ def copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets,
 #     copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id, offset, parent, racine_sortie,
 #                                       sheet_id)
 
-
-def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id, offset, dossier_sources_fiches,
-                                      racine_sortie,
-                                      sheet_id):
-    print(f"{folder_id}, {offset}, {dossier_sources_fiches},{racine_sortie},{sheet_id}")
-    ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, dossier_sources_fiches)]
-    destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "Fiches avec photo")
-    print(f"ids fichiers {ids}")
-    # offset = 0
-    for file_id in ids:
-        # copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
-        #                                destination_folder_id, offset=offset)
-        try:
-            print(f"id en cours : {file_id}")
-            retour = copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
-                                                    destination_folder_id, offset=offset, sheet_name='Session 2')
-            # todo : changer la fcontion pour ne pas recharger à chaque itération le truc
-            print(f"retour : {retour}")
-        except Exception as e:
-            print(f"exception : {e}")
-            continue
 
 # def photos_unitaire():
 #     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'

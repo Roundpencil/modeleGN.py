@@ -9,6 +9,7 @@ from tkinter import filedialog
 import configparser
 import os
 
+
 #### structure du fichier ini attendu :
 # [Module Photos - Sommaire]
 # TEST = civils
@@ -30,6 +31,7 @@ import os
 class GUIPhotos(ttk.Frame):
     def __init__(self, parent, api_drive, api_doc, api_sheets):
         super().__init__(parent)
+        self.api_sheets = api_sheets
         self.dico_nom_id = {}
         self.configparser = configparser.ConfigParser()
         photo_window = self
@@ -46,6 +48,10 @@ class GUIPhotos(ttk.Frame):
         load_button.grid(row=1, column=0, columnspan=4, sticky='e', padx=(10, 10))
 
         # ajout d'un dropdown menu pour selectionner la configuration pré-enregistrée
+        dropdown_label = ttk.Label(inserphotos_labelframe,
+                                   text="réglage pré-enregistré dans le fichier de configuration : ")
+        dropdown_label.grid(row=4, column=0, columnspan=2, sticky='w')
+
         # Create a StringVar to hold the selected value
         self.dropdown_selected_option = tk.StringVar()
 
@@ -55,7 +61,7 @@ class GUIPhotos(ttk.Frame):
         # Bind the selection event to the on_select function
         self.dropdown.bind("<<ComboboxSelected>>", lambda event: on_select(event, self.configparser, self,
                                                                            self.dropdown_selected_option.get()))
-        self.dropdown.grid(row=4, column=0, columnspan=1, sticky='w')
+        self.dropdown.grid(row=4, column=2, columnspan=1, sticky='w')
         # todo  : ajouter des boutons
         #  renommer
         #  enregistrer configuration actuelle avec un nouveau nom
@@ -67,6 +73,16 @@ class GUIPhotos(ttk.Frame):
         current_file_label.grid(row=5, column=0, columnspan=2, sticky='w')
         self.fichier_photos_entry = GidEntry(inserphotos_labelframe, width=50)
         self.fichier_photos_entry.grid(column=2, row=5, columnspan=2, padx=(10, 10))
+
+        # ajout d'un dropdown pour les onglets
+        dropdown_onglet_label = ttk.Label(inserphotos_labelframe,
+                                          text="Choix d l'onglet dans les fichier")
+        dropdown_onglet_label.grid(row=6, column=0, columnspan=2, sticky='w')
+
+        self.dropdown_onglet_selected_option = tk.StringVar()
+        # Create the dropdown menu
+        self.dropdown_onglet = ttk.Combobox(inserphotos_labelframe, textvariable=self.dropdown_onglet_selected_option)
+        self.dropdown_onglet.grid(row=6, column=2, columnspan=1, sticky='w')
 
         dossier_photo_labels = ttk.Label(inserphotos_labelframe, text="Dossier contenant les photos")
         dossier_photo_labels.grid(row=10, column=0, columnspan=2, sticky='w')
@@ -92,11 +108,12 @@ class GUIPhotos(ttk.Frame):
                                command=lambda: copier_dossier_et_enrichir_photos(
                                    api_doc=api_doc,
                                    api_drive=api_drive,
-                                   api_sheets=api_sheets,
+                                   api_sheets=self.api_sheets,
                                    folder_id=self.dossier_photo_entry.get(),
-                                   offset=self.offset_entry.get(),
-                                   dossier_sources_fiches=self.input_entry.get(),
+                                   offset=int(self.offset_entry.get()),
+                                   dossier_sources_fiches=[self.input_entry.get()],
                                    racine_sortie=self.output_entry.get(),
+                                   nom_onglet=self.dropdown_onglet.get(),
                                    sheet_id=self.fichier_photos_entry.get()))
         ok_button.grid(row=40, column=30, columnspan=1, sticky='e', padx=(10, 10))
 
@@ -109,6 +126,9 @@ class GUIPhotos(ttk.Frame):
 
     def set_dico_nom_id(self, dico_nom_id):
         self.dico_nom_id = dico_nom_id
+
+    def get_apisheets(self):
+        return self.api_sheets
 
 
 def on_select(event, config_parser, guiphoto, nom, verbal=False):
@@ -210,9 +230,32 @@ def config_2_fields(config_parser: configparser.ConfigParser, gui_photo: GUIPhot
 
     gui_photo.fichier_photos_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'fichier_photos_entry',
                                                                fallback=""))
+    valeur_dropdown = config_parser.get(f"Module Photos - {field}", 'onglet',
+                                        fallback="")
+    maj_dropdown_onglets(gui_photo, valeur_dropdown)
     gui_photo.dossier_photo_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'dossier_photo_entry',
                                                               fallback=""))
     gui_photo.input_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'input_entry', fallback=""))
     gui_photo.output_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'output_entry', fallback=""))
-    gui_photo.offset_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'offset', fallback=""))
+    gui_photo.offset_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'offset', fallback=0))
 
+
+def maj_dropdown_onglets(gui_photos: GUIPhotos, valeur=None):
+    try:
+        # Call the Sheets API to get the spreadsheet metadata
+        api_sheets = gui_photos.get_apisheets()
+        sheet_id = gui_photos.fichier_photos_entry.get()
+        spreadsheet = api_sheets.spreadsheets().get(spreadsheetId=sheet_id).execute()
+
+        # Extract the sheet names
+        sheet_names = [sheet['properties']['title'] for sheet in spreadsheet.get('sheets', [])]
+    except Exception as e:
+        sheet_names = []
+
+    gui_photos.dropdown_onglet['values'] = sheet_names
+    # if not valeur:
+    #     valeur = sheet_names[0]
+    #     # gui_photos.dropdown_onglet_selected_option.set(sheet_names[0])
+    # gui_photos.dropdown_onglet_selected_option.set(valeur)
+    if valeur:
+        gui_photos.dropdown_onglet_selected_option.set(valeur)
