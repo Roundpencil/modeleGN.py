@@ -1,32 +1,10 @@
-import dataclasses
 import traceback
-from dataclasses import dataclass
+from datetime import datetime
 import re
-from datetime import datetime
-from datetime import datetime
 
-import lecteurGoogle
-from lecteurGoogle import *
 import google_io as g_io
+import lecteurGoogle
 
-
-# def lister_images_dans_dossier(folder_id, drive_service):
-#     images_dict = {}
-#
-#     # Définir la requête pour rechercher des fichiers d'images dans le dossier spécifié
-#     query = f"'{folder_id}' in parents and (mimeType='image/jpeg' or mimeType='image/png') and trashed = false"
-#     response = drive_service.files().list(q=query,
-#                                           spaces='drive',
-#                                           fields='files(id, name)',
-#                                           orderBy='createdTime').execute()
-#
-#     # Extraire le nom de fichier sans extension et l'ID, et les ajouter au dictionnaire
-#     for file in response.get('files', []):
-#         # Supprimer l'extension du fichier pour obtenir le nom de l'image
-#         file_name_without_extension = '.'.join(file.get('name').split('.')[:-1]).strip()
-#         images_dict[file_name_without_extension] = file.get('id')
-#
-#     return images_dict
 
 def lister_images_dans_dossier(folder_id, drive_service):
     images_dict = {}
@@ -125,9 +103,6 @@ def trouver_mots_phrases(liste_mots_phrases, texte):
                 resultats.append([indice, mot_phrase])
 
     return resultats
-
-
-import re
 
 
 def trouver_mots_phrases_plus_long(liste_mots_phrases, texte):
@@ -400,25 +375,6 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
             continue
 
 # ##### code pour tster le module photos
-# def tester_module_photo():
-#     sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
-#     folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
-#
-#
-# def test_module():
-#     sheet_id = '1WhevQB9MMcYbjGF1nHscCzShFF7Qlt53WkaHHlNpao4'
-#     folder_id = '169GWiwLFVcbaZsJZvtPGo-q8gfol1gDX'
-#
-#     file_id = '1syyJGdBK2Kkar5UgWNsRWyiU1_plAQfEFeZFX9XWnbo'
-#     destination_folder_id = '1LV5rFP4JNxDEa5OT00qeNFLok4ZE2oKe'
-#
-#     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-#     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
-#
-#     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-#     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id, destination_folder_id)
-#
-#
 # def tester_module_photo_chalacta():
 #     sheet_id = '1OPW7VRpMze3DexXxK3MYjNtw20Kc56e9QiE5NRMo7z8'
 #     folder_id = '1Hp0JO1ny5Z8gzY2flEn9PMMU6YxyIN-n'  # photos S1 chalacta
