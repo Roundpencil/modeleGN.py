@@ -3,6 +3,7 @@ import os
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter import font
 
 from IHM_lib import *
 from module_photos import *
@@ -73,10 +74,6 @@ class GUIPhotos(ttk.Frame):
                                          command=lambda: on_add_click(self))
         add_dropdown_button.grid(row=4, column=5, columnspan=1, sticky='w', padx=(10, 10))
 
-        # todo : quand on a changé au moins un champ ou un onglet de dropdown et qu'on change de dropdown,
-        #  ajouter un message d'information en italique en bas rappelant
-        #  que la configuration compte des modifications non sauegardée
-
         # todo : ajouter une focntion qui contrôle que les paramètres sont legit avant de lacer les choses (cf. générer)
 
         current_file_label = ttk.Label(inserphotos_labelframe, text="Fichier avec référence photos / noms persos")
@@ -135,6 +132,9 @@ class GUIPhotos(ttk.Frame):
                                  command=lambda: sauver_fichier_ini_photos(self))
         save_button.grid(row=40, column=20, columnspan=1, sticky='e', padx=(10, 10))
 
+        self.has_changed_label = ttk.Label(inserphotos_labelframe)
+        self.has_changed_label.grid(row=41, column=0, columnspan=4, sticky='nsew')
+
     def set_configparser(self, config_parser):
         self.configparser = config_parser
 
@@ -157,6 +157,18 @@ class GUIPhotos(ttk.Frame):
 
     def get_previous_dropdown_field(self):
         return self.previous_dropdown_field
+
+    def has_changed(self):
+        # Define the font with italic style
+        italic_font = font.Font(family="Helvetica", size=12, slant="italic")
+
+        # Update the label's text and font
+        self.has_changed_label.config(text="Les réglages prédéfinis ont changé, "
+                                           "n'oubliez pas de sauvegarder si vous souhaiter les conserver",
+                                      font=italic_font)
+
+    def cancel_change(self):
+        self.has_changed_label.config(text="")
 
 
 def on_select(gui_photo, verbal=False):
@@ -211,6 +223,7 @@ def sauver_fichier_ini_photos(gui_photo: GUIPhotos):
         # Write the parameters to the ini file
         with open(ini_file_name, 'w') as configfile:
             merged_config.write(configfile)
+        gui_photo.cancel_change()
         messagebox.showinfo("Confirmation", "Modifications bien enregistrées")
         print(f"Settings saved to {ini_file_name}")
     else:
@@ -304,13 +317,41 @@ def field_2_config(gui_photo, field, verbal=True):
     if not config_parser.has_section(section):
         config_parser.add_section(section)
 
-    config_parser.set(section, 'fichier_photos_entry', fichier_photos_value)
-    config_parser.set(section, 'dossier_photo_entry', dossier_photo_value)
-    config_parser.set(section, 'input_entry', input_value)
-    config_parser.set(section, 'output_entry', output_value)
-    config_parser.set(section, 'offset', offset_value)
-    config_parser.set(section, 'onglet', onglet_value)
+    # config_parser.set(section, 'fichier_photos_entry', fichier_photos_value)
+    # config_parser.set(section, 'dossier_photo_entry', dossier_photo_value)
+    # config_parser.set(section, 'input_entry', input_value)
+    # config_parser.set(section, 'output_entry', output_value)
+    # config_parser.set(section, 'offset', offset_value)
+    # config_parser.set(section, 'onglet', onglet_value)
 
+    has_changed = False
+
+    if config_parser.get(section, 'fichier_photos_entry', fallback=None) != fichier_photos_value:
+        config_parser.set(section, 'fichier_photos_entry', fichier_photos_value)
+        has_changed = True
+
+    if config_parser.get(section, 'dossier_photo_entry', fallback=None) != dossier_photo_value:
+        config_parser.set(section, 'dossier_photo_entry', dossier_photo_value)
+        has_changed = True
+
+    if config_parser.get(section, 'input_entry', fallback=None) != input_value:
+        config_parser.set(section, 'input_entry', input_value)
+        has_changed = True
+
+    if config_parser.get(section, 'output_entry', fallback=None) != output_value:
+        config_parser.set(section, 'output_entry', output_value)
+        has_changed = True
+
+    if config_parser.get(section, 'offset', fallback=None) != offset_value:
+        config_parser.set(section, 'offset', offset_value)
+        has_changed = True
+
+    if config_parser.get(section, 'onglet', fallback=None) != onglet_value:
+        config_parser.set(section, 'onglet', onglet_value)
+        has_changed = True
+
+    if has_changed:
+        gui_photo.has_changed()
 
 def maj_dropdown_onglets(gui_photos: GUIPhotos, valeur=None):
     current_valeur = gui_photos.dropdown_onglet_selected_option.get()
@@ -420,8 +461,8 @@ def on_add_click(gui_photo: GUIPhotos):
             on_add_click(gui_photo)
         else:
             config_parser = gui_photo.get_configparser()
-
-            config_parser.set("Sommaire Module Photos", nouveau_nom, nouveau_nom)
+            if not config_parser.has_section("Sommaire Module Photos"):
+                config_parser.add_section("Sommaire Module Photos")
             config_parser.set("Sommaire Module Photos", nouveau_nom, nouveau_nom)
 
             upgrader_valeurs_dropdown(gui_photo)
