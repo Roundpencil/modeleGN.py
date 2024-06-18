@@ -302,7 +302,7 @@ class GUIPhotos(ttk.Frame):
 
     def has_changed(self):
         # Define the font with italic style
-        italic_font = font.Font(family="Helvetica", size=12, slant="italic")
+        italic_font = font.Font(family="Helvetica", size=8, slant="italic")
 
         # Update the label's text and font
         self.has_changed_label.config(text="Les réglages prédéfinis ont changé, "
