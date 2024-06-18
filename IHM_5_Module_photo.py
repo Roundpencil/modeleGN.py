@@ -8,12 +8,7 @@ from tkinter import font
 from IHM_lib import *
 from module_photos import *
 
-
-### structure du fichier ini attendu :
-# [Sommaire Module Photos]
-# TEST = civils
-# WOOP = Zooooooo
-#
+# structure du fichier ini attendu :
 # [Module Photos - test]
 # fichier_photos_entry = 1pdqZdiKec0alZNU5xUtcFUBaZpNH2v44ueQFY4S3Mxs
 # dossier_photo_entry = 1Y4ONHyZtVkzAuo4EqbubZSrh8hjbJy_O
@@ -26,12 +21,14 @@ from module_photos import *
 # input_entry = dossier inputs 2
 # output_entry = dossier sortie 2
 
+PREFIXESECTION = 'Module Photos - '
+
 
 class GUIPhotos(ttk.Frame):
     def __init__(self, parent, api_drive, api_doc, api_sheets):
         super().__init__(parent)
         self.api_sheets = api_sheets
-        self.dico_nom_id = {}
+        # self.dico_nom_id = {}
         self.configparser = configparser.ConfigParser()
         photo_window = self
         photo_window.winfo_toplevel().title("Module Photo")
@@ -53,7 +50,8 @@ class GUIPhotos(ttk.Frame):
 
         # Create a StringVar to hold the selected value
         self.dropdown_selected_option = tk.StringVar()
-        self.previous_dropdown_field = None
+        # self.previous_dropdown_field = None
+        self.previous_dropdown_section = None
 
         # Create the dropdown menu
         self.dropdown = ttk.Combobox(inserphotos_labelframe, textvariable=self.dropdown_selected_option)
@@ -138,8 +136,8 @@ class GUIPhotos(ttk.Frame):
     def set_configparser(self, config_parser):
         self.configparser = config_parser
 
-    def set_dico_nom_id(self, dico_nom_id):
-        self.dico_nom_id = dico_nom_id
+    # def set_dico_nom_id(self, dico_nom_id):
+    #     self.dico_nom_id = dico_nom_id
 
     def get_apisheets(self):
         return self.api_sheets
@@ -147,16 +145,20 @@ class GUIPhotos(ttk.Frame):
     def get_configparser(self):
         return self.configparser
 
-    def get_dico_nom_id(self):
-        return self.dico_nom_id
+    # def get_dico_nom_id(self):
+    #     return self.dico_nom_id
 
-    def set_dropdown_value_from_field(self, field):
-        valeur_dropdown = self.configparser.get(f"Sommaire Module Photos", field)
-        self.dropdown_selected_option.set(valeur_dropdown)
-        self.previous_dropdown_field = field
+    # def set_dropdown_value_from_field(self, field):
+    #     valeur_dropdown = self.configparser.get(f"Sommaire Module Photos", field)
+    #     self.dropdown_selected_option.set(valeur_dropdown)
+    #     self.previous_dropdown_field = field
 
-    def get_previous_dropdown_field(self):
-        return self.previous_dropdown_field
+    def set_dropdown_value_from_nom_section(self, nom_section):
+        self.dropdown_selected_option.set(nom_section)
+        self.previous_dropdown_section = nom_section
+
+    def get_previous_dropdown_section(self):
+        return self.previous_dropdown_section
 
     def has_changed(self):
         # Define the font with italic style
@@ -172,13 +174,14 @@ class GUIPhotos(ttk.Frame):
 
 
 def on_select(gui_photo, verbal=False):
-    field_2_config(gui_photo, gui_photo.get_previous_dropdown_field())
+    # field_2_config(gui_photo, gui_photo.get_previous_dropdown_field())
+    field_2_config(gui_photo, gui_photo.get_previous_dropdown_section())
 
-    nom = gui_photo.dropdown_selected_option.get()
-    field = gui_photo.dico_nom_id[nom]
+    nom_section = gui_photo.dropdown_selected_option.get()
+    # field = gui_photo.dico_nom_id[nom]
     if verbal:
-        print(f"nom : {nom} - field : {field}")
-    config_2_fields(gui_photo, field)
+        print(f"nom : {nom_section} - nom section : {nom_section}")
+    config_2_fields(gui_photo, nom_section)
 
 
 def sauver_fichier_ini_photos(gui_photo: GUIPhotos):
@@ -208,7 +211,8 @@ def sauver_fichier_ini_photos(gui_photo: GUIPhotos):
 
         # Copy everything from config_read except specified sections
         for section in config_read.sections():
-            if section != "Sommaire Module Photos" and not section.startswith("Module Photos -"):
+            # if section != "Sommaire Module Photos" and not section.startswith("Module Photos -"):
+            if not section.startswith(PREFIXESECTION):
                 merged_config.add_section(section)
                 for option in config_read.options(section):
                     merged_config.set(section, option, config_read.get(section, option))
@@ -258,24 +262,41 @@ def charger_fichier_config():
         return None
 
 
-def upgrader_valeurs_dropdown(gui_photo: GUIPhotos):
+def upgrader_valeurs_dropdown(gui_photo: GUIPhotos, nom_section: str = None):
     config_parser = gui_photo.get_configparser()
-    entrees = config_parser.items('Sommaire Module Photos')
-
-    dico_nom_id = {nom_a_afficher: code for code, nom_a_afficher in entrees}
-    tous_les_noms = list(dico_nom_id.keys())
+    tous_les_noms = tous_les_noms_de_sections(config_parser)
     gui_photo.dropdown['values'] = tous_les_noms
-    if len(tous_les_noms):
-        gui_photo.set_dropdown_value_from_field(dico_nom_id[tous_les_noms[0]])
+    if nom_section and nom_section in tous_les_noms:
+        gui_photo.set_dropdown_value_from_nom_section(nom_section)
+        config_2_fields(gui_photo=gui_photo, nom_section=nom_section)
+    elif len(tous_les_noms):
+        gui_photo.set_dropdown_value_from_nom_section(tous_les_noms[0])
+        config_2_fields(gui_photo=gui_photo, nom_section=tous_les_noms[0])
 
-    config_2_fields(gui_photo=gui_photo, field=dico_nom_id[tous_les_noms[0]])
 
-    gui_photo.set_dico_nom_id(dico_nom_id)
-    return dico_nom_id
+def tous_les_noms_de_sections(config_parser):
+    tous_les_noms = [nom_section[len(PREFIXESECTION):] for nom_section in config_parser.sections()]
+    return tous_les_noms
 
 
-def config_2_fields(gui_photo: GUIPhotos, field: str):
-    field = field.lower()
+# def upgrader_valeurs_dropdown(gui_photo: GUIPhotos):
+#     config_parser = gui_photo.get_configparser()
+#     entrees = config_parser.items('Sommaire Module Photos')
+#
+#     dico_nom_id = {nom_a_afficher: code for code, nom_a_afficher in entrees}
+#     tous_les_noms = list(dico_nom_id.keys())
+#     gui_photo.dropdown['values'] = tous_les_noms
+#     if len(tous_les_noms):
+#         gui_photo.set_dropdown_value_from_field(dico_nom_id[tous_les_noms[0]])
+#
+#     config_2_fields(gui_photo=gui_photo, field=dico_nom_id[tous_les_noms[0]])
+#
+#     gui_photo.set_dico_nom_id(dico_nom_id)
+#     return dico_nom_id
+
+
+def config_2_fields(gui_photo: GUIPhotos, nom_section: str):
+    # nom_section = nom_section.lower()
     config_parser = gui_photo.get_configparser()
 
     gui_photo.fichier_photos_entry.delete(0, 'end')
@@ -284,22 +305,22 @@ def config_2_fields(gui_photo: GUIPhotos, field: str):
     gui_photo.output_entry.delete(0, 'end')
     gui_photo.offset_entry.delete(0, 'end')
 
-    gui_photo.fichier_photos_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'fichier_photos_entry',
+    gui_photo.fichier_photos_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'fichier_photos_entry',
                                                                fallback=""))
-    valeur_dropdown_onglet = config_parser.get(f"Module Photos - {field}", 'onglet',
+    valeur_dropdown_onglet = config_parser.get(f"{PREFIXESECTION}{nom_section}", 'onglet',
                                                fallback="")
     maj_dropdown_onglets(gui_photo, valeur_dropdown_onglet)
-    gui_photo.dossier_photo_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'dossier_photo_entry',
+    gui_photo.dossier_photo_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'dossier_photo_entry',
                                                               fallback=""))
-    gui_photo.input_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'input_entry', fallback=""))
-    gui_photo.output_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'output_entry', fallback=""))
-    gui_photo.offset_entry.insert(0, config_parser.get(f"Module Photos - {field}", 'offset', fallback=0))
+    gui_photo.input_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'input_entry', fallback=""))
+    gui_photo.output_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'output_entry', fallback=""))
+    gui_photo.offset_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'offset', fallback=0))
 
-    gui_photo.set_dropdown_value_from_field(field)
+    gui_photo.set_dropdown_value_from_nom_section(nom_section)
 
 
 def field_2_config(gui_photo, field, verbal=True):
-    field = field.lower()
+    # field = field.lower()
     if verbal:
         print(field)
     config_parser = gui_photo.get_configparser()
@@ -313,16 +334,9 @@ def field_2_config(gui_photo, field, verbal=True):
     onglet_value = gui_photo.dropdown_onglet.get()  # Assuming you have a dropdown for 'onglet'
 
     # Set the values into the config_parser
-    section = f"Module Photos - {field}"
+    section = f"{PREFIXESECTION}{field}"
     if not config_parser.has_section(section):
         config_parser.add_section(section)
-
-    # config_parser.set(section, 'fichier_photos_entry', fichier_photos_value)
-    # config_parser.set(section, 'dossier_photo_entry', dossier_photo_value)
-    # config_parser.set(section, 'input_entry', input_value)
-    # config_parser.set(section, 'output_entry', output_value)
-    # config_parser.set(section, 'offset', offset_value)
-    # config_parser.set(section, 'onglet', onglet_value)
 
     has_changed = False
 
@@ -353,6 +367,7 @@ def field_2_config(gui_photo, field, verbal=True):
     if has_changed:
         gui_photo.has_changed()
 
+
 def maj_dropdown_onglets(gui_photos: GUIPhotos, valeur=None):
     current_valeur = gui_photos.dropdown_onglet_selected_option.get()
     try:
@@ -363,7 +378,7 @@ def maj_dropdown_onglets(gui_photos: GUIPhotos, valeur=None):
 
         # Extract the sheet names
         sheet_names = [sheet['properties']['title'] for sheet in spreadsheet.get('sheets', [])]
-    except Exception as e:
+    except Exception:
         sheet_names = []
 
     gui_photos.dropdown_onglet['values'] = sheet_names
@@ -391,12 +406,18 @@ def pop_up_renommer(gui_photo: GUIPhotos):
             messagebox.showerror("Erreur", "Ce nom correspond déjà à un réglage préenregistré")
             pop_up_renommer(gui_photo)
         else:
-            config_parser = gui_photo.get_configparser()
-            dico_nom_id = gui_photo.get_dico_nom_id()
-            clef = dico_nom_id[ancien_nom]
-            config_parser.set("Sommaire Module Photos", clef, nouveau_nom)
-            upgrader_valeurs_dropdown(gui_photo)
-            config_2_fields(gui_photo, clef)
+            config = gui_photo.get_configparser()
+
+            ancienne_section = f"{PREFIXESECTION}{ancien_nom}"
+            nouvelle_section = f"{PREFIXESECTION}{nouveau_nom}"
+
+            config.add_section(nouvelle_section)
+            for item in config.items(ancienne_section):
+                config.set(nouvelle_section, item[0], item[1])
+
+            config.remove_section(ancienne_section)
+
+            upgrader_valeurs_dropdown(gui_photo, nouveau_nom)
 
     def on_cancel():
         # Fermeture de la pop-up et retour de None
@@ -435,15 +456,15 @@ def on_delete_click(gui_photo: GUIPhotos):
     if response:  # Si l'utilisateur clique sur "Oui"
         config = gui_photo.get_configparser()
         wording_to_remove = gui_photo.dropdown.get()
-        clef_to_remove = gui_photo.get_dico_nom_id()[wording_to_remove]
-        config.remove_option("Sommaire Module Photos", clef_to_remove)
-        if config.has_section(f"Module Photos - {clef_to_remove}"):
-            config.remove_section(f"Module Photos - {clef_to_remove}")
+        section_to_remove = f"{PREFIXESECTION}{wording_to_remove}"
+        if config.has_section(section_to_remove):
+            config.remove_section(section_to_remove)
         upgrader_valeurs_dropdown(gui_photo)
 
 
 def nouveau_nom_deja_pris(gui_photo, nouveau_nom):
-    return nouveau_nom in gui_photo.dico_nom_id
+    tous_les_noms = tous_les_noms_de_sections(gui_photo.get_configparser())
+    return nouveau_nom in tous_les_noms
 
 
 def on_add_click(gui_photo: GUIPhotos):
@@ -461,12 +482,8 @@ def on_add_click(gui_photo: GUIPhotos):
             on_add_click(gui_photo)
         else:
             config_parser = gui_photo.get_configparser()
-            if not config_parser.has_section("Sommaire Module Photos"):
-                config_parser.add_section("Sommaire Module Photos")
-            config_parser.set("Sommaire Module Photos", nouveau_nom, nouveau_nom)
-
-            upgrader_valeurs_dropdown(gui_photo)
-            config_2_fields(gui_photo, nouveau_nom)
+            config_parser.add_section(f"{PREFIXESECTION}{nouveau_nom}")
+            upgrader_valeurs_dropdown(gui_photo, nouveau_nom)
 
     def on_cancel():
         # Fermeture de la pop-up et retour de None
