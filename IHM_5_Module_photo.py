@@ -238,6 +238,7 @@ def action_bouton_charger(gui_photo: GUIPhotos):
     if not (config_parser := charger_fichier_config()):
         return -1
 
+    gui_photo.cancel_change()
     gui_photo.set_configparser(config_parser)
 
     upgrader_valeurs_dropdown(gui_photo)
