@@ -36,26 +36,146 @@ class GUIPhotos(ttk.Frame):
 
         # ajout d'un labelframe pour la partie "Créer fichier référence"
         creerfichier_labelframe = ttk.Labelframe(photo_window, text="Créer un fichier perso/photos",
-                                                width=700, name='creerfichier_labelframe')
+                                                 width=700, name='creerfichier_labelframe')
         creerfichier_labelframe.grid(row=10, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
 
-        hello_label = ttk.Label(creerfichier_labelframe,
-                                   text="hello monde")
-        hello_label.grid(row=4, column=0, columnspan=2, sticky='w')
+        def on_radiobutton_change():
+            if file_option.get() == "mgn":
+                magnet_button.config(state="normal")
+                sheet_entry.config(state="disabled")
+            elif file_option.get() == "sheet":
+                magnet_button.config(state="disabled")
+                sheet_entry.config(state="normal")
+            else:
+                magnet_button.config(state="disabled")
+                sheet_entry.config(state="disabled")
 
+        def on_format_change(valeur, valeurs_qui_activent: list[str]):
+            if valeur in valeurs_qui_activent:
+                # if format_var.get() in [
+                #     "Noms Joueur et Joueuses [séparateur] Personnage",
+                #     "Personnage [séparateur] Noms Joueur et Joueuses"
+                # ]:
+                separator_entry.config(state="normal")
+            else:
+                separator_entry.config(state="disabled")
+
+        # Create the labelframe
+        creerfichier_labelframe = ttk.Labelframe(photo_window, text="Créer un fichier perso/photos",
+                                                 width=700, name='creerfichier_labelframe')
+        creerfichier_labelframe.grid(row=0, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
+
+        # # Configure the grid layout for the main window
+        # photo_window.grid_rowconfigure(0, weight=1)
+        # photo_window.grid_columnconfigure(0, weight=1)
+        # photo_window.grid_rowconfigure(1, weight=1)
+        # photo_window.grid_rowconfigure(2, weight=1)
+        # photo_window.grid_rowconfigure(3, weight=1)
+
+        # # Configure the grid layout for the labelframe
+        # for i in range(0, 40, 10):
+        #     creerfichier_labelframe.grid_rowconfigure(i, weight=1)
+        # creerfichier_labelframe.grid_columnconfigure(0, weight=1)
+
+        # First section: "Où sont mes fichiers de personnage"
+        question_label = ttk.Label(creerfichier_labelframe, text="Source pour la liste des personnages : ")
+        question_label.grid(row=0, column=0, columnspan=3, sticky="w", pady=5)
+
+        # Radiobuttons
+        file_option = tk.StringVar(value="none")
+        radiobutton_mgn = ttk.Radiobutton(creerfichier_labelframe, text="Fichier Mgn", variable=file_option,
+                                          value="mgn", command=on_radiobutton_change)
+        radiobutton_mgn.grid(row=10, column=0, sticky="w", pady=5)
+
+        radiobutton_sheet = ttk.Radiobutton(creerfichier_labelframe, text="Sheet dédiée", variable=file_option,
+                                            value="sheet", command=on_radiobutton_change)
+        radiobutton_sheet.grid(row=20, column=0, sticky="w", pady=5)
+
+        radiobutton_none = ttk.Radiobutton(creerfichier_labelframe,
+                                           text="Je ne souhaite pas utiliser de fichiers de personnages",
+                                           variable=file_option, value="none", command=on_radiobutton_change)
+        radiobutton_none.grid(row=30, column=0, columnspan=2, sticky="w", pady=5)
+
+        # Button for "charger fichier Magnet"
+        magnet_button = ttk.Button(creerfichier_labelframe, text="Charger fichier Magnet", state="disabled")
+        magnet_button.grid(row=10, column=1, padx=10, pady=5)
+
+        # Text entry for "sheet dédiée"
+        sheet_entry = GidEntry(creerfichier_labelframe, state="disabled")
+
+        sheet_entry.grid(row=20, column=1, padx=10, pady=5, columnspan=3, sticky='we')
+
+        # Second section: "Emplacement du dossier Photo"
+        photo_folder_label = ttk.Label(creerfichier_labelframe, text="Emplacement du dossier Photo")
+        photo_folder_label.grid(row=40, column=0, sticky="w", pady=5)
+
+        # Entry for the second section
+        photo_folder_entry = GidEntry(creerfichier_labelframe)
+        photo_folder_entry.grid(row=40, column=1, padx=10, pady=5, columnspan=3, sticky='we')
+
+        # Third section: "Format du nom des photos"
+        format_label = ttk.Label(creerfichier_labelframe, text="Format du nom des photos")
+        format_label.grid(row=50, column=0, sticky="w", pady=5)
+
+        # Dropdown menu for the third section
+        format_options = [
+            "Nom Joueurs et Joueuse",
+            "Noms Personnages",
+            "Joueurs [séparateur] Personnage",
+            "Personnage [séparateur] Joueurs"
+        ]
+        format_var = tk.StringVar(value=format_options[0])
+        format_dropdown = ttk.Combobox(creerfichier_labelframe, textvariable=format_var, values=format_options,
+                                       state='readonly', width=30)
+        format_dropdown.grid(row=50, column=1, padx=10, pady=5)
+        format_dropdown.bind("<<ComboboxSelected>>",
+                             lambda event: on_format_change(format_var.get(), format_options[2:4]))
+        # format_var.trace("w", on_format_change)
+
+        # Label for the separator
+        separator_label = ttk.Label(creerfichier_labelframe, text="Séparateur :")
+        separator_label.grid(row=50, column=2, sticky="w", padx=10)
+
+        # Entry for the separator
+        separator_entry = ttk.Entry(creerfichier_labelframe, state="disabled")
+        separator_entry.grid(row=50, column=3, padx=10, pady=5)
+
+        # Fourth section: "Dossier où créer le fichier de sortie"
+        output_folder_label = ttk.Label(creerfichier_labelframe, text="Dossier où créer le fichier de sortie")
+        output_folder_label.grid(row=60, column=0, sticky="w", pady=5)
+
+        # Entry for the output folder
+        output_folder_entry = GidEntry(creerfichier_labelframe)
+        output_folder_entry.grid(row=60, column=1, padx=10, pady=5, columnspan=3, sticky='we')
+
+        # Label for the ini file name
+        ini_file_label = ttk.Label(creerfichier_labelframe,
+                                   text="Nom du fichier ini pour sauvegarder la configuration (optionnel)")
+        ini_file_label.grid(row=70, column=0, columnspan=2, sticky="w", pady=5)
+
+        # Entry for the ini file name
+        ini_file_entry = ttk.Entry(creerfichier_labelframe)
+        ini_file_entry.grid(row=70, column=2, padx=10, pady=5, columnspan=2, sticky='we')
+
+        # Button to create the file
+        create_file_button = ttk.Button(creerfichier_labelframe, text="Créer fichier Photos / Noms")
+        create_file_button.grid(row=80, column=0, columnspan=2, pady=10)
+
+        ################################################
         # ajout d'un labelframe pour la partie "insérer photos"
         inserphotos_labelframe = ttk.Labelframe(photo_window, text="Insérer des photos dans des fiches de personnages",
                                                 width=700, name='inserphotos_labelframe')
         inserphotos_labelframe.grid(row=50, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
+        inserphotos_labelframe.grid_propagate(True)
 
         load_button = ttk.Button(inserphotos_labelframe, text="Charger fichier ini",
                                  command=lambda: action_bouton_charger(self))
-        load_button.grid(row=1, column=0, columnspan=4, sticky='e', padx=(10, 10))
+        load_button.grid(row=10, column=0, columnspan=4, sticky='w', padx=(10, 10))
 
         # ajout d'un dropdown menu pour selectionner la configuration pré-enregistrée
         dropdown_label = ttk.Label(inserphotos_labelframe,
-                                   text="réglage pré-enregistré dans le fichier de configuration : ")
-        dropdown_label.grid(row=4, column=0, columnspan=2, sticky='w')
+                                   text="Réglage pré-enregistré : ")
+        dropdown_label.grid(row=40, column=0, columnspan=1, sticky='w')
 
         # Create a StringVar to hold the selected value
         self.dropdown_selected_option = tk.StringVar()
@@ -63,74 +183,75 @@ class GUIPhotos(ttk.Frame):
         self.previous_dropdown_section = None
 
         # Create the dropdown menu
-        self.dropdown = ttk.Combobox(inserphotos_labelframe, textvariable=self.dropdown_selected_option)
+        self.dropdown = ttk.Combobox(inserphotos_labelframe, textvariable=self.dropdown_selected_option,
+                                     state='readonly')
 
         # Bind the selection event to the on_select function
         self.dropdown.bind("<<ComboboxSelected>>", lambda event: on_select(self))
-        self.dropdown.grid(row=4, column=2, columnspan=1, sticky='w', padx=(10, 10))
+        self.dropdown.grid(row=40, column=1, columnspan=4, sticky='nsew', padx=(10, 10))
 
         rename_dropdown_button = ttk.Button(inserphotos_labelframe, text="\u270e",
                                             command=lambda: pop_up_renommer(self))
-        rename_dropdown_button.grid(row=4, column=3, columnspan=1, sticky='w', padx=(10, 10))
+        rename_dropdown_button.grid(row=45, column=1, columnspan=1, sticky='w', padx=(10, 10))
         ToolTip(rename_dropdown_button, "Renommer la configuration en cours")
 
         del_dropdown_button = ttk.Button(inserphotos_labelframe, text="\u274c",
                                          command=lambda: on_delete_click(self))
-        del_dropdown_button.grid(row=4, column=4, columnspan=1, sticky='w', padx=(10, 10))
+        del_dropdown_button.grid(row=45, column=2, columnspan=1, sticky='w', padx=(10, 10))
         ToolTip(del_dropdown_button, "Supprimer la configuration en cours")
 
         add_dropdown_button = ttk.Button(inserphotos_labelframe, text="\u2795",
                                          command=lambda: on_add_click(self))
-        add_dropdown_button.grid(row=4, column=5, columnspan=1, sticky='w', padx=(10, 10))
+        add_dropdown_button.grid(row=45, column=3, columnspan=1, sticky='w', padx=(10, 10))
         ToolTip(add_dropdown_button, "Ajouter une nouvelle configuration")
 
         copy_dropdown_button = ttk.Button(inserphotos_labelframe, text="\u2398",
-                                         command=lambda: on_copy_click(self))
-        copy_dropdown_button.grid(row=4, column=6, columnspan=1, sticky='w', padx=(10, 10))
+                                          command=lambda: on_copy_click(self))
+        copy_dropdown_button.grid(row=45, column=4, columnspan=1, sticky='w', padx=(10, 10))
         ToolTip(copy_dropdown_button, "Dupliquer la configuration en cours")
 
         # todo : ajouter une focntion qui contrôle que les paramètres sont legit avant de lacer les choses (cf. générer)
 
         current_file_label = ttk.Label(inserphotos_labelframe, text="Fichier avec référence photos / noms persos")
-        current_file_label.grid(row=5, column=0, columnspan=2, sticky='w')
+        current_file_label.grid(row=50, column=0, columnspan=1, sticky='w')
         self.fichier_photos_entry = GidEntry(inserphotos_labelframe, width=50)
-        self.fichier_photos_entry.grid(column=2, row=5, columnspan=4, padx=(10, 10))
+        self.fichier_photos_entry.grid(column=1, row=50, columnspan=4, sticky='nsew', padx=(10, 10))
 
         # ajout d'un dropdown pour les onglets
         dropdown_onglet_label = ttk.Label(inserphotos_labelframe,
-                                          text="Choix d l'onglet dans les fichier")
-        dropdown_onglet_label.grid(row=6, column=0, columnspan=4, sticky='w')
+                                          text="Choix de l'onglet dans les fichier")
+        dropdown_onglet_label.grid(row=60, column=0, columnspan=4, sticky='w')
 
         self.dropdown_onglet_selected_option = tk.StringVar()
         # Create the dropdown menu
-        self.dropdown_onglet = ttk.Combobox(inserphotos_labelframe, textvariable=self.dropdown_onglet_selected_option)
-        self.dropdown_onglet.grid(row=6, column=2, columnspan=1, sticky='w', padx=(10, 10))
+        self.dropdown_onglet = ttk.Combobox(inserphotos_labelframe, textvariable=self.dropdown_onglet_selected_option,
+                                            state='readonly')
+        self.dropdown_onglet.grid(row=60, column=1, columnspan=3, sticky='nsew', padx=(10, 10))
 
         refresh_onglet_button = ttk.Button(inserphotos_labelframe, text="\u267B",
                                            command=lambda: maj_dropdown_onglets(self))
-        refresh_onglet_button.grid(row=6, column=3, columnspan=1, sticky='e', padx=(10, 10))
+        refresh_onglet_button.grid(row=60, column=4, columnspan=1, sticky='w', padx=(10, 10))
         ToolTip(refresh_onglet_button, "Rafraichir le nom des onglets")
 
-
         dossier_photo_labels = ttk.Label(inserphotos_labelframe, text="Dossier contenant les photos")
-        dossier_photo_labels.grid(row=10, column=0, columnspan=2, sticky='w')
+        dossier_photo_labels.grid(row=100, column=0, sticky='w')
         self.dossier_photo_entry = GidEntry(inserphotos_labelframe, width=50)
-        self.dossier_photo_entry.grid(column=2, row=10, columnspan=2, padx=(10, 10))
+        self.dossier_photo_entry.grid(column=1, row=100, columnspan=4, padx=(10, 10), sticky='nsew')
 
         output_labels = ttk.Label(inserphotos_labelframe, text="Dossier où créer le fichier de sortie")
-        output_labels.grid(row=20, column=0, columnspan=2, sticky='w')
+        output_labels.grid(row=200, column=0, columnspan=1, sticky='w')
         self.output_entry = GidEntry(inserphotos_labelframe, width=50)
-        self.output_entry.grid(column=2, row=20, columnspan=4, padx=(10, 10))
+        self.output_entry.grid(column=1, row=200, columnspan=4, padx=(10, 10), sticky='nsew')
 
         input_labels = ttk.Label(inserphotos_labelframe, text="Dossier où lire les fiches à enrichir ")
-        input_labels.grid(row=30, column=0, columnspan=2, sticky='w')
+        input_labels.grid(row=300, column=0, columnspan=1, sticky='w')
         self.input_entry = GidEntry(inserphotos_labelframe, width=50)
-        self.input_entry.grid(column=2, row=30, columnspan=2, padx=(10, 10))
+        self.input_entry.grid(column=1, row=300, columnspan=4, padx=(10, 10), sticky='nsew')
 
         offset_label = ttk.Label(inserphotos_labelframe, text="Décalage (si nécessaire)")
-        offset_label.grid(row=40, column=0, columnspan=1, sticky='w')
+        offset_label.grid(row=400, column=0, columnspan=1, sticky='w')
         self.offset_entry = ttk.Entry(inserphotos_labelframe, width=15)
-        self.offset_entry.grid(column=1, row=40, columnspan=1, padx=(10, 10))
+        self.offset_entry.grid(column=1, row=400, columnspan=1, padx=(10, 10))
 
         ok_button = ttk.Button(inserphotos_labelframe, text="OK",
                                command=lambda: copier_dossier_et_enrichir_photos(
@@ -143,14 +264,14 @@ class GUIPhotos(ttk.Frame):
                                    racine_sortie=self.output_entry.get(),
                                    nom_onglet=self.dropdown_onglet.get(),
                                    sheet_id=self.fichier_photos_entry.get()))
-        ok_button.grid(row=40, column=30, columnspan=1, sticky='e', padx=(10, 10))
+        ok_button.grid(row=400, column=4, columnspan=1, sticky='e', padx=(10, 10))
 
         save_button = ttk.Button(inserphotos_labelframe, text="Sauver fichier ini",
                                  command=lambda: sauver_fichier_ini_photos(self))
-        save_button.grid(row=40, column=20, columnspan=1, sticky='e', padx=(10, 10))
+        save_button.grid(row=400, column=3, columnspan=1, sticky='e', padx=(10, 10))
 
         self.has_changed_label = ttk.Label(inserphotos_labelframe)
-        self.has_changed_label.grid(row=41, column=0, columnspan=4, sticky='nsew')
+        self.has_changed_label.grid(row=410, column=0, columnspan=4, sticky='nsew')
 
     def set_configparser(self, config_parser):
         self.configparser = config_parser
