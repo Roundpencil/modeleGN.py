@@ -211,6 +211,14 @@ class GUIPhotos(ttk.Frame):
         ToolTip(copy_dropdown_button, "Dupliquer la configuration en cours")
 
         # todo : ajouter une focntion qui contrôle que les paramètres sont legit avant de lacer les choses (cf. générer)
+        #  identifier les erreurs qui peuvent arriver durant la génération
+        #  (fichier qui ne fait pas 5 colonnes, ids non remplis) et trouver comment les reonter en erreur
+        # todo : faire partie 2 de l'IHM
+        #  faire une focntion qui crée le tableau, avec les paramètres de la liste
+        #  linker la fonction à des boutons
+        #  faire lar partie qui charges le données du GN
+        # todo : proposer une architecture qui permet à la fois
+        #  de stoquer un configparser dans le GN et d'^tre rétrocompatible
 
         current_file_label = ttk.Label(inserphotos_labelframe, text="Fichier avec référence photos / noms persos")
         current_file_label.grid(row=50, column=0, columnspan=1, sticky='w')
