@@ -63,7 +63,7 @@ class GUIPhotos(ttk.Frame):
         # Create the labelframe
         creerfichier_labelframe = ttk.Labelframe(photo_window, text="Créer un fichier perso/photos",
                                                  width=700, name='creerfichier_labelframe')
-        creerfichier_labelframe.grid(row=0, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
+        creerfichier_labelframe.grid(row=5, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
 
         # # Configure the grid layout for the main window
         # photo_window.grid_rowconfigure(0, weight=1)
@@ -272,6 +272,34 @@ class GUIPhotos(ttk.Frame):
 
         self.has_changed_label = ttk.Label(inserphotos_labelframe)
         self.has_changed_label.grid(row=410, column=0, columnspan=4, sticky='nsew')
+        
+        #######
+        # on ajoute un modlule pour changer de mode
+        def switch_mode():
+            if selected_mode.get() == 1:
+                inserphotos_labelframe.grid()
+                creerfichier_labelframe.grid_remove()
+            else:
+                creerfichier_labelframe.grid()
+                inserphotos_labelframe.grid_remove()
+
+        # Initially hide the second LabelFrame
+
+        creerfichier_labelframe.grid_remove()
+
+        # Create an IntVar to hold the value of the selected mode
+        selected_mode = tk.IntVar(value=1)
+
+        # Create the radiobuttons
+        radio_mode1 = ttk.Radiobutton(photo_window, text="Insérer des photos", variable=selected_mode, value=1,
+                                      command=switch_mode)
+        radio_mode1.grid(row=0, column=0, sticky=tk.W, pady=5)
+
+        radio_mode2 = ttk.Radiobutton(photo_window, text="Créer fichier Photos/noms", variable=selected_mode, value=2,
+                                      command=switch_mode)
+        radio_mode2.grid(row=0, column=1, sticky=tk.W, pady=5)
+
+
 
     def set_configparser(self, config_parser):
         self.configparser = config_parser
@@ -311,7 +339,6 @@ class GUIPhotos(ttk.Frame):
 
     def cancel_change(self):
         self.has_changed_label.config(text="")
-
 
 def on_select(gui_photo, verbal=False):
     # field_2_config(gui_photo, gui_photo.get_previous_dropdown_field())
