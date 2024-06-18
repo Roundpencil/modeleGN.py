@@ -3,33 +3,6 @@ from googleapiclient.errors import HttpError
 from MAGnet import *
 
 
-def kalitt_debug():
-    nom_perso = 'Brance'
-    nom_gn = 'archive chalacta.mgn'
-    debug_perso_gn(nom_gn, nom_perso)
-
-
-def debug_perso_gn(nom_gn, nom_perso):
-    gn: GN = GN.load(nom_gn)
-    noms = [perso.nom for perso in gn.personnages.values()]
-    # print(noms)
-    kalitt = next(perso for perso in gn.personnages.values() if nom_perso in perso.nom)
-    texte_kalitt = generer_squelette_perso(gn, kalitt)
-    # print(texte_kalitt)
-    api_drive, api_doc, sheet = lecteurGoogle.creer_lecteurs_google_apis()
-    nom_fichier = 'test export requete'
-    texte = generer_squelette_perso(gn, kalitt)
-    parent = '1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn'
-    mon_id = g_io.creer_google_doc(api_drive, nom_fichier, parent)
-    g_io.write_to_doc(
-        api_doc, mon_id, texte, verbal=True
-    )
-
-
-# kalitt_debug()
-
-# debug_perso_gn('Demo.mgn', 'Corwin')
-
 def remove_permission_for_email_recursive(api_drive, folder_id, email_address):
     """
     Recursively remove permissions for a specific email address from all files and files within subfolders
@@ -76,43 +49,6 @@ def remove_permission_for_email_recursive(api_drive, folder_id, email_address):
         print(f'An error occurred: {error}')
 
 
-#     """
-#     Recursively remove permissions for a specific email address from all files and files within subfolders
-#     in a given folder.
-#
-#     Parameters:
-#         api_drive: Initialized Google Drive API service instance.
-#         folder_id: The ID of the folder whose files' permissions are to be modified.
-#         email_address: The email address whose permissions are to be removed.
-#     """
-#     try:
-#         # Query to search for all files and folders in the specified folder
-#         query = f"'{folder_id}' in parents"
-#         response = api_drive.files().list(q=query, pageSize=700, fields="files(id, name, mimeType)").execute()
-#         items = response.get('files', [])
-#
-#
-#         if not items:
-#             print("No files or folders found.")
-#             return
-#
-#         for item in items:
-#             # Check if the item is a folder; if so, recurse
-#             if item['mimeType'] == 'application/vnd.google-apps.folder':
-#                 print(f"Entering folder: {item['name']} ({item['id']})")
-#                 remove_permission_for_email_recursive(api_drive, item['id'], email_address)
-#             else:
-#                 # Process files to remove permissions
-#                 permissions = api_drive.permissions().list(fileId=item['id'],
-#                                                            fields="permissions(id, emailAddress)").execute()
-#                 for permission in permissions.get('permissions', []):
-#                     if permission.get('emailAddress') == email_address:
-#                         api_drive.permissions().delete(fileId=item['id'], permissionId=permission['id']).execute()
-#                         print(f"Removed permission for {email_address} from file: {item['name']}")
-#     except HttpError as error:
-#         print(f'An error occurred: {error}')
-
-
 def compter_contenu_dossier_drive(folder_id: str, api_drive):
     files = extraire_tous_items_dossier(api_drive, folder_id)
 
@@ -134,22 +70,6 @@ def extraire_tous_items_dossier(api_drive, folder_id):
         if page_token is None:
             break
     return files
-
-
-#
-######### RETIRER LES DROITS
-# Initialize your Google Drive API service
-# api_drive, _, _ = creer_lecteurs_google_apis()
-# root_folder_id = '1_oKXTTD7BtKSI_EWqTjUJ-2jrT_W_e8j'  # le fichier archive
-# # root_folder_id = '1CjJPn5Srbka1gqMNt7oAG7pmX-qvgGKN'  # fichier simple de test
-# email_address = 'emeric.montagnese@gmail.com'
-# remove_permission_for_email_recursive(api_drive, root_folder_id, email_address)
-
-
-# ### COMPTER LES FICHIERS
-# api_drive, _, _ = creer_lecteurs_google_apis()
-# root_folder_id = '1_oKXTTD7BtKSI_EWqTjUJ-2jrT_W_e8j'  # le fichier archive
-# compter_contenu_dossier_drive(root_folder_id, api_drive)
 
 
 ######################### travail sur l'insertion d'images automatiques ###############################################
@@ -178,43 +98,6 @@ def verifier_acces_image(image_id, api_drive):
     except Exception as e:
         print(f"Erreur lors de la vérification de l'accès : {e}")
         return False  # Accès non vérifié
-
-
-# # Remplacez 'Votre_Image_ID' par l'ID de votre image
-# api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-# verifier_acces_image('1dd4-_fgHjIiUMjXtRFZsaZPwZmuonc6T', api_drive)
-#
-#
-# # ID de votre document Google Docs
-# document_id = '1iF6aE93CO-e77jRh9CHEEyh7ZYazNSb5kwOKQrmyeg4'
-#
-# # URL de l'image à insérer
-# image_id ='1dd4-_fgHjIiUMjXtRFZsaZPwZmuonc6T'
-# image_url = f'https://drive.google.com/uc?export=view&id={image_id}'
-
-# drive_service.files().get(fileId=imageId, fields="webContentLink")
-
-# Requête pour insérer l'image
-# requests = [
-#     {
-#         'insertInlineImage': {
-#             'location': {'index': 1},
-#             'uri': image_url,
-#             'objectSize': {
-#                 'height': {'magnitude': 50, 'unit': 'PT'},
-#                 'width': {'magnitude': 50, 'unit': 'PT'}
-#             }
-#         }
-#     }
-# ]
-
-
-# # Exécuter la requête
-# try:
-#     result = api_doc.documents().batchUpdate(documentId=document_id, body={'requests': requests}).execute()
-#     print("L'image a été insérée avec succès.")
-# except Exception as e:
-#     print(f"Erreur lors de l'insertion de l'image : {e}")
 
 
 def lister_images_avec_extension_dans_dossier(folder_id, drive_service, extension='png'):
@@ -389,165 +272,3 @@ def creer_synthese_actions_en_jeu_par_pnjs():
     g_io.write_to_doc(
         do, id, to_R, verbal=True
     )
-
-
-######################################################################
-#### reboot création table PNJ >>> ce code marche
-
-
-
-# def recurrer_table_evenementiel(colonnes_ok, table_test, current_solutions, verbal=1):
-#     for i in range(len(table_test)):
-#         colonnes_figes = colonnes_ok + table_test[:i]
-#         colonne_a_fusionner = table_test[i]
-#         colonnes_a_tester = table_test[i + 1:]
-#         if verbal:
-#             print(f"{'  ' * verbal} colonnes figées : {colonnes_figes}")
-#             print(f"{'  ' * verbal} colonne a fusionner {colonne_a_fusionner}")
-#             print(f"{'  ' * verbal} colonne a tester {colonnes_a_tester}")
-#
-#         for j in range(len(colonnes_a_tester)):
-#             current_colonne = colonnes_a_tester[j]
-#             colonne_fusionnee = fusionner_colonnes(colonne_a_fusionner, current_colonne, verbal)
-#             if colonne_fusionnee:
-#                 # new_fixed = colonnes_figes + [colonne_fusionnee] + colonnes_a_tester[j + 1:]
-#                 # recurrer_table_evenementiel(new_fixed, colonnes_a_tester[j+1:], current_solutions)
-#                 nouvelle_table = colonnes_a_tester[:j] + [colonne_fusionnee] + colonnes_a_tester[j + 1:]
-#                 recurrer_table_evenementiel(colonnes_figes, nouvelle_table,
-#                                             current_solutions, verbal + 1 if verbal else 0)
-#         if verbal:
-#             print(f"{'  ' * verbal} Solution ajoutée : {colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester}")
-#         current_solutions.append(colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester)
-
-
-# def recurrer_table_evenementiel_optim(colonnes_ok, table_test, current_solutions, verbal=1):
-#     # on trie les colonnes dans l'ordre de la plus grande à la plus petite en taille
-#     # on arrete quand on a une solurtion moins optim
-#     # on entre dans la récursion là ou on s'tait arrété
-#
-#     for i in range(len(table_test)):
-#         colonnes_figes = colonnes_ok + table_test[:i]
-#         colonne_a_fusionner = table_test[i]
-#         colonnes_a_tester = table_test[i + 1:]
-#         if verbal:
-#             print(f"{'  ' * verbal} colonnes figées : {colonnes_figes}")
-#             print(f"{'  ' * verbal} colonne a fusionner {colonne_a_fusionner}")
-#             print(f"{'  ' * verbal} colonne a tester {colonnes_a_tester}")
-#
-#         for j in range(len(colonnes_a_tester)):
-#             current_colonne = colonnes_a_tester[j]
-#             colonne_fusionnee = fusionner_colonnes(colonne_a_fusionner, current_colonne, verbal)
-#             if colonne_fusionnee:
-#                 # new_fixed = colonnes_figes + [colonne_fusionnee] + colonnes_a_tester[j + 1:]
-#                 # recurrer_table_evenementiel(new_fixed, colonnes_a_tester[j+1:], current_solutions)
-#                 nouvelle_table = colonnes_a_tester[:j] + [colonne_fusionnee] + colonnes_a_tester[j + 1:]
-#                 recurrer_table_evenementiel(colonnes_figes, nouvelle_table,
-#                                             current_solutions, verbal + 1 if verbal else 0)
-#         if verbal:
-#             print(f"{'  ' * verbal} Solution ajoutée : {colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester}")
-#         current_solutions.append(colonnes_figes + [colonne_a_fusionner] + colonnes_a_tester)
-
-
-# invariant :
-# - j'ai une solution en cours d'ellaboration
-# - j'ai une colonne à teste
-# - j'ai une colonne contre lquelle la tester
-# SI mes dex colonnes sont fusionnables,
-#   je récurrentre entre un monde et j'ai fusionnée et un monde ou je n'iapas fusionné
-#       et je passe à la colonne suivante
-# SINON
-#       je passe à la suivante
-
-# def recurrer_table_evenementiel_v2(colonnes_source):
-#     # hypotèse : il existe une combianison ABC  SSI AB, AC et BC sont des solutions possibles
-#     # hypothèse 2 : il existe une combinaison ABCD SSI ABC est possible et AD, BC, et CD sont possibles
-#     # et ainsi de suite
-#     # ainsi, je jeps réduire la recherche de solutions en prenant les paires et en cherchant toutes les combianaisons possibles
-#     # ensuite, je prends toutes les paires de plus haut niveau et je redescende en décomposant mon problème
-#
-#     # invariant : j'ai une table de niveau N
-#     # SI il existe une table de niveau N+1 avec au moins un élément ALORS jer cherche une table de niveau N+2
-#     # SINON  j'ai fini de trouver mes  solutions
-#
-#     # initialisation : création table niveau 2
-#     niveau = 2
-#     tables = {niveau: []}
-#     table_n2 = tables[2]
-#     dictionnaire_combinaisons = {}
-#     nb_col_source = len(colonnes_source)
-#     range_source = range(nb_col_source)
-#
-#     for i in range_source:
-#         for j in range(i + 1, len(colonnes_source)):
-#             if resultat := fusionner_colonnes(colonnes_source[i], colonnes_source[j], 0):
-#                 dictionnaire_combinaisons[(i, j)] = resultat
-#                 table_n2.append({i, j})
-#
-#     print(f"niveau = {niveau}, len = {len(tables[niveau])}")
-#     while len(tables[niveau]) > 0:
-#         print(f"niveau = {niveau}, len = {len(tables[niveau])}")
-#         # sinon, on calcule la table de niveau N+1
-#         tables_n_precedent = tables[niveau]
-#         niveau += 1
-#         tables[niveau] = []
-#         # pour chaque élément qui a une solution A0...aN-1 au niveau N-1
-#         for solution_n_precedent in tables_n_precedent:
-#             max_n_precedent = max(solution_n_precedent)
-#             elements_a_tester = [x for x in range(max_n_precedent + 1, nb_col_source) if x not in solution_n_precedent]
-#             # pour chaque élément B du set de base qui est différent des composantes de la solution (éléments à tester)
-#             for element_a_tester in elements_a_tester:
-#                 ajout_ok = True
-#                 for element_solution_prececent in solution_n_precedent:
-#
-#                     # je cherche si (A0, B) ... (An, B) sont toutes des solutions valables
-#                     set_a_tester = {element_a_tester, element_solution_prececent}
-#                     if set_a_tester not in tables[2]:
-#                         ajout_ok = False
-#                         break
-#
-#                 #           SIOUI : ALORS il existe une solution (A0, ..., AN, B)
-#                 if ajout_ok:
-#                     tables[niveau].append(solution_n_precedent | {element_a_tester})
-#             #               j'enregistre que la solution existe dans la table[niveau] sous forme de set
-#             #               j'enregistre qu'à la clef de cette solution correspond la solution
-#             #               >> pas la peine, certaines solutions ne seront jamais calculées !!!
-#     del tables[niveau]
-#
-#     return tables
-#
-#
-# def fournir_solutions(donnee_test):
-#     solution = []
-#     colonnes_ok = []
-#     recurrer_table_evenementiel(colonnes_ok, donnee_test, solution)
-#     return solution
-
-
-# donnee_test = [
-#     ['event1', 'event2', None, 'event4', ''],
-#     [None, 'collision', 'event3', None, 'event5'],
-#     [None, None, 'fill 1a', None, 'fill 1b'],
-#     ['', '', 'fill2', '', ''],
-#     ['', '', '', '', 'fill3']
-# ]
-#
-#
-# def tester_recursion():
-#     donnee_test = [
-#         ['event1', 'event2', None, 'event4', ''],
-#         [None, 'collision', 'event3', None, 'event5'],
-#         [None, None, 'fill 1a', None, 'fill 1b'],
-#         ['', '', 'fill2', '', ''],
-#         ['', '', '', '', 'fill3']
-#     ]
-#
-#     # donnee_test = [
-#     #     ['event1', 'event2', None, 'event4', ''],
-#     #     ['poy', 'poy',None, None, 'fill 1b'],
-#     #     ['', '', 'fill2', '', ''],
-#     # ]
-#     return fournir_solutions(donnee_test)
-
-
-# ******** fonction pour commencer à intégrer les évènements en ignorant les doublons ***********************
-

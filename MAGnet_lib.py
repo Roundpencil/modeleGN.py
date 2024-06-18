@@ -67,7 +67,6 @@ from modeleGN import *
 # todo : refaire version console
 
 
-
 def print_progress(v: float):
     print(f"La génération a progressé de {v}%")
 
@@ -136,7 +135,7 @@ def lire_et_recharger_gn(fichier_gn: str,
         new_gn = GN(dict_config=dict_config)
         mon_gn = new_gn
     else:
-        # si c'ets un fichier ini qui a été founi en entrée, on pudate le GN, sinon on garde la config
+        # si c'ets un fichier ini qui a été founi en entrée, on update le GN, sinon on garde la config
         if fichier_gn.endswith('.mgn'):
             # mon_gn = GN.load(fichier_gn) # le fichier a déjà été chargé
             mon_gn = g_io.charger_gn_from_gn(mon_gn, api_drive, m_print=m_print,
@@ -226,7 +225,6 @@ def lire_et_recharger_gn(fichier_gn: str,
         # visualisation(pas_visualisation)
         m_print("****** fin de la lecture des objets *********")
 
-
     m_print("****** fin de la lecture du drive *********")
     # liste_orgas = None
     # liste_noms_pnjs = None
@@ -245,8 +243,6 @@ def lire_et_recharger_gn(fichier_gn: str,
         # dans ce cas on a un tableau global avec toutes les données > on le lit
         # on met à jour les données pour les PNJs pour
         logging.debug(f"sheet_id = {sheet_id}, mon_gn.id_pjs_et_pnjs = {mon_gn.get_id_pjs_et_pnjs()}")
-        # liste_noms_pnjs = g_io.lire_gspread_pnj(api_sheets, sheet_id)
-        # liste_noms_pjs, liste_orgas = g_io.lire_gspread_pj(api_sheets, sheet_id)
         pjs_lus, pnjs_lus = g_io.lire_gspread_pj_pnjs(api_sheets, sheet_id)
         # logging.debug(f"liste_noms_pnjs = {pjs_lus}")
         # logging.debug(f"liste_noms_pjs = {pnjs_lus}")
@@ -285,7 +281,8 @@ def lire_et_recharger_gn(fichier_gn: str,
     # # ajouté pour debug SUPPRIMER IMPERATIVEMENT
     # mon_gn.save(nom_fichier_sauvegarde)
 
-    m_print("* reconstruction du GN : mise à jour de tous les liens entre persos, intrigues, scenes objets et évènements *")
+    m_print(
+        "* reconstruction du GN : mise à jour de tous les liens entre persos, intrigues, scenes objets et évènements *")
     mon_gn.rebuild_links(verbal)
 
     if sauver_apres_operation:
@@ -513,7 +510,7 @@ def generer_texte_resume_intrigues_persos(mon_gn: GN, verbal=False):
     tab_brut = [
         {'orga': perso.orga_referent,
          'nom_perso': perso.nom,
-         'texte_recap': '\n' + perso.str_recap_intrigues() + '\n' #contournement de erreurs d'écriture
+         'texte_recap': '\n' + perso.str_recap_intrigues() + '\n'  # contournement de erreurs d'écriture
          # 'texte_recap': perso.str_recap_intrigues() if len(perso.str_recap_intrigues()) else ' '
          }
         for perso in mon_gn.get_dict_pj().values()
@@ -537,7 +534,6 @@ def generer_texte_resume_intrigues_persos(mon_gn: GN, verbal=False):
 
 @attrappeur_dexceptions
 def ecrire_resume_intrigues_persos(mon_gn: GN, api_doc, api_drive, verbal=False, m_print=print):
-
     m_print("******* resume des intrigues par perso ******************")
 
     parent = mon_gn.get_dossier_outputs_drive()
@@ -627,11 +623,11 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
             tous_les_noms_lus_dans_scenes += scene.noms_roles_lus
     tous_les_noms_lus_dans_scenes = [x.strip() for x in tous_les_noms_lus_dans_scenes]
 
-    #ajouter les noms issus des evenements
+    # ajouter les noms issus des evenements
     tous_les_noms_lus_dans_scenes += intrigue.get_noms_intervenants()
     tous_les_noms_lus_dans_scenes += intrigue.get_noms_pjs_concernes()
 
-    #simplifier sous forme de set
+    # simplifier sous forme de set
     tous_les_noms_lus_dans_scenes = set(tous_les_noms_lus_dans_scenes)
 
     # rationnaliser la liste des noms avant de processer pour enlever les doublons évidents,
@@ -751,7 +747,6 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     to_print += "Tableau des Rerolls suggéré : \n"
     to_print += lecteurGoogle.formatter_tableau_pour_export(tableau_rerolls)
     to_print += '\n'
-
 
     if verbal:
         print(to_print)
@@ -1403,7 +1398,8 @@ def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_prin
         logging.debug('erreurs dans la préparation des évènements pour la création de planning : ')
         logging.debug(texte_erreur_concat)
         print(f"DEBUG : erreurs evenements pre ORTOOLS : {texte_erreur_concat}")
-        #todo : écrire les erreurs dans un fichier
+        # todo : écrire les erreurs dans un fichier
+
 
 def generer_tables_planning_evenementiel(mon_gn: GN):
     # identifier toutes les sessions

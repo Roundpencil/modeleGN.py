@@ -2,6 +2,7 @@ import traceback
 from datetime import datetime
 import re
 
+from fuzzywuzzy import process
 from googleapiclient.errors import HttpError
 
 import google_io as g_io
@@ -395,7 +396,7 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
             # Check if the error message matches the specific error you're interested in
             if 'This operation is not supported for this document' in e.content.decode('utf-8'):
                 texte_erreur.add(f"Le dossier source contient un fichier "
-                                    f"non pris en charge par l'api google doc (docx, xslx, etc.)")
+                                 f"non pris en charge par l'api google doc (docx, xslx, etc.)")
             elif "Invalid requests[13].insertInlineImage: There was a problem retrieving the image. " \
                  "The provided image should be publicly accessible, within size limit, and in supported formats." \
                     in e.content.decode('utf-8'):
@@ -413,6 +414,7 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
             continue
 
     return texte_erreur
+
 
 # ##### code pour tster le module photos
 # def tester_module_photo_chalacta():
@@ -527,3 +529,19 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
 #     offset = 0
 #     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, id,
 #                                    destination_folder_id, offset=offset, sheet_name='Session 1')
+
+def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos: list[str]):
+    dico_nom_id = lister_images_dans_dossier(folder_id=folder_source_images, drive_service=api_drive)
+    liste_photos = list(dico_nom_id.keys())
+    to_write = [[e for e in NOMS_LIGNE]]
+    for photo in liste_photos:
+        correspondance = process.extractOne(photo, noms_persos)
+        to_write.append([photo, correspondance[0] if correspondance else '', '', ''])
+    return to_write
+
+
+def ecrire_tableau_photos_noms(api_drive, api_sheets, folder_source_images, noms_persos: list[str],
+                               dossier_output, nom_fichier):
+    to_write = construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos)
+    id_sheet = g_io.creer_google_sheet(api_drive, nom_fichier, dossier_output)
+    g_io.write_to_sheet(api_sheets, to_write, id_sheet)

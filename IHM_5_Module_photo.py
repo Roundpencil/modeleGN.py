@@ -5,7 +5,9 @@ from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import font
 
+import google_io
 from IHM_lib import *
+from modeleGN import GN
 from module_photos import *
 
 # structure du fichier ini attendu :
@@ -92,13 +94,24 @@ class GUIPhotos(ttk.Frame):
         radiobutton_sheet.grid(row=20, column=0, sticky="w", pady=5)
 
         radiobutton_none = ttk.Radiobutton(creerfichier_labelframe,
-                                           text="Je ne souhaite pas utiliser de fichiers de personnages",
+                                           text="Je ne souhaite pas utiliser de fichiers de personnages "
+                                                "(je crée uniquement un fichier à partir des photos)",
                                            variable=file_option, value="none", command=on_radiobutton_change)
-        radiobutton_none.grid(row=30, column=0, columnspan=2, sticky="w", pady=5)
+        radiobutton_none.grid(row=30, column=0, columnspan=4, sticky="w", pady=5)
 
         # Button for "charger fichier Magnet"
-        magnet_button = ttk.Button(creerfichier_labelframe, text="Charger fichier Magnet", state="disabled")
+        def charger_fichier_mgn(display_label):
+            config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
+                                                     filetypes=(('fichiers MAGnet', '*.mgn'),
+                                                                ("all files", "*.*")))
+            display_label.config(text=config_file)
+
+        magnet_button = ttk.Button(creerfichier_labelframe, text="Charger fichier Magnet", state="disabled",
+                                   command=lambda: charger_fichier_mgn(mgn_file_label))
         magnet_button.grid(row=10, column=1, padx=10, pady=5)
+
+        mgn_file_label = ttk.Label(creerfichier_labelframe, text="")
+        mgn_file_label.grid(row=10, column=2, columnspan=2, sticky="nsew", pady=5)
 
         # Text entry for "sheet dédiée"
         sheet_entry = GidEntry(creerfichier_labelframe, state="disabled")
@@ -119,8 +132,8 @@ class GUIPhotos(ttk.Frame):
 
         # Dropdown menu for the third section
         format_options = [
-            "Nom Joueurs et Joueuse",
-            "Noms Personnages",
+            "Juste le nom des joueurs et joueuse",
+            "Juste le nom des personnages",
             "Joueurs [séparateur] Personnage",
             "Personnage [séparateur] Joueurs"
         ]
@@ -148,6 +161,13 @@ class GUIPhotos(ttk.Frame):
         output_folder_entry = GidEntry(creerfichier_labelframe)
         output_folder_entry.grid(row=60, column=1, padx=10, pady=5, columnspan=3, sticky='we')
 
+        output_file_name_label = ttk.Label(creerfichier_labelframe, text="Dossier où créer le fichier de sortie")
+        output_file_name_label.grid(row=65, column=0, sticky="w", pady=5)
+
+        # Entry for the output folder
+        output_file_name_entry = ttk.Entry(creerfichier_labelframe)
+        output_file_name_entry.grid(row=65, column=1, padx=10, pady=5, columnspan=3, sticky='we')
+
         # Label for the ini file name
         ini_file_label = ttk.Label(creerfichier_labelframe,
                                    text="Nom du fichier ini pour sauvegarder la configuration (optionnel)")
@@ -158,7 +178,32 @@ class GUIPhotos(ttk.Frame):
         ini_file_entry.grid(row=70, column=2, padx=10, pady=5, columnspan=2, sticky='we')
 
         # Button to create the file
-        create_file_button = ttk.Button(creerfichier_labelframe, text="Créer fichier Photos / Noms")
+        def creer_fichier_dans_drive():
+            # on crée le nom des persos en fonction du radiobutton
+            if file_option.get() == "mgn":
+                gn = GN.load(mgn_file_label['text'])
+                noms_persos = gn.noms_personnages()
+            elif file_option.get() == "sheet":
+                id_sheet = sheet_entry.get()
+                pjs, pnjs = google_io.lire_gspread_pj_pnjs(api_sheets, id_sheet)
+                noms_persos = []
+                if pjs:
+                    noms_persos += [perso["Nom"] for perso in pjs]
+                if pnjs:
+                    noms_persos += [perso["Nom"] for perso in pnjs]
+            else:
+                noms_persos = []
+
+            print(noms_persos)
+
+            ecrire_tableau_photos_noms(api_drive, self.api_sheets,
+                                       folder_source_images=photo_folder_entry.get(),
+                                       noms_persos=noms_persos,
+                                       dossier_output=output_folder_entry.get(),
+                                       nom_fichier=output_file_name_entry.get())
+
+        create_file_button = ttk.Button(creerfichier_labelframe, text="Créer fichier Photos / Noms",
+                                        command=lambda: creer_fichier_dans_drive())
         create_file_button.grid(row=80, column=0, columnspan=2, pady=10)
 
         ################################################
@@ -210,12 +255,10 @@ class GUIPhotos(ttk.Frame):
         copy_dropdown_button.grid(row=45, column=4, columnspan=1, sticky='w', padx=(10, 10))
         ToolTip(copy_dropdown_button, "Dupliquer la configuration en cours")
 
-        # todo : faire partie 2 de l'IHM
-        #  faire une focntion qui crée le tableau, avec les paramètres de la liste
-        #  linker la fonction à des boutons
-        #  faire lar partie qui charges le données du GN
+        # todo : tester partie 2 de l'IHM
         # todo : proposer une architecture qui permet à la fois
         #  de stoquer un configparser dans le GN et d'^tre rétrocompatible
+        # todo : rajouter un champ pour dire qu'on ne veut mettre que les photos des PJs ?
 
         current_file_label = ttk.Label(inserphotos_labelframe, text="Fichier avec référence photos / noms persos")
         current_file_label.grid(row=50, column=0, columnspan=1, sticky='w')
@@ -260,15 +303,15 @@ class GUIPhotos(ttk.Frame):
 
         def inserer_photos_erreurs():
             texte_erreurs = copier_dossier_et_enrichir_photos(
-                                api_doc=api_doc,
-                                api_drive=api_drive,
-                                api_sheets=self.api_sheets,
-                                folder_id=self.dossier_photo_entry.get(),
-                                offset=int(self.offset_entry.get()),
-                                dossier_sources_fiches=[self.input_entry.get()],
-                                racine_sortie=self.output_entry.get(),
-                                nom_onglet=self.dropdown_onglet.get(),
-                                sheet_id=self.fichier_photos_entry.get())
+                api_doc=api_doc,
+                api_drive=api_drive,
+                api_sheets=self.api_sheets,
+                folder_id=self.dossier_photo_entry.get(),
+                offset=int(self.offset_entry.get()),
+                dossier_sources_fiches=[self.input_entry.get()],
+                racine_sortie=self.output_entry.get(),
+                nom_onglet=self.dropdown_onglet.get(),
+                sheet_id=self.fichier_photos_entry.get())
             if len(texte_erreurs) == 0:
                 messagebox.showinfo("Opération terminée", "L'opération s'est déroulée avec succès")
             else:
@@ -304,11 +347,11 @@ class GUIPhotos(ttk.Frame):
         # Create the radiobuttons
         radio_mode1 = ttk.Radiobutton(photo_window, text="Insérer des photos", variable=selected_mode, value=1,
                                       command=switch_mode)
-        radio_mode1.grid(row=0, column=0, sticky=tk.W, pady=5)
+        radio_mode1.grid(row=0, column=1, sticky=tk.W, pady=5)
 
         radio_mode2 = ttk.Radiobutton(photo_window, text="Créer fichier Photos/noms", variable=selected_mode, value=2,
                                       command=switch_mode)
-        radio_mode2.grid(row=0, column=1, sticky=tk.W, pady=5)
+        radio_mode2.grid(row=0, column=2, sticky=tk.W, pady=5)
 
     def set_configparser(self, config_parser):
         self.configparser = config_parser
