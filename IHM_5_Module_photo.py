@@ -201,6 +201,12 @@ class GUIPhotos(ttk.Frame):
                                        noms_persos=noms_persos,
                                        dossier_output=output_folder_entry.get(),
                                        nom_fichier=output_file_name_entry.get())
+            messagebox.showinfo("Génération terminée", "Le fichier a bien été généré \n"
+                                                       "Reste à faire manuellement : \n"
+                                                       " - Vérifier les associations automatiques réalisées \n"
+                                                       " - Déplacer les noms insécables dans la bonne colonne, "
+                                                       "si nécessaire \n"
+                                                       " - Ajouter les alias sécables et insécables")
 
         create_file_button = ttk.Button(creerfichier_labelframe, text="Créer fichier Photos / Noms",
                                         command=lambda: creer_fichier_dans_drive())
