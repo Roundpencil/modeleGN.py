@@ -34,6 +34,15 @@ class GUIPhotos(ttk.Frame):
         photo_window.winfo_toplevel().title("Module Photo")
         photo_window.grid_propagate(True)
 
+        # ajout d'un labelframe pour la partie "Créer fichier référence"
+        creerfichier_labelframe = ttk.Labelframe(photo_window, text="Créer un fichier perso/photos",
+                                                width=700, name='creerfichier_labelframe')
+        creerfichier_labelframe.grid(row=10, column=0, columnspan=4, sticky="nsew", padx=(10, 10), pady=(10, 10))
+
+        hello_label = ttk.Label(creerfichier_labelframe,
+                                   text="hello monde")
+        hello_label.grid(row=4, column=0, columnspan=2, sticky='w')
+
         # ajout d'un labelframe pour la partie "insérer photos"
         inserphotos_labelframe = ttk.Labelframe(photo_window, text="Insérer des photos dans des fiches de personnages",
                                                 width=700, name='inserphotos_labelframe')
@@ -63,14 +72,22 @@ class GUIPhotos(ttk.Frame):
         rename_dropdown_button = ttk.Button(inserphotos_labelframe, text="\u270e",
                                             command=lambda: pop_up_renommer(self))
         rename_dropdown_button.grid(row=4, column=3, columnspan=1, sticky='w', padx=(10, 10))
+        ToolTip(rename_dropdown_button, "Renommer la configuration en cours")
 
         del_dropdown_button = ttk.Button(inserphotos_labelframe, text="\u274c",
                                          command=lambda: on_delete_click(self))
         del_dropdown_button.grid(row=4, column=4, columnspan=1, sticky='w', padx=(10, 10))
+        ToolTip(del_dropdown_button, "Supprimer la configuration en cours")
 
         add_dropdown_button = ttk.Button(inserphotos_labelframe, text="\u2795",
                                          command=lambda: on_add_click(self))
         add_dropdown_button.grid(row=4, column=5, columnspan=1, sticky='w', padx=(10, 10))
+        ToolTip(add_dropdown_button, "Ajouter une nouvelle configuration")
+
+        copy_dropdown_button = ttk.Button(inserphotos_labelframe, text="\u2398",
+                                         command=lambda: on_copy_click(self))
+        copy_dropdown_button.grid(row=4, column=6, columnspan=1, sticky='w', padx=(10, 10))
+        ToolTip(copy_dropdown_button, "Dupliquer la configuration en cours")
 
         # todo : ajouter une focntion qui contrôle que les paramètres sont legit avant de lacer les choses (cf. générer)
 
@@ -92,6 +109,8 @@ class GUIPhotos(ttk.Frame):
         refresh_onglet_button = ttk.Button(inserphotos_labelframe, text="\u267B",
                                            command=lambda: maj_dropdown_onglets(self))
         refresh_onglet_button.grid(row=6, column=3, columnspan=1, sticky='e', padx=(10, 10))
+        ToolTip(refresh_onglet_button, "Rafraichir le nom des onglets")
+
 
         dossier_photo_labels = ttk.Label(inserphotos_labelframe, text="Dossier contenant les photos")
         dossier_photo_labels.grid(row=10, column=0, columnspan=2, sticky='w')
@@ -513,3 +532,87 @@ def on_add_click(gui_photo: GUIPhotos):
 
     cancel_button = tk.Button(button_frame, text="Annuler", command=on_cancel)
     cancel_button.pack(side="right", padx=5)
+
+
+def on_copy_click(gui_photo: GUIPhotos):
+    ancien_nom = gui_photo.dropdown.get()
+
+    # Fonction appelée lors du clic sur le bouton pour afficher la pop-up
+    def on_confirm():
+        # Récupération du texte entré par l'utilisateur
+        result = entry.get()
+        popup.destroy()
+        # Affichage du résultat dans la console pour l'exemple
+        print("Valeur confirmée :", result)
+        nouveau_nom = result
+
+        if nouveau_nom_deja_pris(gui_photo, nouveau_nom):
+            messagebox.showerror("Erreur", "Ce nom correspond déjà à un réglage préenregistré")
+            pop_up_renommer(gui_photo)
+        else:
+            config = gui_photo.get_configparser()
+
+            ancienne_section = f"{PREFIXESECTION}{ancien_nom}"
+            nouvelle_section = f"{PREFIXESECTION}{nouveau_nom}"
+
+            config.add_section(nouvelle_section)
+            for item in config.items(ancienne_section):
+                config.set(nouvelle_section, item[0], item[1])
+
+            upgrader_valeurs_dropdown(gui_photo, nouveau_nom)
+
+    def on_cancel():
+        # Fermeture de la pop-up et retour de None
+        popup.destroy()
+        # Affichage de None dans la console pour l'exemple
+        print("Action annulée, retour de None")
+
+    # Création de la pop-up
+    popup = tk.Toplevel(gui_photo)
+    popup.title("Copier la configuration actuelle")
+
+    # Message d'instruction
+    label = tk.Label(popup, text="Nom de la copie : ")
+    label.pack(pady=10)
+
+    # Champ de texte avec valeur par défaut
+    entry = tk.Entry(popup, width=40)
+    entry.pack(pady=5)
+
+    # Boutons Confirmer et Annuler
+    button_frame = tk.Frame(popup)
+    button_frame.pack(pady=10)
+
+    confirm_button = tk.Button(button_frame, text="Confirmer", command=on_confirm)
+    confirm_button.pack(side="left", padx=5)
+
+    cancel_button = tk.Button(button_frame, text="Annuler", command=on_cancel)
+    cancel_button.pack(side="right", padx=5)
+
+
+class ToolTip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tooltip_window = None
+        self.widget.bind("<Enter>", self.show_tooltip)
+        self.widget.bind("<Leave>", self.hide_tooltip)
+
+    def show_tooltip(self, event):
+        if self.tooltip_window or not self.text:
+            return
+        x, y, _, _ = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + 25
+        y += self.widget.winfo_rooty() + 25
+        self.tooltip_window = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        label = tk.Label(tw, text=self.text, justify=tk.LEFT,
+                         background="#ffffe0", relief=tk.SOLID, borderwidth=1,
+                         font=("tahoma", "8", "normal"))
+        label.pack(ipadx=1)
+
+    def hide_tooltip(self, event):
+        if self.tooltip_window:
+            self.tooltip_window.destroy()
+            self.tooltip_window = None

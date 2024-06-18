@@ -346,7 +346,7 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
         print(f"{folder_id}, {offset}, {dossier_sources_fiches},{racine_sortie},{sheet_id}")
 
     ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, dossier_sources_fiches)]
-    destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "Fiches avec photo")
+    # destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "Fiches avec photo")
 
     if verbal:
         print(f"ids fichiers {ids}")
