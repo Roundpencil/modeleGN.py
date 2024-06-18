@@ -2,8 +2,12 @@ import traceback
 from datetime import datetime
 import re
 
+from googleapiclient.errors import HttpError
+
 import google_io as g_io
 import lecteurGoogle
+
+NOMS_LIGNE = ["nom photo", "nom personnage secable", "nom personnage insécable", "alias sécables", "alias insécables"]
 
 
 def lister_images_dans_dossier(folder_id, drive_service):
@@ -28,7 +32,7 @@ def lister_images_dans_dossier(folder_id, drive_service):
 
         page_token = response.get('nextPageToken')  # Récupérer le nextPageToken de la réponse
 
-        if not page_token:  # Si il n'y a pas de nextPageToken, c'est la fin des résultats
+        if not page_token:  # S'il n'y a pas de nextPageToken, c'est la fin des résultats
             break  # Sortir de la boucle
 
     return images_dict
@@ -51,11 +55,18 @@ def lire_table_photos(api_sheets, sheet_id, sheet_name='Feuille 1', separateur='
     result = api_sheets.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name,
                                                     majorDimension="ROWS").execute()
     values = result.get('values', [])
+
+    if values[0][0:6] != NOMS_LIGNE:
+        raise ValueError("Le fichier source ne possède pas les bon entêtes de colonne")
+
     if verbal:
         print(values)
     to_return = {}
     for value in values[1:]:
-        value = value + [''] * (5 - len(value))
+        if len(value) > 5:
+            value = value[:6]
+        else:
+            value = value + [''] * (5 - len(value))
         value = [value[0]] + [element.lower() for element in value[1:]]
         photo, nom_secable, nom_insecable, alias_secable, alias_insecable = value
         photo = photo.strip()
@@ -147,7 +158,8 @@ def nettoyer_doublons_souschaines(dico):
     # Pour chaque clé, vérifie si les éléments de sa liste sont des sous-chaînes des éléments des autres listes
     for clef in dico:
         items_clef = set(dico[clef])
-        autres_items = set_global - items_clef  # Enlève les éléments de la liste courante pour comparer seulement avec les autres
+        autres_items = set_global - items_clef
+        # Enlève les éléments de la liste courante pour comparer seulement avec les autres
 
         for item in items_clef:
             for autre_item in autres_items:
@@ -268,7 +280,6 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur, verbal=F
     return requests
 
 
-##### test lire photos
 def lire_dictionnaires_copier_fiche_inserer_photos(api_drive, api_doc, api_sheets,
                                                    id_sheet_photos_aliases, id_dossier_images,
                                                    id_doc_source, id_dossier_output, sheet_name='Feuille 1', offset=0,
@@ -319,7 +330,7 @@ def copier_fiche_inserer_photos(api_doc, api_drive, dico_photos_motsclefs, dict_
                 requete_pour_inserer_img_et_formatter(dict_img_id[image[0]], image[1] + offset, len(image[2])))
     if verbal:
         print(requetes)
-    ##### copier le fichier source et le renommer
+    ####### copier le fichier source et le renommer
     # Known Document ID and Destination Folder ID
     # Getting the current date in the format YYYY-MM-DD
     today_date = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -341,19 +352,26 @@ def copier_fiche_inserer_photos(api_doc, api_drive, dico_photos_motsclefs, dict_
 
 def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id, offset, dossier_sources_fiches,
                                       racine_sortie,
-                                      sheet_id, nom_onglet="Feuille 1", verbal=True):
+                                      sheet_id, nom_onglet="Feuille 1", verbal=True) -> set:
+    texte_erreur = set()
     if verbal:
         print(f"{folder_id}, {offset}, {dossier_sources_fiches},{racine_sortie},{sheet_id}")
 
-    ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, dossier_sources_fiches)]
-    # destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "Fiches avec photo")
+    try:
+        ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, dossier_sources_fiches)]
+        # destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "Fiches avec photo")
+    except HttpError as e:
+        return {"Impossible de lire les fichiers dans le dossier fiches spécifié"}
 
     if verbal:
         print(f"ids fichiers {ids}")
     # offset = 0
 
-    dico_photos_motsclefs, dict_img_id = preparer_donnees_photos(api_drive, api_sheets, folder_id,
-                                                                 sheet_id, nom_onglet, verbal)
+    try:
+        dico_photos_motsclefs, dict_img_id = preparer_donnees_photos(api_drive, api_sheets, folder_id,
+                                                                     sheet_id, nom_onglet, verbal)
+    except ValueError as ve:
+        return {str(ve)}
 
     destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie,
                                                      f'{datetime.now().strftime("%Y-%m-%d %H:%M")} '
@@ -369,10 +387,32 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
                                                  destination_folder_id, offset, verbal)
 
             print(f"retour : {retour}")
+        except KeyError as e:
+            print(f"exception : {e}")
+            traceback.print_exc()
+            texte_erreur.add(f"La photo suivante n'a pas été trouvée dans le dossier photos {str(e)}")
+        except HttpError as e:
+            # Check if the error message matches the specific error you're interested in
+            if 'This operation is not supported for this document' in e.content.decode('utf-8'):
+                texte_erreur.add(f"Le dossier source contient un fichier "
+                                    f"non pris en charge par l'api google doc (docx, xslx, etc.)")
+            elif "Invalid requests[13].insertInlineImage: There was a problem retrieving the image. " \
+                 "The provided image should be publicly accessible, within size limit, and in supported formats." \
+                    in e.content.decode('utf-8'):
+                texte_erreur.add(f"Une ou plusieurs photos ne sont pas publiquement accessibles")
+            else:
+                texte_erreur.add(f"Erreur HTTP non détaillée dans cette version : {str(e)}")
+            print(f"exception : {e}")
+            traceback.print_exc()
+            # texte_erreur.append(str(e))
+
         except Exception as e:
             print(f"exception : {e}")
             traceback.print_exc()
+            texte_erreur.add(f"Erreur non détaillée dans cette version : {str(e)}")
             continue
+
+    return texte_erreur
 
 # ##### code pour tster le module photos
 # def tester_module_photo_chalacta():

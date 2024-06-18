@@ -210,9 +210,6 @@ class GUIPhotos(ttk.Frame):
         copy_dropdown_button.grid(row=45, column=4, columnspan=1, sticky='w', padx=(10, 10))
         ToolTip(copy_dropdown_button, "Dupliquer la configuration en cours")
 
-        # todo : ajouter une focntion qui contrôle que les paramètres sont legit avant de lacer les choses (cf. générer)
-        #  identifier les erreurs qui peuvent arriver durant la génération
-        #  (fichier qui ne fait pas 5 colonnes, ids non remplis) et trouver comment les reonter en erreur
         # todo : faire partie 2 de l'IHM
         #  faire une focntion qui crée le tableau, avec les paramètres de la liste
         #  linker la fonction à des boutons
@@ -261,17 +258,23 @@ class GUIPhotos(ttk.Frame):
         self.offset_entry = ttk.Entry(inserphotos_labelframe, width=15)
         self.offset_entry.grid(column=1, row=400, columnspan=1, padx=(10, 10))
 
-        ok_button = ttk.Button(inserphotos_labelframe, text="OK",
-                               command=lambda: copier_dossier_et_enrichir_photos(
-                                   api_doc=api_doc,
-                                   api_drive=api_drive,
-                                   api_sheets=self.api_sheets,
-                                   folder_id=self.dossier_photo_entry.get(),
-                                   offset=int(self.offset_entry.get()),
-                                   dossier_sources_fiches=[self.input_entry.get()],
-                                   racine_sortie=self.output_entry.get(),
-                                   nom_onglet=self.dropdown_onglet.get(),
-                                   sheet_id=self.fichier_photos_entry.get()))
+        def inserer_photos_erreurs():
+            texte_erreurs = copier_dossier_et_enrichir_photos(
+                                api_doc=api_doc,
+                                api_drive=api_drive,
+                                api_sheets=self.api_sheets,
+                                folder_id=self.dossier_photo_entry.get(),
+                                offset=int(self.offset_entry.get()),
+                                dossier_sources_fiches=[self.input_entry.get()],
+                                racine_sortie=self.output_entry.get(),
+                                nom_onglet=self.dropdown_onglet.get(),
+                                sheet_id=self.fichier_photos_entry.get())
+            if len(texte_erreurs) == 0:
+                messagebox.showinfo("Opération terminée", "L'opération s'est déroulée avec succès")
+            else:
+                messagebox.showerror("Une ou plusieurs erreurs sont survenues", '\n'.join(texte_erreurs))
+
+        ok_button = ttk.Button(inserphotos_labelframe, text="OK", command=lambda: inserer_photos_erreurs())
         ok_button.grid(row=400, column=4, columnspan=1, sticky='e', padx=(10, 10))
 
         save_button = ttk.Button(inserphotos_labelframe, text="Sauver fichier ini",
@@ -280,7 +283,7 @@ class GUIPhotos(ttk.Frame):
 
         self.has_changed_label = ttk.Label(inserphotos_labelframe)
         self.has_changed_label.grid(row=410, column=0, columnspan=4, sticky='nsew')
-        
+
         #######
         # on ajoute un modlule pour changer de mode
         def switch_mode():
@@ -306,8 +309,6 @@ class GUIPhotos(ttk.Frame):
         radio_mode2 = ttk.Radiobutton(photo_window, text="Créer fichier Photos/noms", variable=selected_mode, value=2,
                                       command=switch_mode)
         radio_mode2.grid(row=0, column=1, sticky=tk.W, pady=5)
-
-
 
     def set_configparser(self, config_parser):
         self.configparser = config_parser
@@ -347,6 +348,7 @@ class GUIPhotos(ttk.Frame):
 
     def cancel_change(self):
         self.has_changed_label.config(text="")
+
 
 def on_select(gui_photo, verbal=False):
     # field_2_config(gui_photo, gui_photo.get_previous_dropdown_field())
