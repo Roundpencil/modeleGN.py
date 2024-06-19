@@ -53,15 +53,16 @@ class GUIPhotos(ttk.Frame):
                 magnet_button.config(state="disabled")
                 sheet_entry.config(state="disabled")
 
-        def on_format_change(valeur, valeurs_qui_activent: list[str]):
-            if valeur in valeurs_qui_activent:
-                # if format_var.get() in [
-                #     "Noms Joueur et Joueuses [séparateur] Personnage",
-                #     "Personnage [séparateur] Noms Joueur et Joueuses"
-                # ]:
+        def on_format_change(valeur, valeurs_activant_separateur: list[str], valeurs_activant_sessions: list[str]):
+            if valeur in valeurs_activant_separateur:
                 separator_entry.config(state="normal")
             else:
                 separator_entry.config(state="disabled")
+
+            if valeur in valeurs_activant_sessions:
+                session_dropdown.config(state="readonly")
+            else:
+                session_dropdown.config(state="disabled")
 
         # Create the labelframe
         creerfichier_labelframe = ttk.Labelframe(photo_window, text="Créer un fichier perso/photos",
@@ -140,20 +141,31 @@ class GUIPhotos(ttk.Frame):
         ]
         format_var = tk.StringVar(value=format_options[0])
         format_dropdown = ttk.Combobox(creerfichier_labelframe, textvariable=format_var, values=format_options,
-                                       # state='readonly', width=30)
-                                       state='disabled', width=30)
+                                       state='readonly', width=30)
+                                       # state='disabled', width=30)
         format_dropdown.grid(row=50, column=1, padx=10, pady=5)
         format_dropdown.bind("<<ComboboxSelected>>",
-                             lambda event: on_format_change(format_var.get(), format_options[2:4]))
+                             lambda event: on_format_change(format_var.get(), format_options[2:4], format_options[1:4]))
         # format_var.trace("w", on_format_change)
 
         # Label for the separator
         separator_label = ttk.Label(creerfichier_labelframe, text="Séparateur :")
-        separator_label.grid(row=50, column=2, sticky="w", padx=10)
+        separator_label.grid(row=51, column=1, sticky="w", padx=10)
 
         # Entry for the separator
         separator_entry = ttk.Entry(creerfichier_labelframe, state="disabled")
-        separator_entry.grid(row=50, column=3, padx=10, pady=5)
+        separator_entry.grid(row=51, column=2, padx=10, pady=5, sticky="w")
+
+        # Label for the session
+        session_label = ttk.Label(creerfichier_labelframe, text="Session :")
+        session_label.grid(row=52, column=1, sticky="w", padx=10)
+
+        # dropdown for the session
+        session_var = tk.StringVar()
+        session_dropdown = ttk.Combobox(creerfichier_labelframe, textvariable=session_var, values=[],
+                                       # state='readonly', width=30)
+                                       state='disabled', width=30)
+        session_dropdown.grid(row=52, column=2, padx=10, pady=5)
 
         # Fourth section: "Dossier où créer le fichier de sortie"
         output_folder_label = ttk.Label(creerfichier_labelframe, text="Dossier où créer le fichier de sortie")
