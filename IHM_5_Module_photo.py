@@ -147,15 +147,20 @@ class GUIPhotos(ttk.Frame):
             id_sheet = sheet_entry.get()
             pjs, pnjs = google_io.lire_gspread_pj_pnjs(api_sheets, id_sheet)
             noms_persos = []
+            mot_clef = "Interprète"
             if pjs:
                 for perso in pjs:
                     nom_perso = perso["Nom"]
-                    if not nom_perso in self.dico_nom_session_joueurs:
-                        self.dico_nom_session_joueurs[nom_perso] = {session: interprete for session in perso if session.startwith("Interprète")}
-                noms_persos += [ for perso in pjs]
+                    self.dico_nom_session_joueurs[nom_perso] = {clef[len(mot_clef)+1:].strip(): perso[clef]
+                                                                for clef in perso
+                                                                if clef.startwith(mot_clef)}
             if pnjs:
-                noms_persos += [perso["Nom"] for perso in pnjs]
-            # todo : finir l'écriture de cette focntion
+                for perso in pnjs:
+                    nom_perso = perso["Nom"]
+                    self.dico_nom_session_joueurs[nom_perso] = {clef[len(mot_clef)+1:].strip(): perso[clef]
+                                                                for clef in perso
+                                                                if clef.startwith(mot_clef)}
+            # todo : finir l'écriture de cette focntion en updatant la liste des sessions dispo
 
             messagebox.showinfo("MAGnet - Module Photos",
                                 "Fichier Chargé avec succès [aucune opération réalisée en vrai, c'est un placeholder]")
