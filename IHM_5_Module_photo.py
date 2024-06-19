@@ -133,14 +133,15 @@ class GUIPhotos(ttk.Frame):
 
         # Dropdown menu for the third section
         format_options = [
-            "Juste le nom des joueurs et joueuse",
             "Juste le nom des personnages",
+            "Juste le nom des joueurs et joueuse",
             "Joueurs [séparateur] Personnage",
             "Personnage [séparateur] Joueurs"
         ]
         format_var = tk.StringVar(value=format_options[0])
         format_dropdown = ttk.Combobox(creerfichier_labelframe, textvariable=format_var, values=format_options,
-                                       state='readonly', width=30)
+                                       # state='readonly', width=30)
+                                       state='disabled', width=30)
         format_dropdown.grid(row=50, column=1, padx=10, pady=5)
         format_dropdown.bind("<<ComboboxSelected>>",
                              lambda event: on_format_change(format_var.get(), format_options[2:4]))
@@ -305,6 +306,7 @@ class GUIPhotos(ttk.Frame):
         #  de stoquer un configparser dans le GN et d'être rétrocompatible
         # todo : rajouter un champ pour dire qu'on ne veut mettre que les photos des PJs ?
         # todo : prendre en compte le format des noms, et donc les sessions dans la génération du fichier !
+        #  rajouter une ligne en dessous de la GUI avec un dropdown session, et(un autre avec?) le séparateur
         # todo : débugger sauvegarde du fichier ini > comprendre pourquoi fichier de sortie
 
         current_file_label = ttk.Label(inserphotos_labelframe, text="Fichier avec référence photos / noms persos")
