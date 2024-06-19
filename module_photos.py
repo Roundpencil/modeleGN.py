@@ -530,17 +530,19 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
 #     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, id,
 #                                    destination_folder_id, offset=offset, sheet_name='Session 1')
 
-def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos: list[str]):
+def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos: dict):
     dico_nom_id = lister_images_dans_dossier(folder_id=folder_source_images, drive_service=api_drive)
     liste_photos = list(dico_nom_id.keys())
     to_write = [[e for e in NOMS_LIGNE]]
+    clefs_rapprochement = list(noms_persos.keys())
     for photo in liste_photos:
-        correspondance = process.extractOne(photo, noms_persos)
-        to_write.append([photo, correspondance[0] if correspondance else '', '', ''])
+        correspondance = process.extractOne(photo, clefs_rapprochement)
+        nom_perso = noms_persos[correspondance[0]] if correspondance else ''
+        to_write.append([photo, nom_perso, '', ''])
     return to_write
 
 
-def ecrire_tableau_photos_noms(api_drive, api_sheets, folder_source_images, noms_persos: list[str],
+def ecrire_tableau_photos_noms(api_drive, api_sheets, folder_source_images, noms_persos: dict,
                                dossier_output, nom_fichier, verbal=False):
     """
 

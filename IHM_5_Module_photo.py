@@ -122,13 +122,10 @@ class GUIPhotos(ttk.Frame):
             create_file_button.config(state="normal")
             # todo : prendre en compte le format des noms, et donc les sessions dans la génération du fichier !
             #  si fichier MGN : extraire les données du fichier lors du loading
-            #  si fichier sheet : utiliser un bouton rafraichir
-            # todo : incorporer le chargement des choses dans dico_nom_sessions_joueur
-            # todo : code à réintégrer pour le loading
             #     gn = GN.load(mgn_file_label['text'])
             #     noms_persos = gn.noms_personnages()
-            # elif file_option.get() == "sheet":
 
+            # todo : incorporer le chargement des choses dans dico_nom_sessions_joueur
 
         magnet_button = ttk.Button(creerfichier_labelframe, text="Charger fichier Magnet", state="disabled",
                                    command=lambda: charger_fichier_mgn(mgn_file_label))
@@ -151,19 +148,28 @@ class GUIPhotos(ttk.Frame):
             if pjs:
                 for perso in pjs:
                     nom_perso = perso["Nom"]
-                    self.dico_nom_session_joueurs[nom_perso] = {clef[len(mot_clef)+1:].strip(): perso[clef]
+                    self.dico_nom_session_joueurs[nom_perso] = {clef[len(mot_clef) + 1:].strip(): perso[clef]
                                                                 for clef in perso
-                                                                if clef.startwith(mot_clef)}
+                                                                if clef.startswith(mot_clef)}
             if pnjs:
                 for perso in pnjs:
                     nom_perso = perso["Nom"]
-                    self.dico_nom_session_joueurs[nom_perso] = {clef[len(mot_clef)+1:].strip(): perso[clef]
+                    self.dico_nom_session_joueurs[nom_perso] = {clef[len(mot_clef) + 1:].strip(): perso[clef]
                                                                 for clef in perso
-                                                                if clef.startwith(mot_clef)}
-            # todo : finir l'écriture de cette focntion en updatant la liste des sessions dispo
+                                                                if clef.startswith(mot_clef)}
+
+            session_dropdown.config(values=get_liste_sessions())
 
             messagebox.showinfo("MAGnet - Module Photos",
-                                "Fichier Chargé avec succès [aucune opération réalisée en vrai, c'est un placeholder]")
+                                "Fichier Chargé avec succès, liste des sessions mises à jour")
+
+        def get_liste_sessions():
+            noms_sessions = set()
+            for nom_perso in self.dico_nom_session_joueurs:
+                for session in self.dico_nom_session_joueurs[nom_perso]:
+                    noms_sessions.add(session)
+
+            return list(noms_sessions)
 
         sheet_button = ttk.Button(creerfichier_labelframe, text="Charger sheet", state="disabled",
                                   command=lambda: charger_sheet_noms())
@@ -196,6 +202,8 @@ class GUIPhotos(ttk.Frame):
         format_dropdown.bind("<<ComboboxSelected>>",
                              lambda event: on_format_change(format_var.get(), format_options[2:4], format_options[1:4]))
         # format_var.trace("w", on_format_change)
+        # format_dropdown.bind("<<ComboboxSelected>>",
+        #                      lambda event: on_radiobutton_change())
 
         # Label for the separator
         separator_label = ttk.Label(creerfichier_labelframe, text="Séparateur :")
@@ -215,6 +223,8 @@ class GUIPhotos(ttk.Frame):
                                         # state='readonly', width=30)
                                         state='disabled', width=30)
         session_dropdown.grid(row=52, column=2, padx=10, pady=5)
+        session_dropdown.bind("<<ComboboxSelected>>",
+                              lambda event: on_radiobutton_change())
 
         # Fourth section: "Dossier où créer le fichier de sortie"
         output_folder_label = ttk.Label(creerfichier_labelframe, text="Dossier où créer le fichier de sortie")
@@ -248,30 +258,30 @@ class GUIPhotos(ttk.Frame):
                                          "pour les noms")
 
                 if format_dropdown.get() == format_options[0]:
-                    noms_persos = list(self.dico_nom_session_joueurs.keys())
+                    noms_persos = {nom_perso: nom_perso for nom_perso in self.dico_nom_session_joueurs}
                 else:
                     session = session_var.get()
                     if format_dropdown.get() == format_options[1]:
-                        noms_persos = [self.dico_nom_session_joueurs[perso][session]
-                                       for perso in self.dico_nom_session_joueurs]
+                        noms_persos = {self.dico_nom_session_joueurs[perso][session]: perso
+                                       for perso in self.dico_nom_session_joueurs}
                     elif format_dropdown.get() == format_options[2]:
                         separateur = separator_entry.get()
-                        noms_persos = [f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}" \
+                        noms_persos = {f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}" \
                                        f"{separateur}" \
-                                       f"{nom_perso}"
-                                       for nom_perso in self.dico_nom_session_joueurs]
+                                       f"{nom_perso}": nom_perso
+                                       for nom_perso in self.dico_nom_session_joueurs}
                     elif format_dropdown.get() == format_options[3]:
                         separateur = separator_entry.get()
-                        noms_persos = [f"{nom_perso}" \
+                        noms_persos = {f"{nom_perso}" \
                                        f"{separateur}" \
-                                       f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}"
-                                       for nom_perso in self.dico_nom_session_joueurs]
+                                       f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}": nom_perso
+                                       for nom_perso in self.dico_nom_session_joueurs}
                     else:
                         messagebox.showerror("Probleme lors de la génératon du fichier",
                                              "Merci de choisir le formattage du nom des photos")
                         return
             else:
-                noms_persos = []
+                noms_persos = {}
 
             print(noms_persos)
 
