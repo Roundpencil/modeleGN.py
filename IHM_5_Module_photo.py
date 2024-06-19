@@ -31,8 +31,8 @@ class GUIPhotos(ttk.Frame):
     def __init__(self, parent, api_drive, api_doc, api_sheets):
         super().__init__(parent)
         self.api_sheets = api_sheets
-        # self.dico_nom_id = {}
         self.configparser = configparser.ConfigParser()
+        self.dico_nom_session_joueurs = {}
         photo_window = self
         photo_window.winfo_toplevel().title("Module Photo")
         photo_window.grid_propagate(True)
@@ -46,12 +46,24 @@ class GUIPhotos(ttk.Frame):
             if file_option.get() == "mgn":
                 magnet_button.config(state="normal")
                 sheet_entry.config(state="disabled")
+                sheet_button.config(state="disabled")
+                if not len(mgn_file_label['text']) or not len(session_var.get()):
+                    create_file_button.config(state="disabled")
+                else:
+                    create_file_button.config(state="normal")
             elif file_option.get() == "sheet":
                 magnet_button.config(state="disabled")
                 sheet_entry.config(state="normal")
+                sheet_button.config(state="normal")
+                if not len(session_var.get()):
+                    create_file_button.config(state="disabled")
+                else:
+                    create_file_button.config(state="normal")
             else:
                 magnet_button.config(state="disabled")
                 sheet_entry.config(state="disabled")
+                sheet_button.config(state="disabled")
+                create_file_button.config(state="normal")
 
         def on_format_change(valeur, valeurs_activant_separateur: list[str], valeurs_activant_sessions: list[str]):
             if valeur in valeurs_activant_separateur:
@@ -107,18 +119,50 @@ class GUIPhotos(ttk.Frame):
                                                      filetypes=(('fichiers MAGnet', '*.mgn'),
                                                                 ("all files", "*.*")))
             display_label.config(text=config_file)
+            create_file_button.config(state="normal")
+            # todo : prendre en compte le format des noms, et donc les sessions dans la génération du fichier !
+            #  si fichier MGN : extraire les données du fichier lors du loading
+            #  si fichier sheet : utiliser un bouton rafraichir
+            # todo : incorporer le chargement des choses dans dico_nom_sessions_joueur
+            # todo : code à réintégrer pour le loading
+            #     gn = GN.load(mgn_file_label['text'])
+            #     noms_persos = gn.noms_personnages()
+            # elif file_option.get() == "sheet":
+
 
         magnet_button = ttk.Button(creerfichier_labelframe, text="Charger fichier Magnet", state="disabled",
                                    command=lambda: charger_fichier_mgn(mgn_file_label))
-        magnet_button.grid(row=10, column=1, padx=10, pady=5)
+        magnet_button.grid(row=10, column=3, padx=10, pady=5, sticky="nsew")
 
         mgn_file_label = ttk.Label(creerfichier_labelframe, text="")
-        mgn_file_label.grid(row=10, column=2, columnspan=2, sticky="nsew", pady=5)
+        mgn_file_label.grid(row=10, column=1, columnspan=2, sticky="nsew", pady=5)
 
         # Text entry for "sheet dédiée"
         sheet_entry = GidEntry(creerfichier_labelframe, state="disabled")
+        sheet_entry.grid(row=20, column=1, padx=10, pady=5, columnspan=2, sticky='we')
 
-        sheet_entry.grid(row=20, column=1, padx=10, pady=5, columnspan=3, sticky='we')
+        # sheet button
+        def charger_sheet_noms():
+            self.dico_nom_session_joueurs.clear()
+            id_sheet = sheet_entry.get()
+            pjs, pnjs = google_io.lire_gspread_pj_pnjs(api_sheets, id_sheet)
+            noms_persos = []
+            if pjs:
+                for perso in pjs:
+                    nom_perso = perso["Nom"]
+                    if not nom_perso in self.dico_nom_session_joueurs:
+                        self.dico_nom_session_joueurs[nom_perso] = {session: interprete for session in perso if session.startwith("Interprète")}
+                noms_persos += [ for perso in pjs]
+            if pnjs:
+                noms_persos += [perso["Nom"] for perso in pnjs]
+            # todo : finir l'écriture de cette focntion
+
+            messagebox.showinfo("MAGnet - Module Photos",
+                                "Fichier Chargé avec succès [aucune opération réalisée en vrai, c'est un placeholder]")
+
+        sheet_button = ttk.Button(creerfichier_labelframe, text="Charger sheet", state="disabled",
+                                  command=lambda: charger_sheet_noms())
+        sheet_button.grid(row=20, column=3, padx=10, pady=5, sticky="nsew")
 
         # Second section: "Emplacement du dossier Photo"
         photo_folder_label = ttk.Label(creerfichier_labelframe, text="Emplacement du dossier Photo")
@@ -142,7 +186,7 @@ class GUIPhotos(ttk.Frame):
         format_var = tk.StringVar(value=format_options[0])
         format_dropdown = ttk.Combobox(creerfichier_labelframe, textvariable=format_var, values=format_options,
                                        state='readonly', width=30)
-                                       # state='disabled', width=30)
+        # state='disabled', width=30)
         format_dropdown.grid(row=50, column=1, padx=10, pady=5)
         format_dropdown.bind("<<ComboboxSelected>>",
                              lambda event: on_format_change(format_var.get(), format_options[2:4], format_options[1:4]))
@@ -163,8 +207,8 @@ class GUIPhotos(ttk.Frame):
         # dropdown for the session
         session_var = tk.StringVar()
         session_dropdown = ttk.Combobox(creerfichier_labelframe, textvariable=session_var, values=[],
-                                       # state='readonly', width=30)
-                                       state='disabled', width=30)
+                                        # state='readonly', width=30)
+                                        state='disabled', width=30)
         session_dropdown.grid(row=52, column=2, padx=10, pady=5)
 
         # Fourth section: "Dossier où créer le fichier de sortie"
@@ -182,29 +226,45 @@ class GUIPhotos(ttk.Frame):
         output_file_name_entry = ttk.Entry(creerfichier_labelframe)
         output_file_name_entry.grid(row=65, column=1, padx=10, pady=5, columnspan=3, sticky='we')
 
-        # # Label for the ini file name
-        # ini_file_label = ttk.Label(creerfichier_labelframe,
-        #                            text="Nom du fichier ini pour sauvegarder la configuration (optionnel)")
-        # ini_file_label.grid(row=70, column=0, columnspan=2, sticky="w", pady=5)
-        #
-        # # Entry for the ini file name
-        # ini_file_entry = ttk.Entry(creerfichier_labelframe)
-        # ini_file_entry.grid(row=70, column=2, padx=10, pady=5, columnspan=2, sticky='we')
-
         # Button to create the file
         def creer_fichier_dans_drive():
             # on crée le nom des persos en fonction du radiobutton
-            if file_option.get() == "mgn":
-                gn = GN.load(mgn_file_label['text'])
-                noms_persos = gn.noms_personnages()
-            elif file_option.get() == "sheet":
-                id_sheet = sheet_entry.get()
-                pjs, pnjs = google_io.lire_gspread_pj_pnjs(api_sheets, id_sheet)
-                noms_persos = []
-                if pjs:
-                    noms_persos += [perso["Nom"] for perso in pjs]
-                if pnjs:
-                    noms_persos += [perso["Nom"] for perso in pnjs]
+            if file_option.get() == "mgn" or file_option.get() == "sheet":
+                # format_options = [
+                #     "Juste le nom des personnages",
+                #     "Juste le nom des joueurs et joueuse",
+                #     "Joueurs [séparateur] Personnage",
+                #     "Personnage [séparateur] Joueurs"
+                # ]
+
+                if not self.dico_nom_session_joueurs:
+                    messagebox.showerror("Impossible de générer le fichier",
+                                         "Merci de charger au moins un fichier source (mgn ou google sheet) "
+                                         "pour les noms")
+
+                if format_dropdown.get() == format_options[0]:
+                    noms_persos = list(self.dico_nom_session_joueurs.keys())
+                else:
+                    session = session_var.get()
+                    if format_dropdown.get() == format_options[1]:
+                        noms_persos = [self.dico_nom_session_joueurs[perso][session]
+                                       for perso in self.dico_nom_session_joueurs]
+                    elif format_dropdown.get() == format_options[2]:
+                        separateur = separator_entry.get()
+                        noms_persos = [f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}" \
+                                       f"{separateur}" \
+                                       f"{nom_perso}"
+                                       for nom_perso in self.dico_nom_session_joueurs]
+                    elif format_dropdown.get() == format_options[3]:
+                        separateur = separator_entry.get()
+                        noms_persos = [f"{nom_perso}" \
+                                       f"{separateur}" \
+                                       f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}"
+                                       for nom_perso in self.dico_nom_session_joueurs]
+                    else:
+                        messagebox.showerror("Probleme lors de la génératon du fichier",
+                                             "Merci de choisir le formattage du nom des photos")
+                        return
             else:
                 noms_persos = []
 
@@ -326,9 +386,6 @@ class GUIPhotos(ttk.Frame):
         # todo : proposer une architecture qui permet à la fois
         #  de stoquer un configparser dans le GN et d'être rétrocompatible
         # todo : rajouter un champ pour dire qu'on ne veut mettre que les photos des PJs ?
-        # todo : prendre en compte le format des noms, et donc les sessions dans la génération du fichier !
-        #  rajouter une ligne en dessous de la GUI avec un dropdown session, et(un autre avec?) le séparateur
-
 
         current_file_label = ttk.Label(inserphotos_labelframe, text="Fichier avec référence photos / noms persos")
         current_file_label.grid(row=50, column=0, columnspan=1, sticky='w')
@@ -426,22 +483,11 @@ class GUIPhotos(ttk.Frame):
     def set_configparser(self, config_parser):
         self.configparser = config_parser
 
-    # def set_dico_nom_id(self, dico_nom_id):
-    #     self.dico_nom_id = dico_nom_id
-
     def get_apisheets(self):
         return self.api_sheets
 
     def get_configparser(self):
         return self.configparser
-
-    # def get_dico_nom_id(self):
-    #     return self.dico_nom_id
-
-    # def set_dropdown_value_from_field(self, field):
-    #     valeur_dropdown = self.configparser.get(f"Sommaire Module Photos", field)
-    #     self.dropdown_selected_option.set(valeur_dropdown)
-    #     self.previous_dropdown_field = field
 
     def set_dropdown_value_from_nom_section(self, nom_section):
         self.dropdown_selected_option.set(nom_section)
@@ -489,7 +535,6 @@ def sauver_fichier_ini_photos(gui_photo: GUIPhotos, verbal=False):
         for section in (cp := gui_photo.configparser):
             for key, value in cp.items(section):
                 print(f"{section}: {key}: {value}")
-
 
     # Check if a file was selected
     if ini_file_name:
