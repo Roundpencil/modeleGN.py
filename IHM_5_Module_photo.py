@@ -218,13 +218,13 @@ class GUIPhotos(ttk.Frame):
 
             address = g_io.id_2_sheet_address(id_sheet)
 
-            def open_link():
+            def open_link(event):
                 webbrowser.open_new(address)
 
             prez_output_label['text'] = "Fichier créé : "
             output_label.config(text=address)
 
-            output_label.bind("<Button-1>", lambda: open_link())
+            output_label.bind("<Button-1>", open_link)
             save_ini_button.config(state="normal")
 
         create_file_button = ttk.Button(creerfichier_labelframe, text="Créer fichier Photos / Noms",
@@ -344,7 +344,7 @@ class GUIPhotos(ttk.Frame):
         self.dossier_photo_entry = GidEntry(inserphotos_labelframe, width=50)
         self.dossier_photo_entry.grid(column=1, row=100, columnspan=4, padx=(10, 10), sticky='nsew')
 
-        output_labels = ttk.Label(inserphotos_labelframe, text="Dossier où créer le fichier de sortie")
+        output_labels = ttk.Label(inserphotos_labelframe, text="Dossier où créer les fichiers de sortie")
         output_labels.grid(row=200, column=0, columnspan=1, sticky='w')
         self.output_entry = GidEntry(inserphotos_labelframe, width=50)
         self.output_entry.grid(column=1, row=200, columnspan=4, padx=(10, 10), sticky='nsew')
