@@ -1,6 +1,7 @@
 import configparser
 import os
 import tkinter as tk
+import webbrowser
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import font
@@ -12,16 +13,16 @@ from module_photos import *
 
 # structure du fichier ini attendu :
 # [Module Photos - test]
-# fichier_photos_entry = 1pdqZdiKec0alZNU5xUtcFUBaZpNH2v44ueQFY4S3Mxs
-# dossier_photo_entry = 1Y4ONHyZtVkzAuo4EqbubZSrh8hjbJy_O
-# input_entry = 1sApU23J6e4lFZ0OmDtghq40T1Iw5vMTY
-# output_entry = 1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn
+# fichier_photos_noms = 1pdqZdiKec0alZNU5xUtcFUBaZpNH2v44ueQFY4S3Mxs
+# dossier_photos = 1Y4ONHyZtVkzAuo4EqbubZSrh8hjbJy_O
+# dossier_contenant_fiches = 1sApU23J6e4lFZ0OmDtghq40T1Iw5vMTY
+# dossier_sortie = 1gYWJepb9U2uYOS-4bW5_uLGnFrj5nzmn
 #
 # [Module Photos - woop]
-# fichier_photos_entry = fichier photos 2
-# dossier_photo_entry = dossier photos 2
-# input_entry = dossier inputs 2
-# output_entry = dossier sortie 2
+# fichier_photos_noms = fichier photos 2
+# dossier_photos = dossier photos 2
+# dossier_contenant_fiches = dossier inputs 2
+# dossier_sortie = dossier sortie 2
 
 PREFIXESECTION = 'Module Photos - '
 
@@ -161,21 +162,21 @@ class GUIPhotos(ttk.Frame):
         output_folder_entry = GidEntry(creerfichier_labelframe)
         output_folder_entry.grid(row=60, column=1, padx=10, pady=5, columnspan=3, sticky='we')
 
-        output_file_name_label = ttk.Label(creerfichier_labelframe, text="Dossier où créer le fichier de sortie")
+        output_file_name_label = ttk.Label(creerfichier_labelframe, text="Nom du dossier à créer")
         output_file_name_label.grid(row=65, column=0, sticky="w", pady=5)
 
         # Entry for the output folder
         output_file_name_entry = ttk.Entry(creerfichier_labelframe)
         output_file_name_entry.grid(row=65, column=1, padx=10, pady=5, columnspan=3, sticky='we')
 
-        # Label for the ini file name
-        ini_file_label = ttk.Label(creerfichier_labelframe,
-                                   text="Nom du fichier ini pour sauvegarder la configuration (optionnel)")
-        ini_file_label.grid(row=70, column=0, columnspan=2, sticky="w", pady=5)
-
-        # Entry for the ini file name
-        ini_file_entry = ttk.Entry(creerfichier_labelframe)
-        ini_file_entry.grid(row=70, column=2, padx=10, pady=5, columnspan=2, sticky='we')
+        # # Label for the ini file name
+        # ini_file_label = ttk.Label(creerfichier_labelframe,
+        #                            text="Nom du fichier ini pour sauvegarder la configuration (optionnel)")
+        # ini_file_label.grid(row=70, column=0, columnspan=2, sticky="w", pady=5)
+        #
+        # # Entry for the ini file name
+        # ini_file_entry = ttk.Entry(creerfichier_labelframe)
+        # ini_file_entry.grid(row=70, column=2, padx=10, pady=5, columnspan=2, sticky='we')
 
         # Button to create the file
         def creer_fichier_dans_drive():
@@ -196,21 +197,60 @@ class GUIPhotos(ttk.Frame):
 
             print(noms_persos)
 
-            ecrire_tableau_photos_noms(api_drive, self.api_sheets,
-                                       folder_source_images=photo_folder_entry.get(),
-                                       noms_persos=noms_persos,
-                                       dossier_output=output_folder_entry.get(),
-                                       nom_fichier=output_file_name_entry.get())
+            id_sheet, erreur = ecrire_tableau_photos_noms(api_drive, self.api_sheets,
+                                                          folder_source_images=photo_folder_entry.get(),
+                                                          noms_persos=noms_persos,
+                                                          dossier_output=output_folder_entry.get(verbal=True),
+                                                          nom_fichier=output_file_name_entry.get())
+            if erreur:
+                messagebox.showerror("Une erreur est survenue", erreur)
+                return
+
             messagebox.showinfo("Génération terminée", "Le fichier a bien été généré \n"
                                                        "Reste à faire manuellement : \n"
                                                        " - Vérifier les associations automatiques réalisées \n"
                                                        " - Déplacer les noms insécables dans la bonne colonne, "
                                                        "si nécessaire \n"
-                                                       " - Ajouter les alias sécables et insécables")
+                                                       " - Ajouter les alias sécables et insécables \n"
+                                                       " - Ajouter des lignes pour les noms qui doivent apparaître "
+                                                       "sans photos")
+
+            address = g_io.id_2_sheet_address(id_sheet)
+
+            def open_link():
+                webbrowser.open_new(address)
+
+            prez_output_label['text'] = "Fichier créé : "
+            output_label.config(text=address)
+
+            output_label.bind("<Button-1>", lambda: open_link())
+            save_ini_button.config(state="normal")
 
         create_file_button = ttk.Button(creerfichier_labelframe, text="Créer fichier Photos / Noms",
                                         command=lambda: creer_fichier_dans_drive())
-        create_file_button.grid(row=80, column=0, columnspan=2, pady=10)
+        create_file_button.grid(row=80, column=0, columnspan=1, pady=10)
+
+        # Label for the ini file name
+        prez_output_label = ttk.Label(creerfichier_labelframe)
+        prez_output_label.grid(row=80, column=1, columnspan=1, sticky="w", pady=5)
+
+        # Entry for the ini file name
+        output_label = ttk.Label(creerfichier_labelframe, foreground="blue", cursor="hand2")
+        output_label.grid(row=80, column=2, padx=10, pady=5, columnspan=2, sticky='we')
+
+        # bouton pour sauvegarder configuration dans fichier ini
+        def initiate_ini_file():
+            self.config_parser = configparser.ConfigParser()
+            nom_section = "Module Photos - Configuration par défaut"
+            self.config_parser.add_section(nom_section)
+            self.config_parser.set(nom_section, 'fichier_photos_noms', output_label['text'])
+            self.config_parser.set(nom_section, 'dossier_photos', photo_folder_entry.get(process=False))
+
+            sauver_fichier_ini_photos(self)
+
+        save_ini_button = ttk.Button(creerfichier_labelframe, text="Sauvegarder le fichier de configuration...",
+                                     command=lambda: initiate_ini_file(), state='disabled')
+        save_ini_button.grid(row=90, column=0, columnspan=2, pady=10)
 
         ################################################
         # ajout d'un labelframe pour la partie "insérer photos"
@@ -261,10 +301,11 @@ class GUIPhotos(ttk.Frame):
         copy_dropdown_button.grid(row=45, column=4, columnspan=1, sticky='w', padx=(10, 10))
         ToolTip(copy_dropdown_button, "Dupliquer la configuration en cours")
 
-        # todo : tester partie 2 de l'IHM
         # todo : proposer une architecture qui permet à la fois
-        #  de stoquer un configparser dans le GN et d'^tre rétrocompatible
+        #  de stoquer un configparser dans le GN et d'être rétrocompatible
         # todo : rajouter un champ pour dire qu'on ne veut mettre que les photos des PJs ?
+        # todo : prendre en compte le format des noms, et donc les sessions dans la génération du fichier !
+        # todo : débugger sauvegarde du fichier ini > comprendre pourquoi fichier de sortie
 
         current_file_label = ttk.Label(inserphotos_labelframe, text="Fichier avec référence photos / noms persos")
         current_file_label.grid(row=50, column=0, columnspan=1, sticky='w')
@@ -506,22 +547,6 @@ def tous_les_noms_de_sections(config_parser):
     return tous_les_noms
 
 
-# def upgrader_valeurs_dropdown(gui_photo: GUIPhotos):
-#     config_parser = gui_photo.get_configparser()
-#     entrees = config_parser.items('Sommaire Module Photos')
-#
-#     dico_nom_id = {nom_a_afficher: code for code, nom_a_afficher in entrees}
-#     tous_les_noms = list(dico_nom_id.keys())
-#     gui_photo.dropdown['values'] = tous_les_noms
-#     if len(tous_les_noms):
-#         gui_photo.set_dropdown_value_from_field(dico_nom_id[tous_les_noms[0]])
-#
-#     config_2_fields(gui_photo=gui_photo, field=dico_nom_id[tous_les_noms[0]])
-#
-#     gui_photo.set_dico_nom_id(dico_nom_id)
-#     return dico_nom_id
-
-
 def config_2_fields(gui_photo: GUIPhotos, nom_section: str):
     # nom_section = nom_section.lower()
     config_parser = gui_photo.get_configparser()
@@ -532,15 +557,16 @@ def config_2_fields(gui_photo: GUIPhotos, nom_section: str):
     gui_photo.output_entry.delete(0, 'end')
     gui_photo.offset_entry.delete(0, 'end')
 
-    gui_photo.fichier_photos_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'fichier_photos_entry',
+    gui_photo.fichier_photos_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'fichier_photos_noms',
                                                                fallback=""))
     valeur_dropdown_onglet = config_parser.get(f"{PREFIXESECTION}{nom_section}", 'onglet',
                                                fallback="")
     maj_dropdown_onglets(gui_photo, valeur_dropdown_onglet)
-    gui_photo.dossier_photo_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'dossier_photo_entry',
+    gui_photo.dossier_photo_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'dossier_photos',
                                                               fallback=""))
-    gui_photo.input_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'input_entry', fallback=""))
-    gui_photo.output_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'output_entry', fallback=""))
+    gui_photo.input_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'dossier_contenant_fiches',
+                                                      fallback=""))
+    gui_photo.output_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'dossier_sortie', fallback=""))
     gui_photo.offset_entry.insert(0, config_parser.get(f"{PREFIXESECTION}{nom_section}", 'offset', fallback=0))
 
     gui_photo.set_dropdown_value_from_nom_section(nom_section)
@@ -567,20 +593,20 @@ def field_2_config(gui_photo, field, verbal=True):
 
     has_changed = False
 
-    if config_parser.get(section, 'fichier_photos_entry', fallback=None) != fichier_photos_value:
-        config_parser.set(section, 'fichier_photos_entry', fichier_photos_value)
+    if config_parser.get(section, 'fichier_photos_noms', fallback=None) != fichier_photos_value:
+        config_parser.set(section, 'fichier_photos_noms', fichier_photos_value)
         has_changed = True
 
-    if config_parser.get(section, 'dossier_photo_entry', fallback=None) != dossier_photo_value:
-        config_parser.set(section, 'dossier_photo_entry', dossier_photo_value)
+    if config_parser.get(section, 'dossier_photos', fallback=None) != dossier_photo_value:
+        config_parser.set(section, 'dossier_photos', dossier_photo_value)
         has_changed = True
 
-    if config_parser.get(section, 'input_entry', fallback=None) != input_value:
-        config_parser.set(section, 'input_entry', input_value)
+    if config_parser.get(section, 'dossier_contenant_fiches', fallback=None) != input_value:
+        config_parser.set(section, 'dossier_contenant_fiches', input_value)
         has_changed = True
 
-    if config_parser.get(section, 'output_entry', fallback=None) != output_value:
-        config_parser.set(section, 'output_entry', output_value)
+    if config_parser.get(section, 'dossier_sortie', fallback=None) != output_value:
+        config_parser.set(section, 'dossier_sortie', output_value)
         has_changed = True
 
     if config_parser.get(section, 'offset', fallback=None) != offset_value:

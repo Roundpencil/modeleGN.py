@@ -541,7 +541,23 @@ def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos:
 
 
 def ecrire_tableau_photos_noms(api_drive, api_sheets, folder_source_images, noms_persos: list[str],
-                               dossier_output, nom_fichier):
+                               dossier_output, nom_fichier, verbal=False):
+    """
+
+    :param api_drive:
+    :param api_sheets:
+    :param folder_source_images:
+    :param noms_persos:
+    :param dossier_output:
+    :param nom_fichier:
+    :param verbal:
+    :return: un tuple (id sheet, message_erreur), le premier vaut None si une erreur est survenue
+    """
     to_write = construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos)
+    if verbal:
+        print(f"nom_fichier : {nom_fichier}, dossier_output : {dossier_output}")
     id_sheet = g_io.creer_google_sheet(api_drive, nom_fichier, dossier_output)
+    if not id_sheet:
+        return None, "Impossible de créer le fichier de sortie dans le dossier spécifié"
     g_io.write_to_sheet(api_sheets, to_write, id_sheet)
+    return id_sheet, None

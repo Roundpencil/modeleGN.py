@@ -694,7 +694,6 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, seuil_type_perso=85):
         DESCRIPTION = "Résumé de l’implication"
         TYPE_PERSONNAGE = "Intervention"
 
-
     grille_types_persos = {"PNJ": TypePerso.EST_PNJ_HORS_JEU,
                            "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
                            "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
@@ -3508,22 +3507,6 @@ def lire_gspread_pj_pnjs(api_sheets, sheet_id):
     pnjs_lus = mettre_sheet_dans_dictionnaires(api_sheets, sheet_id, "PNJs")
     return pjs_lus, pnjs_lus
 
-    # anciennement :
-    # try:
-    #
-    #     result = api_sheets.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name,
-    #                                                     majorDimension="COLUMNS").execute()
-    #     values = result.get('values', [])
-    #
-    #     logging.debug(f"result =  {values}")
-    #
-    #     noms_pjs = values[0][1:]
-    #     orgas_referents = values[1][1:] if len(values) > 1 else None
-    #     return noms_pjs, orgas_referents
-    # except HttpError as error:
-    #     print(f"An error occurred: {error}")
-    #     return None
-
 
 def mettre_sheet_dans_dictionnaires(api_sheets, sheet_id, sheet_name):
     """
@@ -3959,7 +3942,8 @@ def copier_fichier_vers_dossier(api_drive, file_id, destination_folder_id):
 
 def extraire_id_google_si_possible(user_text):
     # Regular expression pattern for Google Drive, Sheets, and Docs URLs
-    pattern = r'https?://(?:drive|docs)\.google\.com/(?:drive/u/0/folders/|spreadsheets/d/|document/d/)([a-zA-Z0-9_-]+)'
+    # pattern = r'https?://(?:drive|docs)\.google\.com/(?:drive/u/0/folders/|spreadsheets/d/|document/d/)([a-zA-Z0-9_-]+)'
+    pattern = r'https?://(?:drive|docs)\.google\.com/(?:drive/u/[0-9]+/folders/|spreadsheets/d/|document/d/)([a-zA-Z0-9_-]+)'
 
     if match := re.search(pattern, user_text):
         return match.group(1), True
@@ -4124,3 +4108,7 @@ def ajouter_archive_gn_aux_recherchables(api_drive, dossier_upload: str, fichier
         print(f"Une erreur HTTP s'est produite en voulant ajouter le GN aux archives en ligne : {error}")
     except Exception as error:
         print(f"Une erreur inattendue s'est produite en voulant ajouter le GN aux archives en ligne : {error}")
+
+
+def id_2_sheet_address(id_sheet: str):
+    return r"https://docs.google.com/spreadsheets/d/" + id_sheet
