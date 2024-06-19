@@ -163,7 +163,7 @@ class GUIPhotos(ttk.Frame):
         output_folder_entry = GidEntry(creerfichier_labelframe)
         output_folder_entry.grid(row=60, column=1, padx=10, pady=5, columnspan=3, sticky='we')
 
-        output_file_name_label = ttk.Label(creerfichier_labelframe, text="Nom du dossier à créer")
+        output_file_name_label = ttk.Label(creerfichier_labelframe, text="Nom du fichier à créer")
         output_file_name_label.grid(row=65, column=0, sticky="w", pady=5)
 
         # Entry for the output folder
@@ -240,12 +240,21 @@ class GUIPhotos(ttk.Frame):
         output_label.grid(row=80, column=2, padx=10, pady=5, columnspan=2, sticky='we')
 
         # bouton pour sauvegarder configuration dans fichier ini
-        def initiate_ini_file():
-            self.config_parser = configparser.ConfigParser()
+        def initiate_ini_file(verbal=False):
+            self.configparser = configparser.ConfigParser()
             nom_section = "Module Photos - Configuration par défaut"
-            self.config_parser.add_section(nom_section)
-            self.config_parser.set(nom_section, 'fichier_photos_noms', output_label['text'])
-            self.config_parser.set(nom_section, 'dossier_photos', photo_folder_entry.get(process=False))
+            self.configparser.add_section(nom_section)
+            if verbal:
+                print(f"label : {output_label['text']}, dossier : {photo_folder_entry.get(process=False)}")
+            self.configparser.set(nom_section, 'fichier_photos_noms', output_label['text'])
+            self.configparser.set(nom_section, 'dossier_photos', photo_folder_entry.get(process=False))
+            if verbal:
+                print("contenu du configparser qui vient d'être créé : ")
+                for section in self.configparser:
+                    for key, value in self.configparser.items(section):
+                        print(f"{section}: {key}: {value}")
+                    # for key in self.configparser[section]:
+                    #     print(f"{section}: {key}: {self.configparser[section][key]}")
 
             sauver_fichier_ini_photos(self)
 
@@ -307,7 +316,7 @@ class GUIPhotos(ttk.Frame):
         # todo : rajouter un champ pour dire qu'on ne veut mettre que les photos des PJs ?
         # todo : prendre en compte le format des noms, et donc les sessions dans la génération du fichier !
         #  rajouter une ligne en dessous de la GUI avec un dropdown session, et(un autre avec?) le séparateur
-        # todo : débugger sauvegarde du fichier ini > comprendre pourquoi fichier de sortie
+
 
         current_file_label = ttk.Label(inserphotos_labelframe, text="Fichier avec référence photos / noms persos")
         current_file_label.grid(row=50, column=0, columnspan=1, sticky='w')
@@ -453,7 +462,7 @@ def on_select(gui_photo, verbal=False):
     config_2_fields(gui_photo, nom_section)
 
 
-def sauver_fichier_ini_photos(gui_photo: GUIPhotos):
+def sauver_fichier_ini_photos(gui_photo: GUIPhotos, verbal=False):
     # bien noter que les noms sont enregistrés en minuscules
 
     # Open a file dialog to let the user select an existing file or write a new one
@@ -462,6 +471,13 @@ def sauver_fichier_ini_photos(gui_photo: GUIPhotos):
         filetypes=[("INI files", "*.ini"), ("All files", "*.*")],
         title="Select or create an INI file"
     )
+
+    if verbal:
+        print("contenu du configarser reçu en entrée : ")
+        for section in (cp := gui_photo.configparser):
+            for key, value in cp.items(section):
+                print(f"{section}: {key}: {value}")
+
 
     # Check if a file was selected
     if ini_file_name:
@@ -472,6 +488,11 @@ def sauver_fichier_ini_photos(gui_photo: GUIPhotos):
         if os.path.exists(ini_file_name):
             # Read the existing file
             config_read.read(ini_file_name)
+            if verbal:
+                print("contenu du configarser lu dans le fichier : ")
+                for section in config_read:
+                    for key, value in config_read.items(section):
+                        print(f"{section}: {key}: {value}")
 
         config_to_write = gui_photo.get_configparser()
 
@@ -492,6 +513,12 @@ def sauver_fichier_ini_photos(gui_photo: GUIPhotos):
                 merged_config.add_section(section)
             for option in config_to_write.options(section):
                 merged_config.set(section, option, config_to_write.get(section, option))
+
+        if verbal:
+            print("contenu du configarser mergé: ")
+            for section in merged_config:
+                for key, value in merged_config.items(section):
+                    print(f"{section}: {key}: {value}")
 
         # Write the parameters to the ini file
         with open(ini_file_name, 'w') as configfile:
