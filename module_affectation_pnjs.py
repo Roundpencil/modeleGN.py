@@ -1,3 +1,5 @@
+import time
+
 from modeleGN import *
 import google_io as g_io
 from random import *
@@ -56,7 +58,8 @@ def pas_en_heure(nombre_de_pas: int, pas: int) -> str:
 # result = heure_en_pas("J5", "21h34", 1)
 # print(result)  # Output: 76894
 
-def creer_planning(gn: GN, recursion=50, pas=15):
+def creer_planning(gn: GN, recursion=50, pas=15,
+                   observateur=lambda x, y: print(f"{x} itérations effectuées, temps écoulée : {y}, ")):
     min_date = sys.maxsize
     max_date = 0
 
@@ -76,6 +79,8 @@ def creer_planning(gn: GN, recursion=50, pas=15):
     # return recurrer_table_evenementiel_v2(output)
     mink = len(output)
     best = output
+
+    start_time = time.time()
     for i in range(recursion):
         k = table_evenementiel_monte_carlo(output)
         if not k:
@@ -84,6 +89,8 @@ def creer_planning(gn: GN, recursion=50, pas=15):
             best = k
             mink = len(k)
             print(f"mink = {mink}")
+        temps_ecoule = time.time() - start_time
+        observateur(i, temps_ecoule)
 
     # onrefait les entêtes
     heures = [pas_en_heure(i, pas) for i in range(min_date, max_date + 1)]
