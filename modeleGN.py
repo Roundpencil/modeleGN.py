@@ -1843,6 +1843,10 @@ class GN:
                 tous_les_roles.update(conteneur.rolesContenus.values())
         return tous_les_roles
 
+    def get_dico_nom_session_joueurs(self):
+        dico_nom_session_joueurs = {perso.nom: perso.interpretes for perso in self.personnages.values()}
+        return dico_nom_session_joueurs
+
     # def mettre_a_jour_champs(self):
     # # mise à jour des formats de date et des factions
     # if not hasattr(self, 'factions'):
@@ -2525,3 +2529,4 @@ class ObjetDeReference:
 
     def get_full_url(self):
         return f"https://docs.google.com/document/d/{self.id_url}"
+    #todo : rassembler cette fonction dans g_io avec son alter ego pour les sheets

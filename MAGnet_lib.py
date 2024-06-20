@@ -40,14 +40,10 @@ from modeleGN import *
 
 # todo : vérifier qu'on peut choisir de 'nutiliser MAGnet que pour les évènements
 
-# fiches de persos
-# todo : finaliser la gestion des images :
-#  fichier de paramètre
-#  GUI pour appeleler module image :
-#  ajouter section parametre aux fichier GN, le charger, proposer le contenu pour mettre àjour,
-#  premettre de marcher avec un ini pour que les gns n'aient pas à tout créer,
-#  et un mgn pour qu'il n'y ait qu'un seul fichier pour les utilisateurs MAGnet
-
+# Module Photo
+# todo : permettre de marcher avec un mgn pour qu'il n'y ait qu'un seul fichier pour les utilisateurs MAGnet
+# todo : proposer une architecture qui permet à la fois de stoquer un configparser dans le GN et d'être rétrocompatible
+# todo : rajouter un champ pour dire qu'on ne veut mettre que les photos des PJs ?
 
 # utilité du code
 # todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage

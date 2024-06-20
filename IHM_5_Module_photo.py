@@ -33,6 +33,7 @@ class GUIPhotos(ttk.Frame):
         self.api_sheets = api_sheets
         self.configparser = configparser.ConfigParser()
         self.dico_nom_session_joueurs = {}
+        self.feuille_chargee = False
         photo_window = self
         photo_window.winfo_toplevel().title("Module Photo")
         photo_window.grid_propagate(True)
@@ -47,18 +48,10 @@ class GUIPhotos(ttk.Frame):
                 magnet_button.config(state="normal")
                 sheet_entry.config(state="disabled")
                 sheet_button.config(state="disabled")
-                if not len(mgn_file_label['text']) or not len(session_var.get()):
-                    create_file_button.config(state="disabled")
-                else:
-                    create_file_button.config(state="normal")
             elif file_option.get() == "sheet":
                 magnet_button.config(state="disabled")
                 sheet_entry.config(state="normal")
                 sheet_button.config(state="normal")
-                if not len(session_var.get()):
-                    create_file_button.config(state="disabled")
-                else:
-                    create_file_button.config(state="normal")
             else:
                 magnet_button.config(state="disabled")
                 sheet_entry.config(state="disabled")
@@ -75,6 +68,28 @@ class GUIPhotos(ttk.Frame):
                 session_dropdown.config(state="readonly")
             else:
                 session_dropdown.config(state="disabled")
+
+            verifier_affichage_bouton()
+
+        def verifier_affichage_bouton():
+            if file_option.get() == "mgn" and not len(mgn_file_label['text']):
+                # dans ce cas là on n'a pas chargé de fichier mgn, on s'arrête là
+                create_file_button.config(state="disabled")
+                return
+            elif file_option.get() == "sheet" and not self.feuille_chargee:
+                # dans ce cas là on n'a pas chargé de fichier sheet, on s'arrête là
+                create_file_button.config(state="disabled")
+                return
+
+            # si None, aucun pré-requis on peut passer à la suite
+
+            if format_var.get() in format_option_activant_sessions and not len(session_var.get()):
+                create_file_button.config(state="disabled")
+                return
+
+            create_file_button.config(state="normal")
+            # attention si l'utilisateur choisit feuille et charge une feuille, puis mgn et chager un mgn,
+            # puis revient vers feuille, ce sera cliquable, avec les informations du mgn
 
         # Create the labelframe
         creerfichier_labelframe = ttk.Labelframe(photo_window, text="Créer un fichier perso/photos",
@@ -115,17 +130,13 @@ class GUIPhotos(ttk.Frame):
 
         # Button for "charger fichier Magnet"
         def charger_fichier_mgn(display_label):
-            config_file = filedialog.askopenfilename(initialdir=".", title="Select file",
-                                                     filetypes=(('fichiers MAGnet', '*.mgn'),
-                                                                ("all files", "*.*")))
-            display_label.config(text=config_file)
-            create_file_button.config(state="normal")
-            # todo : prendre en compte le format des noms, et donc les sessions dans la génération du fichier !
-            #  si fichier MGN : extraire les données du fichier lors du loading
-            #     gn = GN.load(mgn_file_label['text'])
-            #     noms_persos = gn.noms_personnages()
+            mgn_file = filedialog.askopenfilename(initialdir=".", title="Select file",
+                                                  filetypes=(('fichiers MAGnet', '*.mgn'),
+                                                             ("all files", "*.*")))
+            display_label.config(text=mgn_file)
 
-            # todo : incorporer le chargement des choses dans dico_nom_sessions_joueur
+            gn = GN.load(mgn_file)
+            self.dico_nom_session_joueurs = gn.get_dico_nom_session_joueurs()
 
         magnet_button = ttk.Button(creerfichier_labelframe, text="Charger fichier Magnet", state="disabled",
                                    command=lambda: charger_fichier_mgn(mgn_file_label))
@@ -140,7 +151,12 @@ class GUIPhotos(ttk.Frame):
 
         # sheet button
         def charger_sheet_noms():
+            # if self.dico_nom_session_joueurs:
+            #     self.dico_nom_session_joueurs.clear()
+            # else:
+            #     self.dico_nom_session_joueurs = {}
             self.dico_nom_session_joueurs.clear()
+
             id_sheet = sheet_entry.get()
             pjs, pnjs = google_io.lire_gspread_pj_pnjs(api_sheets, id_sheet)
             noms_persos = []
@@ -162,6 +178,7 @@ class GUIPhotos(ttk.Frame):
 
             messagebox.showinfo("MAGnet - Module Photos",
                                 "Fichier Chargé avec succès, liste des sessions mises à jour")
+            self.feuille_chargee = True
 
         def get_liste_sessions():
             noms_sessions = set()
@@ -194,13 +211,19 @@ class GUIPhotos(ttk.Frame):
             "Joueurs [séparateur] Personnage",
             "Personnage [séparateur] Joueurs"
         ]
+        format_option_activant_separateur = format_options[2:4]
+        format_option_activant_sessions = format_options[1:4]
+
         format_var = tk.StringVar(value=format_options[0])
         format_dropdown = ttk.Combobox(creerfichier_labelframe, textvariable=format_var, values=format_options,
                                        state='readonly', width=30)
         # state='disabled', width=30)
         format_dropdown.grid(row=50, column=1, padx=10, pady=5)
         format_dropdown.bind("<<ComboboxSelected>>",
-                             lambda event: on_format_change(format_var.get(), format_options[2:4], format_options[1:4]))
+                             lambda event: on_format_change(format_var.get(),
+                                                            format_option_activant_separateur,
+                                                            format_option_activant_sessions)
+                             )
         # format_var.trace("w", on_format_change)
         # format_dropdown.bind("<<ComboboxSelected>>",
         #                      lambda event: on_radiobutton_change())
@@ -224,7 +247,7 @@ class GUIPhotos(ttk.Frame):
                                         state='disabled', width=30)
         session_dropdown.grid(row=52, column=2, padx=10, pady=5)
         session_dropdown.bind("<<ComboboxSelected>>",
-                              lambda event: on_radiobutton_change())
+                              lambda event: verifier_affichage_bouton())
 
         # Fourth section: "Dossier où créer le fichier de sortie"
         output_folder_label = ttk.Label(creerfichier_labelframe, text="Dossier où créer le fichier de sortie")
@@ -397,10 +420,6 @@ class GUIPhotos(ttk.Frame):
                                           command=lambda: on_copy_click(self))
         copy_dropdown_button.grid(row=45, column=4, columnspan=1, sticky='w', padx=(10, 10))
         ToolTip(copy_dropdown_button, "Dupliquer la configuration en cours")
-
-        # todo : proposer une architecture qui permet à la fois
-        #  de stoquer un configparser dans le GN et d'être rétrocompatible
-        # todo : rajouter un champ pour dire qu'on ne veut mettre que les photos des PJs ?
 
         current_file_label = ttk.Label(inserphotos_labelframe, text="Fichier avec référence photos / noms persos")
         current_file_label.grid(row=50, column=0, columnspan=1, sticky='w')
