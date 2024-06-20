@@ -59,7 +59,9 @@ def pas_en_heure(nombre_de_pas: int, pas: int) -> str:
 # print(result)  # Output: 76894
 
 def creer_planning(gn: GN, recursion=50, pas=15,
-                   observateur=lambda x, y: print(f"{x} itérations effectuées, temps écoulée : {y}, ")):
+                   observateur=lambda x, y, z: print(f"{x} itérations effectuées, "
+                                                     f"temps écoulée : {y}, "
+                                                     f"meilleure solution : {z}")):
     min_date = sys.maxsize
     max_date = 0
 
@@ -90,7 +92,7 @@ def creer_planning(gn: GN, recursion=50, pas=15,
             mink = len(k)
             print(f"mink = {mink}")
         temps_ecoule = time.time() - start_time
-        observateur(i, temps_ecoule)
+        observateur(i, temps_ecoule, mink)
 
     # onrefait les entêtes
     heures = [pas_en_heure(i, pas) for i in range(min_date, max_date + 1)]

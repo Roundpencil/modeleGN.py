@@ -7,6 +7,7 @@ import IHM_2_generation
 import IHM_3_nouveau_GN
 import IHM_4_editer_config
 import IHM_5_Module_photo
+import IHM_6_Module_PNJS
 import lecteurGoogle
 
 
@@ -46,7 +47,7 @@ class MAGnetMainGUI(ttk.Frame):
         menu1.add_command(label="Nouveau fichier de configuration", command=self.nouvelle_config)
         menu1.add_command(label="Editer fichier de configuration...", command=self.editer_config)
         menu1.add_command(label="Mouliner", command=self.ecran_mouliner)
-        menu1.add_command(label="Créer un planning PNJs", command=self.ecran_planning)
+        menu1.add_command(label="Module planning PNJs", command=self.ecran_planning)
         menu1.add_command(label="Module Photos", command=self.ecran_photos)
         menu1.add_command(label="Quitter ", command=self.quitter)
 
@@ -100,14 +101,14 @@ class MAGnetMainGUI(ttk.Frame):
         self.change_window(future_fenetre)
 
     def ecran_planning(self):
-        #todo : créer écran planning
-        pass
+        future_fenetre = IHM_6_Module_PNJS.GUIPNJS(self.winfo_toplevel(), api_sheet=self.api_sheets,
+                                                   api_drive=self.api_drive)
+        self.change_window(future_fenetre)
 
     def ecran_photos(self):
         future_fenetre = IHM_5_Module_photo.GUIPhotos(self.winfo_toplevel(), api_drive=self.api_drive,
                                                       api_doc=self.api_doc, api_sheets=self.api_sheets)
         self.change_window(future_fenetre)
-        pass
 
     def ouvrir_manuel(self):
         webbrowser.open_new("https://docs.google.com/document/d"
