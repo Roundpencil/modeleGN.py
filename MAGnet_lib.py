@@ -163,7 +163,7 @@ def lire_et_recharger_gn(fichier_gn: str,
     retirer_intrigues_supprimees(mon_gn, ids_lus)
     # visualisation(pas_visualisation)
     m_print("****** fin de la lecture des intrigues  *********")
-
+    ids_persos = []
     if mon_gn.get_dossiers_pjs():
         ids_lus = g_io.extraire_pjs(mon_gn,
                                     api_drive=api_drive,
@@ -174,8 +174,7 @@ def lire_et_recharger_gn(fichier_gn: str,
                                     m_print=m_print,
                                     visualisation=visualisation,
                                     taille_visualisation=pas_visualisation)
-
-        retirer_pjs_supprimees(mon_gn, ids_lus)
+        ids_persos += ids_lus
         # visualisation(pas_visualisation)
         m_print("****** fin de la lecture des pjs  *********")
 
@@ -189,10 +188,10 @@ def lire_et_recharger_gn(fichier_gn: str,
                                      m_print=m_print,
                                      visualisation=visualisation,
                                      taille_visualisation=pas_visualisation)
-
-        retirer_pnjs_supprimes(mon_gn, ids_lus)
+        ids_persos += ids_lus
         # visualisation(pas_visualisation)
         m_print("****** fin de la lecture des pnjs *********")
+    retirer_persos_supprimees(mon_gn, ids_persos)
 
     if mon_gn.get_dossiers_evenements():
         ids_lus = g_io.extraire_evenements(mon_gn,
@@ -369,13 +368,8 @@ def retirer_intrigues_supprimees(mon_gn: GN, ids_intrigues_lus: list[str]):
     retirer_elements_supprimes(ids_intrigues_lus, mon_gn.intrigues)
 
 
-def retirer_pjs_supprimees(mon_gn: GN, ids_pjs_lus: list[str]):
+def retirer_persos_supprimees(mon_gn: GN, ids_pjs_lus: list[str]):
     retirer_elements_supprimes(ids_pjs_lus, mon_gn.personnages)
-
-
-def retirer_pnjs_supprimes(mon_gn: GN, ids_pnjs_lus: list[str]):
-    retirer_elements_supprimes(ids_pnjs_lus, mon_gn.personnages)
-
 
 def retirer_fiches_evenements_supprimes(mon_gn: GN, ids_evenements_lus: list[str]):
     retirer_elements_supprimes(ids_evenements_lus, mon_gn.evenements)
