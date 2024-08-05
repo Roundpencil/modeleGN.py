@@ -263,7 +263,7 @@ def lire_et_recharger_gn(fichier_gn: str,
 
     if pjs_lus is not None:
         logging.debug("début du forçage des PJs")
-        mon_gn.forcer_import_pjs(pjs_lus, verbal=verbal)
+        mon_gn.forcer_import_pjs(pjs_lus, verbal=True)
         logging.debug("PJs forcés ok")
 
     m_print("****** reconstruction du GN : reconstruction des factions (si applicable) *********")
@@ -2063,7 +2063,7 @@ def verifier_derniere_version(api_doc):
         # contenu_document = document.get('body').get('content')
         # text = lecteurGoogle.read_structural_elements(contenu_document)
         # text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
-        texte = g_io.lire_google_doc(api_doc, ID_FICHIER_VERSION)
+        texte = g_io.lire_google_doc(api_doc, ID_FICHIER_VERSION, extraire_formattage=False)
         to_return = ""
         last_url = None
         # start_include = False

@@ -15,12 +15,13 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.3.20240621"
-VERSION_MODELE = "1.2.20231127"
+VERSION = "1.3.20240805"
+VERSION_MODELE = "1.3.20240805"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
 class TypePerso(IntEnum):
+    INDETERMINE = 0
     EST_PNJ_HORS_JEU = 1
     EST_PNJ_TEMPORAIRE = 2
     EST_PNJ_PERMANENT = 3
@@ -117,6 +118,9 @@ class ConteneurDeScene:
         self.error_log.ajouter_erreur(niveau, message, origine)
         # une erreur :
         # un endroit ou c'est détecté : tableau des intrigues, rôles, personnages
+
+    def add_list_to_error_log(self, niveau, messages: list[str], origine):
+        self.error_log.add_list_to_error_log(niveau, messages, origine)
 
     def clear_error_log(self):
         self.error_log.clear()
@@ -1673,7 +1677,8 @@ class GN:
                                               nom=personnage_dans_faction.nom,
                                               description=f"Role ajouté via la faction {nom_faction}",
                                               issu_dune_faction=True,
-                                              personnage=personnage_dans_faction
+                                              personnage=personnage_dans_faction,
+                                              pj = TypePerso.INDETERMINE
                                               )
                         intrigue.ajouter_role_contenu(role_a_ajouter)
                         personnage_dans_faction.roles.add(role_a_ajouter)
@@ -1754,7 +1759,8 @@ class GN:
     def forcer_import_pnjs(self, dicts_pnjs_lus: list[dict], suffixe="_imported", verbal=False):
         return self.forcer_import_pjpnjs(dicts_perso_lu=dicts_pnjs_lus, pj=False, suffixe=suffixe, verbal=verbal)
 
-    def forcer_import_pjpnjs(self, dicts_perso_lu: list[dict], pj: bool, suffixe="_imported", verbal=False):
+    def forcer_import_pjpnjs(self, dicts_perso_lu: list[dict], pj: bool, suffixe="_imported", verbal=False,
+                             seuil_correspondance=95):
         """
         Force l'importation des personnages sans fiche à partir d'une liste de dictionnaires.
 
@@ -1770,6 +1776,7 @@ class GN:
             Par défaut "_imported".
             verbal (bool, optional): Si True, imprime des messages détaillant le processus d'importation.
             Par défaut False.
+            seuil_correspondance : indique le seuil minimal qui permet de réconcilier deux personnages
 
         Returns:
             None
@@ -1812,7 +1819,7 @@ class GN:
             else:
                 score_proche = process.extractOne(nom_perso, noms_deja_presents)
                 # print(f"avant association, {personnage} correspond à {score_proche[0]} à {score_proche[1]}%")
-                if score_proche is not None and score_proche[1] >= 75:
+                if score_proche is not None and score_proche[1] >= seuil_correspondance:
                     if verbal:
                         print(f"{nom_perso} correspond à {score_proche[0]} à {score_proche[1]}%")
                     # donc on met à jour orga référent et interpetes
@@ -2183,6 +2190,10 @@ class ErreurManager:
         CHRONO_EVENEMENT = 6
         LECTURE_EVENEMENT = 7
         ANALYSE_EVENEMENT = 8
+        STRUCTURE_FICHIER_OBJET = 9
+        STRUCTURE_FICHIER_PERSONNAGE = 10
+        STRUCTURE_FICHIER_EVENEMENT = 11
+        STRUCTURE_FICHIER_INTRIGUE = 12
 
     class ErreurAssociation:
         def __init__(self, niveau, texte, genere_par):
@@ -2226,6 +2237,10 @@ class ErreurManager:
             #     if erreur.origine != origine:
             #         temp.append(erreur)
             self.erreurs = temp
+
+    def add_list_to_error_log(self, niveau, messages: list[str], origine):
+        for message in messages:
+            self.ajouter_erreur(niveau, message, origine)
 
 
 class FicheEvenement(ConteneurDEvenementsUnitaires):
@@ -2323,6 +2338,8 @@ class FicheEvenement(ConteneurDEvenementsUnitaires):
     def get_referent(self):
         return self.referent
 
+    def add_list_to_error_log(self, niveau, messages: list[str], origine):
+        self.erreur_manager.add_list_to_error_log(niveau, messages, origine)
 
 # une classe pour la rétrocompatibilité, devra être supprimée à terme
 Evenement = FicheEvenement

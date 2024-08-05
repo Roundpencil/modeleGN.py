@@ -265,6 +265,7 @@ def read_structural_elements(elements, extraire_formattage=True):
 
 
 def text_2_dict_sections(noms_sections, texte_formatte, verbal=False):
+    erreurs: list[str] = []
     if verbal:
         print(f"Je suis en train de lire les sections d'un fichier, dont le texte brut est \n {texte_formatte}")
     sections = {}
@@ -280,7 +281,9 @@ def text_2_dict_sections(noms_sections, texte_formatte, verbal=False):
         if any(ligne_texte_pur.lower().strip().startswith(key) for key in noms_sections):
             if current_key:
                 if current_key in sections:
-                    print(f"Erreur, la section {current_key} est présente deux fois dans le fichier source")
+                    message_erreur = f"Erreur, la section {current_key} est présente deux fois dans le fichier source"
+                    print(message_erreur)
+                    erreurs.append(message_erreur)
                 sections[current_key] = {
                     'brut': '\n'.join(current_brut),
                     'formatté': '\n'.join(current_formatte)
@@ -293,35 +296,13 @@ def text_2_dict_sections(noms_sections, texte_formatte, verbal=False):
         else:
             current_brut.append(ligne_texte_pur.strip())
             current_formatte.append(ligne_texte_formatte.strip())
-        #
-        # # Check if the line starts with a keyword
-        # for key in noms_sections:
-        #     if verbal:
-        #         print(f"Je suis en train de vérifier la clef {key} pour la chaine {ligne_texte_pur.lower().strip()}")
-        #     if ligne_texte_pur.lower().strip().startswith(key):
-        #         if current_key:
-        #             sections[current_key] = {
-        #                 'brut': '\n'.join(current_brut),
-        #                 'formatté': '\n'.join(current_formatte)
-        #             }
-        #         current_key = key
-        #         current_brut = [ligne_texte_pur.strip()]
-        #         current_formatte = [ligne_texte_formatte.strip()]
-        #         break
-        #
-        #     # else:  # This else belongs to the for-loop
-        #     #     if current_key:
-        #     #         current_brut.append(ligne_texte_pur.strip())
-        #     #         current_formatte.append(ligne_texte_formatte.strip())
-        #     #     break
-        # if len(current_brut) > 1:
-        #     current_brut.append(ligne_texte_pur.strip())
-        #     current_formatte.append(ligne_texte_formatte.strip())
 
     # on ajoute la dernière clef
     if current_key:
         if current_key in sections:
-            print(f"Erreur, la section {current_key} est présente deux fois dans le fichier source")
+            message_erreur = f"Erreur, la section {current_key} est présente deux fois dans le fichier source"
+            print(message_erreur)
+            erreurs.append(message_erreur)
         sections[current_key] = {
             'brut': '\n'.join(current_brut),
             'formatté': '\n'.join(current_formatte)
@@ -329,7 +310,7 @@ def text_2_dict_sections(noms_sections, texte_formatte, verbal=False):
 
     if verbal:
         print(f"A la fin de mes passages section valait {sections}")
-    return sections
+    return sections, erreurs
 
 
 def retirer_balises_formattage(text, verbal=False):

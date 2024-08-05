@@ -382,7 +382,10 @@ def extraire_intrigue_de_texte(texte_avec_format, nom_intrigue,
 
     # indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_seul)
     # print(f"debug : indexes = {indexes}")
-    dict_sections = lecteurGoogle.text_2_dict_sections(labels, texte_avec_format)
+    dict_sections, erreurs = lecteurGoogle.text_2_dict_sections(labels, texte_avec_format)
+    current_intrigue.add_list_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                           erreurs,
+                                           ErreurManager.ORIGINES.STRUCTURE_FICHIER_INTRIGUE)
 
     dict_methodes = {
         Labels.REFERENT: lambda x, y: intrigue_referent(x, current_intrigue, Labels.REFERENT.value),
@@ -1452,7 +1455,11 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
 
     labels = [e.value for e in Labels]
     # indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_evenement.lower())
-    dict_sections = lecteurGoogle.text_2_dict_sections(labels, texte_evenement)
+    dict_sections, erreurs = lecteurGoogle.text_2_dict_sections(labels, texte_evenement)
+    current_evenement.add_list_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                           erreurs,
+                                           ErreurManager.ORIGINES.STRUCTURE_FICHIER_INTRIGUE)
+
     dict_methodes = {
         Labels.FICHE: lambda x: evenement_lire_fiche(x, current_evenement, Labels.FICHE.value),
         Labels.SYNOPSIS: lambda x: evenement_lire_synopsis(x, current_evenement),
@@ -1939,7 +1946,7 @@ def extraire_persos_de_texte(texte_avec_format, nom_doc, id_url, last_file_edit,
         print(f"fiche {nom_doc} avec {len(texte_avec_format)} caractères est vide")
         # return  # dans ce cas c'est qu'on est en train de lite un template, qui fait 792 cars
 
-    nom_perso_en_cours = re.sub(r"^\d+\s*-", '', nom_doc).strip()
+    nom_perso_en_cours = re.sub(r"^[a-zA-Z]?\d+\s*-", '', nom_doc).strip()
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
     current_personnage = Personnage(nom=nom_perso_en_cours, url=id_url, derniere_edition_fichier=last_file_edit, pj=pj)
@@ -1949,17 +1956,17 @@ def extraire_persos_de_texte(texte_avec_format, nom_doc, id_url, last_file_edit,
     # texte_persos_low = texte_persos_pur.lower()  # on passe en minuscule pour mieux trouver les chaines
 
     class Labels(Enum):
-        REFERENT = "orga référent : "
+        REFERENT = "orga référent :"
         JOUEUR = "joueur"
         JOUEUSE = "joueuse"
         INTERPRETE = "interprète"
         PITCH = "pitch personnage"
-        COSTUME = "indications costumes : "
-        FACTION1 = "faction principale : "
-        FACTION2 = "faction secondaire : "
-        GROUPES = "groupes : "
+        COSTUME = "indications costumes :"
+        FACTION1 = "faction principale :"
+        FACTION2 = "faction secondaire :"
+        GROUPES = "groupes :"
         BIO = "bio résumée"
-        PSYCHO = "psychologie : "
+        PSYCHO = "psychologie :"
         MOTIVATIONS = "motivations et objectifs"
         CHRONOLOGIE = "chronologie"
         INTRIGUES = "intrigues"
@@ -1971,7 +1978,11 @@ def extraire_persos_de_texte(texte_avec_format, nom_doc, id_url, last_file_edit,
     labels = [label.value for label in Labels]
 
     # indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_persos_low)
-    dict_sections = lecteurGoogle.text_2_dict_sections(labels, texte_avec_format)
+    dict_sections, erreurs = lecteurGoogle.text_2_dict_sections(labels, texte_avec_format)
+    current_personnage.add_list_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                             erreurs,
+                                             ErreurManager.ORIGINES.STRUCTURE_FICHIER_PERSONNAGE)
+
     dict_methodes = {
         Labels.REFERENT: lambda x, y: personnage_referent(x, current_personnage, Labels.REFERENT.value),
         Labels.JOUEUR: lambda x, y: personnage_interprete(x, current_personnage, Labels.JOUEUR.value),
@@ -2154,7 +2165,7 @@ def extraire_objets_de_texte(texte_objets, nom_doc, id_url, last_file_edit, dern
     labels = [label.value for label in Labels]
 
     # indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_objets_low)
-    dict_sections = lecteurGoogle.text_2_dict_sections(labels, texte_objets)
+    dict_sections, _ = lecteurGoogle.text_2_dict_sections(labels, texte_objets)
 
     dict_methodes = {
         Labels.REFERENT: lambda x: objets_referent(x, current_objet, Labels.REFERENT.value),

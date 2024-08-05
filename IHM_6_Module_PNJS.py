@@ -144,8 +144,10 @@ class GUIPNJS(ttk.Frame):
             self.planning_thread.start()
 
         except ValueError as e:
+            if "invalid literal" in str(e):
+                e = "Le nombre d'itérations et la durée en pas doivent être des nombres"
+
             messagebox.showerror("Une erreur est survenue", str(e))
-            # todo : meilleur handling des erreurs, à commencer par les cas ou il n'y a pas de nombre
 
     def update_progress_bar(self, iteration):
         self.progress_bar["value"] = iteration + 1
