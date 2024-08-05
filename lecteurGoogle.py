@@ -1,7 +1,7 @@
 from __future__ import print_function
 
+import logging
 import os.path
-from enum import Enum
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -10,8 +10,6 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 import credentials
-
-import logging
 
 # If modifying these scopes, delete the file token.json.
 # SCOPES = ['https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/documents.readonly
@@ -132,11 +130,11 @@ def read_paragraph_element(element, extraire_formattage=True):
     """Returns the text in the given ParagraphElement, including any hyperlinks.
 
     Args:
-        element: a dict representing a ParagraphElement from a Google Doc.
+        :param element: a dict representing a ParagraphElement from a Google Doc.
+        :param extraire_formattage:
 
     Returns:
         str: The text content of the element, with hyperlinks expanded.
-        :param extraire_formattage:
     """
     content = ''
     text_run = element.get('textRun')
@@ -145,7 +143,7 @@ def read_paragraph_element(element, extraire_formattage=True):
         content = text_run.get('content', '')
         if extraire_formattage:
             text_style = text_run.get('textStyle', {})
-            hyperlink_info = text_style.get('link')
+            # hyperlink_info = text_style.get('link')
 
             # if hyperlink_info:
             #     url = f"{hyperlink_info.get('url')} "
@@ -159,13 +157,14 @@ def read_paragraph_element(element, extraire_formattage=True):
 
             for clef_formattage in VALEURS_FORMATTAGE:
                 if clef_formattage == 'backgroundColor':
-                    backgroundColor = text_style.get('backgroundColor', {}).get('color', {})
-                    if backgroundColor:  # Checks if backgroundColor is not empty
-                        rgbColor = backgroundColor.get('rgbColor', {})
+                    background_color = text_style.get('backgroundColor', {}).get('color', {})
+                    if background_color:  # Checks if backgroundColor is not empty
+                        rgb_color = background_color.get('rgbColor', {})
                         # Checks if the color is not transparent, blank, or white
-                        if rgbColor and not (
-                                rgbColor.get('red', 0) == 1 and rgbColor.get('green', 0) == 1 and rgbColor.get('blue',
-                                                                                                               0) == 1):
+                        if rgb_color and not (
+                                rgb_color.get('red', 0) == 1 and
+                                rgb_color.get('green', 0) == 1 and
+                                rgb_color.get('blue', 0) == 1):
                             content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
                                                content,
                                                VALEURS_FORMATTAGE[clef_formattage][1]])
@@ -200,7 +199,7 @@ def read_structural_elements(elements, extraire_formattage=True):
         in nested elements.
 
         Args:
-            elements: a list of Structural Elements.
+            :param elements: a list of Structural Elements.
             :param extraire_formattage:
     """
     text = ''
