@@ -554,9 +554,72 @@ def on_select(gui_photo, verbal=False):
     config_2_fields(gui_photo, nom_section)
 
 
+# def sauver_fichier_ini_photos(gui_photo: GUIPhotos, verbal=False):
+#     # bien noter que les noms sont enregistrés en minuscules
+#
+#     # Open a file dialog to let the user select an existing file or write a new one
+#     ini_file_name = filedialog.asksaveasfilename(
+#         defaultextension=".ini",
+#         filetypes=[("INI files", "*.ini"), ("All files", "*.*")],
+#         title="Select or create an INI file"
+#     )
+#
+#     if verbal:
+#         print("contenu du configarser reçu en entrée : ")
+#         for section in (cp := gui_photo.configparser):
+#             for key, value in cp.items(section):
+#                 print(f"{section}: {key}: {value}")
+#
+#     # Check if a file was selected
+#     if ini_file_name:
+#         # Create a config parser object
+#         config_read = configparser.ConfigParser()
+#
+#         # Check if the file exists
+#         if os.path.exists(ini_file_name):
+#             # Read the existing file
+#             config_read.read(ini_file_name)
+#             if verbal:
+#                 print("contenu du configarser lu dans le fichier : ")
+#                 for section in config_read:
+#                     for key, value in config_read.items(section):
+#                         print(f"{section}: {key}: {value}")
+#
+#         config_to_write = gui_photo.get_configparser()
+#
+#         # Create a new ConfigParser object to store the filtered config_read
+#         merged_config = configparser.ConfigParser()
+#
+#         # Copy everything from config_read except specified sections
+#         for section in config_read.sections():
+#             # if section != "Sommaire Module Photos" and not section.startswith("Module Photos -"):
+#             if not section.startswith(PREFIXESECTION):
+#                 merged_config.add_section(section)
+#                 for option in config_read.options(section):
+#                     merged_config.set(section, option, config_read.get(section, option))
+#
+#         # Add everything from config_to_write into merged_config
+#         for section in config_to_write.sections():
+#             if not merged_config.has_section(section):
+#                 merged_config.add_section(section)
+#             for option in config_to_write.options(section):
+#                 merged_config.set(section, option, config_to_write.get(section, option))
+#
+#         if verbal:
+#             print("contenu du configarser mergé: ")
+#             for section in merged_config:
+#                 for key, value in merged_config.items(section):
+#                     print(f"{section}: {key}: {value}")
+#
+#         # Write the parameters to the ini file
+#         with open(ini_file_name, 'w') as configfile:
+#             merged_config.write(configfile)
+#         gui_photo.cancel_change()
+#         messagebox.showinfo("Confirmation", "Modifications bien enregistrées")
+#         print(f"Settings saved to {ini_file_name}")
+#     else:
+#         print("No file selected")
 def sauver_fichier_ini_photos(gui_photo: GUIPhotos, verbal=False):
-    # bien noter que les noms sont enregistrés en minuscules
-
     # Open a file dialog to let the user select an existing file or write a new one
     ini_file_name = filedialog.asksaveasfilename(
         defaultextension=".ini",
@@ -564,14 +627,12 @@ def sauver_fichier_ini_photos(gui_photo: GUIPhotos, verbal=False):
         title="Select or create an INI file"
     )
 
-    if verbal:
-        print("contenu du configarser reçu en entrée : ")
-        for section in (cp := gui_photo.configparser):
-            for key, value in cp.items(section):
-                print(f"{section}: {key}: {value}")
-
     # Check if a file was selected
     if ini_file_name:
+        # Before saving, update the configparser with the current field values
+        current_section = gui_photo.dropdown.get()  # Get the current section name from the dropdown
+        field_2_config(gui_photo, current_section)  # Update configparser with current field values
+
         # Create a config parser object
         config_read = configparser.ConfigParser()
 
@@ -592,7 +653,6 @@ def sauver_fichier_ini_photos(gui_photo: GUIPhotos, verbal=False):
 
         # Copy everything from config_read except specified sections
         for section in config_read.sections():
-            # if section != "Sommaire Module Photos" and not section.startswith("Module Photos -"):
             if not section.startswith(PREFIXESECTION):
                 merged_config.add_section(section)
                 for option in config_read.options(section):

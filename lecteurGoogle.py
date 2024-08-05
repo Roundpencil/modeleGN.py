@@ -194,7 +194,7 @@ def read_paragraph_element(element, extraire_formattage=True):
 #     # return text_run.get('content')
 
 
-def read_structural_elements(elements, extraire_formattage=True):
+def read_structural_elements(elements, extraire_formattage=True, verbal=True):
     """Recurses through a list of Structural Elements to read a document's text where text may be
         in nested elements.
 
@@ -216,7 +216,9 @@ def read_structural_elements(elements, extraire_formattage=True):
             for row in table.get('tableRows'):
                 cells = row.get('tableCells')
                 for cell in cells:
-                    text += read_structural_elements(cell.get('content')) + SEPARATEUR_COLONNES
+                    text += read_structural_elements(cell.get('content')).strip() + SEPARATEUR_COLONNES
+                    if verbal:
+                        print(repr(read_structural_elements(cell.get('content'))))
                 text += SEPARATEUR_LIGNES
             text = text[:-1 * len(FIN_LIGNE)] + FIN_TABLEAU
 
