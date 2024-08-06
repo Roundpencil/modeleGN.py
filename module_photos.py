@@ -305,7 +305,7 @@ def preparer_donnees_photos(api_drive, api_sheets, id_dossier_images, id_sheet_p
 
 def copier_fiche_inserer_photos(api_doc, api_drive, dico_photos_motsclefs, dict_img_id, id_doc_source,
                                 id_dossier_output, offset, verbal):
-    text = g_io.lire_google_doc(api_doc, id_doc_source, extraire_formattage=False)
+    text = g_io.lire_google_doc(api_doc, id_doc_source, extraire_formattage=False, chars_images=True)
     dict_img_indexes = {}
     for img in dico_photos_motsclefs:
         if not img:

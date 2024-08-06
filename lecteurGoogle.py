@@ -29,7 +29,7 @@ FIN_TABLEAU = '\uE001' * 2
 SEPARATEUR_COLONNES = '\uE002' * 2
 SEPARATEUR_LIGNES = '\uE003'
 FIN_LIGNE = SEPARATEUR_COLONNES + SEPARATEUR_LIGNES
-
+OFFSET_IMAGE = '\uE004'
 # balises ajoutées dans le texte pour pouvoir reconstituer les styles
 # source : https://developers.google.com/docs/api/reference/rest/v1/documents?hl=fr#paragraphstyle
 
@@ -194,7 +194,7 @@ def read_paragraph_element(element, extraire_formattage=True):
 #     # return text_run.get('content')
 
 
-def read_structural_elements(elements, extraire_formattage=True, verbal=True):
+def read_structural_elements(elements, extraire_formattage=True, verbal=False, chars_images=False):
     """Recurses through a list of Structural Elements to read a document's text where text may be
         in nested elements.
 
@@ -204,9 +204,21 @@ def read_structural_elements(elements, extraire_formattage=True, verbal=True):
     """
     text = ''
     for value in elements:
+        if verbal:
+            print(f"Value du parcours de elements : {value}")
+
         if 'paragraph' in value:
             elements = value.get('paragraph').get('elements')
             for elem in elements:
+                if 'inlineObjectElement' in elem:
+                    if verbal:
+                        print("inLineObjectElement détecté")
+                    inline_object_id = elem.get('inlineObjectElement').get('inlineObjectId')
+                    # You can retrieve the image URL or metadata from the inline object
+                    if verbal:
+                        print(f"Detected image with ID: {inline_object_id}")
+                    if chars_images:
+                        text += OFFSET_IMAGE
                 text += read_paragraph_element(elem, extraire_formattage=extraire_formattage)
         elif 'table' in value:
             # The text in table cells are in nested Structural Elements and tables may be
