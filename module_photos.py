@@ -257,6 +257,33 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur, verbal=F
             }
         }
     }
+    #
+    # insert_image_request = {
+    #     "createPositionedObject": {
+    #                     "location": {
+    #                         "index": position
+    #                     },
+    #                     "positionedObjectProperties": {
+    #                         "embeddedObject": {
+    #                             "imageProperties": {
+    #                                 "contentUri": image_url
+    #                             }
+    #                         },
+    #                         "positioning": {
+    #                             "layout": "WRAP_TEXT",
+    #                             "leftOffset": {
+    #                                 "unit": "PT",
+    #                                 "magnitude": 100
+    #                             },
+    #                             "topOffset": {
+    #                                 "unit": "PT",
+    #                                 "magnitude": 200
+    #                             }
+    #                         }
+    #                     }
+    #                 }
+    #             }
+
 
     # Créer une requête pour mettre en gras le texte
     bold_text_request = {
@@ -397,7 +424,7 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
             if 'This operation is not supported for this document' in e.content.decode('utf-8'):
                 texte_erreur.add(f"Le dossier source contient un fichier "
                                  f"non pris en charge par l'api google doc (docx, xslx, etc.)")
-            elif "Invalid requests[13].insertInlineImage: There was a problem retrieving the image. " \
+            elif "insertInlineImage: There was a problem retrieving the image. " \
                  "The provided image should be publicly accessible, within size limit, and in supported formats." \
                     in e.content.decode('utf-8'):
                 texte_erreur.add(f"Une ou plusieurs photos ne sont pas publiquement accessibles")
