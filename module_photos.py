@@ -72,12 +72,18 @@ def lire_table_photos(api_sheets, sheet_id, sheet_name='Feuille 1', separateur='
         photo, nom_secable, nom_insecable, alias_secable, alias_insecable = value
         photo = photo.strip()
         to_return[photo] = []
+
+        if nom_insecable := nom_insecable.strip():
+            to_return[photo].append(nom_insecable)
+
         if nom_secable:
             a_ajouter = base_nom_prenom(nom_secable)
             to_return[photo].extend(a_ajouter)
 
-        if nom_insecable := nom_insecable.strip():
-            to_return[photo].append(nom_insecable)
+        if alias_insecable := alias_insecable.strip():
+            a_ajouter = alias_insecable.split(separateur)
+            for alias in a_ajouter:
+                to_return[photo].append(alias.strip())
 
         if alias_secable := alias_secable.strip():
             tous_mes_alias = alias_secable.split(separateur)
@@ -85,10 +91,6 @@ def lire_table_photos(api_sheets, sheet_id, sheet_name='Feuille 1', separateur='
                 a_ajouter = base_nom_prenom(alias)
                 to_return[photo].extend(a_ajouter)
 
-        if alias_insecable := alias_insecable.strip():
-            a_ajouter = alias_insecable.split(separateur)
-            for alias in a_ajouter:
-                to_return[photo].append(alias.strip())
         to_return[photo] = list(set(to_return[photo]))
 
     return to_return
@@ -284,7 +286,6 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur, verbal=F
     #                 }
     #             }
 
-
     # Créer une requête pour mettre en gras le texte
     bold_text_request = {
         'updateTextStyle': {
@@ -308,15 +309,15 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur, verbal=F
     return requests
 
 
-def lire_dictionnaires_copier_fiche_inserer_photos(api_drive, api_doc, api_sheets,
-                                                   id_sheet_photos_aliases, id_dossier_images,
-                                                   id_doc_source, id_dossier_output, sheet_name='Feuille 1', offset=0,
-                                                   verbal=False):
-    dico_photos_motsclefs, dict_img_id = preparer_donnees_photos(api_drive, api_sheets, id_dossier_images,
-                                                                 id_sheet_photos_aliases, sheet_name, verbal)
-
-    return copier_fiche_inserer_photos(api_doc, api_drive, dico_photos_motsclefs, dict_img_id, id_doc_source,
-                                       id_dossier_output, offset, verbal)
+# def lire_dictionnaires_copier_fiche_inserer_photos(api_drive, api_doc, api_sheets,
+#                                                    id_sheet_photos_aliases, id_dossier_images,
+#                                                    id_doc_source, id_dossier_output, sheet_name='Feuille 1', offset=0,
+#                                                    verbal=False):
+#     dico_photos_motsclefs, dict_img_id = preparer_donnees_photos(api_drive, api_sheets, id_dossier_images,
+#                                                                  id_sheet_photos_aliases, sheet_name, verbal)
+#
+#     return copier_fiche_inserer_photos(api_doc, api_drive, dico_photos_motsclefs, dict_img_id, id_doc_source,
+#                                        id_dossier_output, offset, verbal)
 
 
 def preparer_donnees_photos(api_drive, api_sheets, id_dossier_images, id_sheet_photos_aliases, sheet_name, verbal):
@@ -330,17 +331,7 @@ def preparer_donnees_photos(api_drive, api_sheets, id_dossier_images, id_sheet_p
     return dico_photos_motsclefs, dict_img_id
 
 
-def copier_fiche_inserer_photos(api_doc, api_drive, dico_photos_motsclefs, dict_img_id, id_doc_source,
-                                id_dossier_output, offset, verbal):
-    text = g_io.lire_google_doc(api_doc, id_doc_source, extraire_formattage=False, chars_images=True)
-    dict_img_indexes = {}
-    for img in dico_photos_motsclefs:
-        if not img:
-            continue
-        dict_img_indexes[img] = trouver_mots_phrases_plus_long(dico_photos_motsclefs[img], text)
-        dict_img_indexes[img].sort(key=lambda x: x[0])
-    if verbal:
-        print(dict_img_indexes)
+def creer_requetes_insertion(dict_img_id, dict_img_indexes, offset, verbal):
     # test_data_multiple_overlap = {
     #     "img1": [[0, "hello"], [20, "world"]],
     #     "img2": [[3, "bonjour"], [5, "salut"], [25, "monde"]],
@@ -358,13 +349,11 @@ def copier_fiche_inserer_photos(api_doc, api_drive, dico_photos_motsclefs, dict_
                 requete_pour_inserer_img_et_formatter(dict_img_id[image[0]], image[1] + offset, len(image[2])))
     if verbal:
         print(requetes)
-    ####### copier le fichier source et le renommer
-    # Known Document ID and Destination Folder ID
-    # Getting the current date in the format YYYY-MM-DD
-    today_date = datetime.now().strftime("%Y-%m-%d %H:%M")
-    # Step 1: Get the name of the original document
-    original_file = api_drive.files().get(fileId=id_doc_source, fields='name').execute()
-    original_name = original_file.get('name')
+    return requetes
+
+
+def copier_doc_et_inserer_images(api_doc, api_drive, id_doc_source, id_dossier_output, original_name, requetes,
+                                 today_date):
     # Step 2: Copy and Rename the Document
     new_name = f"{original_name} - Enrichi MAGnet {today_date}"
     copied_file = {'name': new_name}
@@ -378,9 +367,61 @@ def copier_fiche_inserer_photos(api_doc, api_drive, dico_photos_motsclefs, dict_
     return api_doc.documents().batchUpdate(documentId=new_file_id, body={'requests': requetes}).execute()
 
 
+# pour todo : la focntion créée pour séparer en deux les types de fichier générés par le module photo
+def map_images_to_text_indexes_and_title(api_doc, dico_photos_motsclefs, id_doc_source, verbal=False):
+    """
+    Associe les identifiants d'images à leurs index de mots-clés correspondants dans le texte d'un document.
+
+    Arguments:
+        api_doc: Un client API ou un objet de service utilisé pour lire des documents (par exemple, Google Docs).
+        dico_photos_motsclefs: Un dictionnaire où chaque clé est un identifiant d'image et chaque valeur est une liste
+        de mots-clés associés à cette image.
+        id_doc_source: L'ID du document à partir duquel le texte et le titre sont extraits.
+        verbal: Un drapeau booléen qui indique s'il faut imprimer le dictionnaire résultant des index d'images.
+
+    Renvoie:
+        tuple: Un tuple contenant :
+            - dict_img_indexes (dict): Un dictionnaire associant chaque identifiant d'image à une liste triée d'index
+            de mots-clés dans le texte du document.
+            - titre (str): Le titre du document.
+    """
+    text, titre = g_io.lire_google_doc(api_doc, id_doc_source, extraire_formattage=False, chars_images=True)
+    dict_img_indexes = {}
+    for img in dico_photos_motsclefs:
+        if not img:
+            continue
+        dict_img_indexes[img] = trouver_mots_phrases_plus_long(dico_photos_motsclefs[img], text)
+        dict_img_indexes[img].sort(key=lambda x: x[0])
+    if verbal:
+        print(dict_img_indexes)
+    return dict_img_indexes, titre
+
+
+# la focntion appellée par l'IHM du module Photo
+def creer_fichier_trombi(api_drive, api_doc, original_name, date_today, dict_img_indexes, dico_photos_motsclefs, dict_img_id,
+                         suffixe="_Trombi", verbal=True):
+    nom_fichier = date_today + suffixe + original_name
+
+    if verbal:
+        print(dico_photos_motsclefs)
+    # trouver tous les noms qui sont présents
+    # les trier par ordre alphabétique
+    # pour chaue nom, trouver son image
+    # créer des requêtes d'insertion des noms et des images successivement à l'index 1
+
+    # todo : écrire creer trombi
+    #  - créer trombi : prendre tous les noms, créer un fichier, et sortir automatiquement une requete
+    #  qui insère alternativement une photo et le nom correspondant
+
+    pass
+
+
 def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id, offset, dossier_sources_fiches,
                                       racine_sortie,
-                                      sheet_id, nom_onglet="Feuille 1", verbal=True) -> set:
+                                      sheet_id, nom_onglet="Feuille 1", verbal=True,
+                                      inserer_photos=True, creer_trombi=True) -> set:
+    if not inserer_photos and not creer_trombi:
+        return {"Module Photo : Aucun fichier à créer"}
     texte_erreur = set()
     if verbal:
         print(f"{folder_id}, {offset}, {dossier_sources_fiches},{racine_sortie},{sheet_id}")
@@ -406,15 +447,34 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
                                                      f'- enrichissement photos')
 
     for file_id in ids:
-        # copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, file_id,
-        #                                destination_folder_id, offset=offset)
         try:
             if verbal:
                 print(f"id en cours : {file_id}")
-            retour = copier_fiche_inserer_photos(api_doc, api_drive, dico_photos_motsclefs, dict_img_id, file_id,
-                                                 destination_folder_id, offset, verbal)
 
-            print(f"retour : {retour}")
+            dict_img_indexes, original_name = map_images_to_text_indexes_and_title(api_doc, dico_photos_motsclefs,
+                                                                                   file_id,
+                                                                                   verbal)
+            date_today = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+            retour = set()
+            if inserer_photos:
+                requetes = creer_requetes_insertion(dict_img_id, dict_img_indexes, offset, verbal)
+                ####### copier le fichier source et le renommer
+                # Known Document ID and Destination Folder ID
+                retour_inserer = copier_doc_et_inserer_images(api_doc, api_drive, file_id, destination_folder_id,
+                                                              original_name,
+                                                              requetes,
+                                                              date_today)
+
+                # retour_inserer = copier_fiche_inserer_photos(api_doc, api_drive, original_name, date_today, dict_img_indexes, dict_img_id, file_id,
+                #                                      destination_folder_id, offset, verbal)
+                retour.update(retour_inserer)
+            if creer_trombi:
+                retour_creer = creer_fichier_trombi(api_drive, api_doc, original_name, date_today, dict_img_indexes,
+                                                    dico_photos_motsclefs, dict_img_id)
+                retour.update(retour_creer)
+            if verbal:
+                print(f"retour : {retour}")
         except KeyError as e:
             print(f"exception : {e}")
             traceback.print_exc()

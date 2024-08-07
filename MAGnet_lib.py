@@ -2063,7 +2063,7 @@ def verifier_derniere_version(api_doc):
         # contenu_document = document.get('body').get('content')
         # text = lecteurGoogle.read_structural_elements(contenu_document)
         # text = text.replace('\v', '\n')  # pour nettoyer les backspace verticaux qui se glissent
-        texte = g_io.lire_google_doc(api_doc, ID_FICHIER_VERSION, extraire_formattage=False)
+        texte, _ = g_io.lire_google_doc(api_doc, ID_FICHIER_VERSION, extraire_formattage=False)
         to_return = ""
         last_url = None
         # start_include = False
