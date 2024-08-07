@@ -240,7 +240,7 @@ def eviter_recouvrement(dict_img_positions):
     return to_return
 
 
-def requete_pour_inserer_img_et_formatter(image_id, position, longueur, verbal=False):
+def requete_pour_inserer_img_et_formatter(image_id, position, longueur=0, verbal=False, avec_bold=True):
     # Obtenir l'URL de l'image depuis Google Drive
     # image_file = drive_service.files().get(fileId=image_id, fields='webViewLink').execute()
     # image_url = image_file.get('webViewLink')
@@ -301,7 +301,10 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur, verbal=F
     }
 
     # Regrouper les requêtes
-    requests = [bold_text_request, insert_image_request]
+    if avec_bold:
+        requests = [bold_text_request, insert_image_request]
+    else:
+        requests = [insert_image_request]
 
     # # Exécuter la requête
     # result = docs_service.documents().batchUpdate(documentId=doc_id, body={'requests': requests}).execute()
@@ -398,15 +401,17 @@ def map_images_to_text_indexes_and_title(api_doc, dico_photos_motsclefs, id_doc_
 
 
 # la focntion appellée par l'IHM du module Photo
-def creer_fichier_trombi(api_drive, api_doc, original_name, date_today, dict_img_indexes, dico_photos_motsclefs,
+def creer_fichier_trombi(api_drive, api_doc, original_name, date_today, destination_folder_id, dict_img_indexes,
+                         dico_photos_motsclefs,
                          dict_img_id,
                          suffixe="_Trombi", verbal=True):
-    nom_fichier = date_today + suffixe + original_name
+    nom_fichier = date_today + suffixe + '_' + original_name
 
     if verbal:
         print(f"contenu dico_photos_motsclefs : \n \t {dico_photos_motsclefs}")
         print(f"contenu dict_img_indexes : \n \t {dict_img_indexes}")
     # trouver tous les noms qui sont présents
+    #todo : ne prendre que les noms qui avaient un index !!
     dico_noms_photos = {sorted(dico_photos_motsclefs[clef], key=lambda x: len(x), reverse=True)[0]: clef
                         for clef in dico_photos_motsclefs}
 
@@ -416,18 +421,28 @@ def creer_fichier_trombi(api_drive, api_doc, original_name, date_today, dict_img
     # les trier par ordre alphabétique
     noms_alpha_inverse = sorted(list(dico_noms_photos.keys()), reverse=True)
 
+    requests = []
+
     for nom in noms_alpha_inverse:
         img = dico_noms_photos[nom]
         img_id = dict_img_id[img]
-        requete = []
-        # todo : insérer le texte à l'index 1 suivi de \n
-        # todo : insérer l'image à l'index 1 suivi de \n
+        # insérer le texte à l'index 1 suivi de \n
+        requests.append({
+            'insertText': {
+                'location': {
+                    'index': 1
+                },
+                'text': f"\n{nom.title()}\n"
+            }
+        })
+        # insérer l'image à l'index 1 suivi de \n
+        requests.append(requete_pour_inserer_img_et_formatter(img_id, 1, avec_bold=False))
 
-    # todo : créer un fichier
-    # todo : insérer la requete dans le fichier créé
+    # créer un fichier
+    id_fichier = g_io.creer_google_doc(api_drive, nom_fichier, destination_folder_id)
 
-
-    return set()
+    # insérer la requete dans le fichier créé
+    return api_doc.documents().batchUpdate(documentId=id_fichier, body={'requests': requests}).execute()
 
 
 def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id, offset, dossier_sources_fiches,
@@ -484,7 +499,9 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
                 #                                      destination_folder_id, offset, verbal)
                 retour.update(retour_inserer)
             if creer_trombi:
-                retour_creer = creer_fichier_trombi(api_drive, api_doc, original_name, date_today, dict_img_indexes,
+                retour_creer = creer_fichier_trombi(api_drive, api_doc, original_name, date_today,
+                                                    destination_folder_id,
+                                                    dict_img_indexes,
                                                     dico_photos_motsclefs, dict_img_id)
                 retour.update(retour_creer)
             if verbal:
