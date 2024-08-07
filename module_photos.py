@@ -398,22 +398,36 @@ def map_images_to_text_indexes_and_title(api_doc, dico_photos_motsclefs, id_doc_
 
 
 # la focntion appellée par l'IHM du module Photo
-def creer_fichier_trombi(api_drive, api_doc, original_name, date_today, dict_img_indexes, dico_photos_motsclefs, dict_img_id,
+def creer_fichier_trombi(api_drive, api_doc, original_name, date_today, dict_img_indexes, dico_photos_motsclefs,
+                         dict_img_id,
                          suffixe="_Trombi", verbal=True):
     nom_fichier = date_today + suffixe + original_name
 
     if verbal:
-        print(dico_photos_motsclefs)
+        print(f"contenu dico_photos_motsclefs : \n \t {dico_photos_motsclefs}")
+        print(f"contenu dict_img_indexes : \n \t {dict_img_indexes}")
     # trouver tous les noms qui sont présents
+    dico_noms_photos = {sorted(dico_photos_motsclefs[clef], key=lambda x: len(x), reverse=True)[0]: clef
+                        for clef in dico_photos_motsclefs}
+
+    if verbal:
+        print(f"dico_noms_photos : \n\t {dico_noms_photos}")
+
     # les trier par ordre alphabétique
-    # pour chaue nom, trouver son image
-    # créer des requêtes d'insertion des noms et des images successivement à l'index 1
+    noms_alpha_inverse = sorted(list(dico_noms_photos.keys()), reverse=True)
 
-    # todo : écrire creer trombi
-    #  - créer trombi : prendre tous les noms, créer un fichier, et sortir automatiquement une requete
-    #  qui insère alternativement une photo et le nom correspondant
+    for nom in noms_alpha_inverse:
+        img = dico_noms_photos[nom]
+        img_id = dict_img_id[img]
+        requete = []
+        # todo : insérer le texte à l'index 1 suivi de \n
+        # todo : insérer l'image à l'index 1 suivi de \n
 
-    pass
+    # todo : créer un fichier
+    # todo : insérer la requete dans le fichier créé
+
+
+    return set()
 
 
 def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id, offset, dossier_sources_fiches,
