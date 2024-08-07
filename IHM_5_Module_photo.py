@@ -2,9 +2,10 @@ import configparser
 import os
 import tkinter as tk
 import webbrowser
+from enum import Enum
 from tkinter import filedialog
-from tkinter import messagebox
 from tkinter import font
+from tkinter import messagebox
 
 import google_io
 from IHM_lib import *
@@ -159,7 +160,7 @@ class GUIPhotos(ttk.Frame):
 
             id_sheet = sheet_entry.get()
             pjs, pnjs = google_io.lire_gspread_pj_pnjs(api_sheets, id_sheet)
-            noms_persos = []
+            # noms_persos = []
             mot_clef = "Interprète"
             if pjs:
                 for perso in pjs:
@@ -289,14 +290,14 @@ class GUIPhotos(ttk.Frame):
                                        for perso in self.dico_nom_session_joueurs}
                     elif format_dropdown.get() == format_options[2]:
                         separateur = separator_entry.get()
-                        noms_persos = {f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}" \
-                                       f"{separateur}" \
+                        noms_persos = {f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}"
+                                       f"{separateur}"
                                        f"{nom_perso}": nom_perso
                                        for nom_perso in self.dico_nom_session_joueurs}
                     elif format_dropdown.get() == format_options[3]:
                         separateur = separator_entry.get()
-                        noms_persos = {f"{nom_perso}" \
-                                       f"{separateur}" \
+                        noms_persos = {f"{nom_perso}"
+                                       f"{separateur}"
                                        f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}": nom_perso
                                        for nom_perso in self.dico_nom_session_joueurs}
                     else:
@@ -462,7 +463,42 @@ class GUIPhotos(ttk.Frame):
         self.offset_entry = ttk.Entry(inserphotos_labelframe, width=15)
         self.offset_entry.grid(column=1, row=400, columnspan=1, padx=(10, 10))
 
+        # Add the new label and radio buttons at the bottom
+        output_options_label = ttk.Label(inserphotos_labelframe, text="Fichiers de sortie à créer : ")
+        output_options_label.grid(row=1000, column=0, columnspan=4, sticky="w", padx=10, pady=(10, 0))
+
+        class TypeSortie(Enum):
+            FICHES = "Fiches"
+            TROMBIS = "Trombis"
+            LES_DEUX = "Les_deux"
+
+        # Create a StringVar to hold the selected value
+        self.output_option_var = tk.StringVar(value=TypeSortie.FICHES.value)
+
+        # Create radio buttons for the three options
+        enrichir_radio = ttk.Radiobutton(inserphotos_labelframe, text="Enrichir fiches persos",
+                                         variable=self.output_option_var, value=TypeSortie.FICHES.value)
+        enrichir_radio.grid(row=1000, column=1, sticky="w", padx=10)
+
+        generer_radio = ttk.Radiobutton(inserphotos_labelframe, text="Générer trombis individuels",
+                                        variable=self.output_option_var, value=TypeSortie.TROMBIS.value)
+        generer_radio.grid(row=1000, column=2, sticky="w", padx=10)
+
+        les_deux_radio = ttk.Radiobutton(inserphotos_labelframe, text="Les deux",
+                                         variable=self.output_option_var, value=TypeSortie.LES_DEUX.value)
+        les_deux_radio.grid(row=1000, column=3, sticky="w", padx=10)
+
         def inserer_photos_erreurs():
+            # print(f"self.output_option_var = {self.output_option_var.value}")
+            if self.output_option_var.get() == TypeSortie.LES_DEUX.value:
+                inserer_photo, creer_trombi = (True, True)
+            elif self.output_option_var.get() == TypeSortie.TROMBIS.value:
+                inserer_photo, creer_trombi = (False, True)
+            else:
+                inserer_photo, creer_trombi = (True, False)
+
+            # print(f"inserer_photo, creer_trombi = {inserer_photo}, {creer_trombi}")
+
             texte_erreurs = copier_dossier_et_enrichir_photos(
                 api_doc=api_doc,
                 api_drive=api_drive,
@@ -472,14 +508,16 @@ class GUIPhotos(ttk.Frame):
                 dossier_sources_fiches=[self.input_entry.get()],
                 racine_sortie=self.output_entry.get(),
                 nom_onglet=self.dropdown_onglet.get(),
-                sheet_id=self.fichier_photos_entry.get())
+                sheet_id=self.fichier_photos_entry.get(),
+                inserer_photos=inserer_photo,
+                creer_trombi=creer_trombi)
             if len(texte_erreurs) == 0:
                 messagebox.showinfo("Opération terminée", "L'opération s'est déroulée avec succès")
             else:
                 messagebox.showerror("Une ou plusieurs erreurs sont survenues", '\n'.join(texte_erreurs))
 
         ok_button = ttk.Button(inserphotos_labelframe, text="OK", command=lambda: inserer_photos_erreurs())
-        ok_button.grid(row=400, column=4, columnspan=1, sticky='e', padx=(10, 10))
+        ok_button.grid(row=1000, column=4, columnspan=1, sticky='e', padx=(10, 10))
 
         save_button = ttk.Button(inserphotos_labelframe, text="Sauver fichier ini",
                                  command=lambda: sauver_fichier_ini_photos(self))

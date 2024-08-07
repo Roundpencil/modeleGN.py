@@ -411,9 +411,11 @@ def creer_fichier_trombi(api_drive, api_doc, original_name, date_today, destinat
         print(f"contenu dico_photos_motsclefs : \n \t {dico_photos_motsclefs}")
         print(f"contenu dict_img_indexes : \n \t {dict_img_indexes}")
     # trouver tous les noms qui sont présents
-    #todo : ne prendre que les noms qui avaient un index !!
-    dico_noms_photos = {sorted(dico_photos_motsclefs[clef], key=lambda x: len(x), reverse=True)[0]: clef
-                        for clef in dico_photos_motsclefs}
+
+    # dico_noms_photos = {sorted(dico_photos_motsclefs[clef], key=lambda x: len(x), reverse=True)[0]: clef
+    #                     for clef in dico_photos_motsclefs}
+    dico_noms_photos = {sorted(dict_img_indexes[clef], key=lambda x: len(x[1]), reverse=True)[0][1]: clef
+                        for clef in dict_img_indexes}
 
     if verbal:
         print(f"dico_noms_photos : \n\t {dico_noms_photos}")
@@ -458,7 +460,7 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
     try:
         ids = [idee['id'] for idee in lecteurGoogle.generer_liste_items(api_drive, dossier_sources_fiches)]
         # destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "Fiches avec photo")
-    except HttpError as e:
+    except HttpError:
         return {"Impossible de lire les fichiers dans le dossier fiches spécifié"}
 
     if verbal:
