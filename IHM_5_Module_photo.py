@@ -1,11 +1,13 @@
 import configparser
 import os
+import threading
 import tkinter as tk
 import webbrowser
 from enum import Enum
 from tkinter import filedialog
 from tkinter import font
 from tkinter import messagebox
+from tkinter.ttk import Progressbar
 
 import google_io
 from IHM_lib import *
@@ -488,7 +490,15 @@ class GUIPhotos(ttk.Frame):
                                          variable=self.output_option_var, value=TypeSortie.LES_DEUX.value)
         les_deux_radio.grid(row=1000, column=3, sticky="w", padx=10)
 
-        def inserer_photos_erreurs():
+        self.progress = Progressbar(inserphotos_labelframe, orient='horizontal', mode='indeterminate')
+        self.progress.grid(row=1100, padx=(10, 10), sticky="ew", columnspan=5)
+
+        def lancer_generation_et_barre():
+            self.progress.start(10)
+            ok_button.config(state="disabled", text="En cours...")
+            threading.Thread(target=thread_inserer_photos).start()
+
+        def thread_inserer_photos():
             # print(f"self.output_option_var = {self.output_option_var.value}")
             if self.output_option_var.get() == TypeSortie.LES_DEUX.value:
                 inserer_photo, creer_trombi = (True, True)
@@ -499,7 +509,7 @@ class GUIPhotos(ttk.Frame):
 
             # print(f"inserer_photo, creer_trombi = {inserer_photo}, {creer_trombi}")
 
-            texte_erreurs = copier_dossier_et_enrichir_photos(
+            texte_erreurs = ajouter_photos_et_creer_tombis(
                 api_doc=api_doc,
                 api_drive=api_drive,
                 api_sheets=self.api_sheets,
@@ -511,12 +521,16 @@ class GUIPhotos(ttk.Frame):
                 sheet_id=self.fichier_photos_entry.get(),
                 inserer_photos=inserer_photo,
                 creer_trombi=creer_trombi)
+
+            self.progress.stop()
+            ok_button.config(state="normal")
+
             if len(texte_erreurs) == 0:
                 messagebox.showinfo("Opération terminée", "L'opération s'est déroulée avec succès")
             else:
                 messagebox.showerror("Une ou plusieurs erreurs sont survenues", '\n'.join(texte_erreurs))
 
-        ok_button = ttk.Button(inserphotos_labelframe, text="OK", command=lambda: inserer_photos_erreurs())
+        ok_button = ttk.Button(inserphotos_labelframe, text="OK", command=lambda: lancer_generation_et_barre())
         ok_button.grid(row=1000, column=4, columnspan=1, sticky='e', padx=(10, 10))
 
         save_button = ttk.Button(inserphotos_labelframe, text="Sauver fichier ini",

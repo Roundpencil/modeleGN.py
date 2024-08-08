@@ -206,8 +206,9 @@ def eviter_recouvrement(dict_img_positions):
                     for bulle in liste_bulles if bulle.has_elements()]
         return sorted(ma_liste, key=lambda x: len(x[1]))
 
-    def verifier_et_ajuster_solution(current_bulles):
-        print(f'set actuel : {current_bulles}')
+    def verifier_et_ajuster_solution(current_bulles, verbal=False):
+        if verbal:
+            print(f'set actuel : {current_bulles}')
         # pour chaque bulle, je vérifie l'absence de conflit avec chacune des bulles suivantes dans la liste
         for index, bulle in enumerate(current_bulles, start=0):
             my_start = bulle[0]
@@ -370,7 +371,6 @@ def copier_doc_et_inserer_images(api_doc, api_drive, id_doc_source, id_dossier_o
     return api_doc.documents().batchUpdate(documentId=new_file_id, body={'requests': requetes}).execute()
 
 
-# pour todo : la focntion créée pour séparer en deux les types de fichier générés par le module photo
 def map_images_to_text_indexes_and_title(api_doc, dico_photos_motsclefs, id_doc_source, verbal=False):
     """
     Associe les identifiants d'images à leurs index de mots-clés correspondants dans le texte d'un document.
@@ -404,7 +404,7 @@ def map_images_to_text_indexes_and_title(api_doc, dico_photos_motsclefs, id_doc_
 def creer_fichier_trombi(api_drive, api_doc, original_name, date_today, destination_folder_id, dict_img_indexes,
                          dico_photos_motsclefs,
                          dict_img_id,
-                         suffixe="_Trombi", verbal=True):
+                         suffixe="_Trombi", verbal=False):
     nom_fichier = date_today + suffixe + '_' + original_name
 
     if verbal:
@@ -447,10 +447,10 @@ def creer_fichier_trombi(api_drive, api_doc, original_name, date_today, destinat
     return api_doc.documents().batchUpdate(documentId=id_fichier, body={'requests': requests}).execute()
 
 
-def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id, offset, dossier_sources_fiches,
-                                      racine_sortie,
-                                      sheet_id, nom_onglet="Feuille 1", verbal=True,
-                                      inserer_photos=True, creer_trombi=True) -> set:
+def ajouter_photos_et_creer_tombis(api_doc, api_drive, api_sheets, folder_id, offset, dossier_sources_fiches,
+                                   racine_sortie,
+                                   sheet_id, nom_onglet="Feuille 1", verbal=False,
+                                   inserer_photos=True, creer_trombi=True) -> set:
     if not inserer_photos and not creer_trombi:
         return {"Module Photo : Aucun fichier à créer"}
     texte_erreur = set()
@@ -497,8 +497,6 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
                                                               requetes,
                                                               date_today)
 
-                # retour_inserer = copier_fiche_inserer_photos(api_doc, api_drive, original_name, date_today, dict_img_indexes, dict_img_id, file_id,
-                #                                      destination_folder_id, offset, verbal)
                 retour.update(retour_inserer)
             if creer_trombi:
                 retour_creer = creer_fichier_trombi(api_drive, api_doc, original_name, date_today,
@@ -628,7 +626,7 @@ def copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id,
 
 # def sortir_dossier_photos(folder_id, parent, sheet_id, racine_sortie, offset=0):
 #     api_drive, api_doc, api_sheets = creer_lecteurs_google_apis()
-#     copier_dossier_et_enrichir_photos(api_doc, api_drive, api_sheets, folder_id, offset, parent, racine_sortie,
+#     ajouter_photos_et_creer_tombis(api_doc, api_drive, api_sheets, folder_id, offset, parent, racine_sortie,
 #                                       sheet_id)
 
 

@@ -194,7 +194,7 @@ def read_paragraph_element(element, extraire_formattage=True):
 #     # return text_run.get('content')
 
 
-def read_structural_elements(elements, extraire_formattage=True, verbal=True, chars_images=False):
+def read_structural_elements(elements, extraire_formattage=True, verbal=False, chars_images=False):
     """Recurses through a list of Structural Elements to read a document's text where text may be
         in nested elements.
 
