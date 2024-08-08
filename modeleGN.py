@@ -30,6 +30,15 @@ class TypePerso(IntEnum):
     EST_PJ = 6
 
 
+GRILLE_PJ = {TypePerso.INDETERMINE: "Indéterminé",
+             TypePerso.EST_PJ: "PJ",
+             TypePerso.EST_REROLL: "Reroll",
+             TypePerso.EST_PNJ_INFILTRE: "PNJ Infiltré",
+             TypePerso.EST_PNJ_HORS_JEU: "PNJ Hors Jeu",
+             TypePerso.EST_PNJ_PERMANENT: "PNJ Permanent",
+             TypePerso.EST_PNJ_TEMPORAIRE: "PNJ Temporaire"}
+
+
 def est_un_pnj(niveau_pj):
     return niveau_pj in [
         TypePerso.EST_PNJ_HORS_JEU,
@@ -48,13 +57,25 @@ def est_un_reroll(niveau_pj):
 
 
 def string_type_pj(type_pj: TypePerso):
-    grille_pj = {TypePerso.EST_PJ: "PJ",
-                 TypePerso.EST_REROLL: "Reroll",
-                 TypePerso.EST_PNJ_INFILTRE: "PNJ Infiltré",
-                 TypePerso.EST_PNJ_HORS_JEU: "PNJ Hors Jeu",
-                 TypePerso.EST_PNJ_PERMANENT: "PNJ Permanent",
-                 TypePerso.EST_PNJ_TEMPORAIRE: "PNJ Temporaire"}
-    return grille_pj.get(type_pj, f"Type de PJ inconnu ({type_pj})")
+    return GRILLE_PJ.get(type_pj, f"Type de PJ inconnu ({type_pj})")
+
+
+def identifier_type_perso(string_perso: str, avec_pjs=False, avec_pnjs=False, avec_rerolls=False, seuil=75):
+    mes_types = []
+    for type_pj in TypePerso:
+        if avec_pjs and est_un_pj(type_pj):
+            mes_types.append(type_pj)
+        elif avec_rerolls and est_un_reroll(type_pj):
+            mes_types.append(type_pj)
+        elif avec_pnjs and est_un_pnj(type_pj):
+            mes_types.append(type_pj)
+    grille_inverse = {GRILLE_PJ[type_pj]: type_pj for type_pj in GRILLE_PJ if type_pj in mes_types}
+    noms_reference = list(grille_inverse.keys())
+    score = process.extractOne(string_perso, noms_reference)
+    if score[1] >= seuil:
+        return grille_inverse[score[0]]
+    return min(mes_types, key=lambda x: x.value)
+
 
 
 def normaliser_nom_gn(nom_archive: str):
@@ -995,13 +1016,13 @@ class Scene:
             a_ajouter = [f"{soulign[0]}/!\ Attention, l'intrigue dont est issue cette scène compte"]
             iwe = self.conteneur.error_log.info_warning_errors()
             if nb_erreurs := iwe[ErreurManager.NIVEAUX.ERREUR]:
-                s = 's' if nb_erreurs > 1 else''
+                s = 's' if nb_erreurs > 1 else ''
                 a_ajouter.append(f" {nb_erreurs} erreur{s} et")
             if nb_warnings := iwe[ErreurManager.NIVEAUX.WARNING]:
-                s = 's' if nb_warnings > 1 else''
+                s = 's' if nb_warnings > 1 else ''
                 a_ajouter.append(f" {nb_warnings} warning{s} et")
             if nb_cmt := self.conteneur.get_nb_commentaires_ouverts():
-                s = 's' if nb_cmt > 1 else''
+                s = 's' if nb_cmt > 1 else ''
                 a_ajouter.append(f" {nb_cmt} commentaire{s} non résolu{s} et")
             to_return += ''.join(a_ajouter)[:-3]
             to_return += f". N'oubliez pas de vérifier qu'il n'y a pas d'impact sur cette scène avant de l'écrire." \
@@ -1203,7 +1224,6 @@ class GN:
             if self.personnages[key_personnage].forced:
                 perso = self.personnages.pop(key_personnage)
                 perso.clear()
-
 
     # # permet de mettre à jour la date d'intrigue la plus ancienne
     # # utile pour la serialisation : google renvoie les fichiers dans l'ordre de dernière modif
@@ -1678,7 +1698,7 @@ class GN:
                                               description=f"Role ajouté via la faction {nom_faction}",
                                               issu_dune_faction=True,
                                               personnage=personnage_dans_faction,
-                                              pj = TypePerso.INDETERMINE
+                                              pj=TypePerso.INDETERMINE
                                               )
                         intrigue.ajouter_role_contenu(role_a_ajouter)
                         personnage_dans_faction.roles.add(role_a_ajouter)
@@ -2341,6 +2361,7 @@ class FicheEvenement(ConteneurDEvenementsUnitaires):
     def add_list_to_error_log(self, niveau, messages: list[str], origine):
         self.erreur_manager.add_list_to_error_log(niveau, messages, origine)
 
+
 # une classe pour la rétrocompatibilité, devra être supprimée à terme
 Evenement = FicheEvenement
 
@@ -2546,4 +2567,4 @@ class ObjetDeReference:
 
     def get_full_url(self):
         return f"https://docs.google.com/document/d/{self.id_url}"
-    #todo : rassembler cette fonction dans g_io avec son alter ego pour les sheets
+    # todo : rassembler cette fonction dans g_io avec son alter ego pour les sheets

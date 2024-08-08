@@ -523,7 +523,7 @@ class GUIPhotos(ttk.Frame):
                 creer_trombi=creer_trombi)
 
             self.progress.stop()
-            ok_button.config(state="normal")
+            ok_button.config(state="normal", text="Ok")
 
             if len(texte_erreurs) == 0:
                 messagebox.showinfo("Opération terminée", "L'opération s'est déroulée avec succès")

@@ -493,13 +493,13 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue):
     #     type_personnage_brut = en_tete_vers_valeur_dans_ligne(ligne, dict_headers, NomsColonnes.TYPE_PERSONNAGE.value,
     #                                                           "PJ")
 
-    grille_types_persos = {"PJ": TypePerso.EST_PJ,
-                           "PNJ": TypePerso.EST_PNJ_HORS_JEU,
-                           "Reroll": TypePerso.EST_REROLL,
-                           "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
-                           "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
-                           "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
-                           "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
+    # grille_types_persos = {"PJ": TypePerso.EST_PJ,
+    #                        "PNJ": TypePerso.EST_PNJ_HORS_JEU,
+    #                        "Reroll": TypePerso.EST_REROLL,
+    #                        "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
+    #                        "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
+    #                        "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
+    #                        "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
 
     liste_dicos_pjs = generer_liste_de_dict_from_tableau(tableau_pjs,
                                                          noms_colonnes=[nom_col.value for nom_col in NomsColonnes],
@@ -517,8 +517,9 @@ def intrigue_pjs(texte: str, current_intrigue: Intrigue):
         pip_globaux = dico_pj.get(NomsColonnes.PIP.value, 0)
         type_personnage_brut = dico_pj.get(NomsColonnes.TYPE_PERSONNAGE.value, "PJ")
 
-        type_personnage_brut = process.extractOne(type_personnage_brut, grille_types_persos.keys())[0]
-        type_perso = grille_types_persos[type_personnage_brut]
+        # type_personnage_brut = process.extractOne(type_personnage_brut, grille_types_persos.keys())[0]
+        # type_perso = grille_types_persos[type_personnage_brut]
+        type_perso = identifier_type_perso(type_personnage_brut, avec_pjs=True, avec_pnjs=True, avec_rerolls=True)
 
         # nettoyage du nom
         # nom_et_alias = nom.split("http")[0].split(' aka ')
@@ -697,11 +698,11 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, seuil_type_perso=85):
         DESCRIPTION = "Résumé de l’implication"
         TYPE_PERSONNAGE = "Intervention"
 
-    grille_types_persos = {"PNJ": TypePerso.EST_PNJ_HORS_JEU,
-                           "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
-                           "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
-                           "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
-                           "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
+    # grille_types_persos = {"PNJ": TypePerso.EST_PNJ_HORS_JEU,
+    #                        "PNJ Infiltré": TypePerso.EST_PNJ_INFILTRE,
+    #                        "PNJ Hors Jeu": TypePerso.EST_PNJ_HORS_JEU,
+    #                        "PNJ Permanent": TypePerso.EST_PNJ_PERMANENT,
+    #                        "PNJ Temporaire": TypePerso.EST_PNJ_TEMPORAIRE}
 
     # noms_colonnes = [c.value for c in NomsColonnes]
     # dict_headers = generer_dict_header_vers_no_colonne(header, noms_colonnes, current_intrigue.error_log)
@@ -748,13 +749,14 @@ def intrigue_pnjs(texte: str, current_intrigue: Intrigue, seuil_type_perso=85):
         description = dico_pnj.get(NomsColonnes.DESCRIPTION.value, "")
         type_personnage_brut = dico_pnj.get(NomsColonnes.TYPE_PERSONNAGE.value, "PNJ Hors Jeu")
 
-        score_type_perso = process.extractOne(type_personnage_brut, grille_types_persos.keys())
-
-        if score_type_perso[1] < seuil_type_perso:
-            type_perso = TypePerso.EST_PNJ_HORS_JEU
-        else:
-            type_personnage = score_type_perso[0]
-            type_perso = grille_types_persos[type_personnage]
+        # score_type_perso = process.extractOne(type_personnage_brut, grille_types_persos.keys())
+        #
+        # if score_type_perso[1] < seuil_type_perso:
+        #     type_perso = TypePerso.EST_PNJ_HORS_JEU
+        # else:
+        #     type_personnage = score_type_perso[0]
+        #     type_perso = grille_types_persos[type_personnage]
+        type_perso = identifier_type_perso(type_personnage_brut, avec_pnjs=True, seuil=seuil_type_perso)
 
         nom, alias = separer_nom_et_alias(nom.split("http")[0])
 
@@ -1457,8 +1459,8 @@ def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url
     # indexes = lecteurGoogle.identifier_sections_fiche(labels, texte_evenement.lower())
     dict_sections, erreurs = lecteurGoogle.text_2_dict_sections(labels, texte_evenement)
     current_evenement.add_list_to_error_log(ErreurManager.NIVEAUX.ERREUR,
-                                           erreurs,
-                                           ErreurManager.ORIGINES.STRUCTURE_FICHIER_INTRIGUE)
+                                            erreurs,
+                                            ErreurManager.ORIGINES.STRUCTURE_FICHIER_INTRIGUE)
 
     dict_methodes = {
         Labels.FICHE: lambda x: evenement_lire_fiche(x, current_evenement, Labels.FICHE.value),
