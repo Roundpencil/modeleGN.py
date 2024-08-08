@@ -3,7 +3,6 @@ from logging.handlers import RotatingFileHandler
 from tkinter import messagebox
 
 import IHM_1_main
-import lecteurGoogle
 from IHM_2_generation import *
 
 
