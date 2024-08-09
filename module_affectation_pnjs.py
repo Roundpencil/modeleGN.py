@@ -102,10 +102,57 @@ def creer_planning(gn: GN, recursion=50, pas=15,
     return sol_complete
 
 
-# TODO : prendre en compte les PNJs infiltrés et permanenes
-# TODO : rajouter une amnière de forcer le statut minimal d'un PNJ dans le tablea des noms des PNJs
+# TODO : prendre en compte les PNJs infiltrés et permanents
 
 def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=True):
+    """
+       Convertit un dictionnaire d'événements d'intervention en une liste de listes représentant un planning
+       d'interventions sur une plage de dates donnée. Cette fonction gère les événements qui se chevauchent
+       en créant plusieurs lignes pour la même personne si nécessaire.
+
+       Paramètres :
+       ----------
+       dico_briefs : dict
+           Un dictionnaire où les clés sont les noms des individus ('intervenants'), et les valeurs sont des listes de
+           tuples. Chaque tuple représente une intervention et contient :
+           - start (int) : La date de début de l'intervention.
+           - end (int) : La date de fin de l'intervention.
+           - name (str) : Le nom ou identifiant de l'intervention.
+
+       max_date : int
+           La date maximale considérée pour le planning, utilisée pour déterminer le nombre de colonnes dans la liste de sortie.
+
+       min_date : int
+           La date minimale considérée pour le planning, utilisée pour déterminer l'indice de départ pour chaque
+           événement dans la liste de sortie.
+
+       verbal : bool, optionnel (défaut=True)
+           Si défini à True, la fonction imprimera des messages sur les événements non intégrables qui se chevauchent.
+
+       Renvoie :
+       -------
+       output : liste de listes
+           Une liste où chaque sous-liste représente une ligne pour une personne dans le planning.
+           Chaque position dans une sous-liste
+           correspond à un jour entre `min_date` et `max_date`. Si une intervention a lieu un jour donné, la sous-liste
+           contiendra une chaîne décrivant l'intervention ; sinon, elle contiendra None.
+
+       noms_persos : liste
+           Une liste de chaînes de caractères, où chaque chaîne est le nom d'un individu avec un suffixe indiquant
+           le niveau de récursion, utilisé pour différencier plusieurs lignes pour la même personne si elle a des
+           interventions qui se chevauchent.
+
+       Remarques :
+       -----
+       - La fonction vérifie les interventions qui se chevauchent pour chaque individu. Si un chevauchement est détecté,
+         l'événement qui se chevauche est ajouté à un stock futur pour être traité lors de la prochaine récursion.
+       - Si deux événements se chevauchent, l'événement qui se chevauche n'est pas intégré dans la ligne actuelle,
+         et la fonction continue le traitement jusqu'à ce que tous les événements soient intégrés.
+       - Chaque intervention est représentée dans la sortie par une chaîne qui combine le nom de l'individu,
+         le suffixe de récursion et le nom de l'intervention.
+       - La fonction suppose que les dates et les interventions sont indexées à partir de zéro et que les valeurs
+         de `dico_briefs` contiennent des tuples d'au moins 3 éléments (start, end, name).
+       """
     output = []
     noms_persos = []
     for intervenant in dico_briefs:
@@ -155,6 +202,14 @@ def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=Tru
 
 
 def preparer_donnees_pour_planning(gn: GN, max_date, min_date, pas):
+    # todo : pendant le parcours, isoler les PNJs Permanents, infiltrés ou continu et les ignorer
+    #  (mais les stocker dans une liste).
+    #  A la fin, ajouter tous les PNJs et, selon leur catégorie :
+    #  - Permanents / infiltrés : tout remplir de min date à max date
+    #  - Continus : trouver leur min date à eux et leur max date à eux et mettre un seul bloc
+    #  Pour tous, ignorer les recouvrements : personne ne prendra leur role
+
+
     dico_briefs = {}
     conteneurs_evts = gn.lister_tous_les_conteneurs_evenements_unitaires()
     for conteneur in conteneurs_evts:
@@ -336,6 +391,7 @@ def indices2solution(solution_depliee, colonnes_source, colonne_heure, noms_pers
     # puis on inverse la matrice
     # return solution_complete
     return [[solution_complete[j][i] for j in range(len(solution_complete))] for i in range(len(solution_complete[0]))]
+
 
 def tester_creation_planning():
     gn = GN.load('archive Chalacta.mgn')
