@@ -24,10 +24,11 @@ class TypePerso(IntEnum):
     INDETERMINE = 0
     EST_PNJ_HORS_JEU = 1
     EST_PNJ_TEMPORAIRE = 2
-    EST_PNJ_PERMANENT = 3
-    EST_PNJ_INFILTRE = 4
-    EST_REROLL = 5
-    EST_PJ = 6
+    EST_PNJ_CONTINU = 3
+    EST_PNJ_PERMANENT = 4
+    EST_PNJ_INFILTRE = 5
+    EST_REROLL = 6
+    EST_PJ = 7
 
 
 GRILLE_PJ = {TypePerso.INDETERMINE: "Indéterminé",
@@ -36,7 +37,8 @@ GRILLE_PJ = {TypePerso.INDETERMINE: "Indéterminé",
              TypePerso.EST_PNJ_INFILTRE: "PNJ Infiltré",
              TypePerso.EST_PNJ_HORS_JEU: "PNJ Hors Jeu",
              TypePerso.EST_PNJ_PERMANENT: "PNJ Permanent",
-             TypePerso.EST_PNJ_TEMPORAIRE: "PNJ Temporaire"}
+             TypePerso.EST_PNJ_TEMPORAIRE: "PNJ Temporaire",
+             TypePerso.EST_PNJ_CONTINU: "PNJ Continu"}
 
 
 def est_un_pnj(niveau_pj):
@@ -45,6 +47,7 @@ def est_un_pnj(niveau_pj):
         TypePerso.EST_PNJ_TEMPORAIRE,
         TypePerso.EST_PNJ_INFILTRE,
         TypePerso.EST_PNJ_PERMANENT,
+        TypePerso.EST_PNJ_CONTINU
     ]
 
 
@@ -69,13 +72,13 @@ def identifier_type_perso(string_perso: str, avec_pjs=False, avec_pnjs=False, av
             mes_types.append(type_pj)
         elif avec_pnjs and est_un_pnj(type_pj):
             mes_types.append(type_pj)
-    grille_inverse = {GRILLE_PJ[type_pj]: type_pj for type_pj in GRILLE_PJ if type_pj in mes_types}
-    noms_reference = list(grille_inverse.keys())
-    score = process.extractOne(string_perso, noms_reference)
-    if score[1] >= seuil:
-        return grille_inverse[score[0]]
+    if string_perso:
+        grille_inverse = {GRILLE_PJ[type_pj]: type_pj for type_pj in GRILLE_PJ if type_pj in mes_types}
+        noms_reference = list(grille_inverse.keys())
+        score = process.extractOne(string_perso, noms_reference)
+        if score[1] >= seuil:
+            return grille_inverse[score[0]]
     return min(mes_types, key=lambda x: x.value)
-
 
 
 def normaliser_nom_gn(nom_archive: str):
@@ -521,19 +524,39 @@ class Personnage(ConteneurDeScene):
             self.roles.remove(role)
 
     @staticmethod
-    def perso_depuis_dico(dict_perso: dict):
+    def perso_depuis_dico(dict_perso: dict, peut_etre_pj=True, peut_etre_pnj=True, peut_etre_reroll=True, verbal=True):
         to_return = Personnage()
         for key in dict_perso:
             key_propre = unidecode(key).replace(" ", "_").lower()
+            if key_propre in ['actif',
+                              'roles',
+                              'relations',
+                              'images',
+                              'groupes',
+                              'forced',
+                              'commentaires',
+                              'informations_evenements',
+                              'intervient_comme']:
+                message = f"Une clef technique ({key_propre}) a été trouvée en important un personnage"
+                logging.debug(message)
+                if verbal:
+                    print(message)
+                continue  # ce sont des clefs techniques, il ne faut pas permettre de les forcer
+            elif key_propre in ['pj', 'type']:
+                to_return.pj = identifier_type_perso(dict_perso[key_propre], avec_pjs=peut_etre_pj,
+                                                     avec_pnjs=peut_etre_pnj, avec_rerolls=peut_etre_reroll)
+
             # print(f"debug : key = {key}, keypropre = {key_propre}, dict_perso[key] = {dict_perso[key]}")
             # if key_propre == "nom" and len(dict_perso[key])==1:
             #         print("debug : erreur : persona vec un nom incompréhensible trouvé")
             #         traceback.print_stack()
-            if hasattr(to_return, key_propre):
+            elif hasattr(to_return, key_propre):
                 setattr(to_return, key_propre, dict_perso[key])
             elif key_propre.startswith("interprete"):
                 session = key[len("interprete"):].strip()
                 to_return.interpretes[session] = dict_perso[key]
+        if verbal:
+            print(f"Le personnage {to_return.nom} est du type {string_type_pj(to_return.pj)}")
         return to_return
 
 
@@ -1817,13 +1840,17 @@ class GN:
         # SI son nom est dans les persos > ne rien faire
         # SINON, lui créer une coquille vide
 
-        valeur_pj = TypePerso.EST_PJ if pj else TypePerso.EST_PNJ_HORS_JEU
+        type_perso_defaut = string_type_pj(TypePerso.EST_PJ if pj else TypePerso.EST_PNJ_HORS_JEU)
 
         for dict_perso in dicts_perso_lu:
-            if 'pj' not in dict_perso:
-                dict_perso['pj'] = valeur_pj
+            if 'type' not in dict_perso:
+                dict_perso['type'] = type_perso_defaut
 
-            personnage_sheets_en_cours = Personnage.perso_depuis_dico(dict_perso)
+            peut_etre_pj, peut_etre_pnj, peut_etre_reroll = (True, False, True) if pj else (False, True, True)
+            personnage_sheets_en_cours = Personnage.perso_depuis_dico(dict_perso,
+                                                                      peut_etre_pj=peut_etre_pj,
+                                                                      peut_etre_pnj=peut_etre_pnj,
+                                                                      peut_etre_reroll=peut_etre_reroll)
 
             nom_perso = dict_perso["Nom"]
             # for nom_perso, orga_referent in zip(dicts_perso_lu, table_orgas_referent):
