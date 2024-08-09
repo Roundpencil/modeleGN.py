@@ -2,6 +2,7 @@ import configparser
 from tkinter import ttk, messagebox, filedialog
 import tkinter as tk
 
+import IHM_2_generation
 import IHM_4_editer_config
 import google_io as g_io
 import lecteurGoogle
@@ -21,9 +22,12 @@ addresse_fiche_objet = "1zUwBTLSwDDt4Pu5T-_JikkzrUVPj9Cdx5O2_iKPNrnM"
 addresse_fichier_pj_pnj = "1eMcP6yyQOX6RmFzkzFB-9BuOOB7ClnjYDwpnZFX5jpU"
 addresse_fichier_factions = "1Y4LjLqmdyyZF7KzOLzufHsj4Ufl2npd-UW5cb_EWwhk"
 
+
 class WizzardGN(ttk.Frame):
-    def __init__(self, parent, api_drive):
+    def __init__(self, parent, api_drive, api_doc, api_sheets):
         super().__init__(parent)
+        self.api_sheets = api_sheets
+        self.api_doc = api_doc
         self.api_drive = api_drive
         self.winfo_toplevel().title("Création d'un nouveau GN...")
         self.grid_propagate(True)
@@ -51,9 +55,10 @@ class WizzardGN(ttk.Frame):
         # creation_fichiers_label = tk.Label(self, text="Création fichiers:")
         # creation_fichiers_label.grid(column=0, row=20, sticky=tk.W, pady=(10, 3))
         self.creation_fichiers_var = tk.StringVar()
-        self.creation_fichiers_var.set(0)
-        creation_fichiers_options = [("Saisir des IDs existants pour les dossiers", 0),
-                                     ("Créer automatiquement les fichiers dans le dossier : ", 1)]
+        self.creation_fichiers_var.set(1)
+        creation_fichiers_options = [("Création automatique par MAGnetdes fichiers dans le dossier ci-dessous ", 1),
+                                     ("Création et saisie manuelle des fichiers et de leurs adresses"
+                                      " par l'utilisateur", 0)]
         for text, value in creation_fichiers_options:
             tk.Radiobutton(self, text=text, variable=self.creation_fichiers_var, value=value,
                            command=self.toggle_creation_fichiers_entry).grid(column=0, row=50 + value, sticky=tk.W,
@@ -61,13 +66,13 @@ class WizzardGN(ttk.Frame):
 
         # Entry for Creation fichiers
         self.creation_fichiers_entry = tk.Entry(self, state="normal")
-        self.creation_fichiers_entry.grid(column=1, row=52, columnspan=3, sticky=tk.EW, padx=(10,10))
-        self.creation_fichiers_entry['state'] = 'disabled'
+        self.creation_fichiers_entry.grid(column=0, row=52, columnspan=3, sticky=tk.EW, padx=(10, 10), pady=(3, 10))
+        self.creation_fichiers_entry['state'] = 'normal'
 
         # # Mode de saisie des personnages
 
         # Utiliser un fichier des PJs et des PNJs
-        self.utilisation_fichier_pjs_pnjs_var = tk.BooleanVar(value=False)
+        self.utilisation_fichier_pjs_pnjs_var = tk.BooleanVar(value=True)
         utilisation_fichier_pjs_pnjs_checkbox = tk.Checkbutton(self,
                                                                text="Utiliser un fichier des PJs et des PNJs",
                                                                variable=self.utilisation_fichier_pjs_pnjs_var)
@@ -75,7 +80,7 @@ class WizzardGN(ttk.Frame):
                                                    columnspan=2)
 
         # Utiliser un fichier faction
-        self.utilisation_fichier_factions_var = tk.BooleanVar(value=False)
+        self.utilisation_fichier_factions_var = tk.BooleanVar(value=True)
         utilisation_fichier_factions_checkbox = tk.Checkbutton(self, text="Utiliser un fichier factions",
                                                                variable=self.utilisation_fichier_factions_var)
         utilisation_fichier_factions_checkbox.grid(column=0, row=40, sticky=tk.W, pady=(10, 3),
@@ -180,7 +185,8 @@ class WizzardGN(ttk.Frame):
                 dict_essentiels[f"id_dossier_intrigues_{i + 1}"] = ""
 
         if creer_fichier:
-            dict_essentiels['dossier_output_squelettes_pjs'] = g_io.creer_dossier_drive(self.api_drive, nom_parent, "Output")
+            dict_essentiels['dossier_output_squelettes_pjs'] = g_io.creer_dossier_drive(self.api_drive, nom_parent,
+                                                                                        "Output")
         else:
             dict_essentiels['dossier_output_squelettes_pjs'] = ""
         dict_essentiels['mode_association'] = self.mode_association_var.get()
@@ -244,24 +250,66 @@ class WizzardGN(ttk.Frame):
         for param in dict_optionnels:
             config.set("Optionnels", param, dict_optionnels[param])
 
+        # if creer_fichier:
+        #     if file_path := filedialog.asksaveasfilename(
+        #             defaultextension=".ini",
+        #             filetypes=[("INI files", "*.ini"), ("All files", "*.*")],
+        #             title="Choisissez un fichier pour enregistrer la configuration",
+        #     ):
+        #         nom_fichier_ini = file_path
+        #         with open(nom_fichier_ini, "w") as config_file:
+        #             config.write(config_file)
+        #     messagebox.showinfo("Enregistrement réussi", "Le fichier de paramètre a bien été créé et enregistré \n"
+        #                                                  "Les répertoires ont été créés \n"
+        #                                                  "Le fichiers exemple ont été générés"
+        #                         )
         if creer_fichier:
-            if file_path := filedialog.asksaveasfilename(
+            while True:
+                # Affiche la boîte de dialogue pour choisir où enregistrer le fichier
+                file_path = filedialog.asksaveasfilename(
                     defaultextension=".ini",
                     filetypes=[("INI files", "*.ini"), ("All files", "*.*")],
                     title="Choisissez un fichier pour enregistrer la configuration",
-            ):
-                nom_fichier_ini = file_path
-                with open(nom_fichier_ini, "w") as config_file:
-                    config.write(config_file)
-            messagebox.showinfo("Enregistrement réussi", "Le fichier de paramètre a bien été créé et enregistré \n"
-                                                         "Les répertoires ont été créés \n"
-                                                         "Le fichiers exemple ont été générés"
-                                )
+                )
+
+                # Vérifie si un chemin de fichier a été sélectionné
+                if file_path:
+                    nom_fichier_ini = file_path
+                    # Ouvre le fichier en mode écriture et écrit la configuration
+                    with open(nom_fichier_ini, "w") as config_file:
+                        config.write(config_file)
+
+                    # Affiche une boîte de dialogue pour indiquer que l'enregistrement a réussi
+                    messagebox.showinfo("Enregistrement réussi",
+                                        "Le fichier de paramètre a bien été créé et enregistré \n"
+                                        "Les répertoires ont été créés \n"
+                                        "Le fichiers exemple ont été générés")
+                    break
+                else:
+                    # Si l'utilisateur annule, affiche une boîte de dialogue pour demander confirmation
+                    confirm = messagebox.askokcancel(
+                        "Annulation",
+                        "Si vous ne sauvez pas votre fichier, le fichier de configuration devra être créé manuellement."
+                        "\n"
+                        "Voulez-vous vraiment annuler l'enregistrement du fichier ?"
+                    )
+
+                    # Si l'utilisateur confirme l'annulation, sortir de la boucle
+                    if confirm:
+                        break
+            self.grid_forget()
+            nxt = IHM_2_generation.Application(self.winfo_toplevel(),
+                                               api_drive=self.api_drive,
+                                               api_doc=self.api_doc,
+                                               api_sheets=self.api_sheets,
+                                               )
+            nxt.grid(row=0, column=0)
 
         else:
             # ungrid me et mettre à la place un step two, chargé à partir du configparser créé
             self.grid_forget()
-            nxt = IHM_4_editer_config.FenetreEditionConfig(self.winfo_toplevel(), api_drive=self.api_drive, config_parser=config)
+            nxt = IHM_4_editer_config.FenetreEditionConfig(self.winfo_toplevel(), api_drive=self.api_drive,
+                                                           config_parser=config)
             nxt.grid(row=0, column=0)
 
     def on_annuler_click(self):

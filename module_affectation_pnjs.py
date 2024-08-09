@@ -174,7 +174,7 @@ def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=Tru
                     if autre_element[0] <= start <= autre_element[1] or autre_element[0] <= end <= autre_element[1]:
                         # alors on a un recouvrement
                         # todo : quand un evenement se recouvre avec lui-même
-                        #  fusionner les deux
+                        #  fusionner les deux dès l'étape précédente de création
                         #  supprimer celui qui se recouvre du stock
                         #  trouver un moyen de refaire tourner le stock sans ajouter artificiellement un indice  
                         integrable = False

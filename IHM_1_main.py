@@ -28,7 +28,7 @@ class MAGnetMainGUI(ttk.Frame):
         #
         # view_menu = tk.Menu(menu)
         # menu.add_cascade(label="Menu", menu=view_menu)
-        # view_menu.add_command(label="Nouveau GN...", command=self.nouveau_gn)
+        # view_menu.add_command(label="Nouveau GN...", command=self.nouveau_gn_manuel)
         # view_menu.add_command(label="Nouveau fichier de configuration", command=self.nouvelle_config)
         # view_menu.add_command(label="Editer fichier de configuration...", command=self.editer_config)
         # view_menu.add_command(label="Mouliner ", command=self.ecran_mouliner)
@@ -42,10 +42,19 @@ class MAGnetMainGUI(ttk.Frame):
         menu1 = tk.Menu(menu, tearoff=0)
         menu.add_cascade(label="Aller vers", menu=menu1)
 
-        # Add commands to the "Menu" drop-down menu
-        menu1.add_command(label="Nouveau GN...", command=self.nouveau_gn)
-        menu1.add_command(label="Nouveau fichier de configuration", command=self.nouvelle_config)
-        menu1.add_command(label="Editer fichier de configuration...", command=self.editer_config)
+        # Create a submenu for the first three items
+        submenu = tk.Menu(menu1, tearoff=0)
+        menu1.add_cascade(label="Créer ou éditer GN", menu=submenu)
+
+        # Add commands to the submenu
+        submenu.add_command(label="Nouveau GN", command=self.nouveau_gn_manuel)
+        submenu.add_command(label="Nouveau fichier de configuration", command=self.nouvelle_config)
+        submenu.add_command(label="Editer fichier de configuration", command=self.editer_config)
+
+        # # Add commands to the "Menu" drop-down menu
+        # menu1.add_command(label="Nouveau GN...", command=self.nouveau_gn_manuel)
+        # menu1.add_command(label="Nouveau fichier de configuration", command=self.nouvelle_config)
+        # menu1.add_command(label="Editer fichier de configuration...", command=self.editer_config)
         menu1.add_command(label="Mouliner", command=self.ecran_mouliner)
         menu1.add_command(label="Module planning PNJs", command=self.ecran_planning)
         menu1.add_command(label="Module Photos", command=self.ecran_photos)
@@ -88,8 +97,9 @@ class MAGnetMainGUI(ttk.Frame):
         future_fenetre = IHM_4_editer_config.FenetreEditionConfig(self.winfo_toplevel(), self.api_drive)
         self.change_window(future_fenetre)
 
-    def nouveau_gn(self):
-        future_fenetre = IHM_3_nouveau_GN.WizzardGN(self.winfo_toplevel(), api_drive=self.api_drive)
+    def nouveau_gn_manuel(self):
+        future_fenetre = IHM_3_nouveau_GN.WizzardGN(self.winfo_toplevel(), api_drive=self.api_drive,
+                                                    api_doc=self.api_doc, api_sheets=self.api_sheets)
         self.change_window(future_fenetre)
 
     def ecran_mouliner(self):
