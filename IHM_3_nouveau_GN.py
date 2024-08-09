@@ -33,16 +33,20 @@ class WizzardGN(ttk.Frame):
         self.grid_propagate(True)
         # self.winfo_toplevel().geometry("665x535")
 
+        self.panel_avance = ttk.Frame(self)
+        # todo : repartir d'ici et ajouter ce qu'on veut cacher au panel.
+        #  Rappeler dans le message que les dossier peuvent etre renommés et déplacés.
+        #  Rendre le générateur tolérant à l'absence de dossier si supprimés.
         # (previous widget definitions remain the same)
         # Mode association
         mode_association_label = tk.Label(self, text="Mode association:")
-        mode_association_label.grid(column=0, row=0, sticky=tk.W)
+        mode_association_label.grid(column=0, row=30, sticky=tk.W)
         self.mode_association_var = tk.StringVar()
         self.mode_association_var.set("0 - Automatique")
         mode_association_options = ["0 - Automatique", "1 - Manuel via fiches"]
         mode_association_dropdown = ttk.Combobox(self, textvariable=self.mode_association_var,
                                                  values=mode_association_options, state="readonly")
-        mode_association_dropdown.grid(column=1, row=0)
+        mode_association_dropdown.grid(column=1, row=30)
 
         # Nom fichier de sauvegarde
         nom_fichier_sauvegarde_label = tk.Label(self, text="Nom fichier de sauvegarde :")
@@ -97,38 +101,46 @@ class WizzardGN(ttk.Frame):
         nombre_dossiers_evenements_label.grid(column=0, row=70, sticky=tk.W, pady=(10, 3))
         self.nombre_dossiers_evenements_spinbox = tk.Spinbox(self, from_=0, to=100, width=5)
         self.nombre_dossiers_evenements_spinbox.grid(column=1, row=70, pady=(10, 3))
+        self.nombre_dossiers_evenements_spinbox.delete(0, "end")  # Clear any existing value
+        self.nombre_dossiers_evenements_spinbox.insert(0, 1)      # Insert the default value
 
         # Nombre de dossiers Objet
         nombre_dossiers_objet_label = tk.Label(self, text="Nombre de dossiers Objet:")
         nombre_dossiers_objet_label.grid(column=0, row=80, sticky=tk.W, pady=(10, 3))
         self.nombre_dossiers_objet_spinbox = tk.Spinbox(self, from_=0, to=100, width=5)
         self.nombre_dossiers_objet_spinbox.grid(column=1, row=80, pady=(10, 3))
+        self.nombre_dossiers_objet_spinbox.delete(0, "end")  # Clear any existing value
+        self.nombre_dossiers_objet_spinbox.insert(0, 1)      # Insert the default value
 
         # Nombre de dossiers PJs
         nombre_dossiers_pjs_label = tk.Label(self, text="Nombre de dossiers PJs:")
         nombre_dossiers_pjs_label.grid(column=0, row=90, sticky=tk.W, pady=(10, 3))
         self.nombre_dossiers_pjs_spinbox = tk.Spinbox(self, from_=0, to=100, width=5)
         self.nombre_dossiers_pjs_spinbox.grid(column=1, row=90, pady=(10, 3))
+        self.nombre_dossiers_pjs_spinbox.delete(0, "end")  # Clear any existing value
+        self.nombre_dossiers_pjs_spinbox.insert(0, 1)      # Insert the default value
 
         # Nombre de dossiers PNJs
         nombre_dossiers_pnjs_label = tk.Label(self, text="Nombre de dossiers PNJs:")
         nombre_dossiers_pnjs_label.grid(column=0, row=100, sticky=tk.W, pady=(10, 3))
         self.nombre_dossiers_pnjs_spinbox = tk.Spinbox(self, from_=0, to=100, width=5)
         self.nombre_dossiers_pnjs_spinbox.grid(column=1, row=100, pady=(10, 3))
+        self.nombre_dossiers_pnjs_spinbox.delete(0, "end")  # Clear any existing value
+        self.nombre_dossiers_pnjs_spinbox.insert(0, 1)      # Insert the default value
 
         # Date GN en Français (vide si non utilisée) with checkbox
         self.date_gn_checkbox_var = tk.BooleanVar(value=False)
 
         date_gn_checkbox = tk.Checkbutton(self, text="Date GN en Français (vide si non utilisée):",
                                           variable=self.date_gn_checkbox_var, command=self.toggle_date_gn_entry)
-        date_gn_checkbox.grid(column=0, row=110, columnspan=2, sticky=tk.W, pady=(10, 3))
+        date_gn_checkbox.grid(column=0, row=20, columnspan=2, sticky=tk.W, pady=(10, 3))
         self.date_gn_entry = tk.Entry(self)
-        self.date_gn_entry.grid(column=2, row=110, pady=(10, 3), sticky=tk.W)
+        self.date_gn_entry.grid(column=2, row=20, pady=(10, 3), sticky=tk.W)
         self.date_gn_entry['state'] = 'disabled'
 
         # OK and Annuler buttons
         ok_button = tk.Button(self, text="Suivant >", command=self.on_ok_click)
-        ok_button.grid(column=0, row=120, pady=10)
+        ok_button.grid(column=0, row=1200, pady=10)
         # annuler_button = tk.Button(self, text="Annuler", command=self.on_annuler_click)
         # annuler_button.grid(column=1, row=120, pady=10)
 
@@ -178,7 +190,8 @@ class WizzardGN(ttk.Frame):
         # print(f"nib i = {nb_intrigues}")
         for i in range(nb_intrigues):
             if creer_fichier:
-                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent, f"Intrigues {i + 1}")
+                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent,
+                                                           f"Intrigues {i + 1 if nb_intrigues > 1 else ''}")
                 dict_essentiels[f"id_dossier_intrigues_{i + 1}"] = current_dossier
                 g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_intrigue, current_dossier)
             else:
@@ -196,7 +209,9 @@ class WizzardGN(ttk.Frame):
         for i in range(nb_evenements):
             current_dossier = ""
             if creer_fichier:
-                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent, f"Evènements {i + 1}")
+                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent,
+                                                           f"Evènements" 
+                                                           f"{i + 1 if nb_evenements > 1 else ' (si nécessaire)'}")
                 g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_evenement, current_dossier)
             dict_optionnels[f"id_dossier_evenements_{i + 1}"] = current_dossier
 
@@ -204,7 +219,9 @@ class WizzardGN(ttk.Frame):
         for i in range(nb_objets):
             current_dossier = ""
             if creer_fichier:
-                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent, f"Objets {i + 1}")
+                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent,
+                                                           f"Objets "
+                                                           f"{i + 1 if nb_objets > 1 else ' (si nécessaire)'}")
                 g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_objet, current_dossier)
             dict_optionnels[f"id_dossier_objets_{i + 1}"] = current_dossier
 
@@ -212,7 +229,9 @@ class WizzardGN(ttk.Frame):
         for i in range(nb_pjs):
             current_dossier = ""
             if creer_fichier:
-                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent, f"Fiches PJs {i + 1}")
+                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent,
+                                                           f"Fiches PJs "
+                                                           f"{i + 1 if nb_pjs > 1 else ' (si nécessaire)'}")
                 g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_perso, current_dossier)
             dict_optionnels[f"id_dossier_pjs_{i + 1}"] = current_dossier
 
@@ -220,7 +239,9 @@ class WizzardGN(ttk.Frame):
         for i in range(nb_pnjs):
             current_dossier = ""
             if creer_fichier:
-                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent, f"Fiches PNJs {i + 1}")
+                current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent,
+                                                           f"Fiches PNJs "
+                                                           f"{i + 1 if nb_pnjs > 1 else ' (si nécessaire)'}")
                 g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_perso, current_dossier)
             dict_optionnels[f"id_dossier_pnjs_{i + 1}"] = current_dossier
 
