@@ -63,10 +63,10 @@ class WizzardGN(ttk.Frame):
         self.date_gn_entry.grid(column=2, row=20, pady=(10, 3), sticky=tk.W, padx=(0, 10), columnspan=2)
         self.date_gn_entry['state'] = 'disabled'
         date_gn_tooltip = tk.Label(self, text="?",
-                                                  font=("Arial", 14, "bold"),  # Larger, bold font
-                                                  bd=2,  # Add border width
-                                                  relief="solid",  # Solid border
-                                                  padx=5, pady=5)  # Padding inside the label
+                                   font=("Arial", 14, "bold"),  # Larger, bold font
+                                   bd=2,  # Add border width
+                                   relief="solid",  # Solid border
+                                   padx=5, pady=5)  # Padding inside the label
         date_gn_tooltip.grid(column=4, row=20, sticky=tk.W, columnspan=1)
         ToolTip(date_gn_tooltip, "Si la date est remplie : \n"
                                  " - Le GN aura lieu en jeu à cette date (ex : 13 février 1965)\n"
@@ -94,10 +94,10 @@ class WizzardGN(ttk.Frame):
         self.creation_fichiers_entry.grid(column=0, row=32, columnspan=3, sticky=tk.EW, padx=(10, 10), pady=(3, 10))
         self.creation_fichiers_entry['state'] = 'normal'
         creation_fichiers_tooltip = tk.Label(self, text="?",
-                                                  font=("Arial", 14, "bold"),  # Larger, bold font
-                                                  bd=2,  # Add border width
-                                                  relief="solid",  # Solid border
-                                                  padx=5, pady=5)  # Padding inside the label
+                                             font=("Arial", 14, "bold"),  # Larger, bold font
+                                             bd=2,  # Add border width
+                                             relief="solid",  # Solid border
+                                             padx=5, pady=5)  # Padding inside the label
         creation_fichiers_tooltip.grid(column=4, row=30, sticky=tk.W, columnspan=1)
         texte_tooltip_creation = """Création et saisie manuelle des fichiers : Cette option permet de réutiliser des 
         dossiers Intrigues / Personnages/ Evénèements / Objets 
@@ -110,11 +110,22 @@ class WizzardGN(ttk.Frame):
         l'url ou l'ID do dossier google drive où seront créé les fichiers."""
         ToolTip(creation_fichiers_tooltip, texte_tooltip_creation)
 
-        #paramètres avancés
+        # paramètres avancés
         self.avance = False
         self.panel_avance = ttk.Labelframe(self, text="Paramètres avancés")
+        # self.container_avance = tk.Frame(self)
+        # self.panel_avance = ttk.Labelframe(self.container_avance, text="Paramètres avancés")
+        # self.panel_avance.grid(row=0, columnspan=4, sticky=tk.NSEW)
         self.bouton_avance = tk.Button(self, text="Afficher les paramètres avancés", command=self.toggle_avance)
         self.bouton_avance.grid(column=0, row=40)
+        avance_tooltip = tk.Label(self, text="?",
+                                  font=("Arial", 14, "bold"),
+                                  bd=2,
+                                  relief="solid",
+                                  padx=5, pady=5)
+        avance_tooltip.grid(column=4, row=40, sticky=tk.W, columnspan=1)
+        ToolTip(avance_tooltip,
+                "Afficher ou masquer les paramètres avancés pour personnaliser davantage la configuration.")
 
         # Mode association
         mode_association_label = tk.Label(self.panel_avance, text="Mode association:")
@@ -124,7 +135,23 @@ class WizzardGN(ttk.Frame):
         mode_association_options = ["0 - Automatique", "1 - Manuel via fiches"]
         mode_association_dropdown = ttk.Combobox(self.panel_avance, textvariable=self.mode_association_var,
                                                  values=mode_association_options, state="readonly")
-        mode_association_dropdown.grid(column=1, row=35)
+        mode_association_dropdown.grid(column=1, row=35, columnspan=4)
+        mode_association_tooltip = tk.Label(self.panel_avance, text="?",
+                                            font=("Arial", 14, "bold"),
+                                            bd=2,
+                                            relief="solid",
+                                            padx=5, pady=5)
+        mode_association_tooltip.grid(column=5, row=35, sticky=tk.E)
+        ToolTip(mode_association_tooltip,
+                """\tDans l'immense majorité des cas, il est conseillé d'utiliser le mode Automatique.
+                En mode “automatique”, les intrigues sont écrites en utilisant directement le nom des personnages, et 
+                les rôles portent les mêmes noms que les personnages auxquels ils seront associés, 
+                sans étape supplémentaire à réaliser. 
+                En mode “manuel via fiche”, les intrigues peuvent être écrites en donnant des noms génériques aux roles 
+                impliqués (PJ1, PJ2, etc. ou bien “celui qui écoute aux portes”, par exemple), et en mettant à plus 
+                tard le fait de décider quel personnage sera finalement impliqué dans les scènes, en remplissant une
+                colonne supplémentaire dans les "tableaux personnages" des fiches intrigues.
+                Plus d'informations dans le manuel dans les définitions puis dans "Mode d'association" """)
 
         # # Mode de saisie des personnages
 
@@ -135,6 +162,22 @@ class WizzardGN(ttk.Frame):
                                                                variable=self.utilisation_fichier_pjs_pnjs_var)
         utilisation_fichier_pjs_pnjs_checkbox.grid(column=0, row=40, sticky=tk.W, pady=(10, 3),
                                                    columnspan=2)
+        utilisation_fichier_pjs_pnjs_tooltip = tk.Label(self.panel_avance, text="?",
+                                                        font=("Arial", 14, "bold"),
+                                                        bd=2,
+                                                        relief="solid",
+                                                        padx=5, pady=5)
+        utilisation_fichier_pjs_pnjs_tooltip.grid(column=5, row=40, sticky=tk.E)
+        ToolTip(utilisation_fichier_pjs_pnjs_tooltip,
+                """\tL'utilisation d'un fichier des PJs et PNJs permet d'utiliser un fichier Google sheets pour 
+                déclarer facilement l'ensemble des noms des PJs et PNJs (présents en jeu ou juste dans les back) 
+                qui serviront de base de référence des noms de MAGnet.
+                Ce fichier peut contenir toutes les colonnes nécessaires au suivi administratif du jeu (ex : état 
+                d'envoie des documents, des paiements, etc.) ou des onglets supplémentaires, sans impact sur le 
+                fonctionnement de MAGnet, pour regrouper au même endroit toutes les options clefs. 
+                Depuis la version 1.2 de MAGnet, c'est la méthode  largement recommandée, les autres options ayant une 
+                ergonomie beaucoup plus compliquée.
+                """)
 
         # Utiliser un fichier faction
         self.utilisation_fichier_factions_var = tk.BooleanVar(value=True)
@@ -142,12 +185,32 @@ class WizzardGN(ttk.Frame):
                                                                variable=self.utilisation_fichier_factions_var)
         utilisation_fichier_factions_checkbox.grid(column=0, row=50, sticky=tk.W, pady=(10, 3),
                                                    columnspan=2)
+        utilisation_fichier_factions_tooltip = tk.Label(self.panel_avance, text="?",
+                                                        font=("Arial", 14, "bold"),
+                                                        bd=2,
+                                                        relief="solid",
+                                                        padx=5, pady=5)
+        utilisation_fichier_factions_tooltip.grid(column=5, row=50, sticky=tk.E)
+        ToolTip(utilisation_fichier_factions_tooltip,
+                """\tLe fichier des factions permet de gérer l'ajout en masses de personnages dans une scène. 
+                S'il est vide ou non utilisé, cela n'a aucun impact""")
 
         # Nombre de dossiers Intrigues
         nombre_dossiers_intrigues_label = tk.Label(self.panel_avance, text="Nombre de dossiers Intrigues:")
         nombre_dossiers_intrigues_label.grid(column=0, row=65, sticky=tk.W, pady=(10, 3))
         self.nombre_dossiers_intrigues_spinbox = tk.Spinbox(self.panel_avance, from_=1, to=100, width=5)
         self.nombre_dossiers_intrigues_spinbox.grid(column=1, row=65, pady=(10, 3))
+        nombre_dossiers_intrigues_tooltip = tk.Label(self.panel_avance, text="?",
+                                                     font=("Arial", 14, "bold"),
+                                                     bd=2,
+                                                     relief="solid",
+                                                     padx=5, pady=5)
+        nombre_dossiers_intrigues_tooltip.grid(column=5, row=65, sticky=tk.E)
+        ToolTip(nombre_dossiers_intrigues_tooltip,
+                """\t Indiquez le nombre de dossiers d'intrigues à créer (minimum 1) où les fiches intrigues seront 
+                lues par MAGnet. .
+                Dans la plupart des cas, un seul suffit, mais, pour des raisons d'organisation, vous pouvez faire le 
+                choix de les classer en plusieurs dossiers.""")
 
         # Nombre de dossiers Evenements
         nombre_dossiers_evenements_label = tk.Label(self.panel_avance, text="Nombre de dossiers Evenements:")
@@ -155,7 +218,19 @@ class WizzardGN(ttk.Frame):
         self.nombre_dossiers_evenements_spinbox = tk.Spinbox(self.panel_avance, from_=0, to=100, width=5)
         self.nombre_dossiers_evenements_spinbox.grid(column=1, row=70, pady=(10, 3))
         self.nombre_dossiers_evenements_spinbox.delete(0, "end")  # Clear any existing value
-        self.nombre_dossiers_evenements_spinbox.insert(0, 1)      # Insert the default value
+        self.nombre_dossiers_evenements_spinbox.insert(0, 1)  # Insert the default value
+        nombre_dossiers_evenements_tooltip = tk.Label(self.panel_avance, text="?",
+                                                      font=("Arial", 14, "bold"),
+                                                      bd=2,
+                                                      relief="solid",
+                                                      padx=5, pady=5)
+        nombre_dossiers_evenements_tooltip.grid(column=5, row=70, sticky=tk.E)
+        ToolTip(nombre_dossiers_evenements_tooltip,
+                """\tIndiquez le nombre de dossiers à créer où seront lues des fiches événements.
+                Ce paramètre n'est utile que si vous souhaitez créer des fiches évènements. 
+                Cependant, disposer d'un dossier et ne rien y mettre n'a aucun impact, et laisse des possibilités 
+                ouvertes. 
+                """)
 
         # Nombre de dossiers Objet
         nombre_dossiers_objet_label = tk.Label(self.panel_avance, text="Nombre de dossiers Objet:")
@@ -163,7 +238,19 @@ class WizzardGN(ttk.Frame):
         self.nombre_dossiers_objet_spinbox = tk.Spinbox(self.panel_avance, from_=0, to=100, width=5)
         self.nombre_dossiers_objet_spinbox.grid(column=1, row=80, pady=(10, 3))
         self.nombre_dossiers_objet_spinbox.delete(0, "end")  # Clear any existing value
-        self.nombre_dossiers_objet_spinbox.insert(0, 1)      # Insert the default value
+        self.nombre_dossiers_objet_spinbox.insert(0, 1)  # Insert the default value
+        nombre_dossiers_objet_tooltip = tk.Label(self.panel_avance, text="?",
+                                                 font=("Arial", 14, "bold"),
+                                                 bd=2,
+                                                 relief="solid",
+                                                 padx=5, pady=5)
+        nombre_dossiers_objet_tooltip.grid(column=5, row=80, sticky=tk.E)
+        ToolTip(nombre_dossiers_objet_tooltip,
+                """\tIndiquez le nombre de dossiers à créer où seront lues des fiches objets.
+                Ce paramètre n'est utile que si vous souhaitez créer des fiches objets. 
+                Cependant, disposer d'un dossier et ne rien y mettre n'a aucun impact, et laisse des possibilités 
+                ouvertes. 
+                """)
 
         # Nombre de dossiers PJs
         nombre_dossiers_pjs_label = tk.Label(self.panel_avance, text="Nombre de dossiers PJs:")
@@ -171,7 +258,19 @@ class WizzardGN(ttk.Frame):
         self.nombre_dossiers_pjs_spinbox = tk.Spinbox(self.panel_avance, from_=0, to=100, width=5)
         self.nombre_dossiers_pjs_spinbox.grid(column=1, row=90, pady=(10, 3))
         self.nombre_dossiers_pjs_spinbox.delete(0, "end")  # Clear any existing value
-        self.nombre_dossiers_pjs_spinbox.insert(0, 1)      # Insert the default value
+        self.nombre_dossiers_pjs_spinbox.insert(0, 1)  # Insert the default value
+        nombre_dossiers_pjs_tooltip = tk.Label(self.panel_avance, text="?",
+                                               font=("Arial", 14, "bold"),
+                                               bd=2,
+                                               relief="solid",
+                                               padx=5, pady=5)
+        nombre_dossiers_pjs_tooltip.grid(column=5, row=90, sticky=tk.E)
+        ToolTip(nombre_dossiers_pjs_tooltip,
+                """\tIndiquez le nombre de dossiers à créer où seront lues des fiches pjs sources.
+                Ce paramètre n'est utile que si vous souhaitez créer des fiches pj source. 
+                Cependant, disposer d'un dossier et ne rien y mettre n'a aucun impact, et laisse des possibilités 
+                ouvertes. 
+                """)
 
         # Nombre de dossiers PNJs
         nombre_dossiers_pnjs_label = tk.Label(self.panel_avance, text="Nombre de dossiers PNJs:")
@@ -179,8 +278,20 @@ class WizzardGN(ttk.Frame):
         self.nombre_dossiers_pnjs_spinbox = tk.Spinbox(self.panel_avance, from_=0, to=100, width=5)
         self.nombre_dossiers_pnjs_spinbox.grid(column=1, row=100, pady=(10, 3))
         self.nombre_dossiers_pnjs_spinbox.delete(0, "end")  # Clear any existing value
-        self.nombre_dossiers_pnjs_spinbox.insert(0, 1)      # Insert the default value
-
+        self.nombre_dossiers_pnjs_spinbox.insert(0, 1)  # Insert the default value
+        nombre_dossiers_pnjs_tooltip = tk.Label(self.panel_avance, text="?",
+                                                     font=("Arial", 14, "bold"),
+                                                     bd=2,
+                                                     relief="solid",
+                                                     padx=5, pady=5)
+        nombre_dossiers_pnjs_tooltip.grid(column=5, row=100, sticky=tk.E)
+        ToolTip(nombre_dossiers_pnjs_tooltip, 
+                """\tIndiquez le nombre de dossiers à créer où seront lues des fiches pnjs sources.
+                Ce paramètre n'est utile que si vous souhaitez créer des fiches pnj source. 
+                Cependant, disposer d'un dossier et ne rien y mettre n'a aucun impact, et laisse des possibilités 
+                ouvertes. 
+                """)
+        
         # OK and Annuler buttons
         ok_button = tk.Button(self, text="Suivant >", command=self.on_ok_click)
         ok_button.grid(column=0, row=1200, pady=10)
@@ -190,14 +301,15 @@ class WizzardGN(ttk.Frame):
     def toggle_avance(self):
         if self.avance:
             self.panel_avance.grid_forget()
+            # self.container_avance.grid_forget()
             self.bouton_avance['text'] = "Afficher les paramètres avancés"
             self.avance = False
             self.update()
         else:
-            self.panel_avance.grid(column=0, columnspan=4, row=45, sticky=tk.EW, padx=(10, 10), pady=(10, 10))
+            self.panel_avance.grid(column=0, columnspan=5, row=45, sticky=tk.EW, padx=(10, 10), pady=(10, 10))
+            # self.container_avance.grid(column=0, columnspan=4, row=45, sticky=tk.EW, padx=(10, 10), pady=(10, 10))
             self.bouton_avance['text'] = "Masquer les paramètres avancés"
             self.avance = True
-
 
     def toggle_creation_fichiers_entry(self):
         if self.creation_fichiers_var.get() == "0":
@@ -265,7 +377,7 @@ class WizzardGN(ttk.Frame):
             current_dossier = ""
             if creer_fichier:
                 current_dossier = g_io.creer_dossier_drive(self.api_drive, nom_parent,
-                                                           f"Evènements" 
+                                                           f"Evènements"
                                                            f"{i + 1 if nb_evenements > 1 else ' (si nécessaire)'}")
                 g_io.copier_fichier_vers_dossier(self.api_drive, addresse_fiche_evenement, current_dossier)
             dict_optionnels[f"id_dossier_evenements_{i + 1}"] = current_dossier
