@@ -1,7 +1,6 @@
 import csv
 import os
 import traceback
-from inspect import signature
 
 import createur_planning_evenementiel as cpe
 import google_io as g_io
