@@ -509,26 +509,36 @@ class GUIPhotos(ttk.Frame):
 
             # print(f"inserer_photo, creer_trombi = {inserer_photo}, {creer_trombi}")
 
-            texte_erreurs = ajouter_photos_et_creer_tombis(
-                api_doc=api_doc,
-                api_drive=api_drive,
-                api_sheets=self.api_sheets,
-                folder_id=self.dossier_photo_entry.get(),
-                offset=int(self.offset_entry.get()),
-                dossier_sources_fiches=[self.input_entry.get()],
-                racine_sortie=self.output_entry.get(),
-                nom_onglet=self.dropdown_onglet.get(),
-                sheet_id=self.fichier_photos_entry.get(),
-                inserer_photos=inserer_photo,
-                creer_trombi=creer_trombi)
+            try:
+                texte_erreurs = ajouter_photos_et_creer_tombis(
+                    api_doc=api_doc,
+                    api_drive=api_drive,
+                    api_sheets=self.api_sheets,
+                    folder_id=self.dossier_photo_entry.get(),
+                    offset=int(self.offset_entry.get() if self.offset_entry.get() else 0),
+                    dossier_sources_fiches=[self.input_entry.get()],
+                    racine_sortie=self.output_entry.get(),
+                    nom_onglet=self.dropdown_onglet.get(),
+                    sheet_id=self.fichier_photos_entry.get(),
+                    inserer_photos=inserer_photo,
+                    creer_trombi=creer_trombi)
+                if len(texte_erreurs) == 0:
+                    messagebox.showinfo("Opération terminée", "L'opération s'est déroulée avec succès")
+                else:
+                    messagebox.showerror("Une ou plusieurs erreurs sont survenues", '\n'.join(texte_erreurs))
 
-            self.progress.stop()
-            ok_button.config(state="normal", text="Ok")
+            except Exception as e:
+                print(f"Erreur lors de la génération photo : {e}")
+                traceback.print_exc()
 
-            if len(texte_erreurs) == 0:
-                messagebox.showinfo("Opération terminée", "L'opération s'est déroulée avec succès")
-            else:
-                messagebox.showerror("Une ou plusieurs erreurs sont survenues", '\n'.join(texte_erreurs))
+                if "invalid literal for int() with base 10:" in str(e):
+                    message = "Si la va valeur de Décalage est remplie, elle doit être un nombre"
+                else:
+                    message = f"Erreur non détaillée par MAGnet : \n {e}"
+                messagebox.showinfo("Module Photo - une erreur est survenue", message)
+            finally:
+                self.progress.stop()
+                ok_button.config(state="normal", text="Ok")
 
         ok_button = ttk.Button(inserphotos_labelframe, text="OK", command=lambda: lancer_generation_et_barre())
         ok_button.grid(row=1000, column=4, columnspan=1, sticky='e', padx=(10, 10))
@@ -1053,5 +1063,3 @@ def on_copy_click(gui_photo: GUIPhotos):
 
     cancel_button = tk.Button(button_frame, text="Annuler", command=on_cancel)
     cancel_button.pack(side="right", padx=5)
-
-

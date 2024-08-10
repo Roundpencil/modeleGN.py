@@ -462,6 +462,8 @@ def ajouter_photos_et_creer_tombis(api_doc, api_drive, api_sheets, folder_id, of
         # destination_folder_id = g_io.creer_dossier_drive(api_drive, racine_sortie, "Fiches avec photo")
     except HttpError:
         return {"Impossible de lire les fichiers dans le dossier fiches spécifié"}
+    except TypeError:
+        return {"Le dossier spécifié pour les fichiers d'entrée n'est pas valide"}
 
     if verbal:
         print(f"ids fichiers {ids}")
