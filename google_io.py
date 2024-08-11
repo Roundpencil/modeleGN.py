@@ -1951,7 +1951,7 @@ def extraire_persos_de_texte(texte_avec_format, nom_doc, id_url, last_file_edit,
     nom_perso_en_cours = re.sub(r"^[a-zA-Z]?\d+\s*-", '', nom_doc).strip()
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
-    current_personnage = Personnage(nom=nom_perso_en_cours, url=id_url, derniere_edition_fichier=last_file_edit, pj=pj)
+    current_personnage = Personnage(nom=nom_perso_en_cours, url=id_url, derniere_edition_fichier=last_file_edit, type_perso=pj)
     current_personnage.modifie_par = derniere_modification_par
     dict_pj_pnj[id_url] = current_personnage
 

@@ -336,7 +336,7 @@ class ConteneurDEvenementsUnitaires(ABC):
 # personnage
 class Personnage(ConteneurDeScene):
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
-                 sexe="i", pj: TypePerso = TypePerso.EST_PJ, orga_referent=None, pitch_joueur="",
+                 sexe="i", type_perso: TypePerso = TypePerso.EST_PJ, orga_referent=None, pitch_joueur="",
                  indications_costume="",
                  textes_annexes="", url="", last_processing=None,
                  dates_clefs="", forced=False,
@@ -351,7 +351,7 @@ class Personnage(ConteneurDeScene):
         self.driver = driver
         self.questions_ouvertes = questions_ouvertes
         self.sexe = sexe  # i = indéterminé / h = homme / f = femme
-        self.pj = pj
+        self.pj:TypePerso = type_perso
         self.actif = True
         self.roles = set()  # liste de rôles qui sont eux meme affectés à des intrigues
         self.relations = set()  # nom relation, relation
@@ -399,8 +399,10 @@ class Personnage(ConteneurDeScene):
     #     return "nom personnage : " + self.nom
 
     def get_type_from_roles(self):
+        # tous_les_types = [role.pj for role in self.roles] + \
+        #                  [TypePerso.EST_PNJ_HORS_JEU] if self.est_un_pnj() else [TypePerso.EST_PJ]
         tous_les_types = [role.pj for role in self.roles] + \
-                         [TypePerso.EST_PNJ_HORS_JEU] if self.est_un_pnj() else [TypePerso.EST_PJ]
+                         [self.pj] if self.pj else []
         if len(self.intervient_comme) + len(self.informations_evenements) > 0:
             tous_les_types.append(TypePerso.EST_PNJ_TEMPORAIRE)
         return max(tous_les_types)
@@ -2397,7 +2399,7 @@ class IntervenantEvenement:
     def __init__(self, nom_pnj, evenement: ConteneurDEvenementsUnitaires, costumes_et_accessoires="", implication="",
                  situation_de_depart=""):
         self.nom_pnj = nom_pnj
-        self.pnj = None
+        self.pnj:Personnage = None
         self.costumes_et_accessoires = costumes_et_accessoires
         self.implication = implication
         self.situation_de_depart = situation_de_depart
@@ -2413,6 +2415,9 @@ class IntervenantEvenement:
                f"\t costume : {self.costumes_et_accessoires} \n " \
                f"\t implication : {self.implication} \n " \
                f"\t commence : {self.situation_de_depart}"
+
+    def get_type_PNJ(self):
+        return self.pnj.get_type_from_roles()
 
     @staticmethod
     def intervenant_from_role(role: Role, conteneur_evenement: ConteneurDEvenementsUnitaires):

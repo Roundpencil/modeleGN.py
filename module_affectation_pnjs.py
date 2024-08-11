@@ -65,10 +65,18 @@ def creer_planning(gn: GN, recursion=50, pas=15,
     min_date = sys.maxsize
     max_date = 0
 
-    dico_briefs, max_date, min_date = preparer_donnees_pour_planning(gn, max_date, min_date, pas)
+    dico_pnjs_temp, dico_pnjs_continus, dico_pnjs_always, \
+        max_date, min_date = preparer_donnees_pour_planning(gn, max_date, min_date, pas)
+    # todo :
+    #  A la fin, ajouter tous les PNJs et, selon leur catégorie :
+    #  >> ajouter un paramètre dans la méthode oucréer une nouvelle?
+    #  - Permanents / infiltrés : tout remplir de min date à max date
+    #  - Continus : trouver leur min date à eux et leur max date à eux et mettre un seul bloc
+    #  Pour tous, ignorer les recouvrements : personne ne prendra leur role
+    #  + comprendre pourquoi le tableau affiche des pnjs permanents dans la liste du nom des PNJs finale
 
-    # maintenant, on enlève les recouvrements et on récupère les tableaux persos
-    output, noms_persos = dico_brief2tableau_interventions(dico_briefs, max_date, min_date)
+    # maintenant, on enlève les recouvrements et on récupère les tableaux persos pour les PNJs temporaires
+    output, noms_persos = dico_brief2tableau_interventions(dico_pnjs_temp, max_date, min_date)
 
     # a ce statde la, on a  :
     #  - un dictionnaire avec tous les PJs et des tableaux d'évènements
@@ -102,7 +110,92 @@ def creer_planning(gn: GN, recursion=50, pas=15,
     return sol_complete
 
 
-# TODO : prendre en compte les PNJs infiltrés et permanents
+# def is_element_integrable(element:list, autres_elements:list[list], elements_a_retirer=None, verbal=True):
+#     if verbal:
+#         print(f"Je commence une récursion : \n"
+#               f"\telement = {element}\n"
+#               f"\tautres e = {autres_elements}\n"
+#               f"\tretirer = {elements_a_retirer}")
+#     if not elements_a_retirer:
+#         elements_a_retirer = []
+#     start = element[0]
+#     end = element[1]
+#     nom_evenement = element[3]
+#     for autre_element in autres_elements:
+#         if autre_element[0] <= end and start <= autre_element[1]:
+#             if verbal:
+#                 print(f"j'ai trouvé un élément non intégrable : "
+#                       f"start = {start}, end = {end}, nom = {element[3]} à cause de {autre_element}")
+#
+#             if autre_element[3] == nom_evenement:
+#                 # dans ce cas il s'agit du même évènement, il faut :
+#                 #  - les fusionner
+#                 #  - retirer l'autre du stock
+#                 # ne pas mettre à jour futur stock
+#                 # ne pas mettre à jour l'indice de récursions
+#                 element[0] = min(start, autre_element[0])
+#                 element[1] = max(end, autre_element[1])
+#                 element[2] = f"{element[2]}\n{autre_element[2]}"
+#                 autres_elements.remove(autre_element)
+#                 elements_a_retirer.append(autre_element)
+#                 if verbal:
+#                     print("\taprès fusion, j'ai : \n"
+#                           f"\telement = {element}\n"
+#                           f"\tautres_elements = {autres_elements}\n"
+#                           f"\telements à retirer = {elements_a_retirer}")
+#                 # il est possible que l'élément fusionné ne soit pas compatible avec les précédents :
+#                 # il faut recommencer
+#                 return is_element_integrable(element, autres_elements, elements_a_retirer)
+#             else:
+#                 return False
+#                 # les deux évènements ne sont pas compatible, il faut itérer
+#         elif verbal:
+#             print(f"\tl' autre_élément={autre_element} ne pose pas de soucis pour l'element={element}")
+#
+#     return True
+
+def is_element_integrable(element: list, autres_elements: list[list], elements_a_retirer=None, verbal=True):
+    if verbal:
+        print(f"Je commence une récursion : \n"
+              f"\telement = {element}\n"
+              f"\tautres e = {autres_elements}\n"
+              f"\tretirer = {elements_a_retirer}")
+    if elements_a_retirer is None:
+        elements_a_retirer = []
+
+    start = element[0]
+    end = element[1]
+    nom_evenement = element[3]
+
+    for autre_element in autres_elements:
+        if autre_element[0] <= end and start <= autre_element[1]:
+            if verbal:
+                print(f"j'ai trouvé un élément non intégrable : "
+                      f"start = {start}, end = {end}, nom = {element[3]} à cause de {autre_element}")
+
+            if autre_element[3] == nom_evenement:
+                element[0] = min(start, autre_element[0])
+                element[1] = max(end, autre_element[1])
+                element[2] = f"{element[2]}\n{autre_element[2]}"
+                autres_elements.remove(autre_element)
+                elements_a_retirer.append(autre_element)
+
+                if verbal:
+                    print("\taprès fusion, j'ai : \n"
+                          f"\telement = {element}\n"
+                          f"\tautres_elements = {autres_elements}\n"
+                          f"\telements à retirer = {elements_a_retirer}")
+
+                # Recursively check again
+                status, updated_elements_a_retirer = is_element_integrable(element, autres_elements, elements_a_retirer)
+                return status, updated_elements_a_retirer
+            else:
+                return False, elements_a_retirer
+        elif verbal:
+            print(f"\tl' autre_élément={autre_element} ne pose pas de soucis pour l'element={element}")
+
+    return True, elements_a_retirer
+
 
 def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=True):
     """
@@ -157,6 +250,95 @@ def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=Tru
     noms_persos = []
     for intervenant in dico_briefs:
         stock = dico_briefs[intervenant]
+        stock.sort(key=lambda x: x[3])  # trier par évènement pour faciliter le rapprochement
+        go_on = True
+        nb_recursions = 0
+        while go_on:
+            ligne = [None] * (max_date - min_date + 1)
+            futur_stock = []
+            nom_a_afficher = intervenant + (f"_{nb_recursions + 1}" if nb_recursions else "")
+
+            for i, element in enumerate(stock):
+
+                ou_chercher = stock[i + 1:]
+                integrable, elements_a_supprimer = is_element_integrable(element, ou_chercher)
+                if integrable:
+                    start = element[0]
+                    end = element[1]
+                    nom_evenement = element[3]
+                    # suffixe = f"_{nb_recursions}" if nb_recursions else ""
+                    # ligne[start - min_date:end + 1 - min_date] = \
+                    #     [f"{intervenant}{suffixe} - {element[3]}"] * (end - start + 1)
+                    ligne[start - min_date:end + 1 - min_date] = \
+                        [f"{nom_a_afficher} - {nom_evenement}"] * (end - start + 1)
+                else:
+                    futur_stock.append(element)
+                # dans tous les cas, il faut retirer les éléments à supprimer
+                stock = [element for element in stock if element not in elements_a_supprimer]
+            go_on = len(futur_stock)
+            # print(f"futur stock = {futur_stock}")
+            stock = futur_stock
+            # print(f"stock = {stock}")
+            nb_recursions += 1
+            output.append(ligne)
+            noms_persos.append(nom_a_afficher)
+    return output, noms_persos
+
+
+def dico_brief2tableau_interventions_old(dico_briefs, max_date, min_date, verbal=True):
+    """
+       Convertit un dictionnaire d'événements d'intervention en une liste de listes représentant un planning
+       d'interventions sur une plage de dates donnée. Cette fonction gère les événements qui se chevauchent
+       en créant plusieurs lignes pour la même personne si nécessaire.
+
+       Paramètres :
+       ----------
+       dico_briefs : dict
+           Un dictionnaire où les clés sont les noms des individus ('intervenants'), et les valeurs sont des listes de
+           tuples. Chaque tuple représente une intervention et contient :
+           - start (int) : La date de début de l'intervention.
+           - end (int) : La date de fin de l'intervention.
+           - name (str) : Le nom ou identifiant de l'intervention.
+
+       max_date : int
+           La date maximale considérée pour le planning, utilisée pour déterminer le nombre de colonnes dans la liste de sortie.
+
+       min_date : int
+           La date minimale considérée pour le planning, utilisée pour déterminer l'indice de départ pour chaque
+           événement dans la liste de sortie.
+
+       verbal : bool, optionnel (défaut=True)
+           Si défini à True, la fonction imprimera des messages sur les événements non intégrables qui se chevauchent.
+
+       Renvoie :
+       -------
+       output : liste de listes
+           Une liste où chaque sous-liste représente une ligne pour une personne dans le planning.
+           Chaque position dans une sous-liste
+           correspond à un jour entre `min_date` et `max_date`. Si une intervention a lieu un jour donné, la sous-liste
+           contiendra une chaîne décrivant l'intervention ; sinon, elle contiendra None.
+
+       noms_persos : liste
+           Une liste de chaînes de caractères, où chaque chaîne est le nom d'un individu avec un suffixe indiquant
+           le niveau de récursion, utilisé pour différencier plusieurs lignes pour la même personne si elle a des
+           interventions qui se chevauchent.
+
+       Remarques :
+       -----
+       - La fonction vérifie les interventions qui se chevauchent pour chaque individu. Si un chevauchement est détecté,
+         l'événement qui se chevauche est ajouté à un stock futur pour être traité lors de la prochaine récursion.
+       - Si deux événements se chevauchent, l'événement qui se chevauche n'est pas intégré dans la ligne actuelle,
+         et la fonction continue le traitement jusqu'à ce que tous les événements soient intégrés.
+       - Chaque intervention est représentée dans la sortie par une chaîne qui combine le nom de l'individu,
+         le suffixe de récursion et le nom de l'intervention.
+       - La fonction suppose que les dates et les interventions sont indexées à partir de zéro et que les valeurs
+         de `dico_briefs` contiennent des tuples d'au moins 3 éléments (start, end, name).
+       """
+    output = []
+    noms_persos = []
+    for intervenant in dico_briefs:
+        stock = dico_briefs[intervenant]
+        stock.sort(key=lambda x: x[3])  # trier par évènement pour faciliter le rapprochement
         go_on = True
         nb_recursions = 0
         while go_on:
@@ -169,14 +351,15 @@ def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=Tru
                 ou_chercher = stock[i + 1:]
                 start = element[0]
                 end = element[1]
+                nom_evenement = element[3]
                 integrable = True
                 for autre_element in ou_chercher:
                     if autre_element[0] <= start <= autre_element[1] or autre_element[0] <= end <= autre_element[1]:
                         # alors on a un recouvrement
-                        # todo : quand un evenement se recouvre avec lui-même
+                        # ce qui ne marche pas ici : quand un evenement se recouvre avec lui-même
                         #  fusionner les deux dès l'étape précédente de création
                         #  supprimer celui qui se recouvre du stock
-                        #  trouver un moyen de refaire tourner le stock sans ajouter artificiellement un indice  
+                        #  trouver un moyen de refaire tourner le stock sans ajouter artificiellement un indice
                         integrable = False
                         if verbal:
                             print(f"j'ai trouvé un élément non intégrable pour {nom_a_afficher} : "
@@ -184,11 +367,14 @@ def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=Tru
 
                         break
                 if integrable:
+                    start = element[0]
+                    end = element[1]
+                    nom_evenement = element[3]
                     # suffixe = f"_{nb_recursions}" if nb_recursions else ""
                     # ligne[start - min_date:end + 1 - min_date] = \
                     #     [f"{intervenant}{suffixe} - {element[3]}"] * (end - start + 1)
                     ligne[start - min_date:end + 1 - min_date] = \
-                        [f"{nom_a_afficher} - {element[3]}"] * (end - start + 1)
+                        [f"{nom_a_afficher} - {nom_evenement}"] * (end - start + 1)
                 else:
                     futur_stock.append(element)
             go_on = len(futur_stock)
@@ -202,15 +388,9 @@ def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=Tru
 
 
 def preparer_donnees_pour_planning(gn: GN, max_date, min_date, pas):
-    # todo : pendant le parcours, isoler les PNJs Permanents, infiltrés ou continu et les ignorer
-    #  (mais les stocker dans une liste).
-    #  A la fin, ajouter tous les PNJs et, selon leur catégorie :
-    #  - Permanents / infiltrés : tout remplir de min date à max date
-    #  - Continus : trouver leur min date à eux et leur max date à eux et mettre un seul bloc
-    #  Pour tous, ignorer les recouvrements : personne ne prendra leur role
-
-
-    dico_briefs = {}
+    dico_pnjs_temp = {}
+    dico_pnjs_continus = {}
+    dico_pnjs_always = {}
     conteneurs_evts = gn.lister_tous_les_conteneurs_evenements_unitaires()
     for conteneur in conteneurs_evts:
         for intervention in conteneur.interventions:
@@ -229,13 +409,23 @@ def preparer_donnees_pour_planning(gn: GN, max_date, min_date, pas):
             intervenants = intervention.liste_intervenants
             for intervenant in intervenants:
                 clef = intervenant.str_avec_perso()
-                if clef not in dico_briefs:
-                    dico_briefs[clef] = []
-                dico_briefs[clef].append([debut_en_pas, fin_en_pas, intervention.description, conteneur.nom_evenement])
+                if intervenant.get_type_PNJ() == TypePerso.EST_PNJ_CONTINU:
+                    dico_cible = dico_pnjs_continus
+                elif intervenant.get_type_PNJ() in [TypePerso.EST_PNJ_PERMANENT, TypePerso.EST_PNJ_INFILTRE]:
+                    dico_cible = dico_pnjs_always
+                else:
+                    dico_cible = dico_pnjs_temp
+                if clef not in dico_pnjs_temp:
+                    # dico_pnjs_temp[clef] = []
+                    dico_cible[clef] = []
+                # dico_pnjs_temp[clef].append(
+                #     [debut_en_pas, fin_en_pas, intervention.description, conteneur.nom_evenement])
+                dico_cible[clef].append(
+                    [debut_en_pas, fin_en_pas, intervention.description, conteneur.nom_evenement])
 
             min_date = min(min_date, debut_en_pas)
             max_date = max(max_date, fin_en_pas)
-    return dico_briefs, max_date, min_date
+    return dico_pnjs_temp, dico_pnjs_continus, dico_pnjs_always, max_date, min_date
 
 
 ####################### v3 de la focntion en approche monte carlo
