@@ -262,7 +262,7 @@ def lire_et_recharger_gn(fichier_gn: str,
 
     if pjs_lus is not None:
         logging.debug("début du forçage des PJs")
-        mon_gn.forcer_import_pjs(pjs_lus, verbal=True)
+        mon_gn.forcer_import_pjs(pjs_lus, verbal=verbal)
         logging.debug("PJs forcés ok")
 
     m_print("****** reconstruction du GN : reconstruction des factions (si applicable) *********")

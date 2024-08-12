@@ -58,6 +58,34 @@ def pas_en_heure(nombre_de_pas: int, pas: int) -> str:
 # result = heure_en_pas("J5", "21h34", 1)
 # print(result)  # Output: 76894
 
+def dico_brief2tableau_interventions_always(dico_pnjs_always, max_date, min_date, filler="En jeu"):
+    lignes_persos_always, noms_persos, overlapping = dico_brief2tableau_interventions_sans_split(dico_pnjs_always,
+                                                                                                 max_date,
+                                                                                                 min_date)
+    lignes_persos_filled = []
+    for ligne in lignes_persos_always:
+        lignes_persos_filled.append([source or filler for source in ligne])
+    return lignes_persos_filled, noms_persos, overlapping
+
+
+def dico_brief2tableau_interventions_cont(dico_pnjs_continus, max_date, min_date, filler='En jeu'):
+    lignes_persos_cont, noms_persos, overlapping = dico_brief2tableau_interventions_sans_split(dico_pnjs_continus,
+                                                                                               max_date,
+                                                                                               min_date)
+    # chaque ligne du dictionnaire contient une liste d'éléments de la forme :
+    # [debut_en_pas, fin_en_pas, intervention.description, conteneur.nom_evenement])
+    # todo : tester cette fonction
+
+    for i, nom_perso in enumerate(noms_persos):
+        elements = dico_pnjs_continus[nom_perso]
+        debut_perso = min(element[0] for element in elements)
+        fin_perso = max(element[1] for element in elements)
+        for j in range(debut_perso-min_date, fin_perso-min_date+1):
+            lignes_persos_cont[i][j] = lignes_persos_cont[i][j] or filler
+
+    return lignes_persos_cont, noms_persos, overlapping
+
+
 def creer_planning(gn: GN, recursion=50, pas=15,
                    observateur=lambda x, y, z: print(f"{x} itérations effectuées, "
                                                      f"temps écoulée : {y}, "
@@ -65,18 +93,29 @@ def creer_planning(gn: GN, recursion=50, pas=15,
     min_date = sys.maxsize
     max_date = 0
 
-    dico_pnjs_temp, dico_pnjs_continus, dico_pnjs_always, \
+    dico_pnj_anonymes, dico_pnjs_temp, dico_pnjs_continus, dico_pnjs_always, \
         max_date, min_date = preparer_donnees_pour_planning(gn, max_date, min_date, pas)
     # todo :
-    #  A la fin, ajouter tous les PNJs et, selon leur catégorie :
-    #  >> ajouter un paramètre dans la méthode oucréer une nouvelle?
-    #  - Permanents / infiltrés : tout remplir de min date à max date
+    #  PNJs anonymes > on split toutes les interventions t on duplique les noms
+    #  fusionner les différents output pour que la fonction trvaille sur tous
+
     #  - Continus : trouver leur min date à eux et leur max date à eux et mettre un seul bloc
     #  Pour tous, ignorer les recouvrements : personne ne prendra leur role
     #  + comprendre pourquoi le tableau affiche des pnjs permanents dans la liste du nom des PNJs finale
 
-    # maintenant, on enlève les recouvrements et on récupère les tableaux persos pour les PNJs temporaires
-    output, noms_persos = dico_brief2tableau_interventions(dico_pnjs_temp, max_date, min_date)
+    # maintenant, on fusionne les recouvrements et on récupère les tableaux persos pour les PNJs temporaires
+    lignes_persos_tmp, noms_persos, overlapping = dico_brief2tableau_interventions_sans_split(dico_pnjs_temp,
+                                                                                              max_date,
+                                                                                              min_date)
+    #  - Permanents / infiltrés : tout remplir de min date à max date
+    lignes_persos_always, noms_persos, overlapping = dico_brief2tableau_interventions_always(dico_pnjs_always,
+                                                                                             max_date,
+                                                                                             min_date)
+    #pnjs continus
+    lignes_persos_cont, noms_persos, overlapping = dico_brief2tableau_interventions_cont(dico_pnjs_continus,
+                                                                                         max_date,
+                                                                                         min_date)
+    # todo : utiliser overlapping pour générer une liste de warnings
 
     # a ce statde la, on a  :
     #  - un dictionnaire avec tous les PJs et des tableaux d'évènements
@@ -87,12 +126,12 @@ def creer_planning(gn: GN, recursion=50, pas=15,
     # isoler les personnages en doubles à deux endroits à la fois et leur crééer de l'ubiquité
     # return fournir_solutions(output)
     # return recurrer_table_evenementiel_v2(output)
-    mink = len(output)
-    best = output
+    mink = len(lignes_persos_tmp)
+    best = lignes_persos_tmp
 
     start_time = time.time()
     for i in range(recursion):
-        k = table_evenementiel_monte_carlo(output)
+        k = table_evenementiel_monte_carlo(lignes_persos_tmp)
         if not k:
             print("solution sous optimale")
         elif len(k) < mink:
@@ -106,7 +145,7 @@ def creer_planning(gn: GN, recursion=50, pas=15,
     heures = [pas_en_heure(i, pas) for i in range(min_date, max_date + 1)]
 
     # return best
-    sol_complete = indices2solution(best, output, heures, noms_persos)
+    sol_complete = indices2solution(best, lignes_persos_tmp, heures, noms_persos)
     return sol_complete
 
 
@@ -154,6 +193,31 @@ def creer_planning(gn: GN, recursion=50, pas=15,
 #
 #     return True
 
+def fusionner_elements_planning(elements):
+    """
+    Merge a list of planning elements into a single element.
+
+    Parameters:
+    elements (list of lists): Each element is in the format
+                               [debut_en_pas, fin_en_pas, intervention.description, conteneur.nom_evenement]
+
+    Returns:
+    list: A merged element in the format [min_debut, max_fin, combined_descriptions, unique_event_names]
+    """
+
+    if not elements:
+        raise ValueError()
+
+    min_debut = min(element[0] for element in elements)
+    max_fin = max(element[1] for element in elements)
+    combined_descriptions = '\n'.join(element[2] for element in elements)
+    unique_event_names = '\n'.join(set(element[3] for element in elements))
+
+    merged_element = [min_debut, max_fin, combined_descriptions, unique_event_names]
+
+    return merged_element
+
+
 def is_element_integrable(element: list, autres_elements: list[list], elements_a_retirer=None, verbal=True):
     if verbal:
         print(f"Je commence une récursion : \n"
@@ -174,9 +238,11 @@ def is_element_integrable(element: list, autres_elements: list[list], elements_a
                       f"start = {start}, end = {end}, nom = {element[3]} à cause de {autre_element}")
 
             if autre_element[3] == nom_evenement:
-                element[0] = min(start, autre_element[0])
-                element[1] = max(end, autre_element[1])
-                element[2] = f"{element[2]}\n{autre_element[2]}"
+                # element[0] = min(start, autre_element[0])
+                # element[1] = max(end, autre_element[1])
+                # element[2] = f"{element[2]}\n{autre_element[2]}"
+                element = fusionner_elements_planning([autre_element, element])
+
                 autres_elements.remove(autre_element)
                 elements_a_retirer.append(autre_element)
 
@@ -197,7 +263,19 @@ def is_element_integrable(element: list, autres_elements: list[list], elements_a
     return True, elements_a_retirer
 
 
-def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=True):
+def test_iselementintegrable():
+    stock = [[0, 5, "description1", 'evt1'], [1, 4, "description2", 'evt1'], [1, 4, "description2", 'evt2'],
+             [7, 10, "description2", 'evt1']]
+    stock.sort(key=lambda x: x[3])
+    print(f"sorted stock = {stock}")
+    retirer = []
+    test = [0, 6, "test", 'evt1']
+    print(is_element_integrable(test, stock, retirer))
+    print(stock)
+    print(test)
+
+
+def dico_brief2tableau_interventions_avec_split(dico_briefs, max_date, min_date, verbal=True):
     """
        Convertit un dictionnaire d'événements d'intervention en une liste de listes représentant un planning
        d'interventions sur une plage de dates donnée. Cette fonction gère les événements qui se chevauchent
@@ -283,6 +361,43 @@ def dico_brief2tableau_interventions(dico_briefs, max_date, min_date, verbal=Tru
             output.append(ligne)
             noms_persos.append(nom_a_afficher)
     return output, noms_persos
+
+
+def dico_brief2tableau_interventions_sans_split(dico_briefs, max_date, min_date, verbal=True):
+    lignes_tous_persos = []
+    noms_persos = []
+    overlapping_events = {}
+    for intervenant in dico_briefs:
+        # ligne = [None] * (max_date - min_date + 1)
+        # start = element[0]
+        # end = element[1]
+        # nom_evenement = element[3]
+
+        toutes_les_lignes_du_perso = [[None] * (element[0] - min_date) +
+                                      [f"{intervenant} - {element[3]}"] * (element[1] - element[0] + 1) +
+                                      [None] * (max_date - element[1])
+                                      for element in dico_briefs[intervenant]]
+        if verbal:
+            print(f"Pour le personnage {intervenant} : \n"
+                  f"{toutes_les_lignes_du_perso}")
+        # ligne_perso = ['\n'.join(filter(None, cases)) for cases in zip(*toutes_les_lignes)]
+
+        ligne_perso = []
+
+        for date, cases in enumerate(zip(*toutes_les_lignes_du_perso), start=min_date):
+            filtered_cases = list(filter(None, cases))
+            if len(filtered_cases) > 1:
+                # If there are overlapping events
+                if intervenant not in overlapping_events:
+                    overlapping_events[intervenant] = []
+                overlapping_events[intervenant].append([date, '\n'.join(filtered_cases)])
+            ligne_perso.append('\n'.join(filtered_cases))
+        if verbal:
+            print(f"ligne perso concaténée = {ligne_perso}")
+
+        lignes_tous_persos.append(ligne_perso)
+        noms_persos.append(intervenant)
+    return lignes_tous_persos, noms_persos, overlapping_events
 
 
 def dico_brief2tableau_interventions_old(dico_briefs, max_date, min_date, verbal=True):
@@ -391,6 +506,7 @@ def preparer_donnees_pour_planning(gn: GN, max_date, min_date, pas):
     dico_pnjs_temp = {}
     dico_pnjs_continus = {}
     dico_pnjs_always = {}
+    dico_pnj_anonymes = {}
     conteneurs_evts = gn.lister_tous_les_conteneurs_evenements_unitaires()
     for conteneur in conteneurs_evts:
         for intervention in conteneur.interventions:
@@ -413,6 +529,8 @@ def preparer_donnees_pour_planning(gn: GN, max_date, min_date, pas):
                     dico_cible = dico_pnjs_continus
                 elif intervenant.get_type_PNJ() in [TypePerso.EST_PNJ_PERMANENT, TypePerso.EST_PNJ_INFILTRE]:
                     dico_cible = dico_pnjs_always
+                elif intervenant.get_type_PNJ() == TypePerso.EST_PNJ_ANONYME:
+                    dico_cible = dico_pnj_anonymes
                 else:
                     dico_cible = dico_pnjs_temp
                 if clef not in dico_pnjs_temp:
@@ -425,7 +543,7 @@ def preparer_donnees_pour_planning(gn: GN, max_date, min_date, pas):
 
             min_date = min(min_date, debut_en_pas)
             max_date = max(max_date, fin_en_pas)
-    return dico_pnjs_temp, dico_pnjs_continus, dico_pnjs_always, max_date, min_date
+    return dico_pnj_anonymes, dico_pnjs_temp, dico_pnjs_continus, dico_pnjs_always, max_date, min_date
 
 
 ####################### v3 de la focntion en approche monte carlo

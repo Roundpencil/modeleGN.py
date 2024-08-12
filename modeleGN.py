@@ -15,20 +15,21 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.3.20240807"
-VERSION_MODELE = "1.3.20240805"
+VERSION = "1.3.20240812"
+VERSION_MODELE = "1.3.20240812"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 
 
 class TypePerso(IntEnum):
     INDETERMINE = 0
     EST_PNJ_HORS_JEU = 1
-    EST_PNJ_TEMPORAIRE = 2
-    EST_PNJ_CONTINU = 3
-    EST_PNJ_PERMANENT = 4
-    EST_PNJ_INFILTRE = 5
-    EST_REROLL = 6
-    EST_PJ = 7
+    EST_PNJ_ANONYME = 2
+    EST_PNJ_TEMPORAIRE = 3
+    EST_PNJ_CONTINU = 4
+    EST_PNJ_PERMANENT = 5
+    EST_PNJ_INFILTRE = 6
+    EST_REROLL = 7
+    EST_PJ = 8
 
 
 GRILLE_PJ = {TypePerso.INDETERMINE: "Indéterminé",
@@ -38,7 +39,8 @@ GRILLE_PJ = {TypePerso.INDETERMINE: "Indéterminé",
              TypePerso.EST_PNJ_HORS_JEU: "PNJ Hors Jeu",
              TypePerso.EST_PNJ_PERMANENT: "PNJ Permanent",
              TypePerso.EST_PNJ_TEMPORAIRE: "PNJ Temporaire",
-             TypePerso.EST_PNJ_CONTINU: "PNJ Continu"}
+             TypePerso.EST_PNJ_CONTINU: "PNJ Continu",
+             TypePerso.EST_PNJ_ANONYME: "PNJ Anonyme"}
 
 
 def est_un_pnj(niveau_pj):
@@ -526,7 +528,7 @@ class Personnage(ConteneurDeScene):
             self.roles.remove(role)
 
     @staticmethod
-    def perso_depuis_dico(dict_perso: dict, peut_etre_pj=True, peut_etre_pnj=True, peut_etre_reroll=True, verbal=True):
+    def perso_depuis_dico(dict_perso: dict, peut_etre_pj=True, peut_etre_pnj=True, peut_etre_reroll=True, verbal=False):
         to_return = Personnage()
         for key in dict_perso:
             key_propre = unidecode(key).replace(" ", "_").lower()

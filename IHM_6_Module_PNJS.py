@@ -65,7 +65,7 @@ class GUIPNJS(ttk.Frame):
                                                                                         pady=10)
 
         self.progress_bar = Progressbar(self.root, orient=tk.HORIZONTAL, length=300, mode='determinate')
-        self.progress_bar.grid(row=40, column=1, columnspan=3, pady=10, sticky="nsew")
+        self.progress_bar.grid(row=40, column=1, columnspan=3, pady=10, sticky="nsew", padx=5)
 
         tk.Label(self.root, text="Itérations effectuées :").grid(row=60, column=0, padx=5, pady=10, sticky="e")
         tk.Label(self.root, textvariable=self.done_iterations).grid(row=60, column=1, columnspan=1, pady=10,
