@@ -49,7 +49,8 @@ def est_un_pnj(niveau_pj):
         TypePerso.EST_PNJ_TEMPORAIRE,
         TypePerso.EST_PNJ_INFILTRE,
         TypePerso.EST_PNJ_PERMANENT,
-        TypePerso.EST_PNJ_CONTINU
+        TypePerso.EST_PNJ_CONTINU,
+        TypePerso.EST_PNJ_ANONYME
     ]
 
 
@@ -353,7 +354,7 @@ class Personnage(ConteneurDeScene):
         self.driver = driver
         self.questions_ouvertes = questions_ouvertes
         self.sexe = sexe  # i = indéterminé / h = homme / f = femme
-        self.pj:TypePerso = type_perso
+        self.pj: TypePerso = type_perso
         self.actif = True
         self.roles = set()  # liste de rôles qui sont eux meme affectés à des intrigues
         self.relations = set()  # nom relation, relation
@@ -405,7 +406,9 @@ class Personnage(ConteneurDeScene):
         #                  [TypePerso.EST_PNJ_HORS_JEU] if self.est_un_pnj() else [TypePerso.EST_PJ]
         tous_les_types = [role.pj for role in self.roles] + \
                          [self.pj] if self.pj else []
-        if len(self.intervient_comme) + len(self.informations_evenements) > 0:
+        if len(self.intervient_comme) + len(self.informations_evenements) > 0 \
+                and not (self.pj == TypePerso.EST_PNJ_ANONYME):
+            # if len(self.intervient_comme) + len(self.informations_evenements) > 0:
             tous_les_types.append(TypePerso.EST_PNJ_TEMPORAIRE)
         return max(tous_les_types)
 
@@ -2401,7 +2404,7 @@ class IntervenantEvenement:
     def __init__(self, nom_pnj, evenement: ConteneurDEvenementsUnitaires, costumes_et_accessoires="", implication="",
                  situation_de_depart=""):
         self.nom_pnj = nom_pnj
-        self.pnj:Personnage = None
+        self.pnj: Personnage = None
         self.costumes_et_accessoires = costumes_et_accessoires
         self.implication = implication
         self.situation_de_depart = situation_de_depart
@@ -2418,7 +2421,7 @@ class IntervenantEvenement:
                f"\t implication : {self.implication} \n " \
                f"\t commence : {self.situation_de_depart}"
 
-    def get_type_PNJ(self):
+    def get_type_PNJ_from_roles(self):
         return self.pnj.get_type_from_roles()
 
     @staticmethod
@@ -2426,6 +2429,9 @@ class IntervenantEvenement:
         return IntervenantEvenement(
             nom_pnj=role.nom,
             evenement=conteneur_evenement)
+
+    def get_nom_pnj_associe(self):
+        return self.pnj.nom if self.pnj else f"{self.nom_pnj}(pas de Personnage affecté)"
 
 
 class PJConcerneEvenement:

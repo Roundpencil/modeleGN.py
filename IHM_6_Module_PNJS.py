@@ -50,12 +50,14 @@ class GUIPNJS(ttk.Frame):
 
         tk.Label(self.root, text="Nombre d'itérations:", width=20).grid(row=30, column=0, padx=5, pady=5, sticky="e")
         self.iterations_entry = tk.Entry(self.root)
+        self.iterations_entry.insert(0, '250')
         self.iterations_entry.grid(row=30, column=1, padx=5, pady=5, sticky="w")
         self.iterations_entry.bind("<KeyRelease>", self.update_estimated_total_time)
 
         tk.Label(self.root, text="Durée d'un pas (en mn) :", width=20).grid(row=30, column=2, padx=5, pady=5,
                                                                             sticky="e")
         self.pas_entry = tk.Entry(self.root)
+        self.pas_entry.insert(0, "15")
         self.pas_entry.grid(row=30, column=3, padx=5, pady=5, sticky="w")
 
         tk.Label(self.root, text="Temps estimé :").grid(row=36, column=2, padx=5, pady=10, sticky="e")
