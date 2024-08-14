@@ -151,7 +151,7 @@ def generer_csv_association(roles_dict, filename):
             description = role.description
             pipr = role.pipr
             pipi = role.pipi
-            sexe = role.sexe
+            sexe = role.genre
             personnage = role.personnage if role.personnage else ""
             # Écrire les valeurs dans le fichier CSV
             writer.writerow([nom, description, pipr, pipi, sexe, personnage])

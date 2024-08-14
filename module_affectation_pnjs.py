@@ -58,23 +58,27 @@ def pas_en_heure(nombre_de_pas: int, pas: int) -> str:
 # result = heure_en_pas("J5", "21h34", 1)
 # print(result)  # Output: 76894
 
-def dico_brief2tableau_interventions_always(dico_pnjs_always, max_date, min_date, filler="En jeu"):
-    lignes_persos_always, noms_persos, overlapping = dico_brief2tableau_interventions_sans_split(dico_pnjs_always,
-                                                                                                 max_date,
-                                                                                                 min_date)
+def dico_brief2tableau_interventions_always(dico_pnjs_always, max_date, min_date, dico_genre, filler="En jeu"):
+    lignes_persos_always, noms_persos, overlapping, genres_always = dico_brief2tableau_interventions_sans_split(
+        dico_pnjs_always,
+        max_date, min_date,
+        dico_genre=dico_genre)
+
     lignes_persos_filled = []
     for ligne in lignes_persos_always:
         lignes_persos_filled.append([source or filler for source in ligne])
-    return lignes_persos_filled, noms_persos, overlapping
+    return lignes_persos_filled, noms_persos, overlapping, genres_always
 
 
-def dico_brief2tableau_interventions_cont(dico_pnjs_continus, max_date, min_date, filler='En jeu'):
-    lignes_persos_cont, noms_persos, overlapping = dico_brief2tableau_interventions_sans_split(dico_pnjs_continus,
-                                                                                               max_date,
-                                                                                               min_date)
+def dico_brief2tableau_interventions_cont(dico_pnjs_continus, max_date, min_date, dico_genre, filler='En jeu'):
+    lignes_persos_cont, noms_persos, overlapping, genres_cont = dico_brief2tableau_interventions_sans_split(
+        dico_pnjs_continus,
+        max_date,
+        min_date,
+        dico_genre)
+
     # chaque ligne du dictionnaire contient une liste d'éléments de la forme :
     # [debut_en_pas, fin_en_pas, intervention.description, conteneur.nom_evenement])
-
     for i, nom_perso in enumerate(noms_persos):
         elements = dico_pnjs_continus[nom_perso]
         debut_perso = min(element[0] for element in elements)
@@ -82,8 +86,34 @@ def dico_brief2tableau_interventions_cont(dico_pnjs_continus, max_date, min_date
         for j in range(debut_perso - min_date, fin_perso - min_date + 1):
             lignes_persos_cont[i][j] = lignes_persos_cont[i][j] or f"{filler} - {nom_perso}"
 
-    return lignes_persos_cont, noms_persos, overlapping
+    return lignes_persos_cont, noms_persos, overlapping, genres_cont
 
+
+def generer_table_n2(colonnes_source, table_genre, verbal=True):
+    dictionnaire_combinaisons = {}
+    nb_col_source = len(colonnes_source)
+    range_source = range(nb_col_source)
+
+    table_genre = table_genre or [GENRE_INDETERMINE] * len(colonnes_source)
+
+    table_n2 = []
+    for i in range_source:
+        for j in range(i + 1, len(colonnes_source)):
+            if verbal:
+                print(f"table_genre[i] = {table_genre[i]}")
+                print(f"table_genre[j] = {table_genre[j]}")
+                print(f"genre indéterminé = {GENRE_INDETERMINE}")
+                print(
+                    f"compatibles = {table_genre[i] == table_genre[j] or table_genre[i] == GENRE_INDETERMINE or table_genre[j] == GENRE_INDETERMINE}")
+
+            # if resultat := fusionner_colonnes(colonnes_source[i], colonnes_source[j], 0):
+            if (table_genre[i] == table_genre[j] or
+                table_genre[i] == GENRE_INDETERMINE or
+                table_genre[j] == GENRE_INDETERMINE) and \
+                    (resultat := fusionner_colonnes(colonnes_source[i], colonnes_source[j], 0)):
+                dictionnaire_combinaisons[(i, j)] = resultat
+                table_n2.append({i, j})
+    return range_source, nb_col_source, table_n2
 
 def creer_planning(gn: GN, recursion=50, pas=15,
                    observateur=lambda x, y, z: print(f"{x} itérations effectuées, "
@@ -95,33 +125,41 @@ def creer_planning(gn: GN, recursion=50, pas=15,
     dico_pnjs_anonymes, dico_pnjs_temp, dico_pnjs_continus, dico_pnjs_always, \
         max_date, min_date = preparer_donnees_pour_planning(gn, max_date, min_date, pas)
 
+    dico_genre = {pnj.get_nom(): pnj.get_genre() for pnj in gn.get_dict_pnj().values()}
+
     # pnjs anonymes
-    lignes_persos_ano, noms_persos_ano, _ = dico_brief2tableau_interventions_sans_split(
+    lignes_persos_ano, noms_persos_ano, _, genres_ano = dico_brief2tableau_interventions_sans_split(
         dico_pnjs_anonymes,
         max_date,
         min_date,
+        dico_genre,
         merge=False,
         verbal=False)
 
     # maintenant, on fusionne les recouvrements et on récupère les tableaux persos pour les PNJs temporaires
-    lignes_persos_tmp, noms_persos_tmp, overlapping_tmp = dico_brief2tableau_interventions_sans_split(dico_pnjs_temp,
-                                                                                                      max_date,
-                                                                                                      min_date)
-    # pnjs continus
-    lignes_persos_cont, noms_persos_cont, overlapping_cont = dico_brief2tableau_interventions_cont(dico_pnjs_continus,
-                                                                                                   max_date,
-                                                                                                   min_date)
-    #  - Permanents / infiltrés : tout remplir de min date à max date
-    lignes_persos_always, noms_persos_always, overlapping_always = dico_brief2tableau_interventions_always(
-        dico_pnjs_always,
+    lignes_persos_tmp, noms_persos_tmp, overlapping_tmp, genres_tmp = dico_brief2tableau_interventions_sans_split(
+        dico_pnjs_temp,
         max_date,
-        min_date)
+        min_date,
+        dico_genre)
+    # pnjs continus
+    lignes_persos_cont, noms_persos_cont, overlapping_cont, genres_cont = dico_brief2tableau_interventions_cont(
+        dico_pnjs_continus,
+        max_date,
+        min_date,
+        dico_genre)
+    #  - Permanents / infiltrés : tout remplir de min date à max date
+    lignes_persos_always, noms_persos_always, overlapping_always, genres_always = \
+        dico_brief2tableau_interventions_always(
+            dico_pnjs_always,
+            max_date,
+            min_date,
+            dico_genre)
 
     lignes_persos = lignes_persos_ano + lignes_persos_tmp + lignes_persos_cont + lignes_persos_always
     noms_persos = noms_persos_ano + noms_persos_tmp + noms_persos_cont + noms_persos_always
     overlapping = {**overlapping_tmp, **overlapping_cont, **overlapping_always}
-
-    # todo : prendre en compte le genre des pnjs dans les tables de monte Carlo pour valider que la fusion est possible
+    table_genre = genres_ano + genres_tmp + genres_cont + genres_always
 
     # a ce statde la, on a  :
     #  - un dictionnaire avec tous les PJs et des tableaux d'évènements
@@ -129,15 +167,17 @@ def creer_planning(gn: GN, recursion=50, pas=15,
 
     # on veut donc :
     # préparer les données sous la forme d'un tableau qui lie, une fois fini, lie les aides aux personnages
-    # isoler les personnages en doubles à deux endroits à la fois et leur crééer de l'ubiquité
-    # return fournir_solutions(output)
-    # return recurrer_table_evenementiel_v2(output)
+
     mink = len(lignes_persos)
     best = lignes_persos
 
+    #initialisation de la table n2 des associations 2 à deux des lignes compatibbles
+    range_source, nb_col_source, table_n2 = generer_table_n2(lignes_persos, table_genre)
+
     start_time = time.time()
     for i in range(recursion):
-        k = table_evenementiel_monte_carlo(lignes_persos)
+        k = table_evenementiel_monte_carlo(range_source, nb_col_source, table_n2)
+
         if not k:
             print("solution sous optimale")
         elif len(k) < mink:
@@ -373,10 +413,11 @@ def creer_planning(gn: GN, recursion=50, pas=15,
 #     return output, noms_persos
 
 
-def dico_brief2tableau_interventions_sans_split(dico_briefs, max_date, min_date, verbal=False, merge=True):
+def dico_brief2tableau_interventions_sans_split(dico_briefs, max_date, min_date, dico_genre, verbal=False, merge=True):
     lignes_tous_persos = []
     noms_persos = []
     overlapping_events = {}
+    table_genre = []
     for intervenant in dico_briefs:
         # ligne = [None] * (max_date - min_date + 1)
         # start = element[0]
@@ -408,6 +449,7 @@ def dico_brief2tableau_interventions_sans_split(dico_briefs, max_date, min_date,
 
             lignes_tous_persos.append(ligne_perso)
             noms_persos.append(intervenant)
+            table_genre.append(dico_genre[intervenant])
         else:  # dans ce cas, on va créer des doublons pour chaque évènement, pour les PNJs anonymes
             for i, ligne in enumerate(toutes_les_lignes_du_perso):
                 nom_ligne = intervenant + f"_{i + 1}" if len(toutes_les_lignes_du_perso) > 1 else ""
@@ -416,7 +458,8 @@ def dico_brief2tableau_interventions_sans_split(dico_briefs, max_date, min_date,
                     print(ligne)
                 lignes_tous_persos.append(ligne)
                 noms_persos.append(nom_ligne)
-    return lignes_tous_persos, noms_persos, overlapping_events
+                table_genre.append(dico_genre[intervenant])
+    return lignes_tous_persos, noms_persos, overlapping_events, table_genre
 
 
 # def dico_brief2tableau_interventions_old(dico_briefs, max_date, min_date, verbal=True):
@@ -571,7 +614,7 @@ def preparer_donnees_pour_planning(gn: GN, max_date, min_date, pas, verbal=False
 ####################### v3 de la focntion en approche monte carlo
 
 
-def table_evenementiel_monte_carlo(colonnes_source, mink=sys.maxsize):
+def table_evenementiel_monte_carlo(range_source, nb_col_source, table_n2, mink=sys.maxsize, verbal=True):
     # hypotèse : il existe une combianison ABC  SSI AB, AC et BC sont des solutions possibles
     # hypothèse 2 : il existe une combinaison ABCD SSI ABC est possible et AD, BC, et CD sont possibles
     # et ainsi de suite
@@ -582,22 +625,8 @@ def table_evenementiel_monte_carlo(colonnes_source, mink=sys.maxsize):
     # SI il existe une table de niveau N+1 avec au moins un élément ALORS jer cherche une table de niveau N+2
     # SINON  j'ai fini de trouver mes  solutions
 
-    # initialisation : création table niveau 2
-    # niveau = 2
-    # tables = {niveau: []}
-    # table_n2 = tables[2]
-    table_n2 = []
-    dictionnaire_combinaisons = {}
-    nb_col_source = len(colonnes_source)
-    range_source = range(nb_col_source)
 
-    for i in range_source:
-        for j in range(i + 1, len(colonnes_source)):
-            if resultat := fusionner_colonnes(colonnes_source[i], colonnes_source[j], 0):
-                dictionnaire_combinaisons[(i, j)] = resultat
-                table_n2.append({i, j})
-
-    # à ce stade là on a toutes les combinaisons niveau 2
+    # à ce stade là on a toutes les combinaisons niveau 2 > cf entrée
 
     ### on commence par setuper toutes les variables dont on aura besoin
     # dico_candidats = {-1: []} # on itnitialise -1 pour avoir tout dans la brique de base

@@ -15,10 +15,10 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.3.20240812"
-VERSION_MODELE = "1.3.20240812"
+VERSION = "1.3.20240814"
+VERSION_MODELE = "1.3.20240814"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
-
+GENRE_INDETERMINE = ''
 
 class TypePerso(IntEnum):
     INDETERMINE = 0
@@ -340,7 +340,7 @@ class ConteneurDEvenementsUnitaires(ABC):
 # personnage
 class Personnage(ConteneurDeScene):
     def __init__(self, nom="personnage sans nom", concept="", driver="", description="", questions_ouvertes="",
-                 sexe="i", type_perso: TypePerso = TypePerso.EST_PJ, orga_referent=None, pitch_joueur="",
+                 genre=GENRE_INDETERMINE, type_perso: TypePerso = TypePerso.EST_PJ, orga_referent=None, pitch_joueur="",
                  indications_costume="",
                  textes_annexes="", url="", last_processing=None,
                  dates_clefs="", forced=False,
@@ -354,7 +354,7 @@ class Personnage(ConteneurDeScene):
         self.concept = concept
         self.driver = driver
         self.questions_ouvertes = questions_ouvertes
-        self.sexe = sexe  # i = indéterminé / h = homme / f = femme
+        self.genre = genre  # i = indéterminé / h = homme / f = femme
         self.pj: TypePerso = type_perso
         self.actif = True
         self.roles = set()  # liste de rôles qui sont eux meme affectés à des intrigues
@@ -422,7 +422,7 @@ class Personnage(ConteneurDeScene):
         to_return += f"concept = {self.concept} \n"
         to_return += f"driver = {self.driver} \n"
         to_return += f"questions_ouvertes = {self.questions_ouvertes} \n"
-        to_return += f"sexe = {self.sexe} \n"
+        to_return += f"genre = {self.get_genre()} \n"
         to_return += f"pj = {string_type_pj(self.pj)} \n"
         to_return += f"actif = {self.actif} \n"
         to_return += f"roles = {str(self.roles)} \n"
@@ -567,6 +567,9 @@ class Personnage(ConteneurDeScene):
             print(f"Le personnage {to_return.nom} est du type {string_type_pj(to_return.pj)}")
         return to_return
 
+    def get_genre(self):
+        return self.genre
+
 
 # rôle
 class Role:
@@ -574,7 +577,7 @@ class Role:
     def __init__(self, conteneur: ConteneurDeScene = None, personnage: Personnage = None, nom="rôle sans nom",
                  description="", pipi=0,
                  pipr=0,
-                 genre="i",
+                 genre=GENRE_INDETERMINE,
                  pj: TypePerso = TypePerso.EST_PJ,
                  type_intrigue="", niveau_implication="", perimetre_intervention="", issu_dune_faction=False,
                  pip_globaux=0, affectation="", alias_dans_intrigue=None):
@@ -600,7 +603,7 @@ class Role:
         self.pip_total = 0
         self.sommer_pip()
         self.pj = pj
-        self.sexe = genre
+        self.genre = genre
         self.typeIntrigue = type_intrigue
         self.niveauImplication = niveau_implication
         self.scenes = set()
@@ -2094,11 +2097,14 @@ class GN:
                           {'objets': 'objets_de_reference'},
                       Personnage:
                           {"orgaReferent": "orga_referent",
-                           "joueurs": "interpretes"},
+                           "joueurs": "interpretes",
+                           "sexe": "genre"},
                       Intrigue:
                           {'orgaReferent': 'orga_referent'},
                       EvenementUnitaire:
-                          {'heure': 'heure_debut'}
+                          {'heure': 'heure_debut'},
+                      Role:
+                          {"sexe": "genre"}
                       }
 
         # déclaration de la méthode de mise à jour

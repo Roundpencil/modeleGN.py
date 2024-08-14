@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import threading
 
 import google_io as g_io
+import lecteurGoogle
 import module_affectation_pnjs
 from modeleGN import GN, id_2_doc_address, id_2_sheet_address
 from module_affectation_pnjs import creer_planning
@@ -257,20 +258,20 @@ class GUIPNJS(ttk.Frame):
         button_frame = tk.Frame(popup)
         button_frame.pack(pady=10)
 
-        ok_button = tk.Button(button_frame, text="Ok", command=close_popup, width=15)
+        ok_button = tk.Button(button_frame, text="Ok", command=close_popup)
         ok_button.grid(row=0, column=0, padx=5)
 
-        open_button = tk.Button(button_frame, text="Ouvrir le fichier planning", command=open_sheet_file, width=15)
-        open_button.grid(row=0, column=1, padx=5)
+        open_button = tk.Button(button_frame, text="Ouvrir le fichier planning", command=open_sheet_file)
+        open_button.grid(row=1, column=0, padx=5)
 
-        open_button = tk.Button(button_frame, text="Ouvrir le fichier des recouvrements", command=open_doc_file,
-                                width=15)
-        open_button.grid(row=0, column=2, padx=5)
+        open_button = tk.Button(button_frame, text="Ouvrir le fichier des recouvrements", command=open_doc_file)
+        open_button.grid(row=2, column=0, padx=5)
 
 
 def main():
     root = tk.Tk()
-    app = MyTkinterGUI(root)
+    dr, do, sh = lecteurGoogle.creer_lecteurs_google_apis()
+    app = GUIPNJS(root, dr, do, sh)
     root.mainloop()
 
 
