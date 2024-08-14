@@ -7,14 +7,18 @@ from datetime import datetime, timedelta
 import threading
 
 import google_io as g_io
-from modeleGN import GN
+import module_affectation_pnjs
+from modeleGN import GN, id_2_doc_address, id_2_sheet_address
 from module_affectation_pnjs import creer_planning
 from tkinter import ttk
 
 
 class GUIPNJS(ttk.Frame):
-    def __init__(self, parent, api_sheet, api_drive):
+    def __init__(self, parent, api_drive, api_doc, api_sheet):
         super().__init__(parent)
+        self.bouton_enregistrer = None
+        self.winfo_toplevel().title("Module affectation des PNJs")
+
         self.root = self
         # self.root.title("My Tkinter GUI")
         # self.root.geometry("620x300")
@@ -30,9 +34,11 @@ class GUIPNJS(ttk.Frame):
         self.gn = None
         self.api_sheet = api_sheet
         self.api_drive = api_drive
+        self.api_doc = api_doc
 
         self.planning_thread = None
         self.result_queue = None
+        self.overlapping_queue = None
 
         self.create_widgets()
 
@@ -72,8 +78,11 @@ class GUIPNJS(ttk.Frame):
         tk.Label(self.root, text="Itérations effectuées :").grid(row=60, column=0, padx=5, pady=10, sticky="e")
         tk.Label(self.root, textvariable=self.done_iterations).grid(row=60, column=1, columnspan=1, pady=10,
                                                                     sticky="w")
-        tk.Button(self.root, text="Enregistrer résultat dans dossier output", command=self.save_to_drive) \
-            .grid(row=60, column=2, padx=5, columnspan=2, pady=10, sticky="e")
+        self.bouton_enregistrer = tk.Button(self.root,
+                                            text="Enregistrer résultat (planning et \n fichier des erreurs)"
+                                                 " dans dossier output",
+                                            command=self.save_to_drive, state='disabled')
+        self.bouton_enregistrer.grid(row=60, column=2, padx=5, columnspan=2, pady=10, sticky="e", rowspan=2)
 
         tk.Label(self.root, text="Heure de fin estimée :").grid(row=61, column=0, padx=5, pady=10, sticky="e")
         tk.Label(self.root, textvariable=self.estimated_end_time).grid(row=61, column=1, columnspan=1, pady=10,
@@ -128,18 +137,20 @@ class GUIPNJS(ttk.Frame):
             # planning_thread.start()
 
             # Define the wrapper function
-            def wrapper(gn, iterations, pas, observateur, result_queue):
-                result = creer_planning(gn, iterations, pas, observateur)
+            def wrapper(gn, iterations_to_to, taille_pas, observateur, result_queue, overlapping_queue):
+                result, overlapping = creer_planning(gn, iterations_to_to, taille_pas, observateur)
                 result_queue.put(result)
+                overlapping_queue.put(overlapping)
 
             # Create a queue to store the result
             self.result_queue = queue.Queue()
+            self.overlapping_queue = queue.Queue()
 
             # Create a thread to run the wrapper function
             self.planning_thread = threading.Thread(
                 target=wrapper,
-                args=(
-                self.gn, iterations, pas, lambda x, y, z: self.observateur(iterations, x, y, z), self.result_queue)
+                args=(self.gn, iterations, pas, lambda x, y, z: self.observateur(iterations, x, y, z),
+                      self.result_queue, self.overlapping_queue)
             )
 
             # Start the thread
@@ -172,10 +183,12 @@ class GUIPNJS(ttk.Frame):
 
         if iteration + 1 == iterations:
             messagebox.showinfo("Opération Terminée", f"Durée totale {temps_ecoule} secondes")
+            self.bouton_enregistrer.config(state="normal")
 
-    def update_heure_fin(self, iterations, iteration, temps_ecoule):
+    def update_heure_fin(self, iterations, iteration, temps_ecoule, verbal=False):
         secondes_restantes = (iterations - iteration) * self.estimated_iteration_time.get()
-        print(f"secondes restantes : {secondes_restantes}")
+        if verbal:
+            print(f"secondes restantes : {secondes_restantes}")
         end_time = datetime.now() + timedelta(seconds=secondes_restantes)
         self.estimated_end_time.set(end_time.strftime("%H:%M:%S"))
 
@@ -196,6 +209,7 @@ class GUIPNJS(ttk.Frame):
 
         # Retrieve the result from the queue
         resultat = self.result_queue.get()
+        overlapping = self.overlapping_queue.get()
         if verbal:
             print("résultat lu dans la queue")
 
@@ -205,12 +219,24 @@ class GUIPNJS(ttk.Frame):
         id_folder = self.gn.get_dossier_outputs_drive()
         nom_fichier = f'{datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
                       f'- Planning activité par PNJ'
-        id_sheet = g_io.creer_google_sheet(self.api_drive, nom_fichier, id_folder)
+        id_archive = self.gn.get_id_dossier_archive()
+        id_sheet = g_io.creer_google_sheet(self.api_drive, nom_fichier, id_folder, id_dossier_archive=id_archive)
         g_io.write_to_sheet(self.api_sheet, resultat, id_sheet)
 
-        def open_file():
+        formatted_overlapping = module_affectation_pnjs.formatter_overlapping_pour_export(overlapping)
+        nom_fichier = f'{datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+                      f'- Détail des évènements se recouvrant par PNJ'
+        id_doc = g_io.creer_google_doc(self.api_drive, nom_fichier, id_folder, id_dossier_archive=id_archive)
+        g_io.write_to_doc(self.api_doc, id_doc, formatted_overlapping)
+
+        def open_doc_file():
             # Replace with your URL or file path
-            url = g_io.id_2_sheet_address(id_sheet)
+            url = id_2_doc_address(id_doc)
+            webbrowser.open(url)
+
+        def open_sheet_file():
+            # Replace with your URL or file path
+            url = id_2_sheet_address(id_sheet)
             webbrowser.open(url)
 
         def close_popup():
@@ -224,7 +250,7 @@ class GUIPNJS(ttk.Frame):
         popup.geometry("300x150")
 
         # Add text to the popup
-        message = tk.Label(popup, text="Le fichier a bien été créé", pady=20)
+        message = tk.Label(popup, text="Les fichiers ont bien été créé", pady=20)
         message.pack()
 
         # Add buttons to the popup
@@ -234,8 +260,12 @@ class GUIPNJS(ttk.Frame):
         ok_button = tk.Button(button_frame, text="Ok", command=close_popup, width=15)
         ok_button.grid(row=0, column=0, padx=5)
 
-        open_button = tk.Button(button_frame, text="Ouvrir le fichier", command=open_file, width=15)
+        open_button = tk.Button(button_frame, text="Ouvrir le fichier planning", command=open_sheet_file, width=15)
         open_button.grid(row=0, column=1, padx=5)
+
+        open_button = tk.Button(button_frame, text="Ouvrir le fichier des recouvrements", command=open_doc_file,
+                                width=15)
+        open_button.grid(row=0, column=2, padx=5)
 
 
 def main():

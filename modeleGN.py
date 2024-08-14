@@ -212,7 +212,8 @@ class ConteneurDeScene:
         self.rolesContenus[role.nom] = role
 
     def get_full_url(self):
-        return f"https://docs.google.com/document/d/{self.url}"
+        # return f"https://docs.google.com/document/d/{self.url}"
+        return id_2_doc_address(self.url)
 
     def updater_dates_maj_scenes(self, conteneur_de_reference, verbal=False):
         for ma_scene in self.scenes:
@@ -2387,7 +2388,8 @@ class FicheEvenement(ConteneurDEvenementsUnitaires):
         return self.heure_de_fin
 
     def get_full_url(self):
-        return f"https://docs.google.com/document/d/{self.id_url}"
+        # return f"https://docs.google.com/document/d/{self.id_url}"
+        return id_2_doc_address(self.id_url)
 
     def get_referent(self):
         return self.referent
@@ -2606,5 +2608,13 @@ class ObjetDeReference:
         self.objets_dans_evenements.clear()
 
     def get_full_url(self):
-        return f"https://docs.google.com/document/d/{self.id_url}"
-    # todo : rassembler cette fonction dans g_io avec son alter ego pour les sheets
+        # return f"https://docs.google.com/document/d/{self.id_url}"
+        return id_2_doc_address(self.id_url)
+
+
+def id_2_sheet_address(id_sheet: str):
+    return r"https://docs.google.com/spreadsheets/d/" + id_sheet
+
+
+def id_2_doc_address(id_doc: str):
+    return r"https://docs.google.com/document/d/" + id_doc

@@ -101,7 +101,7 @@ def creer_planning(gn: GN, recursion=50, pas=15,
         max_date,
         min_date,
         merge=False,
-        verbal=True)
+        verbal=False)
 
     # maintenant, on fusionne les recouvrements et on récupère les tableaux persos pour les PNJs temporaires
     lignes_persos_tmp, noms_persos_tmp, overlapping_tmp = dico_brief2tableau_interventions_sans_split(dico_pnjs_temp,
@@ -121,9 +121,6 @@ def creer_planning(gn: GN, recursion=50, pas=15,
     noms_persos = noms_persos_ano + noms_persos_tmp + noms_persos_cont + noms_persos_always
     overlapping = {**overlapping_tmp, **overlapping_cont, **overlapping_always}
 
-    # todo : utiliser overlapping pour générer une liste de warnings
-    #  générer des alertes ubiquités dans une fichier à part pour alerter sur les PNJs à plusieurs endroits,
-    #  et l'afficher dans la popup de fin
     # todo : prendre en compte le genre des pnjs dans les tables de monte Carlo pour valider que la fusion est possible
 
     # a ce statde la, on a  :
@@ -155,7 +152,11 @@ def creer_planning(gn: GN, recursion=50, pas=15,
 
     # return best
     sol_complete = indices2solution(best, lignes_persos, heures, noms_persos)
-    return sol_complete
+
+    # on remplaces les pas dans overlapping par des vraies valeurs d'heure
+    for clef in overlapping:
+        overlapping[clef] = [[pas_en_heure(date, pas), detail] for date, detail in overlapping[clef]]
+    return sol_complete, overlapping
 
 
 # def is_element_integrable(element:list, autres_elements:list[list], elements_a_retirer=None, verbal=True):
@@ -520,7 +521,7 @@ def dico_brief2tableau_interventions_sans_split(dico_briefs, max_date, min_date,
 #     return output, noms_persos
 
 
-def preparer_donnees_pour_planning(gn: GN, max_date, min_date, pas, verbal=True):
+def preparer_donnees_pour_planning(gn: GN, max_date, min_date, pas, verbal=False):
     dico_pnjs_temp = {}
     dico_pnjs_continus = {}
     dico_pnjs_always = {}
@@ -582,7 +583,7 @@ def table_evenementiel_monte_carlo(colonnes_source, mink=sys.maxsize):
     # SINON  j'ai fini de trouver mes  solutions
 
     # initialisation : création table niveau 2
-    niveau = 2
+    # niveau = 2
     # tables = {niveau: []}
     # table_n2 = tables[2]
     table_n2 = []
@@ -706,7 +707,7 @@ def table_evenementiel_monte_carlo(colonnes_source, mink=sys.maxsize):
 def indices2solution(solution_depliee, colonnes_source, colonne_heure, noms_persos):
     solution_complete = [['', ''] + colonne_heure]
     for i, key in enumerate(solution_depliee, start=1):
-        current_names = []
+        # current_names = []
         # print(f"clef en cours : {key}")
         indices_colonnes = list(solution_depliee[key])
         to_add = colonnes_source[indices_colonnes[0]]
@@ -722,8 +723,17 @@ def indices2solution(solution_depliee, colonnes_source, colonne_heure, noms_pers
     return [[solution_complete[j][i] for j in range(len(solution_complete))] for i in range(len(solution_complete[0]))]
 
 
+def formatter_overlapping_pour_export(overlapping: dict[str, list[str]]):
+    to_export = ""
+    gras = lecteurGoogle.VALEURS_FORMATTAGE['bold']
+    for nom in overlapping:
+        to_export += gras[0] + nom + gras[1] + '\n'
+        to_export += lecteurGoogle.formatter_tableau_pour_export(overlapping[nom]) + '\n' * 2
+    return to_export
+
+
 def tester_creation_planning():
     gn = GN.load('archive Chalacta.mgn')
-    k = creer_planning(gn)
+    k, _ = creer_planning(gn)
     _, _, sh = lecteurGoogle.creer_lecteurs_google_apis()
     g_io.write_to_sheet(sh, k, '17v9re5w-03BJ8b4tbMTPpgRA-o2Z6uIB-j6s2bD05k4')

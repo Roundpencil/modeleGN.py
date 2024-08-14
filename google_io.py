@@ -1951,7 +1951,8 @@ def extraire_persos_de_texte(texte_avec_format, nom_doc, id_url, last_file_edit,
     nom_perso_en_cours = re.sub(r"^[a-zA-Z]?\d+\s*-", '', nom_doc).strip()
     # print(f"nomDoc =_{nomDoc}_ nomPJ =_{nomPJ}_")
     # print(f"Personnage en cours d'importation : {nomPJ} avec {len(textePJ)} caractères")
-    current_personnage = Personnage(nom=nom_perso_en_cours, url=id_url, derniere_edition_fichier=last_file_edit, type_perso=pj)
+    current_personnage = Personnage(nom=nom_perso_en_cours, url=id_url, derniere_edition_fichier=last_file_edit,
+                                    type_perso=pj)
     current_personnage.modifie_par = derniere_modification_par
     dict_pj_pnj[id_url] = current_personnage
 
@@ -4123,7 +4124,3 @@ def ajouter_archive_gn_aux_recherchables(api_drive, dossier_upload: str, fichier
         print(f"Une erreur HTTP s'est produite en voulant ajouter le GN aux archives en ligne : {error}")
     except Exception as error:
         print(f"Une erreur inattendue s'est produite en voulant ajouter le GN aux archives en ligne : {error}")
-
-
-def id_2_sheet_address(id_sheet: str):
-    return r"https://docs.google.com/spreadsheets/d/" + id_sheet

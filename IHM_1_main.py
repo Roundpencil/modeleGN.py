@@ -111,7 +111,9 @@ class MAGnetMainGUI(ttk.Frame):
         self.change_window(future_fenetre)
 
     def ecran_planning(self):
-        future_fenetre = IHM_6_Module_PNJS.GUIPNJS(self.winfo_toplevel(), api_sheet=self.api_sheets,
+        future_fenetre = IHM_6_Module_PNJS.GUIPNJS(self.winfo_toplevel(),
+                                                   api_doc=self.api_doc,
+                                                   api_sheet=self.api_sheets,
                                                    api_drive=self.api_drive)
         self.change_window(future_fenetre)
 
