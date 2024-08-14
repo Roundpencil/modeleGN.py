@@ -6,7 +6,7 @@ import IHM_2_generation
 import IHM_4_editer_config
 import google_io as g_io
 import lecteurGoogle
-from IHM_lib import ToolTip
+from IHM_lib import ToolTip, GidEntry
 
 # addresse_fiche_intrigue = "https://docs.google.com/document/d/1TeZ6FQafiHyRAJb61wSI6NKTAXHioSI5RmKkgxkqU10"
 # addresse_fiche_perso = "https://docs.google.com/document/d/1ZfbzOmGkbVEPzn_u1h6M6JZBZyMcYKgMcqL55k996uw"
@@ -90,7 +90,7 @@ class WizzardGN(ttk.Frame):
                            command=self.toggle_creation_fichiers_entry).grid(column=0, row=30 + value, sticky=tk.W,
                                                                              columnspan=2)
         # Entry for Creation fichiers
-        self.creation_fichiers_entry = tk.Entry(self, state="normal")
+        self.creation_fichiers_entry = GidEntry(self, state="normal")
         self.creation_fichiers_entry.grid(column=0, row=32, columnspan=3, sticky=tk.EW, padx=(10, 10), pady=(3, 10))
         self.creation_fichiers_entry['state'] = 'normal'
         creation_fichiers_tooltip = tk.Label(self, text="?",
@@ -426,6 +426,11 @@ class WizzardGN(ttk.Frame):
 
         if self.date_gn_checkbox_var.get():
             dict_optionnels["date_gn"] = self.date_gn_entry.get()
+
+        #création du fichier Archives
+        dossier_archives = g_io.creer_dossier_drive(self.api_drive, nom_parent,
+                                                   f"Archives")
+        dict_optionnels["id_dossier_archive"] = dossier_archives
 
         print(dict_essentiels)
         print(dict_optionnels)
