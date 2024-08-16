@@ -82,7 +82,8 @@ class WizzardGN(ttk.Frame):
         # Création fichiers
         self.creation_fichiers_var = tk.StringVar()
         self.creation_fichiers_var.set(1)
-        creation_fichiers_options = [("Création automatique par MAGnet des fichiers dans le dossier ci-dessous ", 1),
+        creation_fichiers_options = [("Création automatique par MAGnet des fichiers dans le dossier google drive "
+                                      "dont l'URL est ci-dessous ", 1),
                                      ("Création et saisie manuelle des fichiers et de leurs adresses"
                                       " par l'utilisateur", 0)]
         for text, value in creation_fichiers_options:

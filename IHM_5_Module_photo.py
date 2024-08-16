@@ -202,6 +202,14 @@ class GUIPhotos(ttk.Frame):
         # Entry for the second section
         photo_folder_entry = GidEntry(creerfichier_labelframe)
         photo_folder_entry.grid(row=40, column=1, padx=10, pady=5, columnspan=3, sticky='we')
+        photo_folder_warning_label = ttk.Label(creerfichier_labelframe,
+                                               text="Attention, ce dossier doit être publiquement accessible "
+                                                    "pour que le module Photo puisse l'utiliser \n"
+                                                    "(partager/accès général/ tous les utilisateurs qui ont le lien "
+                                                    "dans google drive - cf. manuel) ",
+                                               foreground="red")
+        # todo : recopier ce cahmp dansl'autre module
+        photo_folder_warning_label.grid(row=41, column=0, padx=10, pady=5, columnspan=3, sticky='we')
 
         # Third section: "Format du nom des photos"
         format_label = ttk.Label(creerfichier_labelframe, text="Format du nom des photos")
@@ -431,7 +439,7 @@ class GUIPhotos(ttk.Frame):
 
         # ajout d'un dropdown pour les onglets
         dropdown_onglet_label = ttk.Label(inserphotos_labelframe,
-                                          text="Choix de l'onglet dans les fichier")
+                                          text="Choix de l'onglet dans les fichiers")
         dropdown_onglet_label.grid(row=60, column=0, columnspan=4, sticky='w')
 
         self.dropdown_onglet_selected_option = tk.StringVar()
@@ -598,7 +606,7 @@ class GUIPhotos(ttk.Frame):
 
         # Update the label's text and font
         self.has_changed_label.config(text="Les réglages prédéfinis ont changé, "
-                                           "n'oubliez pas de sauvegarder si vous souhaiter les conserver",
+                                           "n'oubliez pas de sauvegarder si vous souhaitez les conserver",
                                       font=italic_font)
 
     def cancel_change(self):
