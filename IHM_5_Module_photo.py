@@ -204,11 +204,11 @@ class GUIPhotos(ttk.Frame):
         photo_folder_entry.grid(row=40, column=1, padx=10, pady=5, columnspan=3, sticky='we')
         photo_folder_warning_label = ttk.Label(creerfichier_labelframe,
                                                text="Attention, ce dossier doit être publiquement accessible "
-                                                    "pour que le module Photo puisse l'utiliser \n"
-                                                    "(partager/accès général/ tous les utilisateurs qui ont le lien "
-                                                    "dans google drive - cf. manuel) ",
+                                                    "pour que le Module Photo puisse l'utiliser. \n"
+                                                    "Dans google drive : Partager > accès général > "
+                                                    "tous les utilisateurs qui ont le lien "
+                                                    " - cf. manuel) ",
                                                foreground="red")
-        # todo : recopier ce cahmp dansl'autre module
         photo_folder_warning_label.grid(row=41, column=0, padx=10, pady=5, columnspan=3, sticky='we')
 
         # Third section: "Format du nom des photos"
@@ -457,6 +457,15 @@ class GUIPhotos(ttk.Frame):
         dossier_photo_labels.grid(row=100, column=0, sticky='w')
         self.dossier_photo_entry = GidEntry(inserphotos_labelframe, width=50)
         self.dossier_photo_entry.grid(column=1, row=100, columnspan=4, padx=(10, 10), sticky='nsew')
+        photo_folder_warning_label = ttk.Label(inserphotos_labelframe,
+                                               text="Attention, ce dossier doit être publiquement accessible "
+                                                    "pour que le Module Photo puisse l'utiliser. \n"
+                                                    "Dans google drive : Partager > accès général > "
+                                                    "tous les utilisateurs qui ont le lien "
+                                                    " - cf. manuel) ",
+                                               foreground="red")
+        photo_folder_warning_label.grid(row=101, column=0, padx=10, pady=5, columnspan=5, sticky='we')
+
 
         output_labels = ttk.Label(inserphotos_labelframe, text="Dossier où créer les fichiers de sortie")
         output_labels.grid(row=200, column=0, columnspan=1, sticky='w')
