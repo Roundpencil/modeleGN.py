@@ -466,7 +466,6 @@ class GUIPhotos(ttk.Frame):
                                                foreground="red")
         photo_folder_warning_label.grid(row=101, column=0, padx=10, pady=5, columnspan=5, sticky='we')
 
-
         output_labels = ttk.Label(inserphotos_labelframe, text="Dossier où créer les fichiers de sortie")
         output_labels.grid(row=200, column=0, columnspan=1, sticky='w')
         self.output_entry = GidEntry(inserphotos_labelframe, width=50)

@@ -40,7 +40,9 @@ VALEURS_FORMATTAGE = {
     'smallCaps': ['<smallCaps>', '</smallCaps>'],
     'italic': ['<italic>', '</italic>'],
     'strikethrough': ['<strikethrough>', '</strikethrough>'],
-    'backgroundColor': ['<backgroundColor>', '</backgroundColor>']
+    'backgroundColor': ['<backgroundColor>', '</backgroundColor>'],
+    # désactivé tant que je ne comprends pas comment définir les puces dans un batchupdate
+    # 'bullets': ['<bullets>', '</bullets>']
 }
 
 
@@ -208,6 +210,10 @@ def read_structural_elements(elements, extraire_formattage=True, verbal=False, c
             print(f"Value du parcours de elements : {value}")
 
         if 'paragraph' in value:
+            if bullets := (value.get('paragraph').get('bullet') and extraire_formattage):
+                # désactivé tant que je ne comprends pas comment définir les puces dans un batchupdate
+                # text += VALEURS_FORMATTAGE['bullets'][0]
+                text += ' - '
             elements = value.get('paragraph').get('elements')
             for elem in elements:
                 if 'inlineObjectElement' in elem:
@@ -220,6 +226,9 @@ def read_structural_elements(elements, extraire_formattage=True, verbal=False, c
                     if chars_images:
                         text += OFFSET_IMAGE
                 text += read_paragraph_element(elem, extraire_formattage=extraire_formattage)
+            # désactivé tant que je ne comprends pas comment définir les puces dans un batchupdate
+            # if bullets:
+            #     text += VALEURS_FORMATTAGE['bullets'][1]
         elif 'table' in value:
             # The text in table cells are in nested Structural Elements and tables may be
             # nested.

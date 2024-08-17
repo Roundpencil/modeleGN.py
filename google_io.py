@@ -2436,6 +2436,20 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
                         'fields': f'{clef_formattage}'
                     }
                 })
+            # désactivé tant que je ne comprends pas comment définir les puces dans un batchupdate
+            # elif clef_formattage == 'bullets':
+            #     formatting_requests.append({
+            #         'createParagraphBullets': {
+            #             'range': {
+            #                 'startIndex': start + 1,
+            #                 'endIndex': end + 1
+            #                 # ,
+            #                 # 'tabId': TAB_ID
+            #             },
+            #             'bulletPreset': 'BULLET_ARROW_DIAMOND_DISC',
+            #         }
+            #     })
+
             else:
                 formatting_requests.append({
                     'updateTextStyle': {
