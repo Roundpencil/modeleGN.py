@@ -938,6 +938,7 @@ def generer_squelettes_dans_drive(mon_gn: GN, api_doc, api_drive, pj=True, m_pri
                 if nb_tries <= max_tries:
                     m_print(f"Une erreur est survenue, nouvelle tentative ({nb_tries}/{max_tries})")
                     print(f"Exception attrapée durant la génération : {e}")
+                    traceback.print_exc()  # This will print the full traceback
                 else:
                     raise e
 

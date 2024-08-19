@@ -20,6 +20,7 @@ VERSION_MODELE = "1.4.20240814"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 GENRE_INDETERMINE = ''
 
+
 class TypePerso(IntEnum):
     INDETERMINE = 0
     EST_PNJ_HORS_JEU = 1
@@ -90,25 +91,25 @@ def normaliser_nom_gn(nom_archive: str):
 
 # une classe pour gérer toutes les dates en jeu et permettre notamment de gérer les heures paèrs minuit
 # non utilisée à date
-class DateEnJeu:
-    def __init__(self, minutes=0):
-        self.minutes = minutes
-
-    @staticmethod
-    def date_from_jmh(jour=1, heure=0, minute=0):
-        minutes = minute + heure * 60 + jour * 24 * 60
-        return DateEnJeu(minutes)
-
-    def creer_date_incrementee(self, minutes: int):
-        return DateEnJeu(self.minutes + minutes)
-
-    def __str__(self):
-        total_minutes = self.minutes
-        jours = total_minutes // (24 * 60)
-        total_minutes %= (24 * 60)
-        heures = total_minutes // 60
-        minutes = total_minutes % 60
-        return f"J{jours} {heures}h{minutes:02d}"
+# class DateEnJeu:
+#     def __init__(self, minutes=0):
+#         self.minutes = minutes
+#
+#     # @staticmethod
+#     # def date_from_jmh(jour=1, heure=0, minute=0):
+#     #     minutes = minute + heure * 60 + jour * 24 * 60
+#     #     return DateEnJeu(minutes)
+#
+#     # def creer_date_incrementee(self, minutes: int):
+#     #     return DateEnJeu(self.minutes + minutes)
+#
+#     def __str__(self):
+#         total_minutes = self.minutes
+#         jours = total_minutes // (24 * 60)
+#         total_minutes %= (24 * 60)
+#         heures = total_minutes // 60
+#         minutes = total_minutes % 60
+#         return f"J{jours} {heures}h{minutes:02d}"
 
 
 # une superclasse qui représente un fichier qui content des scènes, avec les rôles associés
@@ -958,7 +959,7 @@ class Scene:
         date_absolue_calculee = self.get_date_absolue(date_du_jeu=date_gn)
 
         if date_absolue_calculee == datetime.datetime.min:
-            # alors c'est qu'on a une  valeur par défaut => tenter le formattage il y a
+            # alors c'est qu'on a une  valeur par défaut => tenter le dict_formattage il y a
             return self.get_formatted_il_y_a()
 
         months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
@@ -1018,12 +1019,13 @@ class Scene:
         #       f'({self.conteneur.get_full_url()})')
         # print(f'{ [r.nom for r in self.roles]}')
         # print(f'{self.roles_et_confiance}')
-        gras = lecteurGoogle.VALEURS_FORMATTAGE['bold']
+        # gras = lecteurGoogle.VALEURS_FORMATTAGE['bold']
         to_return = ""
 
         heure = f'- heure = {self.get_heure_debut()}' if self.get_heure_debut() else ''
-        to_return += f"{gras[0]}titre scène : {self.titre} " \
-                     f"- date  : {self.get_formatted_date(date_gn, avec_heure=False)} {heure}{gras[1]}\n"
+        to_return += lecteurGoogle.formatter_gras(f"titre scène : {self.titre} "
+                                                  f"- date  : {self.get_formatted_date(date_gn, avec_heure=False)} "
+                                                  f"{heure}") + '\n'
         to_return += f"url intrigue : {self.conteneur.get_full_url()} \n"
         if self.lieu:
             to_return += f"lieu : {self.lieu} \n"
@@ -1046,8 +1048,8 @@ class Scene:
         to_return += f"dernières éditions : intrigue : {self.conteneur.lastFileEdit}  " \
                      f"/ scène : {self.derniere_mise_a_jour} \n"
         if self.conteneur.error_log.nb_erreurs() or self.conteneur.get_nb_commentaires_ouverts():
-            soulign = lecteurGoogle.VALEURS_FORMATTAGE['underline']
-            a_ajouter = [f"{soulign[0]}/!\ Attention, l'intrigue dont est issue cette scène compte"]
+            # soulign = lecteurGoogle.VALEURS_FORMATTAGE['underline']
+            a_ajouter = [fr"/!\ Attention, l'intrigue dont est issue cette scène compte"]
             iwe = self.conteneur.error_log.info_warning_errors()
             if nb_erreurs := iwe[ErreurManager.NIVEAUX.ERREUR]:
                 s = 's' if nb_erreurs > 1 else ''
@@ -1058,9 +1060,10 @@ class Scene:
             if nb_cmt := self.conteneur.get_nb_commentaires_ouverts():
                 s = 's' if nb_cmt > 1 else ''
                 a_ajouter.append(f" {nb_cmt} commentaire{s} non résolu{s} et")
-            to_return += ''.join(a_ajouter)[:-3]
-            to_return += f". N'oubliez pas de vérifier qu'il n'y a pas d'impact sur cette scène avant de l'écrire." \
-                         f"{soulign[1]}"
+            a_ajouter = a_ajouter[:-3]
+            a_ajouter += f". N'oubliez pas de vérifier qu'il n'y a pas d'impact sur cette scène avant de l'écrire."
+
+            to_return += lecteurGoogle.formatter_souligne(a_ajouter)
         # to_return += f"pitch  : {self.pitch} \n"
         # to_return += f"description : \n {self.description} \n"
         to_return += f"\n {self.description} \n"

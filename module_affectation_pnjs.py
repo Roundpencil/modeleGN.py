@@ -754,9 +754,8 @@ def indices2solution(solution_depliee, colonnes_source, colonne_heure, noms_pers
 
 def formatter_overlapping_pour_export(overlapping: dict[str, list[str]]):
     to_export = ""
-    gras = lecteurGoogle.VALEURS_FORMATTAGE['bold']
     for nom in overlapping:
-        to_export += gras[0] + nom + gras[1] + '\n'
+        to_export += lecteurGoogle.formatter_gras(nom) + '\n'
         to_export += lecteurGoogle.formatter_tableau_pour_export(overlapping[nom]) + '\n' * 2
     return to_export
 

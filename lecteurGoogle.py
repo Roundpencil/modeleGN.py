@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import logging
 import os.path
+import re
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -34,16 +35,18 @@ OFFSET_IMAGE = '\uE004'
 # source : https://developers.google.com/docs/api/reference/rest/v1/documents?hl=fr#paragraphstyle
 
 
-VALEURS_FORMATTAGE = {
-    'bold': ['<bold>', '</bold>'],
-    'underline': ['<underline>', '</underline>'],
-    'smallCaps': ['<smallCaps>', '</smallCaps>'],
-    'italic': ['<italic>', '</italic>'],
-    'strikethrough': ['<strikethrough>', '</strikethrough>'],
-    'backgroundColor': ['<backgroundColor>', '</backgroundColor>'],
-    # désactivé tant que je ne comprends pas comment définir les puces dans un batchupdate
-    # 'bullets': ['<bullets>', '</bullets>']
-}
+# VALEURS_FORMATTAGE = {
+#     'bold': ['<bold>', '</bold>'],
+#     'underline': ['<underline>', '</underline>'],
+#     'smallCaps': ['<smallCaps>', '</smallCaps>'],
+#     'italic': ['<italic>', '</italic>'],
+#     'strikethrough': ['<strikethrough>', '</strikethrough>'],
+#     'backgroundColor': ['<backgroundColor>', '</backgroundColor>'],
+#     # désactivé tant que je ne comprends pas comment définir les puces dans un batchupdate
+#     # 'bullets': ['<bullets>', '</bullets>']
+# }
+
+CLEFS_FORMATTAGE = ['bold', 'underline', 'smallCaps', 'italic', 'strikethrough', 'backgroundColor']
 
 
 # DEBUT_TABLEAU = '¤¤d¤¤'
@@ -128,10 +131,11 @@ def creer_lecteurs_google_apis():
     return api_drive, lecteur_doc, lecteur_sheets
 
 
-def read_paragraph_element(element, extraire_formattage=True):
+def read_paragraph_element(element, extraire_formattage=True, verbal=True):
     """Returns the text in the given ParagraphElement, including any hyperlinks.
 
     Args:
+        :param verbal: utilisé pour ajouter des messages de debugging pendant la fonction
         :param element: a dict representing a ParagraphElement from a Google Doc.
         :param extraire_formattage:
 
@@ -145,55 +149,32 @@ def read_paragraph_element(element, extraire_formattage=True):
         content = text_run.get('content', '')
         if extraire_formattage:
             text_style = text_run.get('textStyle', {})
-            # hyperlink_info = text_style.get('link')
-
-            # if hyperlink_info:
-            #     url = f"{hyperlink_info.get('url')} "
-            #     if url:
-            #         content = ' '.join([content, url])
 
             if hyperlink_info := text_style.get('link'):
                 url = f"{hyperlink_info.get('url')} "
                 if url:
                     content = ' '.join([content, url])
 
-            for clef_formattage in VALEURS_FORMATTAGE:
+            for clef_formattage in CLEFS_FORMATTAGE:
                 if clef_formattage == 'backgroundColor':
                     background_color = text_style.get('backgroundColor', {}).get('color', {})
                     if background_color:  # Checks if backgroundColor is not empty
                         rgb_color = background_color.get('rgbColor', {})
+                        if verbal:
+                            print(f"RGB trouvé : {rgb_color}")
                         # Checks if the color is not transparent, blank, or white
-                        if rgb_color and not (
-                                rgb_color.get('red', 0) == 1 and
-                                rgb_color.get('green', 0) == 1 and
-                                rgb_color.get('blue', 0) == 1):
-                            content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
-                                               content,
-                                               VALEURS_FORMATTAGE[clef_formattage][1]])
-                elif text_style.get(clef_formattage):
-                    content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
-                                       content,
-                                       VALEURS_FORMATTAGE[clef_formattage][1]])
+                        if rgb_color:
+                            r = rgb_color.get('red', 0)
+                            g = rgb_color.get('green', 0)
+                            b = rgb_color.get('blue', 0)
+                            if (r, g, b) == (1, 1, 1):
+                                continue
+                            content = formatter_surligne(content, r, g, b)
 
-                # if text_style.get(clef_formattage):
-                #     content = ''.join([VALEURS_FORMATTAGE[clef_formattage][0],
-                #                        content,
-                #                        VALEURS_FORMATTAGE[clef_formattage][1]])
+                elif text_style.get(clef_formattage):
+                    content = formatter_simple(content, clef_formattage)
 
     return content
-
-
-# def read_paragraph_element(element):
-#     """Returns the text in the given ParagraphElement.
-#
-#         Args:
-#             element: a ParagraphElement from a Google Doc.
-#     """
-#     text_run = element.get('textRun')
-#     return text_run.get('content') if text_run else ''
-#     # if not text_run:
-#     #     return ''
-#     # return text_run.get('content')
 
 
 def read_structural_elements(elements, extraire_formattage=True, verbal=False, chars_images=False):
@@ -201,6 +182,9 @@ def read_structural_elements(elements, extraire_formattage=True, verbal=False, c
         in nested elements.
 
         Args:
+            :param chars_images: pour remplacer les iméges par un caractère arbitraire (permet de conserver les indexes
+            relatifs de toutes les portions de texte)
+            :param verbal: pour afficher des messages de debuggage en cours d'exécution
             :param elements: a list of Structural Elements.
             :param extraire_formattage:
     """
@@ -237,16 +221,25 @@ def read_structural_elements(elements, extraire_formattage=True, verbal=False, c
             for row in table.get('tableRows'):
                 cells = row.get('tableCells')
                 for cell in cells:
-                    text += read_structural_elements(cell.get('content')).strip() + SEPARATEUR_COLONNES
+                    a_ajouter = read_structural_elements(cell.get('content'),
+                                                         extraire_formattage=extraire_formattage,
+                                                         verbal=verbal,
+                                                         chars_images=chars_images
+                                                         ).strip() + SEPARATEUR_COLONNES
+                    text += a_ajouter
                     if verbal:
-                        print(repr(read_structural_elements(cell.get('content'))))
+                        print(repr(a_ajouter))
                 text += SEPARATEUR_LIGNES
             text = text[:-1 * len(FIN_LIGNE)] + FIN_TABLEAU
 
         elif 'tableOfContents' in value:
             # The text in the TOC is also in a Structural Element.
             toc = value.get('tableOfContents')
-            text += read_structural_elements(toc.get('content'))
+            text += read_structural_elements(toc.get('content'),
+                                             extraire_formattage=extraire_formattage,
+                                             verbal=verbal,
+                                             chars_images=chars_images
+                                             )
     return text + '\n'
 
 
@@ -336,19 +329,35 @@ def text_2_dict_sections(noms_sections, texte_formatte, verbal=False):
 
 
 def retirer_balises_formattage(text, verbal=False):
-    to_return = text
-    for couple_balises in VALEURS_FORMATTAGE.values():
-        for balise in couple_balises:
-            if verbal:
-                print(f'je suis en train de supprimer la balise {balise} \n'
-                      f'texte avant : {to_return}')
-            to_return = to_return.replace(balise, '')
-            if verbal:
-                print(f'texte après : {to_return}')
-    if verbal:
-        print(f'Après retirage des balises, le texte vaut : {to_return}')
-    return to_return
+    # to_return = text
+    # for balise in CLEFS_FORMATTAGE:
+    #     if verbal:
+    #         print(f'je suis en train de supprimer la balise {balise} \n'
+    #               f'texte avant : {to_return}')
+    #     to_return = supprimer_balises(text, balise)
+    #     if verbal:
+    #         print(f'texte après : {to_return}')
+    # if verbal:
+    #     print(f'Après retirage des balises, le texte vaut : {to_return}')
+    # return to_return
 
+    # Create a pattern that matches any of the provided tags
+    pattern = fr'</?({"|".join(CLEFS_FORMATTAGE)})(:[^>]+)?>'
+
+    # Replace all occurrences of the pattern with an empty string
+    result = re.sub(pattern, '', text)
+
+    return result
+
+
+# def supprimer_balises(input_string, clef):
+#     # Modify pattern to handle opening and closing tags with or without arguments
+#     pattern = fr'</?{clef}(:[^>]+)?>'
+#
+#     # Replace all occurrences of the pattern with an empty string
+#     result = re.sub(pattern, '', input_string, flags=re.DOTALL)
+#
+#     return result
 
 # def generer_liste_items(api_drive, nom_fichier):
 #     # nom_fichier = nom_fichier
@@ -429,3 +438,20 @@ def formatter_tableau_pour_export(tableau: list):
 
     # on enlève le dernier FIN LIGNE pour le remplacer par un FIN TABLEAU
     return to_return[:-1 * len(FIN_LIGNE)] + FIN_TABLEAU
+
+
+def formatter_gras(nom):
+    return formatter_simple(nom, 'bold')
+
+
+def formatter_souligne(text):
+    return formatter_simple(text, "underline")
+
+
+def formatter_simple(text, clef):
+    return f"<{clef}>{text}</{clef}>"
+
+
+def formatter_surligne(text, r, g, b):
+    clef_complete = f"backgroundColor:{r}/{g}/{b}"
+    return f"<{clef_complete}>text</{clef_complete}>"

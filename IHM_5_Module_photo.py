@@ -312,7 +312,7 @@ class GUIPhotos(ttk.Frame):
                                        for nom_perso in self.dico_nom_session_joueurs}
                     else:
                         messagebox.showerror("Probleme lors de la génératon du fichier",
-                                             "Merci de choisir le formattage du nom des photos")
+                                             "Merci de choisir le dict_formattage du nom des photos")
                         return
             else:
                 noms_persos = {}

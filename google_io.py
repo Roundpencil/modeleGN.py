@@ -3,6 +3,7 @@ from __future__ import print_function
 import configparser
 import io
 import os
+import re
 from enum import Enum
 from typing import Optional
 
@@ -10,6 +11,7 @@ import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload, MediaIoBaseUpload
 
+import lecteurGoogle
 from modeleGN import *
 
 ID_FICHIER_ARCHIVES = '1tEXjKfiU8k_SU_jyVAoUQU1K9Gp77Cv0'
@@ -1124,10 +1126,9 @@ def texte2scenes(conteneur: ConteneurDeScene, nom_conteneur, texte_scenes_pur, t
 def ajouter_description_scene(conteneur, description_en_cours, scene_a_ajouter):
     # on commence par vider le stock dans la dernière scène enregistrée s'il y en a une, sinon on l'affiche
     texte_final = '\n'.join(description_en_cours)
-    for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
+    for clef_formattage in lecteurGoogle.CLEFS_FORMATTAGE:
         texte_final = corriger_formattage(texte_final,
-                                          lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][0],
-                                          lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1])
+                                          clef_formattage)
     if scene_a_ajouter:
         scene_a_ajouter.description = texte_final
     elif texte_final.strip():
@@ -1175,29 +1176,73 @@ def ajouter_description_scene(conteneur, description_en_cours, scene_a_ajouter):
 #         scene_a_ajouter.description = texte_a_ajouter
 
 
-def corriger_formattage(texte, balise_debut, balise_fin):
-    # Regular expression pattern to find all occurrences of the tags
-    pattern = f"({re.escape(balise_debut)}|{re.escape(balise_fin)})"
+# def corriger_formattage(texte, balise_debut, balise_fin):
+#     # Regular expression pattern to find all occurrences of the tags
+#     pattern = f"({re.escape(balise_debut)}|{re.escape(balise_fin)})"
+#
+#     # Splitting the text into parts and tags
+#     parts = re.split(pattern, texte)
+#
+#     stack = []
+#     valid_indices = set()
+#
+#     for idx, part in enumerate(parts):
+#         if part == balise_debut:
+#             stack.append(idx)
+#         elif part == balise_fin and stack:
+#             start_idx = stack.pop()
+#             valid_indices.add(start_idx)
+#             valid_indices.add(idx)
+#
+#     # Reconstruct the text with valid tags and text parts
+#     cleaned_text = ''.join(part for idx, part in enumerate(parts) if
+#                            idx in valid_indices or (part != balise_debut and part != balise_fin))
+#
+#     return cleaned_text
 
-    # Splitting the text into parts and tags
-    parts = re.split(pattern, texte)
+def corriger_formattage(input_string, clef):
+    # Expressions régulières pour trouver les balises d'ouverture et de fermeture avec ou sans argument
+    opening_tag_pattern = fr'<{clef}(:[^>]+)?>'
+    closing_tag_pattern = fr'</{clef}(:[^>]+)?>'
 
-    stack = []
-    valid_indices = set()
+    # Initialisation des piles pour garder la trace des balises
+    opening_stack = []
+    closing_stack = []
 
-    for idx, part in enumerate(parts):
-        if part == balise_debut:
-            stack.append(idx)
-        elif part == balise_fin and stack:
-            start_idx = stack.pop()
-            valid_indices.add(start_idx)
-            valid_indices.add(idx)
+    # Analyser la chaîne pour identifier les balises d'ouverture et de fermeture
+    pos = 0
+    while pos < len(input_string):
+        opening_match = re.search(opening_tag_pattern, input_string[pos:], flags=re.DOTALL)
+        closing_match = re.search(closing_tag_pattern, input_string[pos:], flags=re.DOTALL)
 
-    # Reconstruct the text with valid tags and text parts
-    cleaned_text = ''.join(part for idx, part in enumerate(parts) if
-                           idx in valid_indices or (part != balise_debut and part != balise_fin))
+        if opening_match and (not closing_match or opening_match.start() < closing_match.start()):
+            tag = opening_match.group()
+            opening_stack.append((tag, opening_match.start() + pos))
+            pos += opening_match.end()
+        elif closing_match:
+            tag = closing_match.group()
+            expected_opening_tag = tag.replace('</', '<', 1)
+            if opening_stack and expected_opening_tag == opening_stack[-1][0]:
+                opening_stack.pop()
+            else:
+                closing_stack.append((tag, closing_match.start() + pos))
+            pos += closing_match.end()
+        else:
+            break
 
-    return cleaned_text
+    # Correction du texte en ajoutant les balises manquantes
+    if closing_stack:
+        # Ajouter l'ouverture correspondante au début du texte pour chaque fermeture non correspondante
+        for tag, position in closing_stack:
+            opening_tag_to_add = tag.replace('</', '<', 1)
+            input_string = opening_tag_to_add + input_string
+
+    if opening_stack:
+        # Ajouter la fermeture correspondante à la fin pour les ouvertures non fermées
+        for tag, _ in opening_stack:
+            input_string += tag.replace('<', '</', 1)
+
+    return input_string
 
 
 def extraire_factions_scene(texte_lu: str, scene: Scene):
@@ -2344,27 +2389,48 @@ def is_document_being_edited(service, file_id):
         return None
 
 
-def trouver_tuples_formattage(input_string, start_delim, end_delim):
-    # Escape the delimiters to handle special regex characters
-    start_delim_escaped = re.escape(start_delim)
-    end_delim_escaped = re.escape(end_delim)
+# def trouver_tuples_formattage(input_string, start_delim, end_delim):
+#     # Escape the delimiters to handle special regex characters
+#     start_delim_escaped = re.escape(start_delim)
+#     end_delim_escaped = re.escape(end_delim)
+#
+#     # Create the regex pattern
+#     pattern = f'{start_delim_escaped}(.*?){end_delim_escaped}'
+#
+#     # Find all matches
+#     matches = re.finditer(pattern, input_string, re.DOTALL)
+#
+#     # Create a list of tuples with start and end indices
+#     result = []
+#     for match in matches:
+#         start = match.start()
+#         end = match.end()
+#         # length = end - start
+#         # result.append((start, end, length))
+#         result.append((start, end))
+#
+#     return result
 
-    # Create the regex pattern
-    pattern = f'{start_delim_escaped}(.*?){end_delim_escaped}'
-
-    # Find all matches
+def trouver_tuples_formattage(input_string, clef):
+    pattern = fr'<{clef}(:([^>]+))?>(.*?)</{clef}(:\2)?>'
     matches = re.finditer(pattern, input_string, re.DOTALL)
 
-    # Create a list of tuples with start and end indices
     result = []
     for match in matches:
-        start = match.start()
-        end = match.end()
-        # length = end - start
-        # result.append((start, end, length))
-        result.append((start, end))
+        start_index = match.start()
+        end_index = match.end()
+        arg = match.group(2) if match.group(2) else None
+        result.append((start_index, end_index, arg))
 
     return result
+
+
+def reconstituer_balise(clef_formattage, argument, debut):
+    balise = f"<{clef_formattage}"
+    if argument:
+        balise += f":{argument}"
+    balise += ">" if debut else "/>"
+    return balise
 
 
 def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
@@ -2375,7 +2441,7 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
     # pattern évolué pour ne plus prendre en compte les parenthèses
     url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
 
-    # requêtes pour le formattage, d'abord les URLS, ensuite les autres balises
+    # requêtes pour le dict_formattage, d'abord les URLS, ensuite les autres balises
     # requête non ajoutées à la fin car tant que création de colonne vides, décalage de l'offset qui fera planter
     for match in re.finditer(url_pattern, text):
         url = match.group()
@@ -2399,21 +2465,45 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
 
     # pour toutes les autres options de fomrmattage :
     #   1. on trouve les tuples
-    #   2. on met à jour la requête de formattage pour mettre en forme
+    #   2. on met à jour la requête de dict_formattage pour mettre en forme
     #   3. on met à jour la requete de nettoyage pour supprimer les bornes
     # puis (important !) on trie toutes les cleaning request en commençant par la fin
     # pour ne pas fouttre le bazar dans les indexes
 
     cleaning_requests = []
-    for clef_formattage in lecteurGoogle.VALEURS_FORMATTAGE:
-        balise_debut = lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][0]
-        balise_fin = lecteurGoogle.VALEURS_FORMATTAGE[clef_formattage][1]
-        # 1. on isole les positions
-        liste_tuples_positions = trouver_tuples_formattage(text, balise_debut, balise_fin)
 
-        # 2. on crée le formattage
-        for start, end in liste_tuples_positions:
+    for clef_formattage in lecteurGoogle.CLEFS_FORMATTAGE:
+
+        # 1. on isole les positions
+        liste_tuples_positions = trouver_tuples_formattage(text, clef_formattage)
+
+        # 2. on crée le dict_formattage
+        for start, end, argument in liste_tuples_positions:
+            # if clef_formattage == 'backgroundColor':
+            #     formatting_requests.append({
+            #         'updateTextStyle': {
+            #             'range': {
+            #                 'startIndex': start + 1,
+            #                 'endIndex': end + 1,
+            #             },
+            #             'textStyle': {
+            #                 # f"'{clef_formattage}'": True
+            #                 "backgroundColor": {
+            #                     "color": {
+            #                         "rgbColor": {
+            #                             "red": 1.0,
+            #                             "green": 0.95,
+            #                             "blue": 0.8
+            #                         }
+            #                     }
+            #                 }
+            #             },
+            #             # 'fields': f"'{clef_formattage}'"
+            #             'fields': f'{clef_formattage}'
+            #         }
+            #     })
             if clef_formattage == 'backgroundColor':
+                r, g, b = argument.split('/') if argument else (1.0, 0.95, 0.8)
                 formatting_requests.append({
                     'updateTextStyle': {
                         'range': {
@@ -2425,9 +2515,9 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
                             "backgroundColor": {
                                 "color": {
                                     "rgbColor": {
-                                        "red": 1.0,
-                                        "green": 0.95,
-                                        "blue": 0.8
+                                        "red": r,
+                                        "green": g,
+                                        "blue": b
                                     }
                                 }
                             }
@@ -2471,14 +2561,16 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
                 'deleteContentRange': {
                     'range': {
                         'startIndex': start + 1,  # Starting index of the text to delete
-                        'endIndex': start + 1 + len(balise_debut)  # Ending index of the text to delete
+                        'endIndex': start + 1 + len(reconstituer_balise(clef_formattage, argument, debut=True))
+                        # Ending index of the text to delete
                     }
                 }
             })
             cleaning_requests.append({
                 'deleteContentRange': {
                     'range': {
-                        'startIndex': end + 1 - len(balise_fin),  # Starting index of the text to delete
+                        'startIndex': end + 1 - len(reconstituer_balise(clef_formattage, argument, debut=False)),
+                        # Starting index of the text to delete
                         'endIndex': end + 1  # Ending index of the text to delete
                     }
                 }
@@ -2585,7 +2677,7 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
             }
         })
 
-        # ajouter le formattage à la requete d'insert
+        # ajouter le dict_formattage à la requete d'insert
         requests += formatting_requests
 
         requests += cleaning_requests
@@ -2694,7 +2786,7 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
 #             }
 #         }]
 #
-#         # ajouter le formattage à la requete d'insert
+#         # ajouter le dict_formattage à la requete d'insert
 #         requests += formatting_requests
 #
 #         # Execute the request.
