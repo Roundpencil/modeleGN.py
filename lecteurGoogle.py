@@ -46,7 +46,7 @@ OFFSET_IMAGE = '\uE004'
 #     # 'bullets': ['<bullets>', '</bullets>']
 # }
 
-CLEFS_FORMATTAGE = ['bold', 'underline', 'smallCaps', 'italic', 'strikethrough', 'backgroundColor']
+CLEFS_FORMATTAGE = ['bold', 'underline', 'smallCaps', 'italic', 'strikethrough', 'backgroundColor', 'foregroundColor']
 
 
 # DEBUT_TABLEAU = '¤¤d¤¤'
@@ -131,7 +131,7 @@ def creer_lecteurs_google_apis():
     return api_drive, lecteur_doc, lecteur_sheets
 
 
-def read_paragraph_element(element, extraire_formattage=True, verbal=True):
+def read_paragraph_element(element, extraire_formattage=True, verbal=False):
     """Returns the text in the given ParagraphElement, including any hyperlinks.
 
     Args:
@@ -167,9 +167,22 @@ def read_paragraph_element(element, extraire_formattage=True, verbal=True):
                             r = rgb_color.get('red', 0)
                             g = rgb_color.get('green', 0)
                             b = rgb_color.get('blue', 0)
-                            if (r, g, b) == (1, 1, 1):
+                            if (r, g, b) == (0, 0, 0):
                                 continue
                             content = formatter_surligne(content, r, g, b)
+                elif clef_formattage == 'foregroundColor':
+                    foreground_color = text_style.get('foregroundColor', {}).get('color', {})
+                    rgb_color = foreground_color.get('rgbColor', {})
+                    if verbal:
+                        print(f"RGB trouvé : {rgb_color}")
+                    # Checks if the color is not transparent, blank, or white
+                    if rgb_color:
+                        r = rgb_color.get('red', 0)
+                        g = rgb_color.get('green', 0)
+                        b = rgb_color.get('blue', 0)
+                        if (r, g, b) == (0, 0, 0):
+                            continue
+                        content = formatter_couleur(content, r, g, b)
 
                 elif text_style.get(clef_formattage):
                     content = formatter_simple(content, clef_formattage)
@@ -455,3 +468,9 @@ def formatter_simple(text, clef):
 def formatter_surligne(text, r, g, b):
     clef_complete = f"backgroundColor:{r}/{g}/{b}"
     return f"<{clef_complete}>{text}</{clef_complete}>"
+
+
+def formatter_couleur(content, r, g, b):
+    clef_complete = f"foregroundColor:{r}/{g}/{b}"
+    return f"<{clef_complete}>{content}</{clef_complete}>"
+

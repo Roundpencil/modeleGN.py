@@ -2526,6 +2526,29 @@ def write_to_doc(service, file_id, text: str, titre=False, verbal=False):
                         'fields': f'{clef_formattage}'
                     }
                 })
+            elif clef_formattage == 'foregroundColor':
+                r, g, b = argument.split('/') if argument else (1.0, 0.95, 0.8)
+                formatting_requests.append({
+                    'updateTextStyle': {
+                        'range': {
+                            'startIndex': start + 1,
+                            'endIndex': end + 1,
+                        },
+                        'textStyle': {
+                            # f"'{clef_formattage}'": True
+                            "foregroundColor": {
+                                "color": {
+                                    "rgbColor": {
+                                        "red": r,
+                                        "green": g,
+                                        "blue": b
+                                    }
+                                }
+                            }
+                        },
+                        'fields': f'{clef_formattage}'
+                    }
+                })
             # désactivé tant que je ne comprends pas comment définir les puces dans un batchupdate
             # elif clef_formattage == 'bullets':
             #     formatting_requests.append({
