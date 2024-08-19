@@ -1060,7 +1060,7 @@ class Scene:
             if nb_cmt := self.conteneur.get_nb_commentaires_ouverts():
                 s = 's' if nb_cmt > 1 else ''
                 a_ajouter.append(f" {nb_cmt} commentaire{s} non résolu{s} et")
-            a_ajouter = a_ajouter[:-3]
+            a_ajouter = ''.join(a_ajouter)[:-3]
             a_ajouter += f". N'oubliez pas de vérifier qu'il n'y a pas d'impact sur cette scène avant de l'écrire."
 
             to_return += lecteurGoogle.formatter_souligne(a_ajouter)

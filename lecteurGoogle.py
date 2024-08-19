@@ -454,4 +454,4 @@ def formatter_simple(text, clef):
 
 def formatter_surligne(text, r, g, b):
     clef_complete = f"backgroundColor:{r}/{g}/{b}"
-    return f"<{clef_complete}>text</{clef_complete}>"
+    return f"<{clef_complete}>{text}</{clef_complete}>"
