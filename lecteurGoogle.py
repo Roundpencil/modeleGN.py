@@ -167,7 +167,8 @@ def read_paragraph_element(element, extraire_formattage=True, verbal=False):
                             r = rgb_color.get('red', 0)
                             g = rgb_color.get('green', 0)
                             b = rgb_color.get('blue', 0)
-                            if (r, g, b) == (0, 0, 0):
+                            if (r, g, b) == (1, 1, 1):
+                                # si on a 0, 0, 0, on est en blanc, pas la peine de forcer une balise
                                 continue
                             content = formatter_surligne(content, r, g, b)
                 elif clef_formattage == 'foregroundColor':
@@ -181,6 +182,8 @@ def read_paragraph_element(element, extraire_formattage=True, verbal=False):
                         g = rgb_color.get('green', 0)
                         b = rgb_color.get('blue', 0)
                         if (r, g, b) == (0, 0, 0):
+                            # si on a 0, 0, 0, on est en noir, pas la peine de forcer une balise
+
                             continue
                         content = formatter_couleur(content, r, g, b)
 
