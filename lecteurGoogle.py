@@ -193,11 +193,12 @@ def read_paragraph_element(element, extraire_formattage=True, verbal=False):
     return content
 
 
-def read_structural_elements(elements, extraire_formattage=True, verbal=False, chars_images=False):
+def read_structural_elements(elements, extraire_formattage=True, verbal=False, chars_images=False, avec_bullets=False):
     """Recurses through a list of Structural Elements to read a document's text where text may be
         in nested elements.
 
         Args:
+            :param avec_bullets:
             :param chars_images: pour remplacer les iméges par un caractère arbitraire (permet de conserver les indexes
             relatifs de toutes les portions de texte)
             :param verbal: pour afficher des messages de debuggage en cours d'exécution
@@ -210,7 +211,7 @@ def read_structural_elements(elements, extraire_formattage=True, verbal=False, c
             print(f"Value du parcours de elements : {value}")
 
         if 'paragraph' in value:
-            if bullets := (value.get('paragraph').get('bullet') and extraire_formattage):
+            if bullets := (value.get('paragraph').get('bullet') and (extraire_formattage or avec_bullets)):
                 # désactivé tant que je ne comprends pas comment définir les puces dans un batchupdate
                 # text += VALEURS_FORMATTAGE['bullets'][0]
                 text += ' - '
