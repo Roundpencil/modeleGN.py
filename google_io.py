@@ -4088,7 +4088,8 @@ def copier_fichier_vers_dossier(api_drive, file_id, destination_folder_id):
 def extraire_id_google_si_possible(user_text):
     # Regular expression pattern for Google Drive, Sheets, and Docs URLs
     # pattern = r'https?://(?:drive|docs)\.google\.com/(?:drive/u/0/folders/|spreadsheets/d/|document/d/)([a-zA-Z0-9_-]+)'
-    pattern = r'https?://(?:drive|docs)\.google\.com/(?:drive/u/[0-9]+/folders/|spreadsheets/d/|document/d/)([a-zA-Z0-9_-]+)'
+    # pattern = r'https?://(?:drive|docs)\.google\.com/(?:drive/u/[0-9]+/folders/|spreadsheets/d/|document/d/)([a-zA-Z0-9_-]+)'
+    pattern = r'https?://(?:drive|docs)\.google\.com/(?:drive/u/[0-9]+/folders/|spreadsheets/d/|document/d/)([a-zA-Z0-9_-]+)(?:/|$)'
 
     if match := re.search(pattern, user_text):
         return match.group(1), True
