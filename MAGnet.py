@@ -109,7 +109,7 @@ def main():
             messagebox.showerror(message[0], message[1])
 
         if not derniere_version:
-            response = messagebox.askquestion("Un nouvelle version est disponible !",
+            response = messagebox.askquestion("Une nouvelle version est disponible !",
                                               f"souhaitez-vous télécharger la mise à jour ? \n "
                                               f"{maj_versions}",
                                               icon="warning")

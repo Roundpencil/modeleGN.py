@@ -53,7 +53,7 @@ def base_nom_prenom(nom_secable):
 
 
 def lire_table_photos(api_sheets, sheet_id, sheet_name='Feuille 1', separateur=';', verbal=False):
-    result = api_sheets.spreadsheets().values().get(spreadsheetId=sheet_id, range=sheet_name,
+    result = api_sheets.spreadsheets().values().get(spreadsheetId=sheet_id, range=f"'{sheet_name}'",
                                                     majorDimension="ROWS").execute()
     values = result.get('values', [])
 
