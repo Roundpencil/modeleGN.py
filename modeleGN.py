@@ -1680,6 +1680,14 @@ class GN:
                     # quand on trouve une faction on cherche dans le GN le bon nom
                     logging.debug(f"nom_faction, self.factions = {nom_faction}, {self.factions.keys()}")
                     score_faction = process.extractOne(nom_faction, self.factions.keys())
+                    if not score_faction :
+                        texte_erreur = f"La scène {scene.titre} contient la faction {nom_faction} " \
+                                       f"mais le gn ne contient aucune faction"
+                        intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                          texte_erreur,
+                                                          ErreurManager.ORIGINES.FACTION)
+                        continue
+                    # sinon on continue
                     logging.debug(f"score_faction = {score_faction}")
                     if score_faction[1] < seuil_nom_faction:
                         texte_erreur = f"la faction {nom_faction} " \
