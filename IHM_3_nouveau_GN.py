@@ -174,7 +174,7 @@ class WizzardGN(ttk.Frame):
                 déclarer facilement l'ensemble des noms des PJs et PNJs (présents en jeu ou juste dans les back) 
                 qui serviront de base de référence des noms de MAGnet.
                 Ce fichier peut contenir toutes les colonnes nécessaires au suivi administratif du jeu (ex : état 
-                d'envoie des documents, des paiements, etc.) ou des onglets supplémentaires, sans impact sur le 
+                d'envoi des documents, des paiements, etc.) ou des onglets supplémentaires, sans impact sur le 
                 fonctionnement de MAGnet, pour regrouper au même endroit toutes les options clefs. 
                 Depuis la version 1.2 de MAGnet, c'est la méthode  largement recommandée, les autres options ayant une 
                 ergonomie beaucoup plus compliquée.
