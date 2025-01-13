@@ -15,7 +15,7 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.4.20241018"
+VERSION = "1.4.20250113"
 VERSION_MODELE = "1.4.20240901"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 GENRE_INDETERMINE = ''
@@ -923,12 +923,13 @@ class Scene:
                 hour, minute = match.groups()
                 minute = minute if minute else '00'
                 # Format to ensure two digits for hour and minute
-                formatted_time = f"{int(hour):02d}h{minute}"
+                formatted_time = f"{int(hour):02d}h{int(minute):02d}"
                 return formatted_time
             else:
                 # Return the original heure_debut if it doesn't match the expected format
                 return self.heure_debut
-        return self.date_absolue.strftime('%H:%M:%S') if self.date_absolue else None
+        # return self.date_absolue.strftime('%H:%M:%S') if self.date_absolue else None
+        return self.date_absolue.strftime('%Hh%M') if self.date_absolue else None
 
     def get_date(self):
         return self.date
@@ -974,8 +975,8 @@ class Scene:
                           f"{date_absolue_calculee.day} " \
                           f"{months[date_absolue_calculee.month - 1]} " \
                           f"{date_absolue_calculee.year}"
-        if avec_heure:
-            time_string = f"{date_absolue_calculee.hour}h{date_absolue_calculee.minute}"
+        if avec_heure and (time_string := self.get_heure_debut()):
+            # time_string = f"{date_absolue_calculee.hour}h{date_absolue_calculee.minute}"
             return f"{date_string}, {time_string}"
         else:
             return f"{date_string}"

@@ -37,6 +37,12 @@ from modeleGN import *
 #  nouvel onglet dans les fichiers de castings : aides par sessions (plutot que de prendre les pré-affectation) et les utiliser
 #  nouveau paramètre à ajouter : sessions_à_generer pour savoir quels casting on affiche, et quel génération on fait
 
+# todo :
+#  remplacer le calcul de la date en jour par un time delta années / mois / jours / minytes / heures qui permet de ne pas avoir à calculer des dates en jour arrondis, et stoquer la date relative de cette manière
+#  mettre à jour le module d'update pour appliquer des fonctions spécifiques en fonction de la version
+#  voir si on veut utiliser https://dateparser.readthedocs.io/en/latest/settings.html en excluant le relative_parser pour éviter les erreurs sur les dates (et rajouter une erreur quand on ne détermine pas de date)
+#  utiliser https://stackoverflow.com/questions/68317186/how-to-make-dateparser-parse-date-relative-to-a-given-day
+
 # todo : vérifier qu'on peut choisir de 'nutiliser MAGnet que pour les évènements
 
 # Module Photo
