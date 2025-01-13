@@ -934,7 +934,7 @@ class Scene:
         return self.date
 
     def set_heure_debut(self, heure_debut):
-        self.heure_debut = heure_debut
+        self.heure_debut = heure_debut.strip()
 
     def set_lieu(self, lieu):
         self.lieu = lieu
