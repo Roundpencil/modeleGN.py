@@ -14,6 +14,7 @@ from packaging import version
 from unidecode import unidecode
 
 import lecteurGoogle
+import updateur_gn
 
 VERSION = "1.4.20250113"
 VERSION_MODELE = "1.4.20240901"
@@ -1429,7 +1430,7 @@ class GN:
              ignore_older_version=False, creer_si_erreur=True):
         try:
             mon_fichier = open(filename, 'rb')
-            gn = pickle.load(mon_fichier)
+            gn: GN = pickle.load(mon_fichier)
             # on vérifie si le modele du GN qu'on a chargé n'est pas supérieur à celui de l'application
             if not ignore_older_version and version.parse(gn.version) > version.parse(VERSION_MODELE):
                 raise ValueError(
@@ -1925,263 +1926,87 @@ class GN:
         return dico_nom_session_joueurs
 
     # def mettre_a_jour_champs(self):
-    # # mise à jour des formats de date et des factions
-    # if not hasattr(self, 'factions'):
-    #     self.factions = {}
-    # # if not hasattr(self, 'id_factions'):
-    # #     self.id_factions = None
-    # if hasattr(self, 'liste_noms_pjs'):
-    #     delattr(self, 'liste_noms_pjs')
-    # if hasattr(self, 'liste_noms_pnjs'):
-    #     delattr(self, 'liste_noms_pnjs')
-    # # if not hasattr(self, 'id_pjs_et_pnjs'):
-    # #     self.id_pjs_et_pnjs = None
-    # if not hasattr(self, 'evenements'):
-    #     self.evenements = {}
-    # # if not hasattr(self, 'dossiers_evenements'):
-    # #     self.dossiers_evenements = []
-    # # if hasattr(self, 'dossier_evenements'):
-    # #     delattr(self, 'dossier_evenements')
-    # if not hasattr(self, 'objets'):
-    #     self.objets = {}
-    # if hasattr(self, 'association_auto'):
-    #     delattr(self, 'association_auto')
-    # # if not hasattr(self, 'mode_association'):
-    # #     self.mode_association = self.ModeAssociation.AUTO
-    # if hasattr(self, 'dictPJs') and hasattr(self, 'dictPNJs'):
-    #     self.personnages = self.dictPJs | self.dictPNJs
-    #     delattr(self, 'dictPJs')
-    #     delattr(self, 'dictPNJs')
-    # if not hasattr(self, 'version'):
-    #     self.version = VERSION
-    # if hasattr(self, 'date_self'):
-    #     delattr(self, 'date_self')
-    # if hasattr(self, 'association_auto'):
-    #     delattr(self, 'association_auto')
-    # if hasattr(self, 'id_factions'):
-    #     delattr(self, 'id_factions')
-    # if hasattr(self, 'dossiers_pnjs'):
-    #     delattr(self, 'dossiers_pnjs')
-    # if hasattr(self, 'dossiers_pjs'):
-    #     delattr(self, 'dossiers_pjs')
-    # if hasattr(self, 'dossier_outputs_drive'):
-    #     delattr(self, 'dossier_outputs_drive')
-    # if hasattr(self, 'dossiers_intrigues'):
-    #     delattr(self, 'dossiers_intrigues')
-    # if hasattr(self, 'dossiers_objets'):
-    #     delattr(self, 'dossiers_objets')
-    # if hasattr(self, 'dossiers_evenements'):
-    #     delattr(self, 'dossiers_evenements')
-    # if hasattr(self, 'date_gn'):
-    #     delattr(self, 'date_gn')
-    # if hasattr(self, 'id_pjs_et_pnjs'):
-    #     delattr(self, 'id_pjs_et_pnjs')
-    # if hasattr(self, 'fichier_pnjs'):
-    #     delattr(self, 'fichier_pnjs')
-    # if hasattr(self, 'mode_association'):
-    #     delattr(self, 'mode_association')
-    # if not hasattr(self, 'dict_config'):
-    #     self.dict_config = None
+    #     # nouvelle méthode : déclaration du dictionnaire de renommage
+    #     renommages = {GN:
+    #                       {'objets': 'objets_de_reference'},
+    #                   Personnage:
+    #                       {"orgaReferent": "orga_referent",
+    #                        "joueurs": "interpretes",
+    #                        "sexe": "genre"},
+    #                   Intrigue:
+    #                       {'orgaReferent': 'orga_referent'},
+    #                   EvenementUnitaire:
+    #                       {'heure': 'heure_debut'},
+    #                   Role:
+    #                       {"sexe": "genre"}
+    #                   }
     #
-    # for scene in self.lister_toutes_les_scenes():
-    #     if not hasattr(scene, 'date_absolue'):
-    #         scene.date_absolue = None
-    #     # print(f"la scène {scene.titre}, dateba absolue = {scene.date_absolue}")
-    #     if hasattr(scene, 'niveau'):
-    #         delattr(scene, 'niveau')
+    #     # déclaration de la méthode de mise à jour
+    #     def maj_classe(objet_a_maj):
+    #         reference = vars(type(objet_a_maj)())
+    #         current = vars(objet_a_maj)
+    #         # mettre à jour les noms si dans le dictionnaire il y a un nom correspondant
+    #         if dict_renommage := renommages.get(type(objet_a_maj)):
+    #             print(f"debug : dict_renommage :  {dict_renommage}")
+    #             for old_attr, new_attr in dict_renommage.items():
+    #                 if hasattr(objet_a_maj, old_attr):
+    #                     valeur_cible = current[old_attr]
+    #                     print(f"debug : l'objet {type(objet_a_maj)} a bien un champ {old_attr} qui vaut {valeur_cible}")
+    #                     setattr(objet_a_maj, new_attr, valeur_cible)
+    #                     delattr(objet_a_maj, old_attr)
+    #         # ajouter les nouveaux champs
+    #         for ref_attr, ref_value in reference.items():
+    #             if not hasattr(objet_a_maj, ref_attr):
+    #                 setattr(objet_a_maj, ref_attr, ref_value)
+    #         # supprimer les champs superflus
+    #         old_attrs = list(current.keys())
+    #         for old_attr in old_attrs:
+    #             if old_attr not in reference:
+    #                 delattr(objet_a_maj, old_attr)
     #
-    # for intrigue in self.intrigues.values():
-    #     for objet in intrigue.objets:
-    #         if not hasattr(objet, 'code'):
-    #             objet.code = ""
-    #         if hasattr(objet, 'rfid'):
-    #             delattr(objet, 'rfid')
-    #         if hasattr(objet, 'commentaires'):
-    #             delattr(objet, 'commentaires')
-    #         if hasattr(objet, 'objet_de_reference'):
-    #             delattr(objet, 'objet_de_reference')
-    #         if not hasattr(objet, 'intrigue'):
-    #             objet.intrigue = None
-    #         if hasattr(objet, 'inIntrigues'):
-    #             if len(objet.inIntrigues) > 0:
-    #                 objet.intrigue = list(objet.inIntrigues)[0]
-    #             delattr(objet, 'inIntrigues')
+    #     # parcours de toutes les classes pour mettre à jour les Objets
     #
-    #     if not hasattr(intrigue, 'commentaires'):
-    #         intrigue.commentaires = []
-    #     if not hasattr(intrigue, 'codes_evenements_raw'):
-    #         intrigue.codes_evenements_raw = []
-    #     if not hasattr(intrigue, 'evenements'):
-    #         intrigue.evenements = set()
-    #     if not hasattr(intrigue, 'questionnaire'):
-    #         intrigue.questionnaire = []
-    #     if isinstance(intrigue.questionnaire, str):
-    #         intrigue.questionnaire = []
+    #     maj_classe(self)
     #
-    # # for conteneur in list(self.dictPJs.values()) + list(self.dictPNJs.values()) + list(self.intrigues.values()):
-    # #     for role in conteneur.rolesContenus.values():
-    # for role in self.lister_tous_les_roles():
-    #     print(f"clefs (2) pour {role.nom} = {vars(role).keys()}")
-    #     if not hasattr(role, 'affectation'):
-    #         role.affectation = ""
-    #     if hasattr(role, 'perimetreIntervention'):
-    #         if not hasattr(role, 'perimetre_intervention'):
-    #             role.perimetre_intervention = role.perimetreIntervention
-    #         delattr(role, 'perimetreIntervention')
-    #         # print(f"PerimetreIntervention supprimé pour {role.nom}")
+    #     for personnage in self.personnages.values():
+    #         maj_classe(personnage)
+    #         for scene in personnage.scenes:
+    #             maj_classe(scene)
+    #         for role in personnage.roles:
+    #             maj_classe(role)
     #
-    #     if hasattr(role, 'perimetre_Intervention'):
-    #         if not hasattr(role, 'perimetre_intervention'):
-    #             role.perimetre_intervention = role.perimetre_Intervention
-    #         delattr(role, 'perimetre_Intervention')
-    #     if not hasattr(role, 'relations'):
-    #         role.relations = set()
-    #     if not hasattr(role, 'personnage'):
-    #         if hasattr(role, 'perso'):
-    #             role.personnage = role.perso
-    #             delattr(role, 'perso')
-    #         else:
-    #             role.personnage = None
-    #     if not hasattr(role, 'affectation'):
-    #         role.affectation = None
+    #     for faction in self.factions.values():
+    #         maj_classe(faction)
     #
-    # for scene in self.lister_toutes_les_scenes():
-    #     if not hasattr(scene, 'infos'):
-    #         scene.infos = set()
+    #     for intrigue in self.intrigues.values():
+    #         maj_classe(intrigue)
+    #         for scene in intrigue.scenes:
+    #             maj_classe(scene)
+    #             print(f'heure de la scène {scene.titre} : {scene.heure_debut}')
     #
-    # # for pnj in self.dictPNJs.values():
-    # #     if not hasattr(pnj, 'commentaires'):
-    # #         pnj.commentaires = []
-    # #
-    # # for pj in self.dictPJs.values():
-    # #     if not hasattr(pj, 'commentaires'):
-    # #         pj.commentaires = []
+    #     for evenement in self.evenements.values():
+    #         if evenement.__class__.__name__ == "Evenement":
+    #             evenement.__class__.__name__ = "FicheEvenement"
     #
-    # for p in self.personnages.values():
-    #     if not hasattr(p, 'commentaires'):
-    #         p.commentaires = []
+    #         maj_classe(evenement)
+    #         for evenement_unitaire in evenement.interventions:
+    #             if evenement_unitaire.__class__.__name__ == "Intervention":
+    #                 evenement_unitaire.__class__.__name__ = "EvenementUnitaire"
+    #             maj_classe(evenement_unitaire)
     #
-    # for evenement in self.evenements.values():
-    #     for intervention in evenement.interventions:
-    #         if not hasattr(intervention, "liste_pnjs_impliques"):
-    #             intervention.liste_pnjs_impliques = set()
+    #     for objet in self.objets_de_reference.values():
+    #         maj_classe(objet)
     #
-    #         if not hasattr(intervention, 'liste_pjs_impliques'):
-    #             intervention.liste_pjs_impliques = set()
+    #     if version.parse(self.version) < version.parse('1.2.0'):
+    #         # dans ce cas il faut mettre à jour les noms des référents car pas automatique
+    #         intrigues = self.intrigues.values()
+    #         for intrigue in intrigues:
+    #             intrigue.referent = intrigue.orga_referent
     #
-    #         if hasattr(intervention, 'noms_pj_impliques'):
-    #             intervention.noms_pjs_impliques = intervention.pj_impliques
-    #             delattr(intervention, 'pj_impliques')
-    #
-    #     if not hasattr(evenement, 'objets'):
-    #         evenement.objets = set()
-    #     if not hasattr(evenement, 'heure_de_fin'):
-    #         evenement.heure_de_fin = ""
-    #
-    # # for pj in self.dictPJs:
-    # #     if pj in self.dictPNJs:
-    # #         self.dictPJs.pop(pj)
-    # #         print(f"le personnage {self.dictPJs[pj].name} a été retiré car c'était un pnj")
-    #
-    # for personnage in list(self.personnages.values()):
-    #     if not hasattr(personnage, 'informations_evenements'):
-    #         personnage.informations_evenements = set()
-    #     if not hasattr(personnage, 'intervient_comme'):
-    #         personnage.intervient_comme = set()
-    #     if hasattr(personnage, 'factions'):
-    #         personnage.groupes = []
-    #         personnage.groupes.extend(personnage.factions)
-    #         delattr(personnage, 'factions')
-    #     if hasattr(personnage, "orgaReferent"):
-    #         personnage.orga_referent = personnage.orgaReferent
-    #         delattr(personnage, "orgaReferent")
-    #
-    # for objet_de_reference in self.objets.values():
-    #     if not hasattr(objet_de_reference, 'ajoute_via_forcage'):
-    #         objet_de_reference.ajoute_via_forcage = True
-    #
-    #     if not hasattr(objet_de_reference, 'objets_dans_evenements'):
-    #         objet_de_reference.objets_dans_evenements = set()
-
+    #     self.version = VERSION_MODELE
     def mettre_a_jour_champs(self):
-        # nouvelle méthode : déclaration du dictionnaire de renommage
-        renommages = {GN:
-                          {'objets': 'objets_de_reference'},
-                      Personnage:
-                          {"orgaReferent": "orga_referent",
-                           "joueurs": "interpretes",
-                           "sexe": "genre"},
-                      Intrigue:
-                          {'orgaReferent': 'orga_referent'},
-                      EvenementUnitaire:
-                          {'heure': 'heure_debut'},
-                      Role:
-                          {"sexe": "genre"}
-                      }
+        updateur_gn.mettre_a_jour_gn(self)
 
-        # déclaration de la méthode de mise à jour
-        def maj_classe(objet_a_maj):
-            reference = vars(type(objet_a_maj)())
-            current = vars(objet_a_maj)
-            # mettre à jour les noms si dans le dictionnaire il y a un nom correspondant
-            if dict_renommage := renommages.get(type(objet_a_maj)):
-                print(f"debug : dict_renommage :  {dict_renommage}")
-                for old_attr, new_attr in dict_renommage.items():
-                    if hasattr(objet_a_maj, old_attr):
-                        valeur_cible = current[old_attr]
-                        print(f"debug : l'objet {type(objet_a_maj)} a bien un champ {old_attr} qui vaut {valeur_cible}")
-                        setattr(objet_a_maj, new_attr, valeur_cible)
-                        delattr(objet_a_maj, old_attr)
-            # ajouter les nouveaux champs
-            for ref_attr, ref_value in reference.items():
-                if not hasattr(objet_a_maj, ref_attr):
-                    setattr(objet_a_maj, ref_attr, ref_value)
-            # supprimer les champs superflus
-            old_attrs = list(current.keys())
-            for old_attr in old_attrs:
-                if old_attr not in reference:
-                    delattr(objet_a_maj, old_attr)
-
-        # parcours de toutes les classes pour mettre à jour les Objets
-
-        maj_classe(self)
-
-        for personnage in self.personnages.values():
-            maj_classe(personnage)
-            for scene in personnage.scenes:
-                maj_classe(scene)
-            for role in personnage.roles:
-                maj_classe(role)
-
-        for faction in self.factions.values():
-            maj_classe(faction)
-
-        for intrigue in self.intrigues.values():
-            maj_classe(intrigue)
-            for scene in intrigue.scenes:
-                maj_classe(scene)
-                print(f'heure de la scène {scene.titre} : {scene.heure_debut}')
-
-        for evenement in self.evenements.values():
-            if evenement.__class__.__name__ == "Evenement":
-                evenement.__class__.__name__ = "FicheEvenement"
-
-            maj_classe(evenement)
-            for evenement_unitaire in evenement.interventions:
-                if evenement_unitaire.__class__.__name__ == "Intervention":
-                    evenement_unitaire.__class__.__name__ = "EvenementUnitaire"
-                maj_classe(evenement_unitaire)
-
-        for objet in self.objets_de_reference.values():
-            maj_classe(objet)
-
-        if version.parse(self.version) < version.parse('1.2.0'):
-            # dans ce cas il faut mettre à jour les noms des référents car pas automatique
-            intrigues = self.intrigues.values()
-            for intrigue in intrigues:
-                intrigue.referent = intrigue.orga_referent
-
-        self.version = VERSION_MODELE
 
     def get_nom_fichier_sauvegarde(self):
         nom_brut = self.dict_config['nom_fichier_sauvegarde']
@@ -2499,6 +2324,7 @@ class ObjetDansEvenement:
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
+#todo : vérifier si cette fonction ne fait pas doublon avec les fonctions de lecture des heures dans g_io
 def _heure_formattee(heure, defaut_si_ko=None):
     try:
         if heure[-1:].lower() == 'h':
