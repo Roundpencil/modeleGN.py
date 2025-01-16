@@ -14,7 +14,6 @@ from packaging import version
 from unidecode import unidecode
 
 import lecteurGoogle
-import updateur_gn
 
 VERSION = "1.4.20250113"
 VERSION_MODELE = "1.4.20240901"
@@ -1443,6 +1442,7 @@ class GN:
                     or version.parse(gn.version) < version.parse(VERSION_MODELE)
             ):
                 gn.mettre_a_jour_champs()
+                # updateur_gn.mettre_a_jour_gn(gn)
 
             # on met à jour le dictionnaire de configuration s'il est fourni
             if dict_config:
@@ -2004,8 +2004,10 @@ class GN:
     #             intrigue.referent = intrigue.orga_referent
     #
     #     self.version = VERSION_MODELE
+
     def mettre_a_jour_champs(self):
-        updateur_gn.mettre_a_jour_gn(self)
+        from updateur_gn import mettre_a_jour_gn
+        mettre_a_jour_gn(self)
 
 
     def get_nom_fichier_sauvegarde(self):

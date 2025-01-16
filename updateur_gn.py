@@ -1,12 +1,9 @@
-# from modeleGN import *
 from packaging import version
 from modeleGN import GN, Personnage, Role, Intrigue, EvenementUnitaire, VERSION
 
+
 # todo :
 #  ajouter des fonctions psécifiques à des versions
-#  parcourir toutes les versions intermédiaires et trouver toutes les fonctions associées et dictionnaires de renommage
-#  faire tourner la fonction tant que la version n'est pas à jour en prenant en input les fonctions de mise à jour
-#  et les tableaux de renommage
 
 # déclaration de la méthode de mise à jour
 def _maj_classe(objet_a_maj, renommages:dict, fonctions_update:dict):
@@ -63,6 +60,7 @@ def _vers_1_4_20250113(gn: GN):
     _montee_de_version(fonctions_update, gn, renommages, version_cible)
 
 def mettre_a_jour_gn(gn: GN):
+
     version_fonction = {"1.4.20250113":_vers_1_4_20250113}
     versions = list(version_fonction.keys())
     versions.sort(key=lambda x: version.parse(x))
