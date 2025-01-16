@@ -1,5 +1,7 @@
 from packaging import version
-from modeleGN import GN, Personnage, Role, Intrigue, EvenementUnitaire, VERSION, Evenement
+
+from modeleGN import GN, Intrigue, VERSION
+
 
 # déclaration de la méthode de mise à jour
 def _maj_classe(objet_a_maj, renommages:dict, fonctions_update:dict):
@@ -17,7 +19,7 @@ def _maj_classe(objet_a_maj, renommages:dict, fonctions_update:dict):
                 print(f"debug : l'objet {type(objet_a_maj)} a bien un champ {old_attr} qui vaut {valeur_cible}")
                 setattr(objet_a_maj, new_attr, valeur_cible)
                 attributs_a_supprimer.append(old_attr)
-                # delattr(objet_a_maj, old_attr) ancienne version avant le fait de léyaer la suppression
+                # delattr(objet_a_maj, old_attr) ancienne version avant le fait de délayer la suppression
 
     # ajouter les nouveaux champs
     for ref_attr, ref_value in reference.items():
@@ -58,7 +60,6 @@ def _vers_1_4_20240901(gn: GN):
                         }
     version_cible = "1.4.20240901"
     # parcours de toutes les classes pour mettre à jour les Objets
-
     _montee_de_version(fonctions_update, gn, renommages, version_cible)
 
 def _intervention_1_4_20240901(evenement_unitaire):
@@ -94,8 +95,6 @@ def mettre_a_jour_gn(gn: GN, verbal=True):
 
     if verbal:
         print(f"Versions pour update = {versions}")
-
-    # version_max = versions[:-1]
 
     for version_cible in versions:
         if verbal:
