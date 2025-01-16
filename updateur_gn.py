@@ -28,7 +28,7 @@ def _maj_classe(objet_a_maj, renommages:dict, fonctions_update:dict):
         if old_attr not in reference:
             delattr(objet_a_maj, old_attr)
 
-def _vers_1_4_20250113(gn: GN):
+def _vers_1_4_20240901(gn: GN):
     renommages = {GN:
                       {'objets': 'objets_de_reference'},
                   Personnage:
@@ -59,18 +59,29 @@ def _vers_1_4_20250113(gn: GN):
 
     _montee_de_version(fonctions_update, gn, renommages, version_cible)
 
-def mettre_a_jour_gn(gn: GN):
+def mettre_a_jour_gn(gn: GN, verbal=True):
 
-    version_fonction = {"1.4.20250113":_vers_1_4_20250113}
+    version_fonction = {"1.4.20240901":_vers_1_4_20240901}
     versions = list(version_fonction.keys())
     versions.sort(key=lambda x: version.parse(x))
+
+    if verbal:
+        print(f"Versions pour update = {versions}")
 
     # version_max = versions[:-1]
 
     for version_cible in versions:
+        if verbal:
+            print(f"faut-il monter de vers = {version_cible}? "
+                  f"(de {version.parse(gn.version)}  vers {version.parse(version_cible)}")
+
         if version.parse(version_cible) > version.parse(gn.version):
+            if verbal:
+                print(f"\tOui, update en cours...")
             fonction = version_fonction[version_cible]
             fonction(gn)
+            if verbal:
+                print(f"\tupdate fait")
 
     if version.parse(gn.version) != VERSION:
         print("attention la version du GN n'est pas égale à celle du modèle")
@@ -93,19 +104,22 @@ def _montee_de_version(fonctions_update, gn, renommages, version_cible):
         _maj_classe(intrigue, renommages, fonctions_update)
         for scene in intrigue.scenes:
             _maj_classe(scene, renommages, fonctions_update)
-            print(f'heure de la scène {scene.titre} : {scene.heure_debut}')
+            # print(f'heure de la scène {scene.titre} : {scene.heure_debut}')
     for evenement in gn.evenements.values():
+        # todo : déplacer vers les focntions lde la version
         if evenement.__class__.__name__ == "Evenement":
             evenement.__class__.__name__ = "FicheEvenement"
 
         _maj_classe(evenement, renommages, fonctions_update)
         for evenement_unitaire in evenement.interventions:
+            # todo : déplacer vers les focntions lde la version
             if evenement_unitaire.__class__.__name__ == "Intervention":
                 evenement_unitaire.__class__.__name__ = "EvenementUnitaire"
             _maj_classe(evenement_unitaire, renommages, fonctions_update)
     for objet in gn.objets_de_reference.values():
         _maj_classe(objet, renommages, fonctions_update)
     if version.parse(gn.version) < version.parse('1.2.0'):
+        # todo : déplacer vers les focntions lde la version
         # dans ce cas il faut mettre à jour les noms des référents car pas automatique
         intrigues = gn.intrigues.values()
         for intrigue in intrigues:
