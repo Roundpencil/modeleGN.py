@@ -100,7 +100,7 @@ def mettre_a_jour_gn(gn: GN, verbal=True):
     for version_cible in versions:
         if verbal:
             print(f"faut-il monter de vers = {version_cible}? "
-                  f"(de {version.parse(gn.version)}  vers {version.parse(version_cible)}")
+                  f"(de {version.parse(gn.version)}  vers {version.parse(version_cible)})")
 
         if version.parse(version_cible) > version.parse(gn.version):
             if verbal:
