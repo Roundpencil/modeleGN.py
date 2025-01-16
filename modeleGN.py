@@ -961,20 +961,23 @@ class Scene:
 
         if date_absolue_calculee == datetime.datetime.min:
             # alors c'est qu'on a une  valeur par défaut => tenter le dict_formattage il y a
-            return self.get_formatted_il_y_a()
-
-        months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
-                  "novembre", "décembre"]
-
-        if not jours_semaine:
-            date_string = f"{date_absolue_calculee.day} {months[date_absolue_calculee.month - 1]} " \
-                          f"{date_absolue_calculee.year}"
+            # return self.get_formatted_il_y_a()
+            date_string = self.get_formatted_il_y_a()
         else:
-            days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
-            date_string = f"{days[date_absolue_calculee.weekday()]} " \
-                          f"{date_absolue_calculee.day} " \
-                          f"{months[date_absolue_calculee.month - 1]} " \
-                          f"{date_absolue_calculee.year}"
+            months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
+                      "novembre", "décembre"]
+
+            if not jours_semaine:
+                date_string = f"{date_absolue_calculee.day} {months[date_absolue_calculee.month - 1]} " \
+                              f"{date_absolue_calculee.year}"
+            else:
+                days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+                date_string = f"{days[date_absolue_calculee.weekday()]} " \
+                              f"{date_absolue_calculee.day} " \
+                              f"{months[date_absolue_calculee.month - 1]} " \
+                              f"{date_absolue_calculee.year}"
+
+        # si nécessaire on rajoute l'heure
         if avec_heure and (time_string := self.get_heure_debut()):
             # time_string = f"{date_absolue_calculee.hour}h{date_absolue_calculee.minute}"
             return f"{date_string}, {time_string}"
@@ -994,7 +997,11 @@ class Scene:
         ma_date = float(self.date[1:]) if type(self.date) == str else -1 * self.date
 
         if ma_date == 0:
-            return "Il y a 0 jours"
+            # return "Il y a 0 jours"
+            return "Aujourd'hui"
+
+        if ma_date == 1:
+            return "Hier"
 
         date_texte = 'Il y a '
         nb_annees = ma_date // 365
