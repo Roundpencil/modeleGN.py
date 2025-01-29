@@ -44,6 +44,10 @@ from modeleGN import *
 #  utiliser https://stackoverflow.com/questions/68317186/how-to-make-dateparser-parse-date-relative-to-a-given-day
 
 # todo : vérifier qu'on peut choisir de 'nutiliser MAGnet que pour les évènements
+# todo : changer la vérification desfichiers récents pour prendre en compte les fichiers modifiés dans les 2/3 dernières minutes,
+#  et ajouter une optin turbo pour ne pas le prrendre en comtpe
+
+# todo : ajouter lieu dans chrono (cf. mesage sandrine)
 
 # Module Photo
 # todo : permettre de marcher avec un mgn pour qu'il n'y ait qu'un seul fichier pour les utilisateurs MAGnet
