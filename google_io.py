@@ -16,6 +16,8 @@ from modeleGN import *
 
 from dateparser_data.settings import default_parsers
 
+from text_to_num import alpha2digit
+
 ID_FICHIER_ARCHIVES = '1tEXjKfiU8k_SU_jyVAoUQU1K9Gp77Cv0'
 
 
@@ -1436,13 +1438,16 @@ def calculer_jours_il_y_a(balise_date):
     # print(f"input_balise date il y a en entrée {balise_date}")
     balise_date = balise_date.lower()
     try:
-        ma_date = balise_date
+        # ma_date = balise_date
+        ma_date = ecrire_les_nombre_en_chiffres(balise_date)
         # print(f"ma date avant stripping : {ma_date}")
         # print(balise_date.strip().lower()[0:6])
         # #si il y a un "il y a" dans la input_balise, il faut le virer
         # if balise_date.strip().lower()[0:6] == 'il y a':
         #     ma_date = balise_date[7:]
         # print(f"ma date après stripping : {balise_date} > {ma_date}")
+        # remplacer les nombres par leurs chiffres
+
 
         ans = re.search(r"\d+\s*a", ma_date)
 
@@ -1487,6 +1492,9 @@ def calculer_jours_il_y_a(balise_date):
     except ValueError:
         print(f"Erreur avec la date {balise_date}")
         return balise_date.strip()
+
+def ecrire_les_nombre_en_chiffres(texte):
+    return alpha2digit(texte, 'fr', ordinal_threshold=0).replace('un', '1')
 
 
 def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url: str, lastFileEdit,
