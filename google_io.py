@@ -1495,7 +1495,9 @@ def calculer_jours_il_y_a(balise_date):
         return balise_date.strip()
 
 def ecrire_les_nombre_en_chiffres(texte):
-    return alpha2digit(texte, 'fr', ordinal_threshold=0).replace('un', '1')
+    return (alpha2digit(texte, 'fr', ordinal_threshold=0)
+            .replace('une', '1')
+            .replace('un', '1'))
 
 
 def extraire_evenement_de_texte(texte_evenement: str, nom_evenement: str, id_url: str, lastFileEdit,
