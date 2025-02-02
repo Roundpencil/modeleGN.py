@@ -1452,7 +1452,8 @@ def calculer_jours_il_y_a(balise_date):
         ans = re.search(r"\d+\s*a", ma_date)
 
         # trouver s'il y a un nombres* m[ois]
-        mois = re.search('\d+\s*m', ma_date)
+        # mois = re.search('\d+\s*m', ma_date) # ajusté en prévision de l'ajout des minutes
+        mois = re.search(r'\d+\s*m(?![ni])', ma_date)
 
         # trouver s'il y a un nombre* s[emaines]
         semaines = re.search('\d+\s*s', ma_date)
