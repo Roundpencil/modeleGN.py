@@ -215,7 +215,7 @@ def afficherLesPersos(monGN):
 def afficherDatesScenes(monGN):
     for intrigue in monGN.intrigues:
         for scene in intrigue.scenes:
-            print("scène : {0} / date : {1} > {2}".format(scene.titre, scene.date, scene.get_formatted_date()))
+            print("scène : {0} / date : {1} > {2}".format(scene.titre, scene._date_relative_jours, scene.get_formatted_date()))
 
 
 def genererCsvOrgaIntrigue(monGN):

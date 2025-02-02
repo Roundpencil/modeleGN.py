@@ -14,6 +14,8 @@ from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload, MediaIoBa
 import lecteurGoogle
 from modeleGN import *
 
+from dateparser_data.settings import default_parsers
+
 ID_FICHIER_ARCHIVES = '1tEXjKfiU8k_SU_jyVAoUQU1K9Gp77Cv0'
 
 
@@ -1397,7 +1399,8 @@ def extraire_date_scene(balise_date, scene_a_ajouter):
         # print(f" 'quand il y a' trouvée : {balise_date}")
         return extraire_il_y_a_scene(balise_date.strip()[7:], scene_a_ajouter)
     else:
-        scene_a_ajouter.date = balise_date.strip()
+        # scene_a_ajouter.date = balise_date.strip()
+        scene_a_ajouter.set_date_relative_from_jours(balise_date.strip())
     # print("date de la scène : " + scene_a_ajouter.date)
 
 
@@ -1408,14 +1411,25 @@ def extraire_il_y_a_scene(balise_date, scene_a_ajouter):
     date_en_jours = calculer_jours_il_y_a(balise_date)
     # print(f"dans extraire il y a scene : {date_en_jours} avant de mettre à jour")
 
-    scene_a_ajouter.date = date_en_jours
+    scene_a_ajouter.set_date_relative_from_jours(date_en_jours)
     # print(f"et après mise à jour de la scène : {scene_a_ajouter.date}")
 
 
 def extraire_date_absolue(texte_brut: str, scene_a_ajouter: Scene):
     if texte_brut.endswith("h"):
         texte_brut += "00"
-    scene_a_ajouter.date_absolue = dateparser.parse(texte_brut, languages=['fr'])
+
+    # on essaye d'identifier une date absolue, on prend donc tous les parsers à part relative (car ce sera du il y a)
+    parsers = [parser for parser in default_parsers if parser != 'relative-time']
+    date_cible = dateparser.parse(texte_brut, languages=['fr'], settings={'PARSERS': parsers})
+
+    if date_cible:
+        scene_a_ajouter.set_date_absolue(date_cible)
+    else:
+        extraire_il_y_a_scene(texte_brut, scene_a_ajouter)
+
+    # ancien code
+    #scene_a_ajouter.date_absolue = dateparser.parse(texte_brut, languages=['fr'])
 
 
 def calculer_jours_il_y_a(balise_date):

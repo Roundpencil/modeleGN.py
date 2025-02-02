@@ -39,9 +39,9 @@ from modeleGN import *
 
 # todo :
 #  remplacer le calcul de la date en jour par un time delta années / mois / jours / minytes / heures qui permet de ne pas avoir à calculer des dates en jour arrondis, et stoquer la date relative de cette manière
-#  mettre à jour le module d'update pour appliquer des fonctions spécifiques en fonction de la version
-#  voir si on veut utiliser https://dateparser.readthedocs.io/en/latest/settings.html en excluant le relative_parser pour éviter les erreurs sur les dates (et rajouter une erreur quand on ne détermine pas de date)
-#  utiliser https://stackoverflow.com/questions/68317186/how-to-make-dateparser-parse-date-relative-to-a-given-day
+#  ajouter la reconnaissance des heures dans les dates en il y a
+# utiliser potentiellement FreshnessDateDataParser et la methode getkwargs + relative date pour stoquer le reste (cf. code de Fresheness
+# reste à trouver comment paramètrer les locales fr
 
 # todo : vérifier qu'on peut choisir de 'nutiliser MAGnet que pour les évènements
 # todo : changer la vérification desfichiers récents pour prendre en compte les fichiers modifiés dans les 2/3 dernières minutes,

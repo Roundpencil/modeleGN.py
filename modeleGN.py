@@ -881,11 +881,11 @@ class Relation:
 # Scènes
 class Scene:
     def __init__(self, conteneur=None, titre="scene sans titre", date="TBD", heure_debut=None,
-                 pitch="Pas de description simple", date_absolue: datetime = None,
+                 pitch="Pas de description simple", date_absolue: datetime.datetime = None,
                  description="Pas de description complète", lieu=None,
                  actif=True):
         self.conteneur: ConteneurDeScene = conteneur
-        self.date = date  # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
+        self._date_relative_jours = date  # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
         # l'évènement
         self.date_absolue = date_absolue
         self.titre = titre
@@ -932,7 +932,10 @@ class Scene:
         return self.date_absolue.strftime('%Hh%M') if self.date_absolue else None
 
     def get_date(self):
-        return self.date
+        return self._date_relative_jours
+
+    def set_date_relative_from_jours(self, nbjours):
+        self._date_relative_jours = nbjours
 
     def set_heure_debut(self, heure_debut):
         self.heure_debut = heure_debut.strip()
@@ -987,14 +990,14 @@ class Scene:
     def get_formatted_il_y_a(self):
         # print("date/type > {0}/{1}".format(self.date, type(self.date)))
         if (
-                type(self.date) != float
-                and type(self.date) != int
-                and not str(self.date[1:]).isnumeric()
+                type(self._date_relative_jours) != float
+                and type(self._date_relative_jours) != int
+                and not str(self._date_relative_jours[1:]).isnumeric()
         ):
             # print("la date <{0}> n'est pas un nombre".format(self.date))
-            return self.date
+            return self._date_relative_jours
 
-        ma_date = float(self.date[1:]) if type(self.date) == str else -1 * self.date
+        ma_date = float(self._date_relative_jours[1:]) if type(self._date_relative_jours) == str else -1 * self._date_relative_jours
 
         if ma_date == 0:
             # return "Il y a 0 jours"
@@ -1079,13 +1082,16 @@ class Scene:
         # to_return += f"actif  : {self.actif} \n"
         return to_return
 
+    def set_date_absolue(self, date_absolue:datetime.datetime):
+        self.date_absolue = date_absolue
+
     def get_date_absolue(self, date_du_jeu=None):
         # print(f"pour la scène {self.titre} dans get_d_abs = date absolue = {self.date_absolue}, date = {self.date}")
         if self.date_absolue is not None:
             return self.date_absolue
         elif date_du_jeu is not None:
             with contextlib.suppress(ValueError):
-                float_date = float(self.date)
+                float_date = float(self._date_relative_jours)
                 date_absolue = date_du_jeu - datetime.timedelta(days=int(float_date) * -1)
                 return date_absolue
         return datetime.datetime.min
@@ -1098,16 +1104,16 @@ class Scene:
         #     # return sys.minsize
         #     return sys.maxsize * -1 - 1
         try:
-            return int(float(self.date))
+            return int(float(self._date_relative_jours))
         except ValueError:
-            logging.debug(f"la date {self.date} n'est pas un nombre")
+            logging.debug(f"la date {self._date_relative_jours} n'est pas un nombre")
             return sys.maxsize * -1 - 1
 
     # renvoie une donnée de type [a, b, c] où a est la date absolue, b la date relative et c la date texte
     # en cas d'absence, complète avec des valeurs par défaut
     # en cas de comparaison, met le texte en premier, puis les dates en il y a, puis les dates absolues
     def clef_tri(self, date_gn=None):
-        return [self.get_date_absolue(date_gn), self.get_date_jours(), str(self.date), str(self.get_heure_debut())]
+        return [self.get_date_absolue(date_gn), self.get_date_jours(), str(self._date_relative_jours), str(self.get_heure_debut())]
 
     @staticmethod
     def trier_scenes(scenes_a_trier, date_gn=None):

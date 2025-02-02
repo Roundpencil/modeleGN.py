@@ -39,6 +39,18 @@ def _maj_classe(objet_a_maj, renommages:dict, fonctions_update:dict):
         if old_attr not in reference:
             delattr(objet_a_maj, old_attr)
 
+def _vers_1_5_2025XXXX(gn: GN):
+    renommages = {'Scene':
+                      {"date": "_date_relative_jours"}
+                  }
+
+    fonctions_update = {
+                        }
+
+    version_cible = "1.4.20240901" #TODO : mettre à jour
+    # parcours de toutes les classes pour mettre à jour les Objets
+    _montee_de_version(fonctions_update, gn, renommages, version_cible)
+
 def _vers_1_4_20240901(gn: GN):
     renommages = {'GN':
                       {'objets': 'objets_de_reference'},
