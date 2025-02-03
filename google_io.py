@@ -1046,7 +1046,8 @@ def extraire_balise(input_balise: str, scene_a_ajouter: Scene, conteneur: Conten
                     tableau_roles_existant: bool = True):
     class Balises(Enum):
         QUAND = r"^##\s*quand\s*[:?]"
-        IL_Y_A = r"^##\s*il y a\s*"
+        # IL_Y_A = r"^##\s*il y a\s*"
+        IL_Y_A = r"^##\s*il\s*y\s*a\s*" # pattern permettant de prendre en compte les espaces
         DATE = r"^##\s*date\s*[:?]"
         QUI = r"^##\s*qui\s*[:?]"
         # NIVEAU = r"^##\s*niveau\s*[:?]"
@@ -1057,9 +1058,13 @@ def extraire_balise(input_balise: str, scene_a_ajouter: Scene, conteneur: Conten
         OU = r"^##\s*(ou|où|lieu)\s*[:?]"
 
     dict_methodes = {
-        Balises.QUAND: lambda x: extraire_date_scene(x, scene_a_ajouter),
+        # remplacé par la fonction générique ci-dessous
+        # Balises.QUAND: lambda x: extraire_date_scene(x, scene_a_ajouter),
+        Balises.QUAND: lambda x: extraire_quand_ou_date_scene(x, scene_a_ajouter),
         Balises.IL_Y_A: lambda x: extraire_il_y_a_scene(x, scene_a_ajouter),
-        Balises.DATE: lambda x: extraire_date_absolue(x, scene_a_ajouter),
+        # remplacé par la fonction générique ci-dessous
+        # Balises.DATE: lambda x: extraire_date_absolue(x, scene_a_ajouter),
+        Balises.DATE: lambda x: extraire_quand_ou_date_scene(x, scene_a_ajouter),
         Balises.QUI: lambda x: extraire_qui_scene(x, conteneur, scene_a_ajouter,
                                                   avec_tableau_des_persos=tableau_roles_existant),
         # Balises.RESUME:lambda x :None,
@@ -1392,18 +1397,34 @@ def qui_2_roles(roles: list[str], conteneur: ConteneurDeScene, avec_tableau_des_
 
     return to_return
 
+def extraire_quand_ou_date_scene(texte_brut:str, scene_a_ajouter:Scene):
+    # Si ma date est au format absolue > je mets une date absolue
+    if date_absolue := calculer_date_absolue(texte_brut):
+        scene_a_ajouter.set_date_absolue(date_absolue)
+        return
 
-def extraire_date_scene(balise_date, scene_a_ajouter):
-    # réécrite pour merger les fonctions il y a et quand :
+    # Sinon, si je trouve un pattern il y a > je mets un il y a
+    pattern_il_y_a = r"\s*il\s*y\s*a\s*"
+    if match := re.search(pattern_il_y_a, texte_brut, re.IGNORECASE):
+        end_pos = match.end()
+        texte_il_y_a = texte_brut[end_pos:]
+        extraire_il_y_a_scene(texte_il_y_a, scene_a_ajouter)
+        return
 
-    # est-ce que la date est écrite au format quand ? il y a ?
-    if balise_date.strip().lower()[:6] == 'il y a':
-        # print(f" 'quand il y a' trouvée : {balise_date}")
-        return extraire_il_y_a_scene(balise_date.strip()[7:], scene_a_ajouter)
-    else:
-        # scene_a_ajouter.date = balise_date.strip()
-        scene_a_ajouter.set_date_relative_from_jours(balise_date.strip())
-    # print("date de la scène : " + scene_a_ajouter.date)
+    # Sinon, je prends la date comme elle est
+    scene_a_ajouter.set_date_relative_from_jours(texte_brut.strip())
+
+# def extraire_date_scene(balise_date, scene_a_ajouter):
+#     # réécrite pour merger les fonctions il y a et quand :
+#
+#     # est-ce que la date est écrite au format quand ? il y a ?
+#     if balise_date.strip().lower()[:6] == 'il y a':
+#         # print(f" 'quand il y a' trouvée : {balise_date}")
+#         return extraire_il_y_a_scene(balise_date.strip()[7:], scene_a_ajouter)
+#     else:
+#         # scene_a_ajouter.date = balise_date.strip()
+#         scene_a_ajouter.set_date_relative_from_jours(balise_date.strip())
+#     # print("date de la scène : " + scene_a_ajouter.date)
 
 
 def extraire_il_y_a_scene(balise_date, scene_a_ajouter):
@@ -1417,7 +1438,7 @@ def extraire_il_y_a_scene(balise_date, scene_a_ajouter):
     # print(f"et après mise à jour de la scène : {scene_a_ajouter.date}")
 
 
-def extraire_date_absolue(texte_brut: str, scene_a_ajouter: Scene):
+def calculer_date_absolue(texte_brut: str):
     if texte_brut.endswith("h"):
         texte_brut += "00"
 
@@ -1425,10 +1446,13 @@ def extraire_date_absolue(texte_brut: str, scene_a_ajouter: Scene):
     parsers = [parser for parser in default_parsers if parser != 'relative-time']
     date_cible = dateparser.parse(texte_brut, languages=['fr'], settings={'PARSERS': parsers})
 
-    if date_cible:
-        scene_a_ajouter.set_date_absolue(date_cible)
-    else:
-        extraire_il_y_a_scene(texte_brut, scene_a_ajouter)
+    return date_cible # qui vaut None si on n'a pas trouvé
+
+    #
+    # if date_cible:
+    #     scene_a_ajouter.set_date_absolue(date_cible)
+    # else:
+    #     extraire_il_y_a_scene(texte_brut, scene_a_ajouter)
 
     # ancien code
     #scene_a_ajouter.date_absolue = dateparser.parse(texte_brut, languages=['fr'])
@@ -1469,20 +1493,6 @@ def calculer_jours_il_y_a(balise_date):
         mois = 0 if not mois else mois.group(0)[:-1]
         semaines = 0 if not semaines else semaines.group(0)[:-1]
         jours = 0 if not jours else jours.group(0)[:-1]
-
-        # if mois is None:
-        #     mois = 0
-        # else:
-        #     mois = mois.group(0)[:-1]
-        #
-        # if semaines is None:
-        #     semaines = 0
-        # else:
-        #     semaines = semaines.group(0)[:-1]
-        # if jours is None:
-        #     jours = 0
-        # else:
-        #     jours = jours.group(0)[:-1]
 
         # print(f"{ma_date} > ans/jours/mois = {ans}/{mois}/{jours}")
 
