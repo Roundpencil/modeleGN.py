@@ -943,6 +943,9 @@ class Scene:
     def set_lieu(self, lieu):
         self.lieu = lieu
 
+    def get_lieu(self):
+        return self.lieu
+
     def effacer_roles_issus_de_factions(self):
         # print(f"debug : {self.titre} avant effaçage de mes roles, j'avais : {list(self.roles)} ")
         roles_a_effacer = [r for r in self.get_roles() if r.issu_dune_faction]
