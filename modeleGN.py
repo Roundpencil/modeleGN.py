@@ -358,7 +358,7 @@ class DateSceneRelative(DateScene):
 
     def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
         if date_gn:
-            return self._formatter_date_francaise(self.delta + date_gn)
+            return self._formatter_date_francaise(self.delta + date_gn, jours_semaine=jours_semaine)
 
         nb_annees = self.delta.years
         nb_mois = self.delta.months
@@ -416,8 +416,8 @@ class DateSceneRelative(DateScene):
 
 
 class DateSceneLibre(DateScene):
-    def __init__(self, text: str):
-        super().__init__()
+    def __init__(self, text: str, heure_brute):
+        super().__init__(heure_brute)
         self.text = text
 
     def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
@@ -2639,7 +2639,7 @@ class ObjetDansEvenement:
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
-#todo : vérifier si cette fonction ne fait pas doublon avec les fonctions de lecture des heures dans g_io
+#todo : vérifier si cette fonction ne fait pas doublon avec les fonctions dans dans date_scene (ou g_io?)
 def _heure_formattee(heure, defaut_si_ko=None):
     try:
         if heure[-1:].lower() == 'h':
