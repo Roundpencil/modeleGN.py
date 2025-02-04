@@ -39,17 +39,26 @@ def _maj_classe(objet_a_maj, renommages:dict, fonctions_update:dict):
         if old_attr not in reference:
             delattr(objet_a_maj, old_attr)
 
-def _vers_1_5_2025XXXX(gn: GN):
-    renommages = {'Scene':
-                      {"date": "_date_relative_jours"}
+def _vers_1_4_20250204(gn: GN):
+    renommages = {
                   }
 
     fonctions_update = {
+                        'Scene':_scene_1_4_20250204
                         }
 
-    version_cible = "1.4.20240901" #TODO : mettre à jour
+    version_cible = "1.4.20250204"
     # parcours de toutes les classes pour mettre à jour les Objets
     _montee_de_version(fonctions_update, gn, renommages, version_cible)
+
+def _scene_1_4_20250204(scene):
+    #met à jour les dates au nouveau format
+    if da := scene.date_absolue:
+        scene.set_date_scene(da)
+    elif hasattr(scene, 'date'):
+        scene.set_date_scene(scene.date)
+    elif hasattr(scene, '_date_relative_jours'):
+        scene.set_date_scene(scene._date_relative_jours)
 
 def _vers_1_4_20240901(gn: GN):
     renommages = {'GN':
@@ -100,7 +109,8 @@ def mettre_a_jour_gn(gn: GN, verbal=True):
 
     version_fonction = {
         "1.2.0": _vers_1_2_0,
-        "1.4.20240901": _vers_1_4_20240901
+        "1.4.20240901": _vers_1_4_20240901,
+        "1.4.20250204":_vers_1_4_20250204
     }
     versions = list(version_fonction.keys())
     versions.sort(key=lambda x: version.parse(x))
@@ -122,7 +132,7 @@ def mettre_a_jour_gn(gn: GN, verbal=True):
                 print(f"\tupdate fait")
 
     if version.parse(gn.version) != VERSION:
-        print("attention la version du GN n'est pas égale à celle du modèle")
+        print(f"attention la version du GN ({gn.version} n'est pas égale à celle du modèle {VERSION}")
     else:
         print(f"GN mis à jour vers la version {VERSION}")
 

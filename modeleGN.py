@@ -18,8 +18,8 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.4.20250113"
-VERSION_MODELE = "1.4.20240901"
+VERSION = "1.4.20250204"
+VERSION_MODELE = "1.4.20250204"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 GENRE_INDETERMINE = ''
 
@@ -91,14 +91,11 @@ def identifier_type_perso(string_perso: str, avec_pjs=False, avec_pnjs=False, av
 def normaliser_nom_gn(nom_archive: str):
     return nom_archive if nom_archive.endswith('.mgn') else f'{nom_archive}.mgn'
 
-#todo : finir de mettre à plat les méthodes dans ces classes
-#  ajouter à l'updateur de GN cette gestion
-
 class DateScene(ABC):
 
     PATTERN_IL_Y_A = r"\s*il\s*y\s*a\s*"
 
-    def __init__(self, heure_debut):
+    def __init__(self, heure_debut=None):
         self.heure_debut = heure_debut
 
     @abstractmethod
@@ -163,23 +160,31 @@ class DateScene(ABC):
         # if self.heure_debut:
         #     return self.heure_debut
         if self.heure_debut:
-            # Check if heure_debut matches the formats using regular expression
-            # match = re.match(r'^(\d{1,2})h(\d{2})?$', self.heure_debut)
-            match = re.match(r'^(\d{1,2})\s*h\s*(\d{2})?$', self.heure_debut)
-            if match:
-                # Extract hour and minute, if minute is None, replace with '00'
-                hour, minute = match.groups()
-                minute = minute if minute else '00'
-                # Format to ensure two digits for hour and minute
-                formatted_time = f"{int(hour):02d}h{int(minute):02d}"
-                return formatted_time
-            else:
-                # Return the original heure_debut if it doesn't match the expected format
-                return self.heure_debut
+            # return self._formatter_heure()
+            return DateScene._formatter_heure(self.heure_debut)
         return ''
 
     @staticmethod
+    def _formatter_heure(heure):
+        # Check if heure_debut matches the formats using regular expression
+        # match = re.match(r'^(\d{1,2})h(\d{2})?$', self.heure_debut)
+        match = re.match(r'^(\d{1,2})\s*h\s*(\d{2})?$', heure)
+        if match:
+            # Extract hour and minute, if minute is None, replace with '00'
+            hour, minute = match.groups()
+            minute = minute if minute else '00'
+            # Format to ensure two digits for hour and minute
+            formatted_time = f"{int(hour):02d}h{int(minute):02d}"
+            return formatted_time
+        else:
+            # Return the original heure_debut if it doesn't match the expected format
+            return heure
+
+    @staticmethod
     def _calculer_date_absolue(texte_brut: str) -> datetime:
+        if not isinstance(texte_brut, str):
+            return None
+
         if texte_brut.endswith("h"):
             texte_brut += "00"
 
@@ -191,15 +196,15 @@ class DateScene(ABC):
 
     @classmethod
     def date_scene_from_texte(cls, texte_date:str, heure_brute:str=None):
-        # todo : ajouter la maj de l'heure brute dans le code
-
         # chaque constructeur exige d'avoir le bon type en entrée
 
-        # Si ma date est au format absolue > je mets une date absolue
-        if isinstance(date_absolue := texte_date, datetime.datetime) or (date_absolue := cls._calculer_date_absolue(texte_date)):
+        # Si ma date est au format absolu > je mets une date absolue
+        if (isinstance(date_absolue := texte_date, datetime.datetime) or
+                (date_absolue := cls._calculer_date_absolue(texte_date))):
             return DateSceneAbsolue(date_absolue, heure_brute)
 
-        if isinstance(texte_date, float) and (delta := cls._float_vers_relativedelta(texte_date)):
+        if isinstance(texte_date, float):
+            delta = cls._float_vers_relativedelta(texte_date)
             # return DateSceneJours(texte_date, heure_brute)
             return DateSceneRelative(delta, heure_brute)
 
@@ -299,7 +304,7 @@ class DateScene(ABC):
         nb_annees = ma_date // 365
         nb_mois = (ma_date - nb_annees * 365) // 30.5
         nb_jours = ma_date - nb_annees * 365 - nb_mois * 30.5
-        return relativedelta(years=int(nb_annees), months=int(nb_mois), days=int(nb_jours))
+        return relativedelta(years=int(nb_annees)*-1, months=int(nb_mois)*-1, days=int(nb_jours)*-1)
 
 
     @staticmethod
@@ -318,10 +323,16 @@ class DateSceneAbsolue(DateScene):
         return self._formatter_date_francaise(self.date_absolue, jours_semaine=jours_semaine)
 
     def get_heure_formattee(self, story_date: datetime = None) -> str:
-        #todo : tester si l'une des heures est à privilégier sur l'autre
-        # entre celle qui est dans le datetime et celle dans l'heure
-        return self.date_absolue.strftime('%Hh%M') if self.date_absolue else ''
+        # Si on a explicitement rempli une heure, elle remplace celle qui était écrite
+        # Sinon on prend celle qui était écrite sauf si elle vaut 0
 
+        if self.get_heure_brute():
+            return super().get_heure_formattee()
+
+        if self.date_absolue.time() != datetime.time() :
+            return self.date_absolue.strftime('%Hh%M')
+
+        return ''
 
     def _clef_date_absolue(self, date_gn:datetime):
         if date_gn:
@@ -339,18 +350,36 @@ class DateSceneRelative(DateScene):
     def __init__(self, delta, heure_brute):
         super().__init__(heure_brute)
         self.delta:relativedelta = delta
-        #todo : voir comment gérer les heures en relatives :
-        # on garde celle passée en paramètre ou celle passée en relative? >> s'appuyer sur cas où il y a heure == 0?
-        #todo : ajouter la clef des heures
+
+    # Si on a explicitement rempli une heure, elle remplace celle qui était écrite
+    # Sinon on prend celle qui était écrite sauf si elle vaut 0
+
+    def get_heure_formattee(self, date_gn: datetime = None) -> str:
+        # de base on garde l'heure si elle a été fournie, sinon on calcule le delta
+        if self.get_heure_brute():
+            return super().get_heure_formattee()
+        if date_gn and (self.delta.hours, self.delta.minutes) != (0, 0):
+            return (date_gn + self.delta).time().strftime('%Hh%M')
+        return ''
+
 
     def _clef_date_jours(self):
-        to_return = ''
-        to_return += f"{self.delta.years * -1}"
-        to_return += f"{self.delta.months * -1:02d}"
-        to_return += f"{self.delta.days * -1:02d}"
-        to_return += f"{self.delta.hours * -1:02d}"
-        to_return += f"{self.delta.minutes * -1:02d}"
-        return to_return
+        vecteur_dates = [self.delta.years,
+                         self.delta.months,
+                         self.delta.weeks,
+                         self.delta.days,
+                         self.delta.hours,
+                         self.delta.minutes]
+
+        vecteur_facteur = [365.25,
+                           365.25/12,
+                           7,
+                           1,
+                           1/12,
+                           1/(12*60)
+                           ]
+
+        return sum([d*f for d, f in zip(vecteur_dates, vecteur_facteur)])
 
     def _clef_date_absolue(self, date_gn:datetime):
         if date_gn:
@@ -361,14 +390,24 @@ class DateSceneRelative(DateScene):
         if date_gn:
             return self._formatter_date_francaise(self.delta + date_gn, jours_semaine=jours_semaine)
 
-        nb_annees = self.delta.years
-        nb_mois = self.delta.months
-        nb_jours = self.delta.days
-        nb_heures = self.delta.hours
-        nb_minutes = self.delta.minutes
-
-        vecteur_dates = [nb_annees, nb_mois, nb_jours, nb_heures, nb_minutes]
-        vecteur_noms = [['ans', 'an'], ['mois', 'mois'], ['jours', 'jour'], ['heures', 'heure'], ['minutes', 'minute']]
+        # nb_annees = self.delta.years
+        # nb_mois = self.delta.months
+        # nb_jours = self.delta.days
+        # nb_heures = self.delta.hours
+        # nb_minutes = self.delta.minutes
+        # vecteur_dates = [nb_annees, nb_mois, nb_jours, nb_heures, nb_minutes]
+        vecteur_dates = [self.delta.years,
+                         self.delta.months,
+                         self.delta.weeks,
+                         self.delta.days,
+                         self.delta.hours,
+                         self.delta.minutes]
+        vecteur_noms = [['ans', 'an'],
+                        ['mois', 'mois'],
+                        ['semaines', 'semaine'],
+                        ['jours', 'jour'],
+                        ['heures', 'heure'],
+                        ['minutes', 'minute']]
 
         if vecteur_dates == [0, 0, 2, 0, 0]:
             return "Avant-hier"
@@ -1711,7 +1750,8 @@ class GN:
                             # print(f"je paaaaaarle {score[1]}")
                             print(texte_erreur)
 
-    def associer_roles_issus_de_pj(self, dict_noms_persos, dict_reference, seuil_alerte,
+    @classmethod
+    def associer_roles_issus_de_pj(cls, dict_noms_persos, dict_reference, seuil_alerte,
                                    verbal):
         noms_persos = list(dict_noms_persos.keys())
         for perso in dict_reference.values():

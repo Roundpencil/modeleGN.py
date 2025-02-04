@@ -32,9 +32,6 @@ from modeleGN import *
 
 # à faire - version refactoring
 # todo : refactoring
-#  remplacer le calcul de la date en jour par un time delta années / mois / jours / minytes / heures qui permet de ne pas avoir à calculer des dates en jour arrondis, et stoquer la date relative de cette manière
-#  ajouter la reconnaissance des heures dans les dates en il y a
-#   utiliser from dateutil.relativedelta import relativedelta à la plce du nombre de jours relatifs (créer une variable et la renommer pour éviter les couacs)
 #  remettre à plat un configparser dans le mgn pour faciliter les extractions + renommer les fonctions qui le lisent pour clarifier ce qui vient du confiigparser
 # todo : proposer une architecture qui permet à la fois de stoquer un configparser dans le GN et d'être rétrocompatible
 
@@ -1520,7 +1517,7 @@ def generer_table_chrono_complete(table_raw, date_gn):
 
 def generer_table_chrono_scenes(mon_gn: GN):
     # Dates	Horaires	Episodes / Intrigues	Titre	Evênement	PJ concernés	PNJ concernés
-    toutes_scenes = Scene.trier_scenes(mon_gn.lister_toutes_les_scenes())
+    toutes_scenes = Scene.trier_scenes(mon_gn.lister_toutes_les_scenes(), date_gn=mon_gn.get_date_gn())
     to_return = [['Date', 'Intrigue', 'Scène', 'PJs concernés', 'PNJ, concernés', 'Lieu']]
 
     for scene in toutes_scenes:
