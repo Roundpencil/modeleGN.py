@@ -43,7 +43,7 @@ from modeleGN import *
 # todo : changer la vérification des fichiers récents pour prendre en compte les fichiers modifiés dans les 2/3 dernières minutes,
 #  et ajouter une option turbo pour ne pas le prrendre en comtpe
 # todo : vérifier qu'on peut choisir de n'utiliser MAGnet que pour les évènements
-
+# todo : passer en dates astronomiques, si on arriver à isoler comment le parser lit les dates
 
 # todo :
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
