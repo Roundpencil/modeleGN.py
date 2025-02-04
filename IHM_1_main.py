@@ -67,6 +67,7 @@ class MAGnetMainGUI(ttk.Frame):
         # Add commands to the "Aide et Références" drop-down menu
         menu2.add_command(label="Ouvrir le manuel", command=self.ouvrir_manuel)
         menu2.add_command(label="Ouvrir les fichiers de référence", command=self.ouvrir_fichiers_reference)
+        menu2.add_command(label="Politique de confidentialité", command=self.ouvrir_politique_confidentialite)
         menu2.add_command(label="Historique des versions", command=self.historique_versions)
 
         self.ecran_mouliner()
@@ -128,6 +129,9 @@ class MAGnetMainGUI(ttk.Frame):
 
     def ouvrir_fichiers_reference(self):
         webbrowser.open_new("https://drive.google.com/drive/folders/1mpcnbpP2SV_K-REbcgnsnaCut_w_Xfcc?usp=share_link")
+
+    def ouvrir_politique_confidentialite(self):
+        webbrowser.open_new("https://docs.google.com/document/d/1y2GJx6uCcqchEXdthXi038xX3WbZodZW_vwTLJFmmqY/edit?usp=sharing")
 
     def historique_versions(self):
         webbrowser.open_new("https://docs.google.com/document/d/"
