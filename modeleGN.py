@@ -273,11 +273,12 @@ class DateScene(ABC):
             kwargs['weeks'] = 0 if not semaines else semaines.group(0)[:-1]
             kwargs['days'] = 0 if not jours else jours.group(0)[:-1]
             kwargs['hours'] = 0 if not heures else heures.group(0)[:-1]
-            kwargs['minutes'] = 0 if not minutes else minutes.group(0)[:-1]
+            kwargs['minutes'] = 0 if not minutes else minutes.group(0)[:-2]
 
             # somme = 0
             # on remplie le dictionnaire de valeurs négatives
             for k in kwargs:
+                # print(k, kwargs[k])
                 kwargs[k] = int(kwargs.get(k, 0)) * -1
             #     somme += kwargs[k]
             #
