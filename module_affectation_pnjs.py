@@ -587,14 +587,14 @@ def preparer_donnees_pour_planning(gn: GN, max_date, min_date, pas, verbal=False
             intervenants = intervention.liste_intervenants
             for intervenant in intervenants:
                 if verbal:
-                    print(f"*** {intervenant.get_nom_pnj_associe()} - {intervenant.get_type_PNJ_from_roles()}")
+                    print(f"*** {intervenant.get_nom_pnj_associe()} - {intervenant.get_type_pnj_from_roles()}")
                 # clef = intervenant.str_avec_perso()
                 clef = intervenant.get_nom_pnj_associe()
-                if intervenant.get_type_PNJ_from_roles() == TypePerso.EST_PNJ_CONTINU:
+                if intervenant.get_type_pnj_from_roles() == TypePerso.EST_PNJ_CONTINU:
                     dico_cible = dico_pnjs_continus
-                elif intervenant.get_type_PNJ_from_roles() in [TypePerso.EST_PNJ_PERMANENT, TypePerso.EST_PNJ_INFILTRE]:
+                elif intervenant.get_type_pnj_from_roles() in [TypePerso.EST_PNJ_PERMANENT, TypePerso.EST_PNJ_INFILTRE]:
                     dico_cible = dico_pnjs_always
-                elif intervenant.get_type_PNJ_from_roles() == TypePerso.EST_PNJ_ANONYME:
+                elif intervenant.get_type_pnj_from_roles() == TypePerso.EST_PNJ_ANONYME:
                     dico_cible = dico_pnj_anonymes
                 else:
                     dico_cible = dico_pnjs_temp

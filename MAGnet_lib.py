@@ -30,28 +30,32 @@ from modeleGN import *
 
 # bugs
 
-# à faire - rapide
+# à faire - version refactoring
+# todo : refactoring
+#  remettre à plat un configparser dans le mgn pour faciliter les extractions + renommer les fonctions qui le lisent pour clarifier ce qui vient du confiigparser
+# todo : proposer une architecture qui permet à la fois de stoquer un configparser dans le GN et d'être rétrocompatible
+
+# a faire, prochaines versions
+
+# todo : changer la vérification des fichiers récents pour prendre en compte les fichiers modifiés dans les 2/3 dernières minutes,
+#  et ajouter une option turbo pour ne pas le prrendre en comtpe
+# todo : vérifier qu'on peut choisir de n'utiliser MAGnet que pour les évènements
+# todo : passer en dates astronomiques, si on arriver à isoler comment le parser lit les dates
+
+# todo : voir si intéret d'utiliser Datescene avec des relativedelta pour  gérer les évènements
+
 # todo :
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
 #  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur
 #  nouvel onglet dans les fichiers de castings : aides par sessions (plutot que de prendre les pré-affectation) et les utiliser
 #  nouveau paramètre à ajouter : sessions_à_generer pour savoir quels casting on affiche, et quel génération on fait
 
-# todo :
-#  remplacer le calcul de la date en jour par un time delta années / mois / jours / minytes / heures qui permet de ne pas avoir à calculer des dates en jour arrondis, et stoquer la date relative de cette manière
-#  mettre à jour le module d'update pour appliquer des fonctions spécifiques en fonction de la version
-#  voir si on veut utiliser https://dateparser.readthedocs.io/en/latest/settings.html en excluant le relative_parser pour éviter les erreurs sur les dates (et rajouter une erreur quand on ne détermine pas de date)
-#  utiliser https://stackoverflow.com/questions/68317186/how-to-make-dateparser-parse-date-relative-to-a-given-day
-
-# todo : vérifier qu'on peut choisir de 'nutiliser MAGnet que pour les évènements
 
 # Module Photo
 # todo : permettre de marcher avec un mgn pour qu'il n'y ait qu'un seul fichier pour les utilisateurs MAGnet
-# todo : proposer une architecture qui permet à la fois de stoquer un configparser dans le GN et d'être rétrocompatible
 # todo : rajouter un champ pour dire qu'on ne veut mettre que les photos des PJs ?
 
 # utilité du code
-# todo : regarder s'il faut supprimer perimetre_intervention dans Role, qui fait doublon avec le type de personnage
 # todo : changer tous les paramètres de MAGnet_lib par une classe ou un dictionnaire pour accelérer le design
 #   vérifier l'usage de la GUI 3 qui utilise can write
 
@@ -61,8 +65,6 @@ from modeleGN import *
 #  objectifs : se passer et du fichier de config, et de la nécessité de télécharger un mgn
 #  quand on vérifie la validité du dict config du fichier GN, en profiter pour le loader et séparer les fcontions selon si on a utilisé .ini ou .mgn
 #  problème desécurté à craquer
-
-# todo : renommer Evmenet en FicheEvemenet et Intervention en Evenement
 
 # confort / logique
 # todo : refaire version console
@@ -1515,8 +1517,8 @@ def generer_table_chrono_complete(table_raw, date_gn):
 
 def generer_table_chrono_scenes(mon_gn: GN):
     # Dates	Horaires	Episodes / Intrigues	Titre	Evênement	PJ concernés	PNJ concernés
-    toutes_scenes = Scene.trier_scenes(mon_gn.lister_toutes_les_scenes())
-    to_return = [['Date', 'Intrigue', 'Scène', 'PJs concernés', 'PNJ, concernés']]
+    toutes_scenes = Scene.trier_scenes(mon_gn.lister_toutes_les_scenes(), date_gn=mon_gn.get_date_gn())
+    to_return = [['Date', 'Intrigue', 'Scène', 'PJs concernés', 'PNJ, concernés', 'Lieu']]
 
     for scene in toutes_scenes:
         to_return.append([
@@ -1526,7 +1528,7 @@ def generer_table_chrono_scenes(mon_gn: GN):
             scene.titre,
             ', '.join([role.str_avec_perso() for role in scene.get_roles() if role is not None and role.est_un_pj()]),
             ', '.join([role.str_avec_perso() for role in scene.get_roles() if role is not None and role.est_un_pnj()]),
-
+            scene.get_lieu() or ''
         ])
     return to_return
 

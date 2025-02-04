@@ -9,14 +9,17 @@ from abc import ABC, abstractmethod
 from enum import IntEnum
 
 import dateparser
+from dateparser_data.settings import default_parsers
+from dateutil.relativedelta import *
 from fuzzywuzzy import process
 from packaging import version
+from text_to_num import alpha2digit
 from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.4.20250116"
-VERSION_MODELE = "1.4.20240901"
+VERSION = "1.4.20250204"
+VERSION_MODELE = "1.4.20250204"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 GENRE_INDETERMINE = ''
 
@@ -88,28 +91,436 @@ def identifier_type_perso(string_perso: str, avec_pjs=False, avec_pnjs=False, av
 def normaliser_nom_gn(nom_archive: str):
     return nom_archive if nom_archive.endswith('.mgn') else f'{nom_archive}.mgn'
 
+class DateScene(ABC):
 
-# une classe pour gérer toutes les dates en jeu et permettre notamment de gérer les heures paèrs minuit
-# non utilisée à date
-# class DateEnJeu:
-#     def __init__(self, minutes=0):
-#         self.minutes = minutes
+    PATTERN_IL_Y_A = r"\s*il\s*y\s*a\s*"
+
+    def __init__(self, heure_debut=None):
+        self.heure_debut = heure_debut
+
+    @abstractmethod
+    def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
+        pass
+
+    def formatter_date(self, date_gn:datetime=None, jours_semaine=False, avec_heure=True) -> str:
+        """Retourne la représentation textuelle de la date en fonction du contexte."""
+        date_string = self.formatter_date_sans_heure(date_gn=date_gn, jours_semaine=jours_semaine)
+
+        # si nécessaire on rajoute l'heure
+        if avec_heure and (time_string := self.get_heure_formattee()):
+            # time_string = f"{date_absolue_calculee.hour}h{date_absolue_calculee.minute}"
+            return f"{date_string}, {time_string}"
+        else:
+            return f"{date_string}"
+
+    def get_heure_brute(self):
+        return self.heure_debut
+
+    def clef_tri(self, date_gn:datetime=None):
+        # renvoie une donnée de type [a, b, c] où a est la date absolue, b la date relative et c la date texte
+        # en cas d'absence, complète avec des valeurs par défaut
+        # en cas de comparaison, met le texte en premier, puis les dates en il y a, puis les dates absolues
+
+        return [self._clef_date_absolue(date_gn),
+                self._clef_date_jours(),
+                str(self._clef_date_texte(date_gn)),
+                str(self.get_heure_formattee())]
+
+    def _clef_date_absolue(self, date_gn:datetime):
+        return datetime.datetime.min
+
+    def _clef_date_jours(self):
+        return 0
+
+    def _clef_date_texte(self, date_gn:datetime):
+        return ''
+
+    @staticmethod
+    def _formatter_date_francaise(date_absolue_calculee:datetime, jours_semaine:bool):
+        months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
+                  "novembre", "décembre"]
+        if not jours_semaine:
+            date_string = f"{date_absolue_calculee.day} {months[date_absolue_calculee.month - 1]} " \
+                          f"{date_absolue_calculee.year}"
+        else:
+            days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+            date_string = f"{days[date_absolue_calculee.weekday()]} " \
+                          f"{date_absolue_calculee.day} " \
+                          f"{months[date_absolue_calculee.month - 1]} " \
+                          f"{date_absolue_calculee.year}"
+        return date_string
+
+    def set_heure_debut(self, heure_debut: str):
+        """Permet de saisir l'heure."""
+        self.heure_debut = heure_debut.strip()
+
+
+    def get_heure_formattee(self, story_date: datetime = None) -> str:
+        """Permet de retourner l'heure formattée."""
+        # if self.heure_debut:
+        #     return self.heure_debut
+        if self.heure_debut:
+            # return self._formatter_heure()
+            return DateScene._formatter_heure(self.heure_debut)
+        return ''
+
+    @staticmethod
+    def _formatter_heure(heure):
+        # Check if heure_debut matches the formats using regular expression
+        # match = re.match(r'^(\d{1,2})h(\d{2})?$', self.heure_debut)
+        match = re.match(r'^(\d{1,2})\s*h\s*(\d{2})?$', heure)
+        if match:
+            # Extract hour and minute, if minute is None, replace with '00'
+            hour, minute = match.groups()
+            minute = minute if minute else '00'
+            # Format to ensure two digits for hour and minute
+            formatted_time = f"{int(hour):02d}h{int(minute):02d}"
+            return formatted_time
+        else:
+            # Return the original heure_debut if it doesn't match the expected format
+            return heure
+
+    @staticmethod
+    def _calculer_date_absolue(texte_brut: str) -> datetime:
+        if not isinstance(texte_brut, str):
+            return None
+
+        if texte_brut.endswith("h"):
+            texte_brut += "00"
+
+        # on essaye d'identifier une date absolue, on prend donc tous les parsers à part relative (car ce sera du il y a)
+        parsers = [parser for parser in default_parsers if parser != 'relative-time']
+        date_cible = dateparser.parse(texte_brut, languages=['fr'], settings={'PARSERS': parsers})
+
+        return date_cible  # qui vaut None si on n'a pas trouvé
+
+    @classmethod
+    def date_scene_from_texte(cls, texte_date:str, heure_brute:str=None):
+        # chaque constructeur exige d'avoir le bon type en entrée
+
+        # Si ma date est au format absolu > je mets une date absolue
+        if (isinstance(date_absolue := texte_date, datetime.datetime) or
+                (date_absolue := cls._calculer_date_absolue(texte_date))):
+            return DateSceneAbsolue(date_absolue, heure_brute)
+
+        if isinstance(texte_date, float):
+            delta = cls._float_vers_relativedelta(texte_date)
+            # return DateSceneJours(texte_date, heure_brute)
+            return DateSceneRelative(delta, heure_brute)
+
+        # Sinon, j'ai un champ de texte.
+        # Est-ce que d'une manière ou d'une autre, je peux trouver un il y a dedans?
+        if delta := cls._il_y_a_vers_relativedelta(texte_date):
+            return DateSceneRelative(delta, heure_brute)
+
+        # Sinon, je prends la date comme elle est
+        return DateSceneLibre(texte_date.strip(), heure_brute)
+
+    @classmethod
+    def _extraire_texte_il_y_a(cls, texte_avec_il_y_a:str)->str:
+        if match := re.search(cls.PATTERN_IL_Y_A, texte_avec_il_y_a, re.IGNORECASE):
+            end_pos = match.end()
+            return texte_avec_il_y_a[end_pos:]
+        return texte_avec_il_y_a
+
+    @classmethod
+    def _il_y_a_vers_relativedelta(cls, texte_il_y_a)-> relativedelta | None :
+        # print(f"input_balise date il y a en entrée {balise_date}")
+        texte_il_y_a = texte_il_y_a.lower()
+        try:
+            # ma_date = balise_date
+            ma_date = cls._ecrire_les_nombre_en_chiffres(texte_il_y_a)
+
+            # si le il y a est dans le corps du texte, on l'enlève
+            ma_date = cls._extraire_texte_il_y_a(ma_date)
+
+            # a ce stade, on a donc soit un X ans, mois, jours, etc, soit rien
+
+            ans = re.search(r"\d+\s*a", ma_date)
+
+            # trouver s'il y a un nombres* m[ois]
+            # mois = re.search('\d+\s*m', ma_date) # ajusté en prévision de l'ajout des minutes
+            mois = re.search(r'\d+\s*m(?![ni])', ma_date)
+
+            # trouver s'il y a un nombre* s[emaines]
+            semaines = re.search(r'\d+\s*s', ma_date)
+
+            # trouver s'il y a un nombres* j[ours]
+            jours = re.search(r'\d+\s*j', ma_date)
+
+            heures = re.search(r'\d+\s*h', ma_date)
+
+            minutes = re.search(r'\d+\s*(mn|mi)', ma_date)
+
+            # print(f"{balise_date} =  {ans} ans/ {jours} jours/ {mois} mois/ {semaines} semaines")
+
+            # travailler ce qu'on a trouvé comme valeurs
+
+            # ans = 0 if not ans else ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
+            # mois = 0 if not mois else mois.group(0)[:-1]
+            # semaines = 0 if not semaines else semaines.group(0)[:-1]
+            # jours = 0 if not jours else jours.group(0)[:-1]
+            # heures = 0 if not heures else heures.group(0)[:-1]
+            # minutes = 0 if not minutes else minutes.group(0)[:-1]
+            #
+            # if min([ans, mois, semaines, jours, heures, minutes]) == 0:
+            #     raise ValueError
+            # return relativedelta(years= ans * -1,
+            #                      months= mois * -1,
+            #                      weeks= semaines * -1,
+            #                      days= jours * -1,
+            #                      hours= heures * -1,
+            #                      minutes= minutes * -1)
+
+            kwargs = dict()
+            kwargs['years'] = 0 if not ans else ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
+            kwargs['months'] = 0 if not mois else mois.group(0)[:-1]
+            kwargs['weeks'] = 0 if not semaines else semaines.group(0)[:-1]
+            kwargs['days'] = 0 if not jours else jours.group(0)[:-1]
+            kwargs['hours'] = 0 if not heures else heures.group(0)[:-1]
+            kwargs['minutes'] = 0 if not minutes else minutes.group(0)[:-2]
+
+            # somme = 0
+            # on remplie le dictionnaire de valeurs négatives
+            for k in kwargs:
+                # print(k, kwargs[k])
+                kwargs[k] = int(kwargs.get(k, 0)) * -1
+            #     somme += kwargs[k]
+            #
+            # if not somme:
+            #     raise ValueError
+
+            return relativedelta(**kwargs)
+
+
+        except ValueError:
+            print(f"Erreur avec la date {texte_il_y_a}")
+            # return texte_il_y_a.strip()
+            return None
+
+    @classmethod
+    def _float_vers_relativedelta(cls, ma_date:float) -> relativedelta:
+        ma_date = abs(ma_date)
+        nb_annees = ma_date // 365
+        nb_mois = (ma_date - nb_annees * 365) // 30.5
+        nb_jours = ma_date - nb_annees * 365 - nb_mois * 30.5
+        return relativedelta(years=int(nb_annees)*-1, months=int(nb_mois)*-1, days=int(nb_jours)*-1)
+
+
+    @staticmethod
+    def _ecrire_les_nombre_en_chiffres(texte):
+        return (alpha2digit(texte, 'fr', ordinal_threshold=0)
+                .replace('une', '1')
+                .replace('un', '1'))
+
+
+class DateSceneAbsolue(DateScene):
+    def __init__(self, date: datetime.datetime, heure_brute:str):
+        super().__init__(heure_brute)
+        self.date_absolue = date
+
+    def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
+        return self._formatter_date_francaise(self.date_absolue, jours_semaine=jours_semaine)
+
+    def get_heure_formattee(self, story_date: datetime = None) -> str:
+        # Si on a explicitement rempli une heure, elle remplace celle qui était écrite
+        # Sinon on prend celle qui était écrite sauf si elle vaut 0
+
+        if self.get_heure_brute():
+            return super().get_heure_formattee()
+
+        if self.date_absolue.time() != datetime.time() :
+            return self.date_absolue.strftime('%Hh%M')
+
+        return ''
+
+    def _clef_date_absolue(self, date_gn:datetime):
+        if date_gn:
+            return self.date_absolue
+        else:
+            return super()._clef_date_absolue(date_gn)
+
+    def _clef_date_texte(self, date_gn:datetime):
+        if not date_gn:
+            return self.formatter_date_sans_heure(self)
+        else:
+            return ''
+
+class DateSceneRelative(DateScene):
+    def __init__(self, delta, heure_brute):
+        super().__init__(heure_brute)
+        self.delta:relativedelta = delta
+
+    # Si on a explicitement rempli une heure, elle remplace celle qui était écrite
+    # Sinon on prend celle qui était écrite sauf si elle vaut 0
+
+    def get_heure_formattee(self, date_gn: datetime = None) -> str:
+        # de base on garde l'heure si elle a été fournie, sinon on calcule le delta
+        if self.get_heure_brute():
+            return super().get_heure_formattee()
+        if date_gn and (self.delta.hours, self.delta.minutes) != (0, 0):
+            return (date_gn + self.delta).time().strftime('%Hh%M')
+        return ''
+
+
+    def _clef_date_jours(self):
+        vecteur_dates = [self.delta.years,
+                         self.delta.months,
+                         self.delta.weeks,
+                         self.delta.days,
+                         self.delta.hours,
+                         self.delta.minutes]
+
+        vecteur_facteur = [365.25,
+                           365.25/12,
+                           7,
+                           1,
+                           1/12,
+                           1/(12*60)
+                           ]
+
+        return sum([d*f for d, f in zip(vecteur_dates, vecteur_facteur)])
+
+    def _clef_date_absolue(self, date_gn:datetime):
+        if date_gn:
+            return date_gn + self.delta
+        return super()._clef_date_absolue(date_gn)
+
+    def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
+        if date_gn:
+            return self._formatter_date_francaise(self.delta + date_gn, jours_semaine=jours_semaine)
+
+        # nb_annees = self.delta.years
+        # nb_mois = self.delta.months
+        # nb_jours = self.delta.days
+        # nb_heures = self.delta.hours
+        # nb_minutes = self.delta.minutes
+        # vecteur_dates = [nb_annees, nb_mois, nb_jours, nb_heures, nb_minutes]
+        vecteur_dates = [self.delta.years,
+                         self.delta.months,
+                         self.delta.weeks,
+                         self.delta.days,
+                         self.delta.hours,
+                         self.delta.minutes]
+        vecteur_noms = [['ans', 'an'],
+                        ['mois', 'mois'],
+                        ['semaines', 'semaine'],
+                        ['jours', 'jour'],
+                        ['heures', 'heure'],
+                        ['minutes', 'minute']]
+
+        if vecteur_dates == [0, 0, 2, 0, 0]:
+            return "Avant-hier"
+
+        if vecteur_dates == [0, 0, 1, 0, 0]:
+            return "Hier"
+
+        if vecteur_dates == [0, 0, 0, 0, 0]:
+            return "Aujourd'hui"
+
+        date_texte = 'Il y a '
+
+        # if nb_annees > 1:
+        #     date_texte += f"{str(nb_annees)[:-2]} ans, "
+        # elif nb_annees == 1:
+        #     date_texte += "1 an, "
+        #
+        # if nb_mois > 0:
+        #     date_texte += f"{str(nb_mois)[:-2]} mois, "
+        #
+        # if nb_jours > 1:
+        #     date_texte += f"{str(nb_jours)[:-2]} jours, "
+        # elif nb_jours > 0:
+        #     date_texte += "1 jour, "
+        #
+        # if nb_heures > 1:
+        #     date_texte += f"{str(nb_heures)[:-2]} heures, "
+        # elif nb_heures > 0:
+        #     date_texte += "1 heure, "
+        #
+        # if nb_minutes > 1:
+        #     date_texte += f"{str(nb_minutes)[:-2]} minutes, "
+        # elif nb_minutes > 0:
+        #     date_texte += "1 minute, "
+        #
+        # return date_texte[:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
+
+        for valeur, noms in zip(vecteur_dates, vecteur_noms):
+            # print(f"{valeur}, {noms}")
+            valeur = abs(valeur)
+            if valeur > 1:
+                date_texte += f"{str(valeur)} {noms[0]}, "
+            elif valeur > 0:
+                date_texte += f"1 {noms[1]}, "
+        return date_texte[:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
+
+
+class DateSceneLibre(DateScene):
+    def __init__(self, text: str, heure_brute):
+        super().__init__(heure_brute)
+        self.text = text
+
+    def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
+        # La date libre reste inchangée quelle que soit la présence d'une date d'histoire.
+        return self.text
+
+    def _clef_date_texte(self, date_gn):
+        return self.text
+
+
+# class DateSceneJours(DateScene):
+#     def __init__(self, nbjours: float):
+#         super().__init__()
+#         self._date_relative_jours = nbjours
 #
-#     # @staticmethod
-#     # def date_from_jmh(jour=1, heure=0, minute=0):
-#     #     minutes = minute + heure * 60 + jour * 24 * 60
-#     #     return DateEnJeu(minutes)
+#     def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
+#         # print("date/type > {0}/{1}".format(self.date, type(self.date)))
+#         if (
+#                 type(self._date_relative_jours) != float
+#                 and type(self._date_relative_jours) != int
+#                 and not str(self._date_relative_jours[1:]).isnumeric()
+#         ):
+#             # print("la date <{0}> n'est pas un nombre".format(self.date))
+#             return str(self._date_relative_jours)
 #
-#     # def creer_date_incrementee(self, minutes: int):
-#     #     return DateEnJeu(self.minutes + minutes)
+#         if date_gn:
+#             with contextlib.suppress(ValueError):
+#                 float_date = float(self._date_relative_jours)
+#                 date_absolue = date_gn - datetime.timedelta(days=int(float_date) * -1)
+#                 return self._formatter_date_francaise(date_absolue, jours_semaine=jours_semaine)
 #
-#     def __str__(self):
-#         total_minutes = self.minutes
-#         jours = total_minutes // (24 * 60)
-#         total_minutes %= (24 * 60)
-#         heures = total_minutes // 60
-#         minutes = total_minutes % 60
-#         return f"J{jours} {heures}h{minutes:02d}"
+#         ma_date = float(self._date_relative_jours[1:]) if type(
+#                 self._date_relative_jours) == str else -1 * self._date_relative_jours
+#
+#         if ma_date == 0:
+#             # return "Il y a 0 jours"
+#             return "Aujourd'hui"
+#
+#         if ma_date == 1:
+#             return "Hier"
+#
+#         date_texte = 'Il y a '
+#         nb_annees = ma_date // 365
+#         nb_mois = (ma_date - nb_annees * 365) // 30.5
+#         nb_jours = ma_date - nb_annees * 365 - nb_mois * 30.5
+#
+#         if nb_annees > 1:
+#             date_texte += f"{str(nb_annees)[:-2]} ans, "
+#         elif nb_annees == 1:
+#             date_texte += "1 an, "
+#
+#         if nb_mois > 0:
+#             date_texte += f"{str(nb_mois)[:-2]} mois, "
+#
+#         if nb_jours > 1:
+#             date_texte += f"{str(nb_jours)[:-2]} jours, "
+#         elif nb_jours > 0:
+#             date_texte += "1 jour, "
+#         return date_texte[:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
+#
+#     def _clef_date_jours(self):
+#         return self._date_relative_jours
+
 
 
 # une superclasse qui représente un fichier qui content des scènes, avec les rôles associés
@@ -511,14 +922,7 @@ class Personnage(ConteneurDeScene):
                     ]
                     for role_associe in roles_dans_relation
                 )
-        #             if role_associe.personnage is None:
-        #                 to_return += f"En relation avec le rôle {role_associe} (sans perso) >> " \
-        #                              f"{description}"
-        #             else:
-        #                 to_return += f"En relation avec {role_associe.personnage.nom} >> " \
-        #                              f"{description}"
-        #             to_return += "\n" if est_reciproque else "(non réciproque) \n"
-        # return to_return
+
         return lecteurGoogle.formatter_tableau_pour_export(tab_relation)
 
     def str_interventions(self):
@@ -880,14 +1284,17 @@ class Relation:
 
 # Scènes
 class Scene:
-    def __init__(self, conteneur=None, titre="scene sans titre", date="TBD", heure_debut=None,
-                 pitch="Pas de description simple", date_absolue: datetime = None,
+    def __init__(self, conteneur=None, titre="scene sans titre", date="TBD",
+                 heure_debut=None,
+                 pitch="Pas de description simple",
+                 # date_absolue: datetime.datetime = None,
                  description="Pas de description complète", lieu=None,
                  actif=True):
         self.conteneur: ConteneurDeScene = conteneur
-        self.date = date  # stoquée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
-        # l'évènement
-        self.date_absolue = date_absolue
+        # self._date_relative_jours = date  # stockée sous la forme d'un nombre négatif représentant le nombre de jours entre le GN et
+        # # l'évènement
+        # self.date_absolue = date_absolue
+        self.date_scene = DateScene.date_scene_from_texte(date, heure_debut)
         self.titre = titre
         self.pitch = pitch
         self.description = description
@@ -900,7 +1307,7 @@ class Scene:
         self.noms_roles_lus = None
         self.derniere_mise_a_jour = datetime.datetime.now()
         self.modifie_par = ""
-        self.heure_debut = heure_debut
+        # self.heure_debut = heure_debut
         self.lieu = lieu
         # print(f"Je viens de créer la scène {self.titre}, avec en entrée la date {date}")
 
@@ -912,33 +1319,24 @@ class Scene:
         self.roles_et_confiance[role] = (nom_brut, score)
 
     def get_heure_debut(self):
-        # if self.heure_debut:
-        #     return self.heure_debut
-        if self.heure_debut:
-            # Check if heure_debut matches the formats using regular expression
-            # match = re.match(r'^(\d{1,2})h(\d{2})?$', self.heure_debut)
-            match = re.match(r'^(\d{1,2})\s*h\s*(\d{2})?$', self.heure_debut)
-            if match:
-                # Extract hour and minute, if minute is None, replace with '00'
-                hour, minute = match.groups()
-                minute = minute if minute else '00'
-                # Format to ensure two digits for hour and minute
-                formatted_time = f"{int(hour):02d}h{int(minute):02d}"
-                return formatted_time
-            else:
-                # Return the original heure_debut if it doesn't match the expected format
-                return self.heure_debut
-        # return self.date_absolue.strftime('%H:%M:%S') if self.date_absolue else None
-        return self.date_absolue.strftime('%Hh%M') if self.date_absolue else None
+        return self.date_scene.get_heure_formattee()
 
-    def get_date(self):
-        return self.date
+
+    # def get_date(self):
+    #     return self._date_relative_jours
+
+    # def set_date_relative_from_jours(self, nbjours):
+    #     self._date_relative_jours = nbjours
 
     def set_heure_debut(self, heure_debut):
-        self.heure_debut = heure_debut.strip()
+        # self.heure_debut = heure_debut.strip()
+        self.date_scene.set_heure_debut(heure_debut)
 
     def set_lieu(self, lieu):
         self.lieu = lieu
+
+    def get_lieu(self):
+        return self.lieu
 
     def effacer_roles_issus_de_factions(self):
         # print(f"debug : {self.titre} avant effaçage de mes roles, j'avais : {list(self.roles)} ")
@@ -951,76 +1349,13 @@ class Scene:
         return [r.nom for r in self.get_roles()]
 
     def get_formatted_date(self, date_gn=None, jours_semaine=False, avec_heure=True):
+        return self.date_scene.formatter_date(date_gn=date_gn, jours_semaine=jours_semaine, avec_heure=avec_heure)
+
         # print(f"debut du débug affichage dates pour la scène {self.titre}, clef de tri = {self.clef_tri(date_gn)}")
         # print(f"date relative = {self.date}")
         # print(f" date absolue sans prise en compte date gn : {self.get_date_absolue()}")
         # print(f"date absolue avec prise en compte date gn {self.get_date_absolue(date_gn)}")
         # print(f"date du gn = {date_gn}")
-
-        date_absolue_calculee = self.get_date_absolue(date_du_jeu=date_gn)
-
-        if date_absolue_calculee == datetime.datetime.min:
-            # alors c'est qu'on a une  valeur par défaut => tenter le dict_formattage il y a
-            # return self.get_formatted_il_y_a()
-            date_string = self.get_formatted_il_y_a()
-        else:
-            months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
-                      "novembre", "décembre"]
-
-            if not jours_semaine:
-                date_string = f"{date_absolue_calculee.day} {months[date_absolue_calculee.month - 1]} " \
-                              f"{date_absolue_calculee.year}"
-            else:
-                days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
-                date_string = f"{days[date_absolue_calculee.weekday()]} " \
-                              f"{date_absolue_calculee.day} " \
-                              f"{months[date_absolue_calculee.month - 1]} " \
-                              f"{date_absolue_calculee.year}"
-
-        # si nécessaire on rajoute l'heure
-        if avec_heure and (time_string := self.get_heure_debut()):
-            # time_string = f"{date_absolue_calculee.hour}h{date_absolue_calculee.minute}"
-            return f"{date_string}, {time_string}"
-        else:
-            return f"{date_string}"
-
-    def get_formatted_il_y_a(self):
-        # print("date/type > {0}/{1}".format(self.date, type(self.date)))
-        if (
-                type(self.date) != float
-                and type(self.date) != int
-                and not str(self.date[1:]).isnumeric()
-        ):
-            # print("la date <{0}> n'est pas un nombre".format(self.date))
-            return self.date
-
-        ma_date = float(self.date[1:]) if type(self.date) == str else -1 * self.date
-
-        if ma_date == 0:
-            # return "Il y a 0 jours"
-            return "Aujourd'hui"
-
-        if ma_date == 1:
-            return "Hier"
-
-        date_texte = 'Il y a '
-        nb_annees = ma_date // 365
-        nb_mois = (ma_date - nb_annees * 365) // 30.5
-        nb_jours = ma_date - nb_annees * 365 - nb_mois * 30.5
-
-        if nb_annees > 1:
-            date_texte += f"{str(nb_annees)[:-2]} ans, "
-        elif nb_annees == 1:
-            date_texte += "1 an, "
-
-        if nb_mois > 0:
-            date_texte += f"{str(nb_mois)[:-2]} mois, "
-
-        if nb_jours > 1:
-            date_texte += f"{str(nb_jours)[:-2]} jours, "
-        elif nb_jours > 0:
-            date_texte += "1 jour, "
-        return date_texte[:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
 
     def str_pour_squelette(self, date_gn=None):
         # print(f'DEBUG : je suis en train de générer les scenes pour {self.titre} dans {self.conteneur.nom} '
@@ -1079,35 +1414,39 @@ class Scene:
         # to_return += f"actif  : {self.actif} \n"
         return to_return
 
-    def get_date_absolue(self, date_du_jeu=None):
-        # print(f"pour la scène {self.titre} dans get_d_abs = date absolue = {self.date_absolue}, date = {self.date}")
-        if self.date_absolue is not None:
-            return self.date_absolue
-        elif date_du_jeu is not None:
-            with contextlib.suppress(ValueError):
-                float_date = float(self.date)
-                date_absolue = date_du_jeu - datetime.timedelta(days=int(float_date) * -1)
-                return date_absolue
-        return datetime.datetime.min
+    # def set_date_absolue(self, date_absolue:datetime.datetime):
+    #     self.date_absolue = date_absolue
 
-    def get_date_jours(self):
-        # print(f"Je suis dans get date jour et date = {self.date}, et son type est type{type(self.date)}")
-        # if isinstance(self.date, float) or isinstance(self.date, int):
-        #     return self.date
-        # else:
-        #     # return sys.minsize
-        #     return sys.maxsize * -1 - 1
-        try:
-            return int(float(self.date))
-        except ValueError:
-            logging.debug(f"la date {self.date} n'est pas un nombre")
-            return sys.maxsize * -1 - 1
+    # def get_date_absolue(self, date_du_jeu=None):
+    #     # print(f"pour la scène {self.titre} dans get_d_abs = date absolue = {self.date_absolue}, date = {self.date}")
+    #     if self.date_absolue is not None:
+    #         return self.date_absolue
+    #     elif date_du_jeu is not None:
+    #         with contextlib.suppress(ValueError):
+    #             float_date = float(self._date_relative_jours)
+    #             date_absolue = date_du_jeu - datetime.timedelta(days=int(float_date) * -1)
+    #             return date_absolue
+    #     return datetime.datetime.min
 
-    # renvoie une donnée de type [a, b, c] où a est la date absolue, b la date relative et c la date texte
+    # def get_date_jours(self):
+    #     # print(f"Je suis dans get date jour et date = {self.date}, et son type est type{type(self.date)}")
+    #     # if isinstance(self.date, float) or isinstance(self.date, int):
+    #     #     return self.date
+    #     # else:
+    #     #     # return sys.minsize
+    #     #     return sys.maxsize * -1 - 1
+    #     try:
+    #         return int(float(self._date_relative_jours))
+    #     except ValueError:
+    #         logging.debug(f"la date {self._date_relative_jours} n'est pas un nombre")
+    #         return sys.maxsize * -1 - 1
+
+    # renvoie une donnée de type [a, b, c, d] où
+    # a est la date absolue, b la date relative, c la date texte, et d l'heure
     # en cas d'absence, complète avec des valeurs par défaut
     # en cas de comparaison, met le texte en premier, puis les dates en il y a, puis les dates absolues
     def clef_tri(self, date_gn=None):
-        return [self.get_date_absolue(date_gn), self.get_date_jours(), str(self.date), str(self.get_heure_debut())]
+        return self.date_scene.clef_tri(date_gn=date_gn)
 
     @staticmethod
     def trier_scenes(scenes_a_trier, date_gn=None):
@@ -1118,6 +1457,11 @@ class Scene:
             self.roles.remove(role)
         with contextlib.suppress(KeyError):
             self.roles_et_confiance.pop(role)
+
+    def set_date_scene(self, texte_brut):
+        old_heure = self.date_scene.get_heure_brute() if self.date_scene else None
+        self.date_scene = DateScene.date_scene_from_texte(texte_brut, old_heure)
+
 
 
 # objet pour tout sauvegarder
@@ -1406,7 +1750,8 @@ class GN:
                             # print(f"je paaaaaarle {score[1]}")
                             print(texte_erreur)
 
-    def associer_roles_issus_de_pj(self, dict_noms_persos, dict_reference, seuil_alerte,
+    @classmethod
+    def associer_roles_issus_de_pj(cls, dict_noms_persos, dict_reference, seuil_alerte,
                                    verbal):
         noms_persos = list(dict_noms_persos.keys())
         for perso in dict_reference.values():
@@ -1436,7 +1781,7 @@ class GN:
              ignore_older_version=False, creer_si_erreur=True):
         try:
             mon_fichier = open(filename, 'rb')
-            gn = pickle.load(mon_fichier)
+            gn: GN = pickle.load(mon_fichier)
             # on vérifie si le modele du GN qu'on a chargé n'est pas supérieur à celui de l'application
             if not ignore_older_version and version.parse(gn.version) > version.parse(VERSION_MODELE):
                 raise ValueError(
@@ -1449,6 +1794,7 @@ class GN:
                     or version.parse(gn.version) < version.parse(VERSION_MODELE)
             ):
                 gn.mettre_a_jour_champs()
+                # updateur_gn.mettre_a_jour_gn(gn)
 
             # on met à jour le dictionnaire de configuration s'il est fourni
             if dict_config:
@@ -1481,6 +1827,8 @@ class GN:
     # et les fonctions d'accélération de ré-importations
 
     def rebuild_links(self, verbal=False):
+        if verbal:
+            print("reconstruction des liens du GN en cours")
         self.clear_all_associations()
         # self.update_oldest_update()
         self.ajouter_roles_issus_de_factions()
@@ -1932,263 +2280,89 @@ class GN:
         return dico_nom_session_joueurs
 
     # def mettre_a_jour_champs(self):
-    # # mise à jour des formats de date et des factions
-    # if not hasattr(self, 'factions'):
-    #     self.factions = {}
-    # # if not hasattr(self, 'id_factions'):
-    # #     self.id_factions = None
-    # if hasattr(self, 'liste_noms_pjs'):
-    #     delattr(self, 'liste_noms_pjs')
-    # if hasattr(self, 'liste_noms_pnjs'):
-    #     delattr(self, 'liste_noms_pnjs')
-    # # if not hasattr(self, 'id_pjs_et_pnjs'):
-    # #     self.id_pjs_et_pnjs = None
-    # if not hasattr(self, 'evenements'):
-    #     self.evenements = {}
-    # # if not hasattr(self, 'dossiers_evenements'):
-    # #     self.dossiers_evenements = []
-    # # if hasattr(self, 'dossier_evenements'):
-    # #     delattr(self, 'dossier_evenements')
-    # if not hasattr(self, 'objets'):
-    #     self.objets = {}
-    # if hasattr(self, 'association_auto'):
-    #     delattr(self, 'association_auto')
-    # # if not hasattr(self, 'mode_association'):
-    # #     self.mode_association = self.ModeAssociation.AUTO
-    # if hasattr(self, 'dictPJs') and hasattr(self, 'dictPNJs'):
-    #     self.personnages = self.dictPJs | self.dictPNJs
-    #     delattr(self, 'dictPJs')
-    #     delattr(self, 'dictPNJs')
-    # if not hasattr(self, 'version'):
-    #     self.version = VERSION
-    # if hasattr(self, 'date_self'):
-    #     delattr(self, 'date_self')
-    # if hasattr(self, 'association_auto'):
-    #     delattr(self, 'association_auto')
-    # if hasattr(self, 'id_factions'):
-    #     delattr(self, 'id_factions')
-    # if hasattr(self, 'dossiers_pnjs'):
-    #     delattr(self, 'dossiers_pnjs')
-    # if hasattr(self, 'dossiers_pjs'):
-    #     delattr(self, 'dossiers_pjs')
-    # if hasattr(self, 'dossier_outputs_drive'):
-    #     delattr(self, 'dossier_outputs_drive')
-    # if hasattr(self, 'dossiers_intrigues'):
-    #     delattr(self, 'dossiers_intrigues')
-    # if hasattr(self, 'dossiers_objets'):
-    #     delattr(self, 'dossiers_objets')
-    # if hasattr(self, 'dossiers_evenements'):
-    #     delattr(self, 'dossiers_evenements')
-    # if hasattr(self, 'date_gn'):
-    #     delattr(self, 'date_gn')
-    # if hasattr(self, 'id_pjs_et_pnjs'):
-    #     delattr(self, 'id_pjs_et_pnjs')
-    # if hasattr(self, 'fichier_pnjs'):
-    #     delattr(self, 'fichier_pnjs')
-    # if hasattr(self, 'mode_association'):
-    #     delattr(self, 'mode_association')
-    # if not hasattr(self, 'dict_config'):
-    #     self.dict_config = None
+    #     # nouvelle méthode : déclaration du dictionnaire de renommage
+    #     renommages = {GN:
+    #                       {'objets': 'objets_de_reference'},
+    #                   Personnage:
+    #                       {"orgaReferent": "orga_referent",
+    #                        "joueurs": "interpretes",
+    #                        "sexe": "genre"},
+    #                   Intrigue:
+    #                       {'orgaReferent': 'orga_referent'},
+    #                   EvenementUnitaire:
+    #                       {'heure': 'heure_debut'},
+    #                   Role:
+    #                       {"sexe": "genre"}
+    #                   }
     #
-    # for scene in self.lister_toutes_les_scenes():
-    #     if not hasattr(scene, 'date_absolue'):
-    #         scene.date_absolue = None
-    #     # print(f"la scène {scene.titre}, dateba absolue = {scene.date_absolue}")
-    #     if hasattr(scene, 'niveau'):
-    #         delattr(scene, 'niveau')
+    #     # déclaration de la méthode de mise à jour
+    #     def maj_classe(objet_a_maj):
+    #         reference = vars(type(objet_a_maj)())
+    #         current = vars(objet_a_maj)
+    #         # mettre à jour les noms si dans le dictionnaire il y a un nom correspondant
+    #         if dict_renommage := renommages.get(type(objet_a_maj)):
+    #             print(f"debug : dict_renommage :  {dict_renommage}")
+    #             for old_attr, new_attr in dict_renommage.items():
+    #                 if hasattr(objet_a_maj, old_attr):
+    #                     valeur_cible = current[old_attr]
+    #                     print(f"debug : l'objet {type(objet_a_maj)} a bien un champ {old_attr} qui vaut {valeur_cible}")
+    #                     setattr(objet_a_maj, new_attr, valeur_cible)
+    #                     delattr(objet_a_maj, old_attr)
+    #         # ajouter les nouveaux champs
+    #         for ref_attr, ref_value in reference.items():
+    #             if not hasattr(objet_a_maj, ref_attr):
+    #                 setattr(objet_a_maj, ref_attr, ref_value)
+    #         # supprimer les champs superflus
+    #         old_attrs = list(current.keys())
+    #         for old_attr in old_attrs:
+    #             if old_attr not in reference:
+    #                 delattr(objet_a_maj, old_attr)
     #
-    # for intrigue in self.intrigues.values():
-    #     for objet in intrigue.objets:
-    #         if not hasattr(objet, 'code'):
-    #             objet.code = ""
-    #         if hasattr(objet, 'rfid'):
-    #             delattr(objet, 'rfid')
-    #         if hasattr(objet, 'commentaires'):
-    #             delattr(objet, 'commentaires')
-    #         if hasattr(objet, 'objet_de_reference'):
-    #             delattr(objet, 'objet_de_reference')
-    #         if not hasattr(objet, 'intrigue'):
-    #             objet.intrigue = None
-    #         if hasattr(objet, 'inIntrigues'):
-    #             if len(objet.inIntrigues) > 0:
-    #                 objet.intrigue = list(objet.inIntrigues)[0]
-    #             delattr(objet, 'inIntrigues')
+    #     # parcours de toutes les classes pour mettre à jour les Objets
     #
-    #     if not hasattr(intrigue, 'commentaires'):
-    #         intrigue.commentaires = []
-    #     if not hasattr(intrigue, 'codes_evenements_raw'):
-    #         intrigue.codes_evenements_raw = []
-    #     if not hasattr(intrigue, 'evenements'):
-    #         intrigue.evenements = set()
-    #     if not hasattr(intrigue, 'questionnaire'):
-    #         intrigue.questionnaire = []
-    #     if isinstance(intrigue.questionnaire, str):
-    #         intrigue.questionnaire = []
+    #     maj_classe(self)
     #
-    # # for conteneur in list(self.dictPJs.values()) + list(self.dictPNJs.values()) + list(self.intrigues.values()):
-    # #     for role in conteneur.rolesContenus.values():
-    # for role in self.lister_tous_les_roles():
-    #     print(f"clefs (2) pour {role.nom} = {vars(role).keys()}")
-    #     if not hasattr(role, 'affectation'):
-    #         role.affectation = ""
-    #     if hasattr(role, 'perimetreIntervention'):
-    #         if not hasattr(role, 'perimetre_intervention'):
-    #             role.perimetre_intervention = role.perimetreIntervention
-    #         delattr(role, 'perimetreIntervention')
-    #         # print(f"PerimetreIntervention supprimé pour {role.nom}")
+    #     for personnage in self.personnages.values():
+    #         maj_classe(personnage)
+    #         for scene in personnage.scenes:
+    #             maj_classe(scene)
+    #         for role in personnage.roles:
+    #             maj_classe(role)
     #
-    #     if hasattr(role, 'perimetre_Intervention'):
-    #         if not hasattr(role, 'perimetre_intervention'):
-    #             role.perimetre_intervention = role.perimetre_Intervention
-    #         delattr(role, 'perimetre_Intervention')
-    #     if not hasattr(role, 'relations'):
-    #         role.relations = set()
-    #     if not hasattr(role, 'personnage'):
-    #         if hasattr(role, 'perso'):
-    #             role.personnage = role.perso
-    #             delattr(role, 'perso')
-    #         else:
-    #             role.personnage = None
-    #     if not hasattr(role, 'affectation'):
-    #         role.affectation = None
+    #     for faction in self.factions.values():
+    #         maj_classe(faction)
     #
-    # for scene in self.lister_toutes_les_scenes():
-    #     if not hasattr(scene, 'infos'):
-    #         scene.infos = set()
+    #     for intrigue in self.intrigues.values():
+    #         maj_classe(intrigue)
+    #         for scene in intrigue.scenes:
+    #             maj_classe(scene)
+    #             print(f'heure de la scène {scene.titre} : {scene.heure_debut}')
     #
-    # # for pnj in self.dictPNJs.values():
-    # #     if not hasattr(pnj, 'commentaires'):
-    # #         pnj.commentaires = []
-    # #
-    # # for pj in self.dictPJs.values():
-    # #     if not hasattr(pj, 'commentaires'):
-    # #         pj.commentaires = []
+    #     for evenement in self.evenements.values():
+    #         if evenement.__class__.__name__ == "Evenement":
+    #             evenement.__class__.__name__ = "FicheEvenement"
     #
-    # for p in self.personnages.values():
-    #     if not hasattr(p, 'commentaires'):
-    #         p.commentaires = []
+    #         maj_classe(evenement)
+    #         for evenement_unitaire in evenement.interventions:
+    #             if evenement_unitaire.__class__.__name__ == "Intervention":
+    #                 evenement_unitaire.__class__.__name__ = "EvenementUnitaire"
+    #             maj_classe(evenement_unitaire)
     #
-    # for evenement in self.evenements.values():
-    #     for intervention in evenement.interventions:
-    #         if not hasattr(intervention, "liste_pnjs_impliques"):
-    #             intervention.liste_pnjs_impliques = set()
+    #     for objet in self.objets_de_reference.values():
+    #         maj_classe(objet)
     #
-    #         if not hasattr(intervention, 'liste_pjs_impliques'):
-    #             intervention.liste_pjs_impliques = set()
+    #     if version.parse(self.version) < version.parse('1.2.0'):
+    #         # dans ce cas il faut mettre à jour les noms des référents car pas automatique
+    #         intrigues = self.intrigues.values()
+    #         for intrigue in intrigues:
+    #             intrigue.referent = intrigue.orga_referent
     #
-    #         if hasattr(intervention, 'noms_pj_impliques'):
-    #             intervention.noms_pjs_impliques = intervention.pj_impliques
-    #             delattr(intervention, 'pj_impliques')
-    #
-    #     if not hasattr(evenement, 'objets'):
-    #         evenement.objets = set()
-    #     if not hasattr(evenement, 'heure_de_fin'):
-    #         evenement.heure_de_fin = ""
-    #
-    # # for pj in self.dictPJs:
-    # #     if pj in self.dictPNJs:
-    # #         self.dictPJs.pop(pj)
-    # #         print(f"le personnage {self.dictPJs[pj].name} a été retiré car c'était un pnj")
-    #
-    # for personnage in list(self.personnages.values()):
-    #     if not hasattr(personnage, 'informations_evenements'):
-    #         personnage.informations_evenements = set()
-    #     if not hasattr(personnage, 'intervient_comme'):
-    #         personnage.intervient_comme = set()
-    #     if hasattr(personnage, 'factions'):
-    #         personnage.groupes = []
-    #         personnage.groupes.extend(personnage.factions)
-    #         delattr(personnage, 'factions')
-    #     if hasattr(personnage, "orgaReferent"):
-    #         personnage.orga_referent = personnage.orgaReferent
-    #         delattr(personnage, "orgaReferent")
-    #
-    # for objet_de_reference in self.objets.values():
-    #     if not hasattr(objet_de_reference, 'ajoute_via_forcage'):
-    #         objet_de_reference.ajoute_via_forcage = True
-    #
-    #     if not hasattr(objet_de_reference, 'objets_dans_evenements'):
-    #         objet_de_reference.objets_dans_evenements = set()
+    #     self.version = VERSION_MODELE
 
     def mettre_a_jour_champs(self):
-        # nouvelle méthode : déclaration du dictionnaire de renommage
-        renommages = {GN:
-                          {'objets': 'objets_de_reference'},
-                      Personnage:
-                          {"orgaReferent": "orga_referent",
-                           "joueurs": "interpretes",
-                           "sexe": "genre"},
-                      Intrigue:
-                          {'orgaReferent': 'orga_referent'},
-                      EvenementUnitaire:
-                          {'heure': 'heure_debut'},
-                      Role:
-                          {"sexe": "genre"}
-                      }
+        from updateur_gn import mettre_a_jour_gn
+        mettre_a_jour_gn(self)
 
-        # déclaration de la méthode de mise à jour
-        def maj_classe(objet_a_maj):
-            reference = vars(type(objet_a_maj)())
-            current = vars(objet_a_maj)
-            # mettre à jour les noms si dans le dictionnaire il y a un nom correspondant
-            if dict_renommage := renommages.get(type(objet_a_maj)):
-                print(f"debug : dict_renommage :  {dict_renommage}")
-                for old_attr, new_attr in dict_renommage.items():
-                    if hasattr(objet_a_maj, old_attr):
-                        valeur_cible = current[old_attr]
-                        print(f"debug : l'objet {type(objet_a_maj)} a bien un champ {old_attr} qui vaut {valeur_cible}")
-                        setattr(objet_a_maj, new_attr, valeur_cible)
-                        delattr(objet_a_maj, old_attr)
-            # ajouter les nouveaux champs
-            for ref_attr, ref_value in reference.items():
-                if not hasattr(objet_a_maj, ref_attr):
-                    setattr(objet_a_maj, ref_attr, ref_value)
-            # supprimer les champs superflus
-            old_attrs = list(current.keys())
-            for old_attr in old_attrs:
-                if old_attr not in reference:
-                    delattr(objet_a_maj, old_attr)
-
-        # parcours de toutes les classes pour mettre à jour les Objets
-
-        maj_classe(self)
-
-        for personnage in self.personnages.values():
-            maj_classe(personnage)
-            for scene in personnage.scenes:
-                maj_classe(scene)
-            for role in personnage.roles:
-                maj_classe(role)
-
-        for faction in self.factions.values():
-            maj_classe(faction)
-
-        for intrigue in self.intrigues.values():
-            maj_classe(intrigue)
-            for scene in intrigue.scenes:
-                maj_classe(scene)
-                print(f'heure de la scène {scene.titre} : {scene.heure_debut}')
-
-        for evenement in self.evenements.values():
-            if evenement.__class__.__name__ == "Evenement":
-                evenement.__class__.__name__ = "FicheEvenement"
-
-            maj_classe(evenement)
-            for evenement_unitaire in evenement.interventions:
-                if evenement_unitaire.__class__.__name__ == "Intervention":
-                    evenement_unitaire.__class__.__name__ = "EvenementUnitaire"
-                maj_classe(evenement_unitaire)
-
-        for objet in self.objets_de_reference.values():
-            maj_classe(objet)
-
-        if version.parse(self.version) < version.parse('1.2.0'):
-            # dans ce cas il faut mettre à jour les noms des référents car pas automatique
-            intrigues = self.intrigues.values()
-            for intrigue in intrigues:
-                intrigue.referent = intrigue.orga_referent
-
-        self.version = VERSION_MODELE
 
     def get_nom_fichier_sauvegarde(self):
         nom_brut = self.dict_config['nom_fichier_sauvegarde']
@@ -2431,7 +2605,7 @@ class IntervenantEvenement:
     def __init__(self, nom_pnj, evenement: ConteneurDEvenementsUnitaires, costumes_et_accessoires="", implication="",
                  situation_de_depart=""):
         self.nom_pnj = nom_pnj
-        self.pnj: Personnage = None
+        self.pnj: Personnage|None = None
         self.costumes_et_accessoires = costumes_et_accessoires
         self.implication = implication
         self.situation_de_depart = situation_de_depart
@@ -2448,7 +2622,7 @@ class IntervenantEvenement:
                f"\t implication : {self.implication} \n " \
                f"\t commence : {self.situation_de_depart}"
 
-    def get_type_PNJ_from_roles(self):
+    def get_type_pnj_from_roles(self):
         return self.pnj.get_type_from_roles()
 
     @staticmethod
@@ -2506,6 +2680,7 @@ class ObjetDansEvenement:
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
+#todo : vérifier si cette fonction ne fait pas doublon avec les fonctions dans dans date_scene (ou g_io?)
 def _heure_formattee(heure, defaut_si_ko=None):
     try:
         if heure[-1:].lower() == 'h':
