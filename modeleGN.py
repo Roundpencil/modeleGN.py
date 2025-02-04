@@ -13,6 +13,7 @@ from dateparser_data.settings import default_parsers
 from dateutil.relativedelta import *
 from fuzzywuzzy import process
 from packaging import version
+from text_to_num import alpha2digit
 from unidecode import unidecode
 
 import lecteurGoogle
@@ -97,8 +98,8 @@ class DateScene(ABC):
 
     PATTERN_IL_Y_A = r"\s*il\s*y\s*a\s*"
 
-    def __init__(self):
-        self.heure_debut = None
+    def __init__(self, heure_debut):
+        self.heure_debut = heure_debut
 
     @abstractmethod
     def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
@@ -189,119 +190,137 @@ class DateScene(ABC):
         return date_cible  # qui vaut None si on n'a pas trouvé
 
     @classmethod
-    def date_scene_from_texte(cls, value, heure_brute:str):
-        #todo : faire évoluer avec un constructeur qui lit les il y a quand on retouchera la suite du code
-        # ce qui perettra de balancer toutes les dates dedans,
-        # et peut-être à terme de l'utiliser pour gérer les évènements
-
-        # todo : ajouter la maj de l'ehure brute dans le code
+    def date_scene_from_texte(cls, texte_date:str, heure_brute:str=None):
+        # todo : ajouter la maj de l'heure brute dans le code
 
         # chaque constructeur exige d'avoir le bon type en entrée
 
         # Si ma date est au format absolue > je mets une date absolue
-        if isinstance(date_absolue := value, datetime.datetime) or (date_absolue := cls._calculer_date_absolue(value)):
-            #todo : quand construit avec une heure à une date absolue on devra vérifier qu'elle n'en a pas déjà
-            # (ou l'ignorer)
+        if isinstance(date_absolue := texte_date, datetime.datetime) or (date_absolue := cls._calculer_date_absolue(texte_date)):
             return DateSceneAbsolue(date_absolue, heure_brute)
 
-        if isinstance(value, float) and (value <= 0):
-            return DateSceneJours(value, heure_brute)
+        if isinstance(texte_date, float) and (delta := cls._float_vers_relativedelta(texte_date)):
+            # return DateSceneJours(texte_date, heure_brute)
+            return DateSceneRelative(delta, heure_brute)
 
-        # Sinon, si je trouve un pattern il y a > je mets un il y a
-        if match := re.search(cls.PATTERN_IL_Y_A, value, re.IGNORECASE):
-            end_pos = match.end()
-            texte_il_y_a = value[end_pos:]
-            delta = extraire_il_y_a_scene(texte_il_y_a, scene_a_ajouter)
-
-            return DateSceneRelative(texte_il_y_a, heure_brute)
-
-        # todo : reste le cas où j'ai un pattern années, mois, jours
-        #  est-ce que je ne peux pas le mettre dans le if précédent en envoyer si j'ai il y a ET un pattern,
-        #  sinon c'est du texte.
-        #  Et construire directement avec le relative time en entrée?
+        # Sinon, j'ai un champ de texte.
+        # Est-ce que d'une manière ou d'une autre, je peux trouver un il y a dedans?
+        if delta := cls._il_y_a_vers_relativedelta(texte_date):
+            return DateSceneRelative(delta, heure_brute)
 
         # Sinon, je prends la date comme elle est
-        return DateSceneLibre(value.strip(), heure_brute)
+        return DateSceneLibre(texte_date.strip(), heure_brute)
+
+    @classmethod
+    def _extraire_texte_il_y_a(cls, texte_avec_il_y_a:str)->str:
+        if match := re.search(cls.PATTERN_IL_Y_A, texte_avec_il_y_a, re.IGNORECASE):
+            end_pos = match.end()
+            return texte_avec_il_y_a[end_pos:]
+        return texte_avec_il_y_a
+
+    @classmethod
+    def _il_y_a_vers_relativedelta(cls, texte_il_y_a)-> relativedelta | None :
+        # print(f"input_balise date il y a en entrée {balise_date}")
+        texte_il_y_a = texte_il_y_a.lower()
+        try:
+            # ma_date = balise_date
+            ma_date = cls._ecrire_les_nombre_en_chiffres(texte_il_y_a)
+
+            # si le il y a est dans le corps du texte, on l'enlève
+            ma_date = cls._extraire_texte_il_y_a(ma_date)
+
+            # a ce stade, on a donc soit un X ans, mois, jours, etc, soit rien
+
+            ans = re.search(r"\d+\s*a", ma_date)
+
+            # trouver s'il y a un nombres* m[ois]
+            # mois = re.search('\d+\s*m', ma_date) # ajusté en prévision de l'ajout des minutes
+            mois = re.search(r'\d+\s*m(?![ni])', ma_date)
+
+            # trouver s'il y a un nombre* s[emaines]
+            semaines = re.search(r'\d+\s*s', ma_date)
+
+            # trouver s'il y a un nombres* j[ours]
+            jours = re.search(r'\d+\s*j', ma_date)
+
+            heures = re.search(r'\d+\s*h', ma_date)
+
+            minutes = re.search(r'\d+\s*(mn|mi)', ma_date)
+
+            # print(f"{balise_date} =  {ans} ans/ {jours} jours/ {mois} mois/ {semaines} semaines")
+
+            # travailler ce qu'on a trouvé comme valeurs
+
+            # ans = 0 if not ans else ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
+            # mois = 0 if not mois else mois.group(0)[:-1]
+            # semaines = 0 if not semaines else semaines.group(0)[:-1]
+            # jours = 0 if not jours else jours.group(0)[:-1]
+            # heures = 0 if not heures else heures.group(0)[:-1]
+            # minutes = 0 if not minutes else minutes.group(0)[:-1]
+            #
+            # if min([ans, mois, semaines, jours, heures, minutes]) == 0:
+            #     raise ValueError
+            # return relativedelta(years= ans * -1,
+            #                      months= mois * -1,
+            #                      weeks= semaines * -1,
+            #                      days= jours * -1,
+            #                      hours= heures * -1,
+            #                      minutes= minutes * -1)
+
+            kwargs = dict()
+            kwargs['years'] = 0 if not ans else ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
+            kwargs['months'] = 0 if not mois else mois.group(0)[:-1]
+            kwargs['weeks'] = 0 if not semaines else semaines.group(0)[:-1]
+            kwargs['days'] = 0 if not jours else jours.group(0)[:-1]
+            kwargs['hours'] = 0 if not heures else heures.group(0)[:-1]
+            kwargs['minutes'] = 0 if not minutes else minutes.group(0)[:-1]
+
+            # somme = 0
+            # on remplie le dictionnaire de valeurs négatives
+            for k in kwargs:
+                kwargs[k] = int(kwargs.get(k, 0)) * -1
+            #     somme += kwargs[k]
+            #
+            # if not somme:
+            #     raise ValueError
+
+            return relativedelta(**kwargs)
 
 
-# todo : à nettoyer / privatiser / adapter
-def extraire_il_y_a_scene(balise_date, scene_a_ajouter):
+        except ValueError:
+            print(f"Erreur avec la date {texte_il_y_a}")
+            # return texte_il_y_a.strip()
+            return None
+
+    @classmethod
+    def _float_vers_relativedelta(cls, ma_date:float) -> relativedelta:
+        ma_date = abs(ma_date)
+        nb_annees = ma_date // 365
+        nb_mois = (ma_date - nb_annees * 365) // 30.5
+        nb_jours = ma_date - nb_annees * 365 - nb_mois * 30.5
+        return relativedelta(years=int(nb_annees), months=int(nb_mois), days=int(nb_jours))
 
 
-    # print("input_balise date : " + balise_date)
-    # print(f" pour sandrine : nom_scene avec il y a  : {scene_a_ajouter.titre}")
-    # trouver s'il y a un nombre a[ns]
-    date_en_jours = calculer_jours_il_y_a(balise_date)
-    # print(f"dans extraire il y a scene : {date_en_jours} avant de mettre à jour")
-
-    scene_a_ajouter.set_date_relative_from_jours(date_en_jours)
-    # print(f"et après mise à jour de la scène : {scene_a_ajouter.date}")
-
-# todo : à nettoyer / privatiser / adapter
-
-def calculer_jours_il_y_a(balise_date):
-    # print(f"input_balise date il y a en entrée {balise_date}")
-    balise_date = balise_date.lower()
-    try:
-        # ma_date = balise_date
-        ma_date = ecrire_les_nombre_en_chiffres(balise_date)
-        # print(f"ma date avant stripping : {ma_date}")
-        # print(balise_date.strip().lower()[0:6])
-        # #si il y a un "il y a" dans la input_balise, il faut le virer
-        # if balise_date.strip().lower()[0:6] == 'il y a':
-        #     ma_date = balise_date[7:]
-        # print(f"ma date après stripping : {balise_date} > {ma_date}")
-        # remplacer les nombres par leurs chiffres
-
-        ans = re.search(r"\d+\s*a", ma_date)
-
-        # trouver s'il y a un nombres* m[ois]
-        # mois = re.search('\d+\s*m', ma_date) # ajusté en prévision de l'ajout des minutes
-        mois = re.search(r'\d+\s*m(?![ni])', ma_date)
-
-        # trouver s'il y a un nombre* s[emaines]
-        semaines = re.search('\d+\s*s', ma_date)
-
-        # trouver s'il y a un nombres* j[ours]
-        jours = re.search('\d+\s*j', ma_date)
-
-        # print(f"{balise_date} =  {ans} ans/ {jours} jours/ {mois} mois/ {semaines} semaines")
-
-        # travailler ce qu'on a trouvé comme valeurs
-
-        ans = 0 if not ans else ans.group(0)[:-1]  # enlever le dernier char car c'est le marqueur de temps
-        mois = 0 if not mois else mois.group(0)[:-1]
-        semaines = 0 if not semaines else semaines.group(0)[:-1]
-        jours = 0 if not jours else jours.group(0)[:-1]
-
-        # print(f"{ma_date} > ans/jours/mois = {ans}/{mois}/{jours}")
-
-        date_en_jours = -1 * (float(ans) * 365 + float(mois) * 30.5 + float(semaines) * 7 + float(jours))
-        # print(f"input_balise date il y a en sortie {date_en_jours}")
-
-        return date_en_jours
-    except ValueError:
-        print(f"Erreur avec la date {balise_date}")
-        return balise_date.strip()
-
-# todo : à nettoyer / privatiser / adapter
-
-def ecrire_les_nombre_en_chiffres(texte):
-    return (alpha2digit(texte, 'fr', ordinal_threshold=0)
-            .replace('une', '1')
-            .replace('un', '1'))
+    @staticmethod
+    def _ecrire_les_nombre_en_chiffres(texte):
+        return (alpha2digit(texte, 'fr', ordinal_threshold=0)
+                .replace('une', '1')
+                .replace('un', '1'))
 
 
 class DateSceneAbsolue(DateScene):
-    def __init__(self, date: datetime.datetime):
-        super().__init__()
+    def __init__(self, date: datetime.datetime, heure_brute:str):
+        super().__init__(heure_brute)
         self.date_absolue = date
 
     def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
         return self._formatter_date_francaise(self.date_absolue, jours_semaine=jours_semaine)
 
     def get_heure_formattee(self, story_date: datetime = None) -> str:
+        #todo : tester si l'une des heures est à privilégier sur l'autre
+        # entre celle qui est dans le datetime et celle dans l'heure
         return self.date_absolue.strftime('%Hh%M') if self.date_absolue else ''
+
 
     def _clef_date_absolue(self, date_gn:datetime):
         if date_gn:
@@ -316,10 +335,84 @@ class DateSceneAbsolue(DateScene):
             return ''
 
 class DateSceneRelative(DateScene):
-    def __init__(self, texte_brut):
-        super().__init__()
-        return
+    def __init__(self, delta, heure_brute):
+        super().__init__(heure_brute)
         self.delta:relativedelta = delta
+        #todo : voir comment gérer les heures en relatives :
+        # on garde celle passée en paramètre ou celle passée en relative? >> s'appuyer sur cas où il y a heure == 0?
+        #todo : ajouter la clef des heures
+
+    def _clef_date_jours(self):
+        to_return = ''
+        to_return += f"{self.delta.years * -1}"
+        to_return += f"{self.delta.months * -1:02d}"
+        to_return += f"{self.delta.days * -1:02d}"
+        to_return += f"{self.delta.hours * -1:02d}"
+        to_return += f"{self.delta.minutes * -1:02d}"
+        return to_return
+
+    def _clef_date_absolue(self, date_gn:datetime):
+        if date_gn:
+            return date_gn + self.delta
+        return super()._clef_date_absolue(date_gn)
+
+    def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
+        if date_gn:
+            return self._formatter_date_francaise(self.delta + date_gn)
+
+        nb_annees = self.delta.years
+        nb_mois = self.delta.months
+        nb_jours = self.delta.days
+        nb_heures = self.delta.hours
+        nb_minutes = self.delta.minutes
+
+        vecteur_dates = [nb_annees, nb_mois, nb_jours, nb_heures, nb_minutes]
+        vecteur_noms = [['ans', 'an'], ['mois', 'mois'], ['jours', 'jour'], ['heures', 'heure'], ['minutes', 'minute']]
+
+        if vecteur_dates == [0, 0, 2, 0, 0]:
+            return "Avant-hier"
+
+        if vecteur_dates == [0, 0, 1, 0, 0]:
+            return "Hier"
+
+        if vecteur_dates == [0, 0, 0, 0, 0]:
+            return "Aujourd'hui"
+
+        date_texte = 'Il y a '
+
+        # if nb_annees > 1:
+        #     date_texte += f"{str(nb_annees)[:-2]} ans, "
+        # elif nb_annees == 1:
+        #     date_texte += "1 an, "
+        #
+        # if nb_mois > 0:
+        #     date_texte += f"{str(nb_mois)[:-2]} mois, "
+        #
+        # if nb_jours > 1:
+        #     date_texte += f"{str(nb_jours)[:-2]} jours, "
+        # elif nb_jours > 0:
+        #     date_texte += "1 jour, "
+        #
+        # if nb_heures > 1:
+        #     date_texte += f"{str(nb_heures)[:-2]} heures, "
+        # elif nb_heures > 0:
+        #     date_texte += "1 heure, "
+        #
+        # if nb_minutes > 1:
+        #     date_texte += f"{str(nb_minutes)[:-2]} minutes, "
+        # elif nb_minutes > 0:
+        #     date_texte += "1 minute, "
+        #
+        # return date_texte[:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
+
+        for valeur, noms in zip(vecteur_dates, vecteur_noms):
+            # print(f"{valeur}, {noms}")
+            valeur = abs(valeur)
+            if valeur > 1:
+                date_texte += f"{str(valeur)} {noms[0]}, "
+            elif valeur > 0:
+                date_texte += f"1 {noms[1]}, "
+        return date_texte[:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
 
 
 class DateSceneLibre(DateScene):
@@ -335,63 +428,58 @@ class DateSceneLibre(DateScene):
         return self.text
 
 
-class DateSceneJours(DateScene):
-    def __init__(self, nbjours: float):
-        super().__init__()
-        self._date_relative_jours = nbjours
-
-    def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
-        #todo : est-ce que à terme la classe jours ne disparait pas
-        # au profit d'une time delta
-        # dont les données ont été calculées dans le constructeur si un float  négatif est passé en entrée?
-
-        # print("date/type > {0}/{1}".format(self.date, type(self.date)))
-        if (
-                type(self._date_relative_jours) != float
-                and type(self._date_relative_jours) != int
-                and not str(self._date_relative_jours[1:]).isnumeric()
-        ):
-            # print("la date <{0}> n'est pas un nombre".format(self.date))
-            return str(self._date_relative_jours)
-
-        if date_gn:
-            with contextlib.suppress(ValueError):
-                float_date = float(self._date_relative_jours)
-                date_absolue = date_gn - datetime.timedelta(days=int(float_date) * -1)
-                return self._formatter_date_francaise(date_absolue, jours_semaine=jours_semaine)
-
-        ma_date = float(self._date_relative_jours[1:]) if type(
-                self._date_relative_jours) == str else -1 * self._date_relative_jours
-
-        if ma_date == 0:
-            # return "Il y a 0 jours"
-            return "Aujourd'hui"
-
-        if ma_date == 1:
-            return "Hier"
-
-        date_texte = 'Il y a '
-        # todo : si reformattage, cette partie va dans le constructeur
-        nb_annees = ma_date // 365
-        nb_mois = (ma_date - nb_annees * 365) // 30.5
-        nb_jours = ma_date - nb_annees * 365 - nb_mois * 30.5
-
-        if nb_annees > 1:
-            date_texte += f"{str(nb_annees)[:-2]} ans, "
-        elif nb_annees == 1:
-            date_texte += "1 an, "
-
-        if nb_mois > 0:
-            date_texte += f"{str(nb_mois)[:-2]} mois, "
-
-        if nb_jours > 1:
-            date_texte += f"{str(nb_jours)[:-2]} jours, "
-        elif nb_jours > 0:
-            date_texte += "1 jour, "
-        return date_texte[:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
-
-    def _clef_date_jours(self):
-        return self._date_relative_jours
+# class DateSceneJours(DateScene):
+#     def __init__(self, nbjours: float):
+#         super().__init__()
+#         self._date_relative_jours = nbjours
+#
+#     def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
+#         # print("date/type > {0}/{1}".format(self.date, type(self.date)))
+#         if (
+#                 type(self._date_relative_jours) != float
+#                 and type(self._date_relative_jours) != int
+#                 and not str(self._date_relative_jours[1:]).isnumeric()
+#         ):
+#             # print("la date <{0}> n'est pas un nombre".format(self.date))
+#             return str(self._date_relative_jours)
+#
+#         if date_gn:
+#             with contextlib.suppress(ValueError):
+#                 float_date = float(self._date_relative_jours)
+#                 date_absolue = date_gn - datetime.timedelta(days=int(float_date) * -1)
+#                 return self._formatter_date_francaise(date_absolue, jours_semaine=jours_semaine)
+#
+#         ma_date = float(self._date_relative_jours[1:]) if type(
+#                 self._date_relative_jours) == str else -1 * self._date_relative_jours
+#
+#         if ma_date == 0:
+#             # return "Il y a 0 jours"
+#             return "Aujourd'hui"
+#
+#         if ma_date == 1:
+#             return "Hier"
+#
+#         date_texte = 'Il y a '
+#         nb_annees = ma_date // 365
+#         nb_mois = (ma_date - nb_annees * 365) // 30.5
+#         nb_jours = ma_date - nb_annees * 365 - nb_mois * 30.5
+#
+#         if nb_annees > 1:
+#             date_texte += f"{str(nb_annees)[:-2]} ans, "
+#         elif nb_annees == 1:
+#             date_texte += "1 an, "
+#
+#         if nb_mois > 0:
+#             date_texte += f"{str(nb_mois)[:-2]} mois, "
+#
+#         if nb_jours > 1:
+#             date_texte += f"{str(nb_jours)[:-2]} jours, "
+#         elif nb_jours > 0:
+#             date_texte += "1 jour, "
+#         return date_texte[:-2]  # car meme dans le cadre de jours on a rajouté deux cars ;)
+#
+#     def _clef_date_jours(self):
+#         return self._date_relative_jours
 
 
 
@@ -1221,7 +1309,6 @@ class Scene:
         return [r.nom for r in self.get_roles()]
 
     def get_formatted_date(self, date_gn=None, jours_semaine=False, avec_heure=True):
-        #todo : réimplémenter dans la classe abstraite
         return self.date_scene.formatter_date(date_gn=date_gn, jours_semaine=jours_semaine, avec_heure=avec_heure)
 
         # print(f"debut du débug affichage dates pour la scène {self.titre}, clef de tri = {self.clef_tri(date_gn)}")
@@ -1289,7 +1376,6 @@ class Scene:
 
     # def set_date_absolue(self, date_absolue:datetime.datetime):
     #     self.date_absolue = date_absolue
-    #todo : remettre le code das les bonnes fonctions si nécessaire
 
     # def get_date_absolue(self, date_du_jeu=None):
     #     # print(f"pour la scène {self.titre} dans get_d_abs = date absolue = {self.date_absolue}, date = {self.date}")
@@ -1301,8 +1387,6 @@ class Scene:
     #             date_absolue = date_du_jeu - datetime.timedelta(days=int(float_date) * -1)
     #             return date_absolue
     #     return datetime.datetime.min
-
-    #todo : remettre le code das les bonnes fonctions si nécessaire
 
     # def get_date_jours(self):
     #     # print(f"Je suis dans get date jour et date = {self.date}, et son type est type{type(self.date)}")
@@ -2480,7 +2564,7 @@ class IntervenantEvenement:
     def __init__(self, nom_pnj, evenement: ConteneurDEvenementsUnitaires, costumes_et_accessoires="", implication="",
                  situation_de_depart=""):
         self.nom_pnj = nom_pnj
-        self.pnj: Personnage = None
+        self.pnj: Personnage|None = None
         self.costumes_et_accessoires = costumes_et_accessoires
         self.implication = implication
         self.situation_de_depart = situation_de_depart

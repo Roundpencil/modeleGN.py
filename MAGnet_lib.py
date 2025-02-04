@@ -45,6 +45,8 @@ from modeleGN import *
 # todo : vérifier qu'on peut choisir de n'utiliser MAGnet que pour les évènements
 # todo : passer en dates astronomiques, si on arriver à isoler comment le parser lit les dates
 
+# todo : voir si intéret d'utiliser Datescene avec des relativedelta pour  gérer les évènements
+
 # todo :
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
 #  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur

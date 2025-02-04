@@ -1,14 +1,11 @@
 import configparser
 from enum import Enum
-from tkinter import ttk, filedialog
-import tkinter as tk
+from tkinter import filedialog
+from tkinter import messagebox
 
 import IHM_2_generation
 import lecteurGoogle
-
 from IHM_lib import *
-
-from tkinter import messagebox
 
 
 class FenetreEditionConfig(ttk.Frame):
