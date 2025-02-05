@@ -31,19 +31,25 @@ from modeleGN import *
 # bugs
 
 # à faire - version refactoring
-# todo : refactoring
+# todo : refactoring configparser
 #  remettre à plat un configparser dans le mgn pour faciliter les extractions + renommer les fonctions qui le lisent pour clarifier ce qui vient du confiigparser
 # todo : proposer une architecture qui permet à la fois de stoquer un configparser dans le GN et d'être rétrocompatible
+# todo :pour rétrocompatibilité, mise à jour du configparser stoqué en fonction de la version (via updateur_gn)
+#  pour toujours avoir la dernière version
+# todo : vérifier que le fichier ini a changé si il est là et recharger les paramètres
+# todo : ajouter l'heure du jeu dans les paramètres
+#  pour permettre de faire le tri entre aujourd'hui, 17h et il y a 5 minutes
 
 # a faire, prochaines versions
-
+# todo : ajouter une boucle qui tente de découper en deux les fichiers chronos qui sont trop longs à se générer
+#  et retente tant qu'il n'y est pas arrivé (?) en continuant de découper + entêtes
 # todo : changer la vérification des fichiers récents pour prendre en compte les fichiers modifiés dans les 2/3 dernières minutes,
 #  et ajouter une option turbo pour ne pas le prrendre en comtpe
 # todo : vérifier qu'on peut choisir de n'utiliser MAGnet que pour les évènements
-# todo : passer en dates astronomiques, si on arriver à isoler comment le parser lit les dates
-# todo : ajouter l'heure du jeu dans les paramètres
-#  pour permettre de faire le tri entre aujourd'hui, 17h et il y a 5 minutes
+# todo : vérifier que la gestion des commentaires marche comme on le souhaite
+
 # todo : voir si intéret d'utiliser Datescene avec des relativedelta pour  gérer les évènements
+# todo : passer en dates astronomiques, si on arriver à isoler comment le parser lit les dates
 
 # todo :
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides

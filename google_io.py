@@ -299,6 +299,7 @@ def is_item_not_modified(item, dict_ids):
     return last_processed_time >= item_modified_time
 
 
+
 def ajouter_commentaires_si_possible(objet, commentaires):
     if callable(getattr(objet, 'ajouter_commentaires', None)):
         objet.ajouter_commentaires(commentaires)
