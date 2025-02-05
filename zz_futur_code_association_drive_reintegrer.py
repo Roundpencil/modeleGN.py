@@ -94,8 +94,6 @@ def update_roles_from_drive(gn, spreadsheet_id, sheet_name, verbal=True):
 
 # Pour générer une association à partir d'un document Google Sheet, vous devrez utiliser les bibliothèques Google Sheets API et Google Drive API pour accéder aux données du document. Voici un exemple de code qui montre comment utiliser ces bibliothèques pour lire les données d'un feuille de calcul Google et les utiliser pour générer des associations:
 
-import openai_secret_manager
-
 # on importe les bibliothèques de Google Sheets et Drive
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError

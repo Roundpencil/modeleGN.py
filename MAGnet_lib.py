@@ -45,6 +45,10 @@ from modeleGN import *
 #  pour permettre de faire le tri entre aujourd'hui, 17h et il y a 5 minutes
 # todo : voir si intéret d'utiliser Datescene avec des relativedelta pour  gérer les évènements
 
+#todo : voir si l'interface de fichier de config peut etre automatisé :
+# je lis des formats par défaut dans un dictionnaire qui décrit les specs (ex : tableau / choix multiples, gid, etc.)
+# je crée des widgets par onglet en focntion des sections
+
 # todo :
 #  nouveau paramètre : NB_aides  > si spécifié, tentative de forcer ce nombre d'aides en amont du calcul si ok > utiliser respecter nb aides
 #  nouveau paramètre : pas_evenement pour forcer taille pas. Dire dans le manuel plus grand pas > plus grand tableau > plus grande longueur de solveur

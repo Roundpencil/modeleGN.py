@@ -85,6 +85,7 @@ def main():
                        "3. Suivez les instructions sur la page web google qui s'affiche "
                        "pour vous ré-authentifier \n\n"
                        "Pour plus d'informations sur cette erreur liée à google, consulter le manuel")
+            print(message)
             print(f"une erreur RefreshError est survenue pendant la lecture du fichier ini : {e}")
 
         elif "The OAuth client was deleted." in str(e):
@@ -92,11 +93,13 @@ def main():
             message = ("Cette version de MAGnet a expiré",
                        "Cette version de MAGnet a expiré. '\n'"
                        "pour continuer à l'utiliser, merci de télécharger la dernière version")
+            print(message)
 
         else:
             # if other RefreshError is raised, show a popup with a generic error message
-            message = ("Error", f"Erreur inattendue : {e}")
+            # message = ("Error", f"Erreur inattendue : {e}")
             logging.debug(f"Erreur inattendue dans la lecture du fichier de configuration : {e}")
+        return
 
     if not args.console:
         print("Lancement de l'IHM")
