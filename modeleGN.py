@@ -110,7 +110,7 @@ class DateScene(ABC):
         # si nécessaire on rajoute l'heure
         if avec_heure and (time_string := self.get_heure_formattee()):
             # time_string = f"{date_absolue_calculee.hour}h{date_absolue_calculee.minute}"
-            return f"{date_string}, {time_string}"
+            return f"{date_string} à {time_string}"
         else:
             return f"{date_string}"
 
@@ -166,21 +166,23 @@ class DateScene(ABC):
             return DateScene._formatter_heure(self.heure_debut)
         return ''
 
+    # rationalisation du nombre de fonctions formattant l'heure
     @staticmethod
     def _formatter_heure(heure):
-        # Check if heure_debut matches the formats using regular expression
-        # match = re.match(r'^(\d{1,2})h(\d{2})?$', self.heure_debut)
-        match = re.match(r'^(\d{1,2})\s*h\s*(\d{2})?$', heure)
-        if match:
-            # Extract hour and minute, if minute is None, replace with '00'
-            hour, minute = match.groups()
-            minute = minute if minute else '00'
-            # Format to ensure two digits for hour and minute
-            formatted_time = f"{int(hour):02d}h{int(minute):02d}"
-            return formatted_time
-        else:
-            # Return the original heure_debut if it doesn't match the expected format
-            return heure
+        # # Check if heure_debut matches the formats using regular expression
+        # # match = re.match(r'^(\d{1,2})h(\d{2})?$', self.heure_debut)
+        # match = re.match(r'^(\d{1,2})\s*h\s*(\d{2})?$', heure)
+        # if match:
+        #     # Extract hour and minute, if minute is None, replace with '00'
+        #     hour, minute = match.groups()
+        #     minute = minute if minute else '00'
+        #     # Format to ensure two digits for hour and minute
+        #     formatted_time = f"{int(hour):02d}h{int(minute):02d}"
+        #     return formatted_time
+        # else:
+        #     # Return the original heure_debut if it doesn't match the expected format
+        #     return heure
+        return _heure_formattee(heure, defaut_si_ko=heure)
 
     @staticmethod
     def _calculer_date_absolue(texte_brut: str) -> datetime:
@@ -2705,16 +2707,31 @@ class ObjetDansEvenement:
 #  lire les fiches > on lit le tableau > on met dans un dictionnaire > on utilise get pour prendre ce qui nous intéresse
 #  les appeler à partir des intrigues dans un tableau 'scène nécessaure / onm évènement)
 
-#todo : vérifier si cette fonction ne fait pas doublon avec les fonctions dans dans date_scene (ou g_io?)
-def _heure_formattee(heure, defaut_si_ko=None):
-    try:
-        if heure[-1:].lower() == 'h':
-            heure += '00'
-        date_obj = dateparser.parse(heure)
-        return date_obj.strftime("%Hh%M")
-    except Exception:
-        return "00h00" if defaut_si_ko is None else heure
+# def _heure_formattee(heure, defaut_si_ko=None):
+#     try:
+#         if heure[-1:].lower() == 'h':
+#             heure += '00'
+#         date_obj = dateparser.parse(heure)
+#         return date_obj.strftime("%Hh%M")
+#     except Exception:
+#         return "00h00" if defaut_si_ko is None else heure
 
+
+def _heure_formattee(heure, defaut_si_ko=None):
+    # On traite d'abord la chaîne pour ajouter '00' si nécessaire
+    if heure[-1:].lower() == 'h':
+        heure += '00'
+
+    # On limite le bloc try aux opérations qui peuvent vraiment lever une exception
+    try:
+        date_obj = dateparser.parse(heure)
+        if date_obj is None:
+            # Si dateparser ne parvient pas à analyser la chaîne, on lève une ValueError
+            raise ValueError("La date n'a pas pu être analysée.")
+        return date_obj.strftime("%Hh%M")
+    except (ValueError, AttributeError) as err:
+        # On intercepte uniquement les exceptions attendues
+        return "00h00" if defaut_si_ko is None else heure
 
 class EvenementUnitaire:
     def __init__(self, conteneur_dinterventions: ConteneurDEvenementsUnitaires = None, jour=None, heure_debut=None,
