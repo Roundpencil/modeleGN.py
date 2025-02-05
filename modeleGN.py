@@ -210,7 +210,7 @@ class DateScene(ABC):
 
         # Sinon, j'ai un champ de texte.
         # Est-ce que d'une manière ou d'une autre, je peux trouver un il y a dedans?
-        if delta := cls._il_y_a_vers_relativedelta(texte_date):
+        if (delta := cls._il_y_a_vers_relativedelta(texte_date)) is not None:
             return DateSceneRelative(delta, heure_brute)
 
         # Sinon, je prends la date comme elle est
@@ -409,10 +409,10 @@ class DateSceneRelative(DateScene):
                         ['heures', 'heure'],
                         ['minutes', 'minute']]
 
-        if vecteur_dates == [0, 0, 2, 0, 0]:
+        if vecteur_dates == [0, 0, -2, 0, 0]:
             return "Avant-hier"
 
-        if vecteur_dates == [0, 0, 1, 0, 0]:
+        if vecteur_dates == [0, 0, -1, 0, 0]:
             return "Hier"
 
         if vecteur_dates == [0, 0, 0, 0, 0]:
