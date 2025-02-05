@@ -3,15 +3,16 @@ import datetime
 import logging
 import os.path
 import pickle
-import dill
 import re
 import sys
 from abc import ABC, abstractmethod
 from enum import IntEnum
+from typing import LiteralString
 
 import dateparser
+import dill
 from dateparser_data.settings import default_parsers
-from dateutil.relativedelta import *
+from dateutil.relativedelta import relativedelta
 from fuzzywuzzy import process
 from packaging import version
 from text_to_num import alpha2digit
@@ -19,8 +20,8 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.4.20250204"
-VERSION_MODELE = "1.4.20250204"
+VERSION = "1.4.20250205"
+VERSION_MODELE = "1.4.20250205"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 GENRE_INDETERMINE = ''
 
@@ -214,8 +215,9 @@ class DateScene(ABC):
 
         # dans ce cas, j'ai un texte, je commence par il y a car pour une raison obscure "3 ans" est une date absolue
         # Est-ce que d'une manière ou d'une autre, je peux trouver un il y a dedans?
-        if (delta := cls._il_y_a_vers_relativedelta(texte_date)) is not None:
-            return DateSceneRelative(delta, heure_brute)
+        if (tuple_delta_heure := cls._il_y_a_vers_relativedelta(texte_date))[0] is not None:
+            # return DateSceneRelative(delta, heure_brute)
+            return DateSceneRelative(tuple_delta_heure[0], tuple_delta_heure[1] or heure_brute)
 
         # sinon je cherche une date absolue
         if date_absolue := cls._calculer_date_absolue(texte_date):
@@ -232,18 +234,27 @@ class DateScene(ABC):
         return texte_avec_il_y_a
 
     @classmethod
-    def _il_y_a_vers_relativedelta(cls, texte_il_y_a)-> relativedelta | None :
+    def _il_y_a_vers_relativedelta(cls, texte_il_y_a) -> tuple[relativedelta, LiteralString | None] | tuple[None, None]:
         # print(f"input_balise date il y a en entrée {balise_date}")
-        texte_il_y_a = texte_il_y_a.lower()
+        regex_heure = re.search(r"^(.*?)\s*à\s*(.*)$", texte_il_y_a)
+        heure = regex_heure.group(2).strip() if regex_heure else None
+        # if regex_heure:
+        #     heure = regex_heure.group(1)  # La partie capturée après "à"
+        # else:
+        #     heure = None
+
+        # texte_il_y_a = texte_il_y_a.lower()
+        texte_il_y_a = regex_heure.group(1).strip().lower() if regex_heure else texte_il_y_a.lower()
+
         try:
             if texte_il_y_a.strip() == "hier" :
-                return relativedelta(days=-1)
+                return relativedelta(days=-1), heure
 
             if texte_il_y_a.strip() in ["avant-hier", "avant hier", "avanthier"] :
-                return relativedelta(days=-2)
+                return relativedelta(days=-2), heure
 
             if texte_il_y_a.strip() in ["aujourd'hui", "aujourdhui"] :
-                return relativedelta(days=0)
+                return relativedelta(days=0), heure
 
             # ma_date = balise_date
             ma_date = cls._ecrire_les_nombre_en_chiffres(texte_il_y_a)
@@ -271,7 +282,7 @@ class DateScene(ABC):
 
             vecteur_check = [ans, mois, semaines, jours, heures, minutes]
             if not any(vecteur_check):
-                return None
+                return None, None
 
             # print(f"{balise_date} =  {ans} ans/ {jours} jours/ {mois} mois/ {semaines} semaines")
 
@@ -311,13 +322,13 @@ class DateScene(ABC):
             # if not somme:
             #     raise ValueError
 
-            return relativedelta(**kwargs)
+            return relativedelta(**kwargs), heure
 
 
         except ValueError:
             print(f"Erreur avec la date {texte_il_y_a}")
             # return texte_il_y_a.strip()
-            return None
+            return None, None
 
     @classmethod
     def _float_vers_relativedelta(cls, ma_date:float) -> relativedelta:
@@ -2718,23 +2729,37 @@ class ObjetDansEvenement:
 
 
 def _heure_formattee(heure, defaut_si_ko=None):
-    # On traite d'abord la chaîne pour ajouter '00' si nécessaire
-    if heure[-1:].lower() == 'h':
-        heure += '00'
+    # # On traite d'abord la chaîne pour ajouter '00' si nécessaire
+    # if heure[-1:].lower() == 'h':
+    #     heure += '00'
+    #
+    # # On supprime les espaces pour éviter les comportements étranges de parse
+    # heure = re.sub(r"\s+", "", heure)
+    #
+    # # On limite le bloc try aux opérations qui peuvent vraiment lever une exception
+    # try:
+    #     date_obj = dateparser.parse(heure)
+    #     if date_obj is None:
+    #         # Si dateparser ne parvient pas à analyser la chaîne, on lève une ValueError
+    #         raise ValueError("La date n'a pas pu être analysée.")
+    #     return date_obj.strftime("%Hh%M")
+    # except (ValueError, AttributeError) :
+    #     # On intercepte uniquement les exceptions attendues
+    #     return "00h00" if defaut_si_ko is None else heure
 
-    # On supprime les espaces pour éviter les comportements étranges de parse
-    heure = re.sub(r"\s+", "", heure)
-
-    # On limite le bloc try aux opérations qui peuvent vraiment lever une exception
-    try:
-        date_obj = dateparser.parse(heure)
-        if date_obj is None:
-            # Si dateparser ne parvient pas à analyser la chaîne, on lève une ValueError
-            raise ValueError("La date n'a pas pu être analysée.")
-        return date_obj.strftime("%Hh%M")
-    except (ValueError, AttributeError) :
-        # On intercepte uniquement les exceptions attendues
-        return "00h00" if defaut_si_ko is None else heure
+    # ré-utilisation de la fonction basée sur une expression régulière
+    # match = re.match(r'^(\d{1,2})\s*h\s*(\d{2})?$', heure)
+    match = re.match(r'^(\d{1,2})\s*(?:h|heure|heures)\s*(\d{2})?$', heure)
+    if match:
+        # Extract hour and minute, if minute is None, replace with '00'
+        hour, minute = match.groups()
+        minute = minute if minute else '00'
+        # Format to ensure two digits for hour and minute
+        formatted_time = f"{int(hour):02d}h{int(minute):02d}"
+        return formatted_time
+    else:
+        # Return the original heure_debut if it doesn't match the expected format
+        return "00h00" if defaut_si_ko is None else defaut_si_ko
 
 class EvenementUnitaire:
     def __init__(self, conteneur_dinterventions: ConteneurDEvenementsUnitaires = None, jour=None, heure_debut=None,

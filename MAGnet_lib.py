@@ -1546,10 +1546,23 @@ def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets, m_print=pr
                   f'- synthèse chrono'
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
                                       id_dossier_archive=mon_gn.get_id_dossier_archive())
-    g_io.write_to_sheet(api_sheets, table_simple, file_id, feuille="condensée")
-    g_io.write_to_sheet(api_sheets, table_complete, file_id, feuille="étendue")
-    g_io.write_to_sheet(api_sheets, table_chrono_scenes, file_id,
+    try:
+        g_io.write_to_sheet(api_sheets, table_simple, file_id, feuille="condensée")
+    except TimeoutError as e:
+        m_print("Le délai d'attente a été dépassé pendant la création de la feuille 'condensée'")
+        print(e)
+    try:
+        g_io.write_to_sheet(api_sheets, table_complete, file_id, feuille="étendue")
+    except TimeoutError as e:
+        m_print("Le délai d'attente a été dépassé pendant la création de la feuille 'étendue'")
+        print(e)
+    try:
+        g_io.write_to_sheet(api_sheets, table_chrono_scenes, file_id,
                         feuille="toutes les scènes")
+    except TimeoutError as e:
+        m_print("Le délai d'attente a été dépassé pendant la création de la feuille 'toutes les scènes'")
+        print(e)
+
     g_io.supprimer_feuille_1(api_sheets, file_id)
 
 
