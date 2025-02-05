@@ -2722,6 +2722,9 @@ def _heure_formattee(heure, defaut_si_ko=None):
     if heure[-1:].lower() == 'h':
         heure += '00'
 
+    # On supprime les espaces pour éviter les comportements étranges de parse
+    heure = re.sub(r"\s+", "", heure)
+
     # On limite le bloc try aux opérations qui peuvent vraiment lever une exception
     try:
         date_obj = dateparser.parse(heure)
@@ -2729,7 +2732,7 @@ def _heure_formattee(heure, defaut_si_ko=None):
             # Si dateparser ne parvient pas à analyser la chaîne, on lève une ValueError
             raise ValueError("La date n'a pas pu être analysée.")
         return date_obj.strftime("%Hh%M")
-    except (ValueError, AttributeError) as err:
+    except (ValueError, AttributeError) :
         # On intercepte uniquement les exceptions attendues
         return "00h00" if defaut_si_ko is None else heure
 
