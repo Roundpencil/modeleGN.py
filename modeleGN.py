@@ -3,6 +3,7 @@ import datetime
 import logging
 import os.path
 import pickle
+import dill
 import re
 import sys
 from abc import ABC, abstractmethod
@@ -130,7 +131,8 @@ class DateScene(ABC):
         return datetime.datetime.min
 
     def _clef_date_jours(self):
-        return 0
+        # par défaut, situe les évènments sans date 1 million d'années en arrière
+        return -1 * 365 * 12 * 1000000
 
     def _clef_date_texte(self, date_gn:datetime):
         return ''
@@ -195,12 +197,12 @@ class DateScene(ABC):
         return date_cible  # qui vaut None si on n'a pas trouvé
 
     @classmethod
-    def date_scene_from_texte(cls, texte_date:str, heure_brute:str=None):
+    def date_scene_from_texte(cls, texte_date:str|datetime.datetime, heure_brute:str=None):
         # chaque constructeur exige d'avoir le bon type en entrée
 
+        # Commençons par les discriminants à base de type >> je sais exactement ce que je dois faire
         # Si ma date est au format absolu > je mets une date absolue
-        if (isinstance(date_absolue := texte_date, datetime.datetime) or
-                (date_absolue := cls._calculer_date_absolue(texte_date))):
+        if isinstance(date_absolue := texte_date, datetime.datetime):
             return DateSceneAbsolue(date_absolue, heure_brute)
 
         if isinstance(texte_date, float):
@@ -208,10 +210,14 @@ class DateScene(ABC):
             # return DateSceneJours(texte_date, heure_brute)
             return DateSceneRelative(delta, heure_brute)
 
-        # Sinon, j'ai un champ de texte.
+        # dans ce cas, j'ai un texte, je commence par il y a car pour une raison obscure "3 ans" est une date absolue
         # Est-ce que d'une manière ou d'une autre, je peux trouver un il y a dedans?
         if (delta := cls._il_y_a_vers_relativedelta(texte_date)) is not None:
             return DateSceneRelative(delta, heure_brute)
+
+        # sinon je cherche une date absolue
+        if date_absolue := cls._calculer_date_absolue(texte_date):
+            return DateSceneAbsolue(date_absolue, heure_brute)
 
         # Sinon, je prends la date comme elle est
         return DateSceneLibre(texte_date.strip(), heure_brute)
@@ -228,6 +234,15 @@ class DateScene(ABC):
         # print(f"input_balise date il y a en entrée {balise_date}")
         texte_il_y_a = texte_il_y_a.lower()
         try:
+            if texte_il_y_a.strip() == "hier" :
+                return relativedelta(days=-1)
+
+            if texte_il_y_a.strip() in ["avant-hier", "avant hier", "avanthier"] :
+                return relativedelta(days=-2)
+
+            if texte_il_y_a.strip() in ["aujourd'hui", "aujourdhui"] :
+                return relativedelta(days=0)
+
             # ma_date = balise_date
             ma_date = cls._ecrire_les_nombre_en_chiffres(texte_il_y_a)
 
@@ -251,6 +266,10 @@ class DateScene(ABC):
             heures = re.search(r'\d+\s*h', ma_date)
 
             minutes = re.search(r'\d+\s*(mn|mi)', ma_date)
+
+            vecteur_check = [ans, mois, semaines, jours, heures, minutes]
+            if not any(vecteur_check):
+                return None
 
             # print(f"{balise_date} =  {ans} ans/ {jours} jours/ {mois} mois/ {semaines} semaines")
 
@@ -375,8 +394,8 @@ class DateSceneRelative(DateScene):
                            365.25/12,
                            7,
                            1,
-                           1/12,
-                           1/(12*60)
+                           1/24,
+                           1/(24*60)
                            ]
 
         return sum([d*f for d, f in zip(vecteur_dates, vecteur_facteur)])
@@ -409,13 +428,13 @@ class DateSceneRelative(DateScene):
                         ['heures', 'heure'],
                         ['minutes', 'minute']]
 
-        if vecteur_dates == [0, 0, -2, 0, 0]:
+        if vecteur_dates == [0, 0, 0,  -2, 0, 0]:
             return "Avant-hier"
 
-        if vecteur_dates == [0, 0, -1, 0, 0]:
+        if vecteur_dates == [0, 0, 0, -1, 0, 0]:
             return "Hier"
 
-        if vecteur_dates == [0, 0, 0, 0, 0]:
+        if vecteur_dates == [0, 0, 0, 0, 0, 0]:
             return "Aujourd'hui"
 
         date_texte = 'Il y a '
@@ -1636,11 +1655,13 @@ class GN:
     def save(self, filename=None, last_save=None):
         if last_save:
             self.set_last_save(last_save)
-        sys.setrecursionlimit(5000)
+        sys.setrecursionlimit(100000)
         if not filename:
             filename = self.get_chemin_local_archive()
-        with open(filename, "wb") as filehandler:
-            pickle.dump(self, filehandler)
+        # with open(filename, "wb") as filehandler:
+        #     pickle.dump(self, filehandler, protocol=pickle.HIGHEST_PROTOCOL)
+        with open('mon_fichier.pkl', 'wb') as filehandler:
+            dill.dump(self, filehandler)
         return filename
 
     def noms_pjs(self):
@@ -2395,6 +2416,10 @@ class GN:
         # mon_gn.factions.clear()
         pass
 
+    # fonction utilisée pour le débuggage pour retrouver facilement une scène à partir de son nom
+    def debugging_scene_depuis_nom(self, nom_scene:str):
+        scenes = self.lister_toutes_les_scenes()
+        return next(scene for scene in scenes if nom_scene.lower() in scene.titre.lower())
 
 # if hasattr(personnage, "orgaReferent"):
 #     personnage.orga_referent = personnage.orgaReferent

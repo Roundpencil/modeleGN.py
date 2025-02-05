@@ -41,7 +41,8 @@ from modeleGN import *
 #  et ajouter une option turbo pour ne pas le prrendre en comtpe
 # todo : vérifier qu'on peut choisir de n'utiliser MAGnet que pour les évènements
 # todo : passer en dates astronomiques, si on arriver à isoler comment le parser lit les dates
-
+# todo : ajouter l'heure du jeu dans les paramètres
+#  pour permettre de faire le tri entre aujourd'hui, 17h et il y a 5 minutes
 # todo : voir si intéret d'utiliser Datescene avec des relativedelta pour  gérer les évènements
 
 # todo :
