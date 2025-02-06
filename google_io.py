@@ -9,7 +9,6 @@ from typing import Optional
 import fuzzywuzzy.process
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload, MediaIoBaseUpload
-from text_to_num import alpha2digit
 
 from modeleGN import *
 

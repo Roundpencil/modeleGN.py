@@ -34,10 +34,14 @@ from modeleGN import *
 # todo : refactoring
 #  remettre à plat un configparser dans le mgn pour faciliter les extractions + renommer les fonctions qui le lisent pour clarifier ce qui vient du confiigparser
 # todo : proposer une architecture qui permet à la fois de stoquer un configparser dans le GN et d'être rétrocompatible
+# todo : ajouter une logique qui permet de vérifier que les paramètres sont à jour
+#  entre la version locale et celle téléchargée.
+#  Dans les fichiers mgn, stocker une date de dernière modification... Mais dans comment interagir avce les fichiers ini ?
 
 # a faire, prochaines versions
 
-# todo : changer la vérification des fichiers récents pour prendre en compte les fichiers modifiés dans les 2/3 dernières minutes,
+# todo : supprimer recours à ORTOOLS
+# todo : changer la vérification des fichiers récents
 #  et ajouter une option turbo pour ne pas le prrendre en comtpe
 #  >> plutôt : ajouter un paramètre "passage précédent "
 #  qui vérifie si le fichier a changé dans les 5 minutes avant le passage précédent.
@@ -1409,7 +1413,6 @@ def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_prin
         logging.debug('erreurs dans la préparation des évènements pour la création de planning : ')
         logging.debug(texte_erreur_concat)
         print(f"DEBUG : erreurs evenements pre ORTOOLS : {texte_erreur_concat}")
-        # todo : écrire les erreurs dans un fichier
 
 
 def generer_tables_planning_evenementiel(mon_gn: GN):
