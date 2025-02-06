@@ -39,6 +39,14 @@ from modeleGN import *
 
 # todo : changer la vérification des fichiers récents pour prendre en compte les fichiers modifiés dans les 2/3 dernières minutes,
 #  et ajouter une option turbo pour ne pas le prrendre en comtpe
+#  >> plutôt : ajouter un paramètre "passage précédent "
+#  qui vérifie si le fichier a changé dans les 5 minutes avant le passage précédent.
+#  Et qui n'est mis à jour que si le passage suivant est espacé de plus de 5 minutes
+#  (pour ne pas perdre deux générations successives).
+#  Ainsi, il faudrait filtrer à la fois les fichiers qui ont changé depuis ke dernier passage,
+#  plus  ceux qui étaient trop près du passage précédent
+#  cela pourrait se faire une super classe "fichier lu" qui comprendrait ce qu'uil
+
 # todo : vérifier qu'on peut choisir de n'utiliser MAGnet que pour les évènements
 # todo : passer en dates astronomiques, si on arriver à isoler comment le parser lit les dates
 # todo : ajouter l'heure du jeu dans les paramètres
