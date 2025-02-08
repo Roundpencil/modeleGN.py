@@ -2,7 +2,7 @@ import csv
 import os
 import traceback
 
-import createur_planning_evenementiel as cpe
+# import createur_planning_evenementiel as cpe
 import google_io as g_io
 from modeleGN import *
 
@@ -40,7 +40,6 @@ from modeleGN import *
 
 # a faire, prochaines versions
 
-# todo : supprimer recours à ORTOOLS
 # todo : changer la vérification des fichiers récents
 #  et ajouter une option turbo pour ne pas le prrendre en comtpe
 #  >> plutôt : ajouter un paramètre "passage précédent "
@@ -122,7 +121,8 @@ def lire_et_recharger_gn(fichier_gn: str,
                          changelog: bool = True, table_intrigues: bool = True, table_objets: bool = True,
                          table_chrono: bool = True, table_persos: bool = True, table_pnjs: bool = True,
                          table_commentaires: bool = True, table_relations: bool = True, table_evenements: bool = True,
-                         table_questionnaire: bool = True, resume_par_perso=True, solveur_planning=True,
+                         table_questionnaire: bool = True, resume_par_perso=True,
+                         # solveur_planning=True,
                          singletest_perso: str = "-01", singletest_intrigue: str = "-01",
                          fast_intrigues: bool = True, fast_persos: bool = True, fast_pnjs=True, fast_evenements=True,
                          fast_objets=True,
@@ -347,8 +347,8 @@ def lire_et_recharger_gn(fichier_gn: str,
             lambda: ecrire_table_questionnaire(mon_gn, api_drive, api_sheets, m_print=m_print),
         'resume_par_perso':
             lambda: ecrire_resume_intrigues_persos(mon_gn, api_doc, api_drive, m_print=m_print),
-        'solveur_planning':
-            lambda: ecrire_solveur_planning_dans_drive(mon_gn, api_sheets, api_drive, m_print=m_print)
+        # 'solveur_planning':
+        #     lambda: ecrire_solveur_planning_dans_drive(mon_gn, api_sheets, api_drive, m_print=m_print)
     }
     # debug_list_key = list(dict_methodes)
     # print(f"DEBUG= liste clefs = {debug_list_key}")
@@ -1389,43 +1389,43 @@ def generer_table_chrono_condensee_raw(gn: GN):
     return tableau_sortie
 
 
-@attrappeur_dexceptions
-def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_print=print):
-    m_print("******* génération du planning évènementiel ******************")
+# @attrappeur_dexceptions
+# def ecrire_solveur_planning_dans_drive(mon_gn: GN, api_sheets, api_drive, m_print=print):
+#     m_print("******* génération du planning évènementiel ******************")
+#
+#     tables_planning, texte_erreur = generer_tables_planning_evenementiel(mon_gn)
+#
+#     # faire un onglet par session
+#     # voir si on ne peut pas chopper le paramètre des sessions qu'on veut explorer (sera utile aussi pour les squelettes)
+#     parent = mon_gn.get_dossier_outputs_drive()
+#     nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
+#                   f'- planning evènementiel'
+#     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
+#                                       id_dossier_archive=mon_gn.get_id_dossier_archive())
+#     for session in tables_planning.keys():
+#         g_io.write_to_sheet(api_sheets, tables_planning[session], file_id, feuille=session)
+#     g_io.supprimer_feuille_1(api_sheets, file_id)
+#
+#     if texte_erreur:
+#         m_print("Une ou plusieurs erreurs ont été identifiées pendant le calcul du planning, "
+#                 "vérifiez le fichier d'erreur associé")
+#         texte_erreur_concat = '\n'.join(texte_erreur)
+#         logging.debug('erreurs dans la préparation des évènements pour la création de planning : ')
+#         logging.debug(texte_erreur_concat)
+#         print(f"DEBUG : erreurs evenements pre ORTOOLS : {texte_erreur_concat}")
 
-    tables_planning, texte_erreur = generer_tables_planning_evenementiel(mon_gn)
 
-    # faire un onglet par session
-    # voir si on ne peut pas chopper le paramètre des sessions qu'on veut explorer (sera utile aussi pour les squelettes)
-    parent = mon_gn.get_dossier_outputs_drive()
-    nom_fichier = f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M")} ' \
-                  f'- planning evènementiel'
-    file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
-                                      id_dossier_archive=mon_gn.get_id_dossier_archive())
-    for session in tables_planning.keys():
-        g_io.write_to_sheet(api_sheets, tables_planning[session], file_id, feuille=session)
-    g_io.supprimer_feuille_1(api_sheets, file_id)
-
-    if texte_erreur:
-        m_print("Une ou plusieurs erreurs ont été identifiées pendant le calcul du planning, "
-                "vérifiez le fichier d'erreur associé")
-        texte_erreur_concat = '\n'.join(texte_erreur)
-        logging.debug('erreurs dans la préparation des évènements pour la création de planning : ')
-        logging.debug(texte_erreur_concat)
-        print(f"DEBUG : erreurs evenements pre ORTOOLS : {texte_erreur_concat}")
-
-
-def generer_tables_planning_evenementiel(mon_gn: GN):
-    # identifier toutes les sessions
-    sessions = mon_gn.get_liste_sessions_froms_pnjs()
-
-    # faire un premier onglet sans session
-    evenementiel_generique, texte_erreur = cpe.creer_planning_evenementiel(mon_gn)
-    tables_planning = {'evenementiel générique': evenementiel_generique}
-    for session in sessions:
-        tables_planning[session] = cpe.creer_planning_evenementiel(mon_gn, session=session)
-
-    return tables_planning, texte_erreur
+# def generer_tables_planning_evenementiel(mon_gn: GN):
+#     # identifier toutes les sessions
+#     sessions = mon_gn.get_liste_sessions_froms_pnjs()
+#
+#     # faire un premier onglet sans session
+#     evenementiel_generique, texte_erreur = cpe.creer_planning_evenementiel(mon_gn)
+#     tables_planning = {'evenementiel générique': evenementiel_generique}
+#     for session in sessions:
+#         tables_planning[session] = cpe.creer_planning_evenementiel(mon_gn, session=session)
+#
+#     return tables_planning, texte_erreur
 
 
 def generer_table_chrono_condensee(tableau_raw, date_gn):

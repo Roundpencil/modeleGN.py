@@ -296,16 +296,16 @@ class Application(ttk.Frame):
                                                      variable=resume_par_perso_var)
         resume_par_perso_var_check.grid(sticky="W", row=109, column=3)
 
-        solveur_planning_var = tk.BooleanVar()
-        solveur_planning_var.set(False)
-        solveur_planning_var_check = ttk.Checkbutton(generer_labelframe,
-                                                     text="Générateur de planning évènementiel",
-                                                     variable=solveur_planning_var)
-        solveur_planning_var_check.grid(sticky="W", row=110, column=0)
+        # solveur_planning_var = tk.BooleanVar()
+        # solveur_planning_var.set(False)
+        # solveur_planning_var_check = ttk.Checkbutton(generer_labelframe,
+        #                                              text="Générateur de planning évènementiel",
+        #                                              variable=solveur_planning_var)
+        # solveur_planning_var_check.grid(sticky="W", row=110, column=0)
 
         # Buttons
-        # cancel_button = ttk.Button(generer_labelframe, text="Quitter", command=regen_window.destroy)
-        # cancel_button.grid(row=200, column=0, pady=(0, 10))
+        cancel_button = ttk.Button(generer_labelframe, text="Quitter", command=regen_window.destroy)
+        cancel_button.grid(row=200, column=0, pady=(0, 10))
 
         # ajout des méthodes nécessaires pour gérer le thread
         progression_labelframe = ttk.Labelframe(regen_window, text="Progression de la génération")
@@ -359,7 +359,7 @@ class Application(ttk.Frame):
                                      changelog=changelog_var.get(),
                                      table_intrigues=table_intrigues_var.get(),
                                      table_objets=table_objets_var.get(),
-                                     solveur_planning=solveur_planning_var.get(),
+                                     # solveur_planning=solveur_planning_var.get(),
                                      table_chrono=table_chrono_var.get(),
                                      table_persos=table_persos_var.get(),
                                      table_pnjs=table_pnjs_var.get(),
