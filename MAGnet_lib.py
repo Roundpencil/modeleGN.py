@@ -42,6 +42,8 @@ from modeleGN import *
 
 # todo : changer la vérification des fichiers récents
 #  et ajouter une option turbo pour ne pas le prrendre en comtpe
+#  "J'ai l'impression que les modifications de certains fichiers
+#  n'ont pas été pris en compte dans la dernière génération"
 #  >> plutôt : ajouter un paramètre "passage précédent "
 #  qui vérifie si le fichier a changé dans les 5 minutes avant le passage précédent.
 #  Et qui n'est mis à jour que si le passage suivant est espacé de plus de 5 minutes
