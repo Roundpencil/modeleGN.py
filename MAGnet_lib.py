@@ -31,14 +31,22 @@ from modeleGN import *
 # bugs
 
 # à faire - version refactoring
-# todo : refactoring
+# todo : refactoring configparser
 #  remettre à plat un configparser dans le mgn pour faciliter les extractions + renommer les fonctions qui le lisent pour clarifier ce qui vient du confiigparser
 # todo : proposer une architecture qui permet à la fois de stoquer un configparser dans le GN et d'être rétrocompatible
+# todo :pour rétrocompatibilité, mise à jour du configparser stoqué en fonction de la version (via updateur_gn)
+#  pour toujours avoir la dernière version
+# todo : vérifier que le fichier ini a changé si il est là et recharger les paramètres
+# todo : ajouter l'heure du jeu dans les paramètres
+#  pour permettre de faire le tri entre aujourd'hui, 17h et il y a 5 minutes
 # todo : ajouter une logique qui permet de vérifier que les paramètres sont à jour
 #  entre la version locale et celle téléchargée.
 #  Dans les fichiers mgn, stocker une date de dernière modification... Mais dans comment interagir avce les fichiers ini ?
 
 # a faire, prochaines versions
+# todo : ajouter une boucle qui tente de découper en deux les fichiers chronos qui sont trop longs à se générer
+#  et retente tant qu'il n'y est pas arrivé (?) en continuant de découper + entêtes
+# todo : changer la vérification des fichiers récents pour prendre en compte les fichiers modifiés dans les 2/3 dernières minutes,
 
 # todo : changer la vérification des fichiers récents
 #  et ajouter une option turbo pour ne pas le prrendre en comtpe
@@ -53,10 +61,10 @@ from modeleGN import *
 #  cela pourrait se faire une super classe "fichier lu" qui comprendrait ce qu'uil
 
 # todo : vérifier qu'on peut choisir de n'utiliser MAGnet que pour les évènements
-# todo : passer en dates astronomiques, si on arriver à isoler comment le parser lit les dates
-# todo : ajouter l'heure du jeu dans les paramètres
-#  pour permettre de faire le tri entre aujourd'hui, 17h et il y a 5 minutes
+# todo : vérifier que la gestion des commentaires marche comme on le souhaite
+
 # todo : voir si intéret d'utiliser Datescene avec des relativedelta pour  gérer les évènements
+# todo : passer en dates astronomiques, si on arriver à isoler comment le parser lit les dates
 
 #todo : voir si l'interface de fichier de config peut etre automatisé :
 # je lis des formats par défaut dans un dictionnaire qui décrit les specs (ex : tableau / choix multiples, gid, etc.)
@@ -1563,10 +1571,23 @@ def ecrire_table_chrono_dans_drive(mon_gn: GN, api_drive, api_sheets, m_print=pr
                   f'- synthèse chrono'
     file_id = g_io.creer_google_sheet(api_drive, nom_fichier, parent,
                                       id_dossier_archive=mon_gn.get_id_dossier_archive())
-    g_io.write_to_sheet(api_sheets, table_simple, file_id, feuille="condensée")
-    g_io.write_to_sheet(api_sheets, table_complete, file_id, feuille="étendue")
-    g_io.write_to_sheet(api_sheets, table_chrono_scenes, file_id,
+    try:
+        g_io.write_to_sheet(api_sheets, table_simple, file_id, feuille="condensée")
+    except TimeoutError as e:
+        m_print("Le délai d'attente a été dépassé pendant la création de la feuille 'condensée'")
+        print(e)
+    try:
+        g_io.write_to_sheet(api_sheets, table_complete, file_id, feuille="étendue")
+    except TimeoutError as e:
+        m_print("Le délai d'attente a été dépassé pendant la création de la feuille 'étendue'")
+        print(e)
+    try:
+        g_io.write_to_sheet(api_sheets, table_chrono_scenes, file_id,
                         feuille="toutes les scènes")
+    except TimeoutError as e:
+        m_print("Le délai d'attente a été dépassé pendant la création de la feuille 'toutes les scènes'")
+        print(e)
+
     g_io.supprimer_feuille_1(api_sheets, file_id)
 
 
