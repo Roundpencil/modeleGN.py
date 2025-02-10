@@ -53,7 +53,7 @@ def _vers_1_4_20250205(gn: GN):
 
 def _scene_1_4_20250205(scene):
     #met à jour les dates au nouveau format
-    if da := scene.date_absolue:
+    if hasattr(scene, 'scene.date_absolue') and (da := scene.date_absolue):
         scene.set_date_scene(da)
     elif hasattr(scene, 'date'):
         scene.set_date_scene(scene.date)
