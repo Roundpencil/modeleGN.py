@@ -7,22 +7,22 @@ import google_io as g_io
 from modeleGN import *
 
 
-# communication :
-# A venir (prochaine version)
+# Communication :
+# À venir (prochaine version)
 # Suppression du besoin de télécharger le fichier mgn : l’interface proposera à l’utilisateur une liste des GNs
 # auxquel il a accès et réalisera toutes les opérations.
 # Optimisation de la gestion des factions
 #
 # Nouveaux paramètres pour optimiser la généraition du planning :
-# -Ajout d’un paramètre nb_aides  > si spécifié, tentative de forcer ce nombre d'aides lors de la génération du planning
-# -Ajout d’un paramètre pas_evenement pour déterminer l’unité de temps entre deux évènements
+#  Ajout d’un paramètre nb_aides > si spécifié, tentative de forcer ce nombre d'aides lors de la génération du planning
+#  Ajout d’un paramètre pas_evenement pour déterminer l’unité de temps entre deux évènements
 # (aujourd’hui calculé automatiquement) (plus grand pas > plus grand tableau >
 # plus grande durée de génération du planning)
-# -Ajout d’un nouvel onglet dans les fichiers de casting
-# (joueurs venant aider pour faire PNJ) pour personnaliser les planning PNJs
-# -Ajout d’un paramètre sessions_à_generer pour savoir quels casting on affiche,
-# et quels planning sont à générer si volonté de ne pas tout générer
-# -Ajout d’un paramètre pour prendre en compte le nombre de PNJs si celui-ci est connu
+#  Ajout d’un nouvel onglet dans les fichiers de casting
+# (joueurs venant aider pour faire PNJ) pour personnaliser les plannings PNJs
+#  Ajout d’un paramètre sessions_à_generer pour savoir quels castinsg on affiche,
+# et quels plannings sont à générer si volonté de ne pas tout générer
+#  Ajout d’un paramètre pour prendre en compte le nombre de PNJs si celui-ci est connu
 
 # interfaces de constructions
 
@@ -1818,7 +1818,7 @@ def generer_table_commentaires(gn: GN, prefixe=None):
                     row[column_index + 1] = "x"
             dict_auteurs_tableaux[auteur].append(row)
 
-    # Formatter un talbeau global intrigues > commentaires pour qui
+    # Formatter un tableau global des intrigues > commentaires pour qui
     tableau_global = [["Intrigue"] + list(destinataires)]
     for nom_intrigue in dict_intrigues_destinataires:
         row = [nom_intrigue] + [""] * len(destinataires)
@@ -1957,7 +1957,7 @@ def ecrire_table_relation(mon_gn: GN, api_drive, api_sheets, m_print=print):
 
 
 def generer_table_evenements(gn: GN):
-    # Jour / heure / lieu / description / pnj impliqués / costume / implication /  débute / pj impliqués /
+    # Jour / heure / lieu / description / pnj impliqués / costume / implication / débute / pj impliqués /
     toutes_interventions = []
     # for evenement in gn.evenements.values():
     for evenement in gn.lister_tous_les_conteneurs_evenements_unitaires():
