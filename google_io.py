@@ -4147,7 +4147,7 @@ def charger_gn_from_gn(mon_gn: GN, api_drive, m_print=print, updater_dict_config
                       last_save_connu=last_save_connu)
 
 
-def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None, rendre_gn_recherchable=True):
+def sauvegarder_et_uploader_gn(mon_gn: GN, api_drive=None, rendre_gn_recherchable=False):
     current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
     path = mon_gn.save(last_save=current_date)

@@ -16,7 +16,9 @@ import credentials
 # SCOPES = ['https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/documents.readonly
 # https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/documents']
 SCOPES = [
-    'https://www.googleapis.com/auth/drive '
+    # 'https://www.googleapis.com/auth/drive '
+    'https://www.googleapis.com/auth/drive.readonly '
+    'https://www.googleapis.com/auth/drive.file '
     'https://www.googleapis.com/auth/documents '
     'https://www.googleapis.com/auth/spreadsheets '
 ]
@@ -114,6 +116,8 @@ def creer_lecteurs_google_apis():
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
+
+        print(creds.scopes)
 
     try:
         api_drive = build('drive', 'v3', credentials=creds, static_discovery=False)
