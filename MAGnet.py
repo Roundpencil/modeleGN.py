@@ -68,7 +68,7 @@ def main():
 
     # on crée les lecteurs
     message = (None, None)
-    derniere_version = True
+    # derniere_version = True
 
     try:
         api_drive, api_doc, api_sheets = lecteurGoogle.creer_lecteurs_google_apis()

@@ -1673,7 +1673,7 @@ class GN:
             filename = self.get_chemin_local_archive()
         # with open(filename, "wb") as filehandler:
         #     pickle.dump(self, filehandler, protocol=pickle.HIGHEST_PROTOCOL)
-        with open(filename, "wb") as filehandler:
+        with open(filename, 'wb') as filehandler:
             dill.dump(self, filehandler)
         return filename
 
