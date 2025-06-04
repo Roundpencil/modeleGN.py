@@ -2061,7 +2061,7 @@ class GN:
     # pour chaque nom de la faction chercher si le role est dans la scène
     # si oui (indice de confiance suffisant) > ne rien faire
     # si non > ajouter un nouveau role avec une propriété issu_dune_faction= true
-    def ajouter_roles_issus_de_factions(self, seuil_nom_faction=85, seuil_reconciliation_role=80, verbal: bool = False):
+    def ajouter_roles_issus_de_factions(self, seuil_nom_faction=85, seuil_reconciliation_role=80, verbal: bool = True):
         # lire toutes les scènes pours trouver les factions
         for intrigue in self.intrigues.values():
             for scene in intrigue.scenes:
@@ -2092,8 +2092,8 @@ class GN:
                     # dans les persos de la scène, en définissant un seuil d'acceptabilité
                     for personnage_dans_faction in ma_faction.personnages:
                         if verbal:
-                            print(f"personnage_dans_faction, intrigue.rolesContenus.keys() ="
-                                  f" {personnage_dans_faction.nom}, {intrigue.rolesContenus.keys()}")
+                            print(f"Intrigue / scene / faction / personnage_dans_faction / intrigue.rolesContenus.keys() ="
+                                  f"{intrigue.nom}, {scene.titre}, {nom_faction} {personnage_dans_faction.nom}, {intrigue.rolesContenus.keys()}")
 
                         if len(scene.get_roles()) > 1:
                             noms_roles_dans_scene = scene.get_liste_noms_roles()
@@ -2107,6 +2107,16 @@ class GN:
                         # est-il déjà présent dans l'intrigue ou faut-il ajouter un nouveau role, issu d'une faction ?
                         score_role_dans_intrigue = process.extractOne(personnage_dans_faction.nom,
                                                                       intrigue.rolesContenus.keys())
+
+                        if not score_role_dans_intrigue:
+                            texte_erreur = (f"Une erreur est survenue lors de l'ajout des membres de la "
+                                            f"faction {nom_faction} à la scène {scene.titre}."
+                                            f"La cause la plus probable est que l'intrigue ne contient aucun personnage.")
+                            intrigue.error_log.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                              texte_erreur,
+                                                              ErreurManager.ORIGINES.FACTION)
+                            continue
+
                         if score_role_dans_intrigue[1] >= seuil_reconciliation_role:
                             # dans ce cas, on a déjà le rôle dans l'intrigue, pas la meine d'en créer un nouveau
                             role_a_associer: Role = intrigue.rolesContenus[score_role_dans_intrigue[0]]
