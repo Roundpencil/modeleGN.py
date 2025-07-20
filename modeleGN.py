@@ -1769,6 +1769,7 @@ class GN:
                     if not noms_persos:
                         texte_erreur = (f"Erreur lors de l'association des personnages, l'intrigue "
                                         f"{intrigue.nom} contient un pj/pnj/reroll "
+                                        f"({nom_association(role)}) "
                                         f"alors que le GN ne contient aucun personnage de ce type "
                                         f"(pas de liste de référence).")
                         intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
