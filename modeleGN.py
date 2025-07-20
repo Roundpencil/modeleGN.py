@@ -1766,6 +1766,17 @@ class GN:
                     # print(f"nom du role testé = {role.nom}")
                     # print(f"debug : nom assocaition = {repr(nom_association(role))} pour {repr(role.nom)}")
                     # print(f"debug : nom assoce / noms = {nom_association(role)} / {noms_persos}")
+                    if not noms_persos:
+                        texte_erreur = (f"Erreur lors de l'association des personnages, l'intrigue "
+                                        f"{intrigue.nom} contient un pj/pnj/reroll "
+                                        f"alors que le GN ne contient aucun personnage de ce type "
+                                        f"(pas de liste de référence).")
+                        intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
+                                                  texte_erreur,
+                                                  ErreurManager.ORIGINES.ASSOCIATION_AUTO
+                                                  )
+                        continue
+
                     score = process.extractOne(nom_association(role), noms_persos)
                     if verbal:
                         print(f"Rôles issus d'intrigues - Pour {nom_association(role)} "
