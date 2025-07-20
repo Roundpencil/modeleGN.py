@@ -1767,11 +1767,15 @@ class GN:
                     # print(f"debug : nom assocaition = {repr(nom_association(role))} pour {repr(role.nom)}")
                     # print(f"debug : nom assoce / noms = {nom_association(role)} / {noms_persos}")
                     if not noms_persos:
+                        type_en_erreur = critere_des_roles.__name__[7:]
                         texte_erreur = (f"Erreur lors de l'association des personnages, l'intrigue "
-                                        f"{intrigue.nom} contient un pj/pnj/reroll "
+                                        f"{intrigue.nom} contient un {type_en_erreur} "
                                         f"({nom_association(role)}) "
-                                        f"alors que le GN ne contient aucun personnage de ce type "
-                                        f"(pas de liste de référence).")
+                                        f"alors que le GN ne contient aucun {type_en_erreur} "
+                                        f"déclaré dans le fichier des PJs et PNJs. "
+                                        f"Cette ligne du tableau a été totalement ignorée par MAGnet.")
+                        if verbal:
+                            print(texte_erreur)
                         intrigue.add_to_error_log(ErreurManager.NIVEAUX.ERREUR,
                                                   texte_erreur,
                                                   ErreurManager.ORIGINES.ASSOCIATION_AUTO
@@ -1992,12 +1996,27 @@ class GN:
                 pj_cible.informations_evenements.add(pj_informe)
                 pj_informe.pj = pj_cible
 
-    def associer_pnjs_a_evenements(self, seuil_nom_roles=80):
+    def associer_pnjs_a_evenements(self, seuil_nom_roles=80, verbal = False):
         dict_noms_persos = {pnj.nom: pnj for pnj in self.get_dict_pnj().values()}
         liste_noms_persos = list(dict_noms_persos.keys())
-        # for evenement in self.evenements.values():
+
         for evenement in self.lister_tous_les_conteneurs_evenements_unitaires():
             for intervenant in evenement.intervenants_evenement.values():
+                if not liste_noms_persos:
+                    texte_erreur = (f"Erreur lors de l'association des personnages, l'évènement "
+                                    f"{evenement.nom_evenement} contient un pnj "
+                                    f"({intervenant.nom_pnj}) "
+                                    f"alors que le GN ne contient aucun pnj "
+                                    f"déclaré dans le fichier des PJs et PNJs. "
+                                    f"Ce personnage a été totalement ignorée par MAGnet dans l'évènement.")
+                    if verbal:
+                        print(texte_erreur)
+                    evenement.erreur_manager.ajouter_erreur(ErreurManager.NIVEAUX.ERREUR,
+                                                            texte_erreur,
+                                                            ErreurManager.ORIGINES.ASSOCIATION_EVENEMENTS
+                                                            )
+                    continue
+
                 score = process.extractOne(intervenant.nom_pnj, liste_noms_persos)
                 if score[1] < seuil_nom_roles:
                     texte_erreur = f"Le nom ({intervenant.nom_pnj}) a été associé au personnage {score[0]} " \
