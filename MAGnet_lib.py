@@ -29,6 +29,13 @@ from modeleGN import *
 # tester
 
 # bugs
+# todo : BUG BUG BUG sur fichier photo : si séparateur pas disponible par défaut (besoin de faire un aller/retour)
+#  comprendre pour quoi le séparateur ne marche pas quand il y a le nom du perso (tiret)
+#  il est nécessaire d'écrire l'id du google doc pour trouver les fichiers d'entrée et de sortier >> faire évoluer saisie
+#  il n'y a pas d'infobulle pour guider le module photo
+#  ajouter une barre de progression sur le traitement des photos
+#  voir si il ne faut pas rajouter une option pour chercher les photos de manière récurrentes dans le dossier
+
 
 # à faire - version refactoring
 # todo : refactoring configparser
@@ -42,6 +49,7 @@ from modeleGN import *
 # todo : ajouter une logique qui permet de vérifier que les paramètres sont à jour
 #  entre la version locale et celle téléchargée.
 #  Dans les fichiers mgn, stocker une date de dernière modification... Mais dans comment interagir avce les fichiers ini ?
+
 
 # a faire, prochaines versions
 # todo : ajouter une boucle qui tente de découper en deux les fichiers chronos qui sont trop longs à se générer
