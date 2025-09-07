@@ -29,6 +29,12 @@ from modeleGN import *
 # tester
 
 # bugs
+# todo : BUG BUG BUG sur fichier photo : si séparateur pas disponible par défaut (besoin de faire un aller/retour)
+#  comprendre pour quoi le séparateur ne marche pas quand il y a le nom du perso (tiret)
+#  il est nécessaire d'écrire l'id du google doc pour trouver les fichiers d'entrée et de sortier >> faire évoluer saisie
+#  il n'y a pas d'infobulle pour guider le module photo
+#  ajouter une barre de progression sur le traitement des photos
+#  voir si il ne faut pas rajouter une option pour chercher les photos de manière récurrentes dans le dossier
 
 # à faire - version refactoring
 # todo : refactoring configparser
@@ -484,17 +490,23 @@ def ecrire_fichier_erreur_localement(mon_gn: GN, prefixe: str, verbal: False):
     with open(f'{prefixe} - problèmes tableaux persos.txt', 'w', encoding="utf-8") as f:
         f.write(log_erreur)
 
+def nettoyer_nom_orga(noms_orga:str):
+    return noms_orga.title().strip()
 
 def generer_texte_erreurs_intrigues(mon_gn, verbal=False):
     log_erreur = ""
 
-    intrigues_triees = sorted(mon_gn.intrigues.values(), key=lambda x: x.orga_referent)
+    intrigues_triees = sorted(mon_gn.intrigues.values(), key=lambda x: nettoyer_nom_orga(x.orga_referent))
     # for intrigue in gn.intrigues.values():
 
     current_orga = "ceci est un placeholder"
     for intrigue in intrigues_triees:
-        if current_orga != intrigue.orga_referent:
-            current_orga = intrigue.orga_referent
+        # if current_orga != intrigue.orga_referent:
+        #     current_orga = intrigue.orga_referent
+        #     log_erreur += f"{current_orga} voici les intrigues avec des soucis dans leurs tableaux de persos \n"
+        nom_nettoye = nettoyer_nom_orga(intrigue.orga_referent)
+        if current_orga != nom_nettoye:
+            current_orga = nom_nettoye
             log_erreur += f"{current_orga} voici les intrigues avec des soucis dans leurs tableaux de persos \n"
 
         if intrigue.error_log.nb_erreurs() > 0:
@@ -503,7 +515,8 @@ def generer_texte_erreurs_intrigues(mon_gn, verbal=False):
                           f"{intrigue.error_log} \n"
             log_erreur += suggerer_tableau_persos(mon_gn, intrigue)
             log_erreur += "\n \n"
-    if verbal:
+        else:
+            log_erreur += f"Aucune erreur détectée dans aucune intrigue. \n"
         print(log_erreur)
 
     return log_erreur
