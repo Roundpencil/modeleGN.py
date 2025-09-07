@@ -4039,7 +4039,7 @@ def extraire_id_google_si_possible(user_text):
     # pattern = r'https?://(?:drive|docs)\.google\.com/(?:drive/u/[0-9]+/folders/|spreadsheets/d/|document/d/)([a-zA-Z0-9_-]+)'
     pattern = r'https?://(?:drive|docs)\.google\.com/(?:drive/u/[0-9]+/folders/|spreadsheets/d/|document/d/)([a-zA-Z0-9_-]+)(?:/|$)'
 
-    if match := re.search(pattern, user_text):
+    if match := re.search(pattern, user_text.strip()):
         return match.group(1), True
 
     elif re.fullmatch(r'[a-zA-Z0-9_-]+', user_text):

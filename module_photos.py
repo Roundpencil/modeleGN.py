@@ -13,30 +13,42 @@ NOMS_LIGNE = ["nom photo", "nom personnage secable", "nom personnage insécable"
 
 def lister_images_dans_dossier(folder_id, drive_service):
     images_dict = {}
+    erreurs = None
 
     # Définir la requête pour rechercher des fichiers d'images dans le dossier spécifié
     query = f"'{folder_id}' in parents and (mimeType='image/jpeg' or mimeType='image/png') and trashed = false"
     page_token = None  # Initialiser le token de pagination à None
 
-    while True:  # Commencer une boucle pour gérer la pagination
-        response = drive_service.files().list(q=query,
-                                              spaces='drive',
-                                              fields='nextPageToken, files(id, name)',
-                                              orderBy='createdTime',
-                                              pageToken=page_token).execute()  # Ajouter pageToken à la requête
+    try:
+        while True:  # Commencer une boucle pour gérer la pagination
+            response = drive_service.files().list(q=query,
+                                                  spaces='drive',
+                                                  fields='nextPageToken, files(id, name)',
+                                                  orderBy='createdTime',
+                                                  pageToken=page_token).execute()  # Ajouter pageToken à la requête
 
-        # Extraire le nom de fichier sans extension et l'ID, et les ajouter au dictionnaire
-        for file in response.get('files', []):
-            # Supprimer l'extension du fichier pour obtenir le nom de l'image
-            file_name_without_extension = '.'.join(file.get('name').split('.')[:-1]).strip()
-            images_dict[file_name_without_extension] = file.get('id')
+            # Extraire le nom de fichier sans extension et l'ID, et les ajouter au dictionnaire
+            for file in response.get('files', []):
+                # Supprimer l'extension du fichier pour obtenir le nom de l'image
+                file_name_without_extension = '.'.join(file.get('name').split('.')[:-1]).strip()
+                images_dict[file_name_without_extension] = file.get('id')
 
-        page_token = response.get('nextPageToken')  # Récupérer le nextPageToken de la réponse
+            page_token = response.get('nextPageToken')  # Récupérer le nextPageToken de la réponse
 
-        if not page_token:  # S'il n'y a pas de nextPageToken, c'est la fin des résultats
-            break  # Sortir de la boucle
+            if not page_token:  # S'il n'y a pas de nextPageToken, c'est la fin des résultats
+                break  # Sortir de la boucle
+    except HttpError as e:
+        print(e)
+        # Vérifier le code HTTP
+        if "'reason': 'notFound'" in str(e):
+            erreurs = "Erreur : Le dossier d'entrée est introuvable"
+        else:
+            erreurs = "Erreur Http non détaillée (contacter le support pour plus d'informations) : " + str(e)
+    except Exception as e:
+        print(e)
+        erreurs = "Erreur non détaillée (contacter le support pour plus d'informations) : " + str(e)
 
-    return images_dict
+    return images_dict, erreurs
 
 
 def base_nom_prenom(nom_secable):
@@ -232,6 +244,7 @@ def eviter_recouvrement(dict_img_positions):
 
     # invariant : je dispose d'une solution triée du plus petit mot au plus gros
     solution = False
+    bulles =  []
     while not solution:
         bulles = reconstituer_bulles(toutes_les_bulles)
         solution = verifier_et_ajuster_solution(bulles)
@@ -329,7 +342,7 @@ def preparer_donnees_photos(api_drive, api_sheets, id_dossier_images, id_sheet_p
     dico_photos_motsclefs = nettoyer_doublons_souschaines(dico_photos_motsclefs)
     if verbal:
         print(dico_photos_motsclefs)
-    dict_img_id = lister_images_dans_dossier(id_dossier_images, api_drive)
+    dict_img_id, erreurs = lister_images_dans_dossier(id_dossier_images, api_drive)
     if verbal:
         print(dict_img_id)
     return dico_photos_motsclefs, dict_img_id
@@ -651,7 +664,10 @@ def ajouter_photos_et_creer_tombis(api_doc, api_drive, api_sheets, folder_id, of
 #                                    destination_folder_id, offset=offset, sheet_name='Session 1')
 
 def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos: dict):
-    dico_nom_id = lister_images_dans_dossier(folder_id=folder_source_images, drive_service=api_drive)
+    dico_nom_id, erreurs = lister_images_dans_dossier(folder_id=folder_source_images, drive_service=api_drive)
+    if erreurs:
+        return None, erreurs
+
     liste_photos = list(dico_nom_id.keys())
     to_write = [[e for e in NOMS_LIGNE]]
     clefs_rapprochement = list(noms_persos.keys())
@@ -659,7 +675,7 @@ def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos:
         correspondance = process.extractOne(photo, clefs_rapprochement)
         nom_perso = noms_persos[correspondance[0]] if correspondance else ''
         to_write.append([photo, nom_perso, '', ''])
-    return to_write
+    return to_write, None
 
 
 def ecrire_tableau_photos_noms(api_drive, api_sheets, folder_source_images, noms_persos: dict,
@@ -675,7 +691,10 @@ def ecrire_tableau_photos_noms(api_drive, api_sheets, folder_source_images, noms
     :param verbal:
     :return: un tuple (id sheet, message_erreur), le premier vaut None si une erreur est survenue
     """
-    to_write = construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos)
+    to_write, erreurs = construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos)
+    if erreurs:
+        return None, erreurs
+
     if verbal:
         print(f"nom_fichier : {nom_fichier}, dossier_output : {dossier_output}")
     id_sheet = g_io.creer_google_sheet(api_drive, nom_fichier, dossier_output)

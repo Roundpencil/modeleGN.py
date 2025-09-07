@@ -29,9 +29,7 @@ from modeleGN import *
 # tester
 
 # bugs
-# todo : BUG BUG BUG sur fichier photo : si séparateur pas disponible par défaut (besoin de faire un aller/retour)
-#  comprendre pour quoi le séparateur ne marche pas quand il y a le nom du perso (tiret)
-#  il est nécessaire d'écrire l'id du google doc pour trouver les fichiers d'entrée et de sortier >> faire évoluer saisie
+# todo : clarifier fonctionnement du module photo. Actuellement, si uniquement photos, pas de spossibilité d'utiliser tiret (fonctionnalité mal documentée)
 #  il n'y a pas d'infobulle pour guider le module photo
 #  ajouter une barre de progression sur le traitement des photos
 #  voir si il ne faut pas rajouter une option pour chercher les photos de manière récurrentes dans le dossier
