@@ -1287,7 +1287,7 @@ def extraire_qui_scene(liste_noms, conteneur, scene_a_ajouter, verbal=False, seu
             # if score != 100:
             #     conteneur.rolesContenus[role_a_ajouter.nom] = role_a_ajouter
             if score < seuil:
-                warning_text = f"Association Scene ({score}) - nom dans scène : {nom_du_role} " \
+                warning_text = f"Association Scene ({score}%) - nom dans scène : {nom_du_role} " \
                                f"> Role : {role_a_ajouter.nom} dans {conteneur.nom}/{scene_a_ajouter.titre}"
                 conteneur.add_to_error_log(ErreurManager.NIVEAUX.WARNING,
                                            warning_text,
