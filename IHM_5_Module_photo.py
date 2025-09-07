@@ -292,21 +292,21 @@ class GUIPhotos(ttk.Frame):
                                          "pour les noms")
 
                 if format_dropdown.get() == format_options[0]:
-                    noms_persos = {nom_perso: nom_perso for nom_perso in self.dico_nom_session_joueurs}
+                    dict_fichierattendus_ids = {nom_perso: nom_perso for nom_perso in self.dico_nom_session_joueurs}
                 else:
                     session = session_var.get()
                     if format_dropdown.get() == format_options[1]:
-                        noms_persos = {self.dico_nom_session_joueurs[perso][session]: perso
+                        dict_fichierattendus_ids = {self.dico_nom_session_joueurs[perso][session]: perso
                                        for perso in self.dico_nom_session_joueurs}
                     elif format_dropdown.get() == format_options[2]:
                         separateur = separator_entry.get()
-                        noms_persos = {f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}"
+                        dict_fichierattendus_ids = {f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}"
                                        f"{separateur}"
                                        f"{nom_perso}": nom_perso
                                        for nom_perso in self.dico_nom_session_joueurs}
                     elif format_dropdown.get() == format_options[3]:
                         separateur = separator_entry.get()
-                        noms_persos = {f"{nom_perso}"
+                        dict_fichierattendus_ids = {f"{nom_perso}"
                                        f"{separateur}"
                                        f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}": nom_perso
                                        for nom_perso in self.dico_nom_session_joueurs}
@@ -315,13 +315,13 @@ class GUIPhotos(ttk.Frame):
                                              "Merci de choisir le dict_formattage du nom des photos")
                         return
             else:
-                noms_persos = {}
+                dict_fichierattendus_ids = {}
 
-            print(noms_persos)
+            print(dict_fichierattendus_ids)
 
             id_sheet, erreur = ecrire_tableau_photos_noms(api_drive, self.api_sheets,
                                                           folder_source_images=photo_folder_entry.get(),
-                                                          noms_persos=noms_persos,
+                                                          noms_persos=dict_fichierattendus_ids,
                                                           dossier_output=output_folder_entry.get(verbal=True),
                                                           nom_fichier=output_file_name_entry.get())
             if erreur:

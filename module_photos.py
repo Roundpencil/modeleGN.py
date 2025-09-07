@@ -670,11 +670,19 @@ def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos:
 
     liste_photos = list(dico_nom_id.keys())
     to_write = [[e for e in NOMS_LIGNE]]
-    clefs_rapprochement = list(noms_persos.keys())
-    for photo in liste_photos:
-        correspondance = process.extractOne(photo, clefs_rapprochement)
-        nom_perso = noms_persos[correspondance[0]] if correspondance else ''
-        to_write.append([photo, nom_perso, '', ''])
+    if noms_persos:
+        clefs_rapprochement = list(noms_persos.keys())
+        for photo in liste_photos:
+            correspondance = process.extractOne(photo, clefs_rapprochement)
+            nom_perso = noms_persos[correspondance[0]] if correspondance else ''
+            to_write.append([photo, nom_perso, '', ''])
+    else:
+        for photo in liste_photos:
+            to_write.append([photo, '', '', ''])
+            #todo : ajouter des paramètres pour séparer les noms des photos selon celui des personnages
+            # si des séparateurs ont été entrés sans utiliser des liste de persos
+            # et faire évoluer les regles selectionnables / non selectionnables dans l'IHM
+
     return to_write, None
 
 
