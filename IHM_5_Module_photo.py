@@ -67,7 +67,7 @@ class GUIPhotos(ttk.Frame):
             else:
                 separator_entry.config(state="disabled")
 
-            if valeur in valeurs_activant_sessions:
+            if (valeur in valeurs_activant_sessions) and (file_option.get() in ["mgn", "sheet"]):
                 session_dropdown.config(state="readonly")
             else:
                 session_dropdown.config(state="disabled")
@@ -75,6 +75,12 @@ class GUIPhotos(ttk.Frame):
             verifier_affichage_bouton()
 
         def verifier_affichage_bouton():
+            if file_option.get() == "none":
+                if format_var.get() in format_option_activant_separateur and not len(separator_entry.get()):
+                    create_file_button.config(state="disabled")
+                else:
+                    create_file_button.config(state="normal")
+                return
             if file_option.get() == "mgn" and not len(mgn_file_label['text']):
                 # dans ce cas là on n'a pas chargé de fichier mgn, on s'arrête là
                 create_file_button.config(state="disabled")
@@ -85,7 +91,6 @@ class GUIPhotos(ttk.Frame):
                 return
 
             # si None, aucun pré-requis on peut passer à la suite
-
             if format_var.get() in format_option_activant_sessions and not len(session_var.get()):
                 create_file_button.config(state="disabled")
                 return
@@ -216,12 +221,13 @@ class GUIPhotos(ttk.Frame):
         format_label.grid(row=50, column=0, sticky="w", pady=5)
 
         # Dropdown menu for the third section
-        format_options = [
-            "Juste le nom des personnages",
-            "Juste le nom des joueurs et joueuse",
-            "Joueurs [séparateur] Personnage",
-            "Personnage [séparateur] Joueurs"
-        ]
+        # format_options = [
+        #     "Juste le nom des personnages",
+        #     "Juste le nom des joueurs et joueuse",
+        #     "Joueurs [séparateur] Personnage",
+        #     "Personnage [séparateur] Joueurs"
+        # ]
+        format_options = [label.value for label in FormatsNomsPhotos]
         format_option_activant_separateur = format_options[2:4]
         format_option_activant_sessions = format_options[1:4]
 
@@ -245,6 +251,7 @@ class GUIPhotos(ttk.Frame):
 
         # Entry for the separator
         separator_entry = ttk.Entry(creerfichier_labelframe, state="disabled")
+        separator_entry.bind("<KeyRelease>", lambda x:verifier_affichage_bouton())
         separator_entry.grid(row=51, column=2, padx=10, pady=5, sticky="w")
 
         # Label for the session
@@ -277,6 +284,8 @@ class GUIPhotos(ttk.Frame):
 
         # Button to create the file
         def creer_fichier_dans_drive():
+            separateur = separator_entry.get()
+
             # on crée le nom des persos en fonction du radiobutton
             if file_option.get() == "mgn" or file_option.get() == "sheet":
                 # format_options = [
@@ -299,13 +308,11 @@ class GUIPhotos(ttk.Frame):
                         dict_fichierattendus_ids = {self.dico_nom_session_joueurs[perso][session]: perso
                                        for perso in self.dico_nom_session_joueurs}
                     elif format_dropdown.get() == format_options[2]:
-                        separateur = separator_entry.get()
                         dict_fichierattendus_ids = {f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}"
                                        f"{separateur}"
                                        f"{nom_perso}": nom_perso
                                        for nom_perso in self.dico_nom_session_joueurs}
                     elif format_dropdown.get() == format_options[3]:
-                        separateur = separator_entry.get()
                         dict_fichierattendus_ids = {f"{nom_perso}"
                                        f"{separateur}"
                                        f"{self.dico_nom_session_joueurs[nom_perso].get(session, '')}": nom_perso
@@ -323,7 +330,9 @@ class GUIPhotos(ttk.Frame):
                                                           folder_source_images=photo_folder_entry.get(),
                                                           noms_persos=dict_fichierattendus_ids,
                                                           dossier_output=output_folder_entry.get(verbal=True),
-                                                          nom_fichier=output_file_name_entry.get())
+                                                          nom_fichier=output_file_name_entry.get(),
+                                                          separateur=separateur,
+                                                          format_nom_photo=format_dropdown.get())
             if erreur:
                 messagebox.showerror("Une erreur est survenue", erreur)
                 return

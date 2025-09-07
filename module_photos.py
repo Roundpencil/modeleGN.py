@@ -8,8 +8,15 @@ from googleapiclient.errors import HttpError
 import google_io as g_io
 import lecteurGoogle
 
+from enum import Enum
+
 NOMS_LIGNE = ["nom photo", "nom personnage secable", "nom personnage insécable", "alias sécables", "alias insécables"]
 
+class FormatsNomsPhotos(Enum):
+    PERSO = "Juste le nom des personnages"
+    JOUEUR = "Juste le nom des joueurs et joueuse"
+    JOUEUR_PERSO= "Joueurs [séparateur] Personnage"
+    PERSO_JOUEUR = "Personnage [séparateur] Joueurs"
 
 def lister_images_dans_dossier(folder_id, drive_service):
     images_dict = {}
@@ -663,7 +670,25 @@ def ajouter_photos_et_creer_tombis(api_doc, api_drive, api_sheets, folder_id, of
 #     copier_fiche_et_inserer_photos(api_drive, api_doc, api_sheets, sheet_id, folder_id, id,
 #                                    destination_folder_id, offset=offset, sheet_name='Session 1')
 
-def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos: dict):
+def extraire_nom_perso_depuis_photo(nom_photo:str, separateur:str='-', format_nom_photo:str=FormatsNomsPhotos.JOUEUR):
+    # si des séparateurs ont été entrés sans utiliser des liste de persos
+    # et faire évoluer les regles selectionnables / non selectionnables dans l'IH
+    if format_nom_photo == FormatsNomsPhotos.PERSO.value:
+        return nom_photo
+    elif format_nom_photo == FormatsNomsPhotos.JOUEUR.value:
+        return ''
+    elif format_nom_photo == FormatsNomsPhotos.JOUEUR_PERSO.value:
+        parts = nom_photo.split(separateur)
+        return parts[-1]
+    elif format_nom_photo == FormatsNomsPhotos.PERSO_JOUEUR.value:
+        parts = nom_photo.split(separateur)
+        return parts[0]
+
+    print(f"Erreur : format de nom perso inconnu pour {nom_photo}/{separateur}/{format_nom_photo}")
+    return ''
+
+def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos: dict,
+                                   separateur:str, format_nom_photo:str):
     dico_nom_id, erreurs = lister_images_dans_dossier(folder_id=folder_source_images, drive_service=api_drive)
     if erreurs:
         return None, erreurs
@@ -678,18 +703,20 @@ def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos:
             to_write.append([photo, nom_perso, '', ''])
     else:
         for photo in liste_photos:
-            to_write.append([photo, '', '', ''])
-            #todo : ajouter des paramètres pour séparer les noms des photos selon celui des personnages
-            # si des séparateurs ont été entrés sans utiliser des liste de persos
-            # et faire évoluer les regles selectionnables / non selectionnables dans l'IHM
+            nom_perso = extraire_nom_perso_depuis_photo(photo, separateur, format_nom_photo)
+            to_write.append([photo, nom_perso, '', ''])
 
     return to_write, None
 
 
 def ecrire_tableau_photos_noms(api_drive, api_sheets, folder_source_images, noms_persos: dict,
-                               dossier_output, nom_fichier, verbal=False):
+                               dossier_output, nom_fichier,
+                               separateur, format_nom_photo:str,
+                               verbal=False):
     """
 
+    :param format_nom_photo:
+    :param separateur:
     :param api_drive:
     :param api_sheets:
     :param folder_source_images:
@@ -699,7 +726,8 @@ def ecrire_tableau_photos_noms(api_drive, api_sheets, folder_source_images, noms
     :param verbal:
     :return: un tuple (id sheet, message_erreur), le premier vaut None si une erreur est survenue
     """
-    to_write, erreurs = construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos)
+    to_write, erreurs = construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos,
+                                                       separateur, format_nom_photo)
     if erreurs:
         return None, erreurs
 
