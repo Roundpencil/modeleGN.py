@@ -18,9 +18,6 @@ class GidEntry(ttk.Entry):
             return raw
 
 
-# todo : généraliser l'usage de cette classe chaque fois qu'il y a un champ d'entrée qui prend en compte un id/une url
-#  y compris dans les autres ihms !!
-
 class ToolTip:
     def __init__(self, widget, text):
         self.widget = widget

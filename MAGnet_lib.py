@@ -78,9 +78,8 @@ from modeleGN import *
 
 
 # Module Photo
-# todo : ajouter une infobulle dans l'IHM
+# todo : remplir les infobulle dans l'IHM
 #  voir si il ne faut pas rajouter une option pour chercher les photos de manière récurrentes dans le dossier
-#  réordonner les champs dans l'ihm pour que plus intuitif
 # todo : permettre de marcher avec un mgn pour qu'il n'y ait qu'un seul fichier pour les utilisateurs MAGnet
 # todo : rajouter un champ pour dire qu'on ne veut mettre que les photos des PJs ?
 
