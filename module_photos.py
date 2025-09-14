@@ -10,6 +10,8 @@ import lecteurGoogle
 
 from enum import Enum
 
+from searchfile import folderid
+
 NOMS_LIGNE = ["nom photo", "nom personnage secable", "nom personnage insécable", "alias sécables", "alias insécables"]
 
 SOUSDOSSIER = "/"
@@ -20,19 +22,76 @@ class FormatsNomsPhotos(Enum):
     JOUEUR_PERSO= "Joueurs [séparateur] Personnage"
     PERSO_JOUEUR = "Personnage [séparateur] Joueurs"
 
+def lister_sous_dossiers_niveau1(drive_service, parent_id):
+    """
+    Retourne un dict {id: nom} contenant uniquement les sous-dossiers de premier niveau
+    d'un dossier parent donné.
+    """
+    dossiers = {}
+    erreurs = None
+    page_token = None
+    query = f"'{parent_id}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
+
+    try:
+        while True:
+            response = (drive_service.files()
+                        .list(q=query,
+                              spaces='drive',
+                              fields='nextPageToken, files(id, name)',
+                              pageToken=page_token)
+                        .execute())
+
+            for f in response.get('files', []):
+                dossiers[f['id']] = f['name']
+
+            page_token = response.get('nextPageToken')
+            if not page_token:
+                break
+
+    except HttpError as e:
+        print("Erreur Http:", e)
+        erreurs = f"problème lors de la recherche des sous-dossier de {parent_id} : {e}"
+    except Exception as e:
+        print("Erreur:", e)
+        erreurs = f"problème lors de la recherche des sous-dossier de {parent_id} : {e}"
+
+    return dossiers, erreurs
+
 def lister_images_dans_dossier(folder_id, drive_service, recurrent = False):
     dict_dossier_prefixe = {folder_id: ""} # on initialise le doctionnaire avec le premier dossier
     tableau_erreurs = []
     dict_retour = {}
 
     if recurrent:
+        to_recurse = dict_dossier_prefixe.copy()
+        while to_recurse:
+            current_folder_id, current_prefix = next(iter(to_recurse.items()))
+            # retirer du dictionnaire
+            to_recurse.pop(current_folder_id)
+            # chercher tous les dossiers dans le dossier actuel
+            to_include, erreurs = lister_sous_dossiers_niveau1(drive_service, current_folder_id)
+            if erreurs:
+                tableau_erreurs.append(erreurs)
+                # ca a planté pas la peine d'insister
+                continue
+
+            for subfolder_id, subfolder_name in to_include.items():
+                print(f"dans folder_id {folderid}, j'ai trouvé {subfolder_id} qui s'appelait {subfolder_name}")
+                #lui facbriquer un nouveau prefixe qui reprend le current prefixe
+                next_prefix = current_prefix + subfolder_name + SOUSDOSSIER
+
+                #l'ajouter au dict_dossier_prefixe avec son nouveau prefixe
+                dict_dossier_prefixe[subfolder_id] = next_prefix
+                #l'ajouter au to_recurse avec son nouveau prefixe
+                to_recurse[subfolder_id] = next_prefix
+
+        # todo : dans le tableau de remplissage des photos, il faudra chercher si le caractère sous dossier
+        #  est présent pour récursiver les sous dossier
         pass
-    # todo : lister de manière récurrente les sous dossiet et les ajouter avec leurs préfixes.
-    # todo : dans le tableau de remplissage des photos, il faudra chercher si le caractère sous dossier est présent pour récursiver les sous dossier
 
     for folder_id, prefixe in dict_dossier_prefixe.items():
-        dict_retour, retour_erreurs = lister_images_dans_un_dossier(folder_id, drive_service, prefixe)
-        dict_retour |= dict_retour
+        images_dans_dossier, retour_erreurs = lister_images_dans_un_dossier(folder_id, drive_service, prefixe)
+        dict_retour |= images_dans_dossier
         tableau_erreurs.append(retour_erreurs)
 
     if any(tableau_erreurs):
@@ -40,7 +99,10 @@ def lister_images_dans_dossier(folder_id, drive_service, recurrent = False):
     else:
         erreurs = None
 
-    # todo : à tester
+    # todo : case à ajouter dans la GUI
+    #  todo : prise en compte dans la focntion va effectivement insérer les photos
+    # todo : quand on découpe les phtoos en fonction des noms ne pas prendre les sous-dossiers
+
     # return lister_images_dans_un_dossier(folder_id, drive_service)
     return dict_retour, erreurs
 
