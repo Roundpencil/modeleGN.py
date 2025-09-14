@@ -12,13 +12,39 @@ from enum import Enum
 
 NOMS_LIGNE = ["nom photo", "nom personnage secable", "nom personnage insécable", "alias sécables", "alias insécables"]
 
+SOUSDOSSIER = "/"
+
 class FormatsNomsPhotos(Enum):
     PERSO = "Juste le nom des personnages"
     JOUEUR = "Juste le nom des joueurs et joueuse"
     JOUEUR_PERSO= "Joueurs [séparateur] Personnage"
     PERSO_JOUEUR = "Personnage [séparateur] Joueurs"
 
-def lister_images_dans_dossier(folder_id, drive_service):
+def lister_images_dans_dossier(folder_id, drive_service, recurrent = False):
+    dict_dossier_prefixe = {folder_id: ""} # on initialise le doctionnaire avec le premier dossier
+    tableau_erreurs = []
+    dict_retour = {}
+
+    if recurrent:
+        pass
+    # todo : lister de manière récurrente les sous dossiet et les ajouter avec leurs préfixes.
+    # todo : dans le tableau de remplissage des photos, il faudra chercher si le caractère sous dossier est présent pour récursiver les sous dossier
+
+    for folder_id, prefixe in dict_dossier_prefixe.items():
+        dict_retour, retour_erreurs = lister_images_dans_un_dossier(folder_id, drive_service, prefixe)
+        dict_retour |= dict_retour
+        tableau_erreurs.append(retour_erreurs)
+
+    if any(tableau_erreurs):
+        erreurs = "\n".join(e for e in tableau_erreurs if e is not None)
+    else:
+        erreurs = None
+
+    # todo : à tester
+    # return lister_images_dans_un_dossier(folder_id, drive_service)
+    return dict_retour, erreurs
+
+def lister_images_dans_un_dossier(folder_id, drive_service, prefix_nom = ""):
     images_dict = {}
     erreurs = None
 
@@ -38,7 +64,7 @@ def lister_images_dans_dossier(folder_id, drive_service):
             for file in response.get('files', []):
                 # Supprimer l'extension du fichier pour obtenir le nom de l'image
                 file_name_without_extension = '.'.join(file.get('name').split('.')[:-1]).strip()
-                images_dict[file_name_without_extension] = file.get('id')
+                images_dict[prefix_nom + file_name_without_extension] = file.get('id')
 
             page_token = response.get('nextPageToken')  # Récupérer le nextPageToken de la réponse
 
