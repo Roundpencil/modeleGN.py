@@ -37,5 +37,22 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(result, attendu)
 
+    def tester_construire_tableau_photos_noms_recurrent(self):
+        dr, _, _ = creer_lecteurs_google_apis()
+        result = construire_tableau_photos_noms(dr,
+                                                "1bJ_TxJHYZteLG8Y_y-raasDK5BlQgYbm",
+                                                None,
+                                                "-",
+                                                FormatsNomsPhotos.PERSO.value,
+                                                recurrent=True)
+        attendu = \
+            ([['nom photo', 'nom personnage secable', 'nom personnage insécable', 'alias sécables', 'alias insécables'],
+              ['photos S2/madonna', 'madonna', '', ''],
+              ['photos S2/meudon', 'meudon', '', ''],
+              ['dossier photo/Camille_Claudel', 'Camille_Claudel', '', ''],
+              ['dossier photo/meudon', 'meudon', '', '']],
+             None)
+        self.assertEqual(result, attendu)
+
 if __name__ == '__main__':
     unittest.main()

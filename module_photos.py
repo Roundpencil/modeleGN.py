@@ -101,7 +101,6 @@ def lister_images_dans_dossier(folder_id, drive_service, recurrent = False):
 
     # todo : case à ajouter dans la GUI
     #  todo : prise en compte dans la focntion va effectivement insérer les photos
-    # todo : quand on découpe les phtoos en fonction des noms ne pas prendre les sous-dossiers
 
     # return lister_images_dans_un_dossier(folder_id, drive_service)
     return dict_retour, erreurs
@@ -776,24 +775,25 @@ def extraire_nom_perso_depuis_photo(nom_photo:str, separateur:str='-', format_no
     return ''
 
 def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos: dict,
-                                   separateur:str, format_nom_photo:str):
-    dico_nom_id, erreurs = lister_images_dans_dossier(folder_id=folder_source_images, drive_service=api_drive)
+                                   separateur:str, format_nom_photo:str, recurrent = False):
+    dico_nom_id, erreurs = lister_images_dans_dossier(folder_id=folder_source_images, drive_service=api_drive,
+                                                      recurrent=recurrent)
     if erreurs:
         return None, erreurs
 
-    liste_photos = list(dico_nom_id.keys())
+    photo_path = [(path.split(SOUSDOSSIER)[-1], path) for path in dico_nom_id]
+
     to_write = [[e for e in NOMS_LIGNE]]
     if noms_persos:
         clefs_rapprochement = list(noms_persos.keys())
-        for photo in liste_photos:
+        for photo, path in photo_path:
             correspondance = process.extractOne(photo, clefs_rapprochement)
             nom_perso = noms_persos[correspondance[0]] if correspondance else ''
-            to_write.append([photo, nom_perso, '', ''])
+            to_write.append([path, nom_perso, '', ''])
     else:
-        for photo in liste_photos:
+        for photo, path in photo_path:
             nom_perso = extraire_nom_perso_depuis_photo(photo, separateur, format_nom_photo)
-            to_write.append([photo, nom_perso, '', ''])
-
+            to_write.append([path, nom_perso, '', ''])
     return to_write, None
 
 
