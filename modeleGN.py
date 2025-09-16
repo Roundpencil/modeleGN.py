@@ -341,9 +341,12 @@ class DateScene(ABC):
 
     @staticmethod
     def _ecrire_les_nombre_en_chiffres(texte):
-        return (alpha2digit(texte, 'fr', ordinal_threshold=0)
+        return (alpha2digit(texte, 'fr')
                 .replace('une', '1')
                 .replace('un', '1'))
+        # return (alpha2digit(texte, 'fr', ordinal_threshold=0)
+        #         .replace('une', '1')
+        #         .replace('un', '1'))
 
 
 class DateSceneAbsolue(DateScene):
