@@ -104,7 +104,17 @@ def main():
     if not args.console:
         print("Lancement de l'IHM")
         root = tk.Tk()
-        root.iconbitmap(r'coin-MAGNet.ico')
+
+        def resource_path(relative_path):
+            """Retourne le chemin absolu vers une ressource (compatible PyInstaller)."""
+            if hasattr(sys, "_MEIPASS"):
+                return os.path.join(sys._MEIPASS, relative_path)
+            return os.path.join(os.path.abspath("."), relative_path)
+
+        icon_path = resource_path("coin-MAGNet.ico")
+        root.iconbitmap(icon_path)
+        # root.iconbitmap(r'coin-MAGNet.ico')
+
         style = ttk.Style(root)
         # fenetre_wizard.tk.call('source', 'azure dark/azure dark.tcl')
 

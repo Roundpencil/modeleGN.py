@@ -1,234 +1,158 @@
-import configparser
 import os
-from datetime import datetime
-
-
-def recreate_configparser(dict_config):
-    """
-    Recreate a ConfigParser object from a dict_config produced by creer_dict_config.
-
-    Parameters:
-        dict_config (dict): A configuration dictionary as produced by creer_dict_config.
-
-    Returns:
-        configparser.ConfigParser: A new ConfigParser object with sections and options
-                                   set according to dict_config.
-    """
-    config = configparser.ConfigParser()
-
-    # --- Populate the "Essentiels" section ---
-    config.add_section("Essentiels")
-
-    # dossier_output_squelettes_pjs is stored in dict_config['dossier_output']
-    dossier_output = dict_config.get('dossier_output')
-    if dossier_output is not None:
-        config.set("Essentiels", "dossier_output_squelettes_pjs", str(dossier_output))
-
-    # mode_association:
-    # In the original, the value is read as an integer (or taken from GN.ModeAssociation).
-    mode_association = dict_config.get('mode_association')
-    if mode_association is not None:
-        try:
-            # if mode_association is an enum, try to extract its value
-            value = mode_association.value
-        except AttributeError:
-            value = mode_association
-        # write the integer value as a string
-        config.set("Essentiels", "mode_association", str(int(value)))
-
-    # nom_fichier_sauvegarde:
-    nom_fichier_sauvegarde = dict_config.get('nom_fichier_sauvegarde')
-    if nom_fichier_sauvegarde is not None:
-        config.set("Essentiels", "nom_fichier_sauvegarde", str(nom_fichier_sauvegarde))
-
-    # dossiers_intrigues: in the original, these were read by
-    # decouper_clefs (with prefix "id_dossier_intrigues") and the key names
-    # were stored in dict_config["nom_dossiers_intrigues"] while their values were
-    # in dict_config["dossiers_intrigues"].
-    dossiers = dict_config.get("dossiers_intrigues", [])
-    noms = dict_config.get("nom_dossiers_intrigues", [])
-    for key_name, value in zip(noms, dossiers):
-        config.set("Essentiels", key_name, str(value))
-
-    # --- Populate the "Optionnels" section ---
-    config.add_section("Optionnels")
-
-    # fichier local sauvegarde: the original code gets Optionnels/nom_fichier_sauvegarde,
-    # then uses os.path.join(os.path.curdir, ...) to produce dict_config['dossier_local_fichier_sauvegarde'].
-    # For the reverse, we compute the relative path.
-    dossier_local = dict_config.get("dossier_local_fichier_sauvegarde")
-    if dossier_local is not None:
-        # Compute the relative part (if dossier_local equals os.path.curdir, this will be ".")
-        rel_path = os.path.relpath(dossier_local, os.path.curdir)
-        config.set("Optionnels", "nom_fichier_sauvegarde", str(rel_path))
-
-    # dossiers_pjs, dossiers_pnjs, dossiers_evenements, dossiers_objets
-    # For each, the key names stored in dict_config are:
-    #   - the list of values is under key: <dossier_key>
-    #   - the corresponding list of option names is under key: "nom_" + <dossier_key>
-    for dossier_key in ["dossiers_pjs", "dossiers_pnjs", "dossiers_evenements", "dossiers_objets"]:
-        values = dict_config.get(dossier_key, [])
-        option_names = dict_config.get("nom_" + dossier_key, [])
-        for opt_name, value in zip(option_names, values):
-            config.set("Optionnels", opt_name, str(value))
-
-    # id_factions (if any)
-    id_factions = dict_config.get("id_factions")
-    if id_factions is not None:
-        config.set("Optionnels", "id_factions", str(id_factions))
-
-    # id_pjs_et_pnjs versus the alternative options:
-    # If an id_pjs_et_pnjs exists, we set that. Otherwise we set the alternative
-    # options "nom_fichier_pnjs" and "noms_persos".
-    id_pjs_et_pnjs = dict_config.get("id_pjs_et_pnjs")
-    if id_pjs_et_pnjs:
-        config.set("Optionnels", "id_pjs_et_pnjs", str(id_pjs_et_pnjs))
-    else:
-        fichier_noms_pnjs = dict_config.get("fichier_noms_pnjs")
-        if fichier_noms_pnjs is not None:
-            config.set("Optionnels", "nom_fichier_pnjs", str(fichier_noms_pnjs))
-        # For liste_noms_pjs, if it is a list then join with commas
-        liste_noms_pjs = dict_config.get("liste_noms_pjs")
-        if liste_noms_pjs is not None:
-            if isinstance(liste_noms_pjs, list):
-                noms_str = ",".join(str(nom) for nom in liste_noms_pjs)
-            else:
-                noms_str = str(liste_noms_pjs)
-            config.set("Optionnels", "noms_persos", noms_str)
-
-    # date_gn: if a date is stored as a datetime object, we format it.
-    date_gn = dict_config.get("date_gn")
-    if date_gn is not None:
-        if isinstance(date_gn, datetime):
-            date_str = date_gn.isoformat()
-        else:
-            date_str = str(date_gn)
-        config.set("Optionnels", "date_gn", date_str)
-
-    # Prefixes
-    for key, default in [
-        ("prefixe_intrigues", "I"),
-        ("prefixe_evenements", "E"),
-        ("prefixe_PJs", "P"),
-        ("prefixe_PNJs", "N"),
-        ("prefixe_objets", "O")
-    ]:
-        value = dict_config.get(key, default)
-        config.set("Optionnels", key, str(value))
-
-    # If 'liste_noms_pjs' wasn’t already handled above (for the id_pjs_et_pnjs alternative),
-    # we can set Optionnels/noms_persos with it.
-    if (not config.has_option("Optionnels", "noms_persos") and
-            dict_config.get("liste_noms_pjs") is not None):
-        liste_noms_pjs = dict_config.get("liste_noms_pjs")
-        if isinstance(liste_noms_pjs, list):
-            noms_str = ",".join(str(nom) for nom in liste_noms_pjs)
-        else:
-            noms_str = str(liste_noms_pjs)
-        config.set("Optionnels", "noms_persos", noms_str)
-
-    # id_dossier_archive (if any)
-    id_dossier_archive = dict_config.get("id_dossier_archive")
-    if id_dossier_archive is not None:
-        config.set("Optionnels", "id_dossier_archive", str(id_dossier_archive))
-
-    return config
-
 import configparser
+from datetime import datetime
+from typing import Iterable, Optional
 
-def compare_configparsers(config1: configparser.ConfigParser,
-                          config2: configparser.ConfigParser) -> dict:
+def creer_configparser(dict_config: dict) -> configparser.ConfigParser:
     """
-    Compare deux objets ConfigParser section par section.
-
-    Retourne un dictionnaire décrivant les différences. Le format du dictionnaire est le suivant :
-
-    {
-        'sections_missing_in_config2': [liste_des_sections_absentes_de_config2],
-        'sections_missing_in_config1': [liste_des_sections_absentes_de_config1],
-        'NomSectionCommune': {
-            'options_missing_in_config2': [liste_des_options_absentes_de_config2],
-            'options_missing_in_config1': [liste_des_options_absentes_de_config1],
-            'value_differences': {
-                'nom_option': (valeur_dans_config1, valeur_dans_config2),
-                ...
-            }
-        },
-        ...
-    }
-    Si aucune différence n'est trouvée, le dictionnaire sera vide.
+    Construit un ConfigParser conforme à la doc MAGnet à partir du dict produit par `creer_dict_config`.
+    Points clés couverts :
+      - Sections [Essentiels] / [Optionnels]
+      - Paramètres répétables avec suffixes libres (_XXXX) pour *toutes* les familles listées par la doc
+      - Nommage exact des préfixes : prefixe_intrigues / prefixe_evenements / prefixe_objets / prefixe_PJ / prefixe_PNJ
+      - Conservation du cas (optionxform = str)
+      - Ecriture conditionnelle des Optionnels seulement s'ils existent
     """
-    differences = {}
+    cfg = configparser.ConfigParser()
+    cfg.optionxform = str  # conserver la casse des clés (prefixe_PJ, prefixe_PNJ, etc.)
+    cfg.add_section('Essentiels')
+    cfg.add_section('Optionnels')
 
-    # Récupérer les noms de sections de chacun
-    sections1 = set(config1.sections())
-    sections2 = set(config2.sections())
+    # ----------- ESSENTIELS -----------
+    # dossier de sortie
+    if dict_config.get('dossier_output'):
+        cfg.set('Essentiels', 'dossier_output_squelettes_pjs', str(dict_config['dossier_output']))
 
-    # Sections présentes dans config1 mais pas dans config2
-    missing_in_config2 = sections1 - sections2
-    if missing_in_config2:
-        differences['sections_missing_in_config2'] = list(missing_in_config2)
+    # mode_association: 0 ou 1
+    if 'mode_association' in dict_config and dict_config['mode_association'] is not None:
+        ma = dict_config['mode_association']
+        val = _coerce_mode_association(ma)
+        cfg.set('Essentiels', 'mode_association', str(val))
 
-    # Sections présentes dans config2 mais pas dans config1
-    missing_in_config1 = sections2 - sections1
-    if missing_in_config1:
-        differences['sections_missing_in_config1'] = list(missing_in_config1)
+    # nom_fichier_sauvegarde (essentiel)
+    if dict_config.get('nom_fichier_sauvegarde'):
+        cfg.set('Essentiels', 'nom_fichier_sauvegarde', str(dict_config['nom_fichier_sauvegarde']))
 
-    # Comparer les sections communes
-    common_sections = sections1.intersection(sections2)
-    for section in common_sections:
-        section_diff = {}
+    # id_dossier_intrigues (+ variantes suffixées)
+    _write_repeatable_options(
+        cfg, dict_config,
+        section='Essentiels',
+        values_key='dossiers_intrigues',
+        names_key='nom_dossiers_intrigues',
+        base_option='id_dossier_intrigues'
+    )
 
-        # Options dans chaque section
-        options1 = set(config1.options(section))
-        options2 = set(config2.options(section))
+    # ----------- OPTIONNELS -----------
+    # nom_fichier_sauvegarde (local) -> on ne peut écrire que le nom, pas le chemin
+    if dict_config.get('dossier_local_fichier_sauvegarde'):
+        basename = os.path.basename(str(dict_config['dossier_local_fichier_sauvegarde'])) or '.'
+        cfg.set('Optionnels', 'nom_fichier_sauvegarde', basename)
 
-        # Options présentes dans config1 mais pas dans config2
-        missing_options_in_config2 = options1 - options2
-        if missing_options_in_config2:
-            section_diff['options_missing_in_config2'] = list(missing_options_in_config2)
+    # Blocs répétables (suffixes libres) : PJs, PNJs, Evénements, Objets, Factions
+    _write_repeatable_options(cfg, dict_config, 'Optionnels', 'dossiers_pjs',         'nom_dossiers_pjs',         'id_dossier_pjs')
+    _write_repeatable_options(cfg, dict_config, 'Optionnels', 'dossiers_pnjs',        'nom_dossiers_pnjs',        'id_dossier_pnjs')
+    _write_repeatable_options(cfg, dict_config, 'Optionnels', 'dossiers_evenements',  'nom_dossiers_evenements',  'id_dossier_evenements')
+    _write_repeatable_options(cfg, dict_config, 'Optionnels', 'dossiers_objets',      'nom_dossiers_objets',      'id_dossier_objets')
+    # La doc précise que "les mêmes règles s’appliquent" pour id_factions -> répétable aussi
+    _write_repeatable_options(cfg, dict_config, 'Optionnels', 'id_factions',          'nom_id_factions',          'id_factions')
 
-        # Options présentes dans config2 mais pas dans config1
-        missing_options_in_config1 = options2 - options1
-        if missing_options_in_config1:
-            section_diff['options_missing_in_config1'] = list(missing_options_in_config1)
+    # Fichiers/IDs simples
+    if dict_config.get('id_pjs_et_pnjs'):
+        cfg.set('Optionnels', 'id_pjs_et_pnjs', str(dict_config['id_pjs_et_pnjs']))
 
-        # Comparer les valeurs pour les options communes
-        common_options = options1.intersection(options2)
-        value_diffs = {}
-        for option in common_options:
-            val1 = config1.get(section, option)
-            val2 = config2.get(section, option)
-            if val1 != val2:
-                value_diffs[option] = (val1, val2)
-        if value_diffs:
-            section_diff['value_differences'] = value_diffs
+    if dict_config.get('fichier_noms_pnjs'):
+        cfg.set('Optionnels', 'nom_fichier_pnjs', str(dict_config['fichier_noms_pnjs']))
 
-        if section_diff:
-            differences[section] = section_diff
+    # noms_persos : CSV (ancienne méthode)
+    if 'liste_noms_pjs' in dict_config and dict_config['liste_noms_pjs'] is not None:
+        v = dict_config['liste_noms_pjs']
+        csv_val = ', '.join(map(str, v)) if isinstance(v, (list, tuple)) else str(v)
+        cfg.set('Optionnels', 'noms_persos', csv_val)
 
-    return differences
+    # date_gn : conserver la chaîne si on l'a ; sinon ISO
+    if dict_config.get('date_gn'):
+        v = dict_config['date_gn']
+        cfg.set('Optionnels', 'date_gn', v.strftime('%Y-%m-%d') if isinstance(v, datetime) else str(v))
 
-# Exemple d'utilisation :
-if __name__ == "__main__":
-    # Création de deux ConfigParser pour l'exemple
-    config1 = configparser.ConfigParser()
-    config1.add_section("Essentiels")
-    config1.set("Essentiels", "param1", "valeur1")
-    config1.set("Essentiels", "param2", "valeur2")
-    config1.add_section("Optionnels")
-    config1.set("Optionnels", "opt1", "abc")
+    # Préfixes (noms exacts selon la doc)
+    _maybe_set(cfg, 'Optionnels', 'prefixe_intrigues',  dict_config.get('prefixe_intrigues'))
+    _maybe_set(cfg, 'Optionnels', 'prefixe_evenements', dict_config.get('prefixe_evenements'))
+    _maybe_set(cfg, 'Optionnels', 'prefixe_objets',     dict_config.get('prefixe_objets'))
+    # attention : clés exactes demandées par la doc
+    _maybe_set(cfg, 'Optionnels', 'prefixe_PJ',         dict_config.get('prefixe_PJs')  or dict_config.get('prefixe_PJ'))
+    _maybe_set(cfg, 'Optionnels', 'prefixe_PNJ',        dict_config.get('prefixe_PNJs') or dict_config.get('prefixe_PNJ'))
 
-    config2 = configparser.ConfigParser()
-    config2.add_section("Essentiels")
-    config2.set("Essentiels", "param1", "valeur1")         # identique
-    config2.set("Essentiels", "param2", "autre_valeur")       # différent
-    config2.set("Essentiels", "param3", "valeur3")            # option en plus
-    config2.add_section("Divers")                             # section en plus
-    config2.add_section("Optionnels")
-    config2.set("Optionnels", "opt1", "abc")                  # identique
+    # Dossier archive
+    _maybe_set(cfg, 'Optionnels', 'id_dossier_archive', dict_config.get('id_dossier_archive'))
 
-    diff = compare_configparsers(config1, config2)
-    print("Différences trouvées :")
-    for key, value in diff.items():
-        print(f"{key}: {value}")
+    return cfg
+
+
+# ----------------- Helpers -----------------
+
+def _maybe_set(cfg: configparser.ConfigParser, section: str, key: str, value: Optional[str]) -> None:
+    if value is not None:
+        cfg.set(section, key, str(value))
+
+def _coerce_mode_association(ma) -> int:
+    """Accepte int, enum-like (avec .value), ou str ; renvoie 0/1 (défaut 9 si hors spec)."""
+    try:
+        return int(getattr(ma, 'value', ma))
+    except (TypeError, ValueError):
+        s = str(ma).strip()
+        return int(s[0]) if s and s[0].isdigit() else 9
+
+def _as_list(x) -> Optional[list]:
+    if x is None:
+        return None
+    if isinstance(x, (list, tuple)):
+        return list(x)
+    return [x]
+
+def _write_repeatable_options(
+    cfg: configparser.ConfigParser,
+    dict_config: dict,
+    section: str,
+    values_key: str,
+    names_key: str,
+    base_option: str
+) -> None:
+    """
+    Ecrit une série d'options répétables dans `section`, à partir de :
+      - values_key : liste des valeurs (ex: ['id1','id2',...])
+      - names_key  : liste des noms d'options d'origine (ex: ['id_dossier_pjs_emeric', ...])
+                     ou uniquement des suffixes libres (ex: ['_emeric','_pierre']) si tu préfères.
+      - base_option: nom de base (ex: 'id_dossier_pjs')
+    Règles :
+      - si `names_key` n'est pas fourni ou longueur ≠ valeurs, on génère: base_option (si 1 valeur)
+        sinon base_option_1, base_option_2, ...
+      - si `names_key` contient des noms complets (commençant par base_option) on les prend tels quels ;
+        si `names_key` ne contient que des suffixes, on préfixe avec base_option.
+    """
+    vals = _as_list(dict_config.get(values_key))
+    if not vals:
+        return
+
+    raw_names = _as_list(dict_config.get(names_key))
+    names: Iterable[str]
+
+    if raw_names and len(raw_names) == len(vals):
+        normed = []
+        for nm in raw_names:
+            nm = str(nm)
+            if nm.startswith(base_option):
+                normed.append(nm)
+            else:
+                # autoriser de fournir juste un suffixe ('_emeric' ou 'emeric')
+                if nm.startswith('_'):
+                    normed.append(base_option + nm)
+                else:
+                    normed.append(f"{base_option}_{nm}")
+        names = normed
+    else:
+        # Génération simple et stable
+        names = [base_option] if len(vals) == 1 else [f"{base_option}_{i+1}" for i in range(len(vals))]
+
+    for name, value in zip(names, vals):
+        if value is not None:
+            cfg.set(section, name, str(value))
