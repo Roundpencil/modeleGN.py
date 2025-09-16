@@ -58,6 +58,24 @@ def lister_sous_dossiers_niveau1(drive_service, parent_id):
     return dossiers, erreurs
 
 def lister_images_dans_dossier(folder_id, drive_service, recurrent = False):
+    """
+    Liste les images (JPEG/PNG) d’un dossier Google Drive, avec option de parcours récursif.
+
+    Args:
+        folder_id (str): ID du dossier racine à analyser.
+        drive_service: Client de l’API Google Drive (service.files().list, etc.).
+        recurrent (bool, optional): Si True, parcourt également les sous-dossiers de niveau arbitraire.
+            Si False, ne parcourt que le dossier donné. Par défaut False.
+
+    Returns:
+        tuple[dict[str, str], Optional[str]]:
+            - dict qui mappe « chemin_ou_prefixe+nom_sans_extension » → id_fichier_image
+            - message d’erreur agrégé (str) si au moins une erreur est survenue, sinon None.
+
+    Notes:
+        - Les chemins de sous-dossiers sont concaténés avec la constante SOUSDOSSIER ("/").
+        - Les noms retournés n’ont pas d’extension (".jpg", ".png" retirés).
+    """
     dict_dossier_prefixe = {folder_id: ""} # on initialise le doctionnaire avec le premier dossier
     tableau_erreurs = []
     dict_retour = {}
@@ -99,6 +117,24 @@ def lister_images_dans_dossier(folder_id, drive_service, recurrent = False):
     return dict_retour, erreurs
 
 def lister_images_dans_un_dossier(folder_id, drive_service, prefix_nom = ""):
+    """
+    Récupère toutes les images (JPEG/PNG) immédiates d’un dossier Google Drive (sans descendre dans les sous-dossiers).
+
+    Args:
+        folder_id (str): ID du dossier Google Drive à parcourir.
+        drive_service: Client de l’API Google Drive.
+        prefix_nom (str, optional): Préfixe ajouté devant chaque nom de fichier (utile pour les sous-dossiers).
+            Par défaut "".
+
+    Returns:
+        tuple[dict[str, str], Optional[str]]:
+            - dict {prefix_nom + nom_sans_extension: id_image}
+            - str d’erreur lisible, ou None si tout s’est bien passé.
+
+    Exceptions gérées:
+        - HttpError: converti en message d’erreur explicite (dossier introuvable, etc.).
+        - Exception: renvoyée comme message d’erreur générique.
+    """
     images_dict = {}
     erreurs = None
 
@@ -139,6 +175,19 @@ def lister_images_dans_un_dossier(folder_id, drive_service, prefix_nom = ""):
 
 
 def base_nom_prenom(nom_secable):
+    """
+    Génère une liste de variantes simples à partir d’un nom « sécable ».
+
+    Exemple:
+        "Jean Dupont" → ["Jean Dupont", "Jean", "Dupont"]
+
+    Args:
+        nom_secable (str): Nom complet potentiellement composé (espaces).
+
+    Returns:
+        list[str]: Variantes utiles pour la recherche/fuzzymatching.
+            Liste vide si l’entrée est vide ou uniquement des espaces.
+    """
     base_nettoyee = nom_secable.strip()
     if not base_nettoyee:
         return []
@@ -218,30 +267,52 @@ def lire_table_photos(api_sheets, sheet_id, sheet_name='Feuille 1', separateur='
     return to_return
 
 
-def trouver_mots_phrases(liste_mots_phrases, texte):
-    mots_phrases_indices = {}
-    texte_lower = texte.lower()
-    # Pattern pour détecter si un mot/phrase est bien entouré par des non-mots ou en début/fin de texte.
-    word_boundary_pattern = r'(?<!\w){}(?!\w)'
-
-    for mot_phrase in liste_mots_phrases:
-        mot_phrase_inf = mot_phrase.lower()
-        mots_phrases_indices[mot_phrase_inf] = []
-        pattern = word_boundary_pattern.format(re.escape(mot_phrase_inf))
-        for match in re.finditer(pattern, texte_lower):
-            mots_phrases_indices[mot_phrase_inf].append(match.start())
-
-    resultats = []
-    for mot_phrase in liste_mots_phrases:
-        mot_phrase_inf = mot_phrase.lower()
-        if mot_phrase_inf in mots_phrases_indices:
-            for indice in mots_phrases_indices[mot_phrase_inf]:
-                resultats.append([indice, mot_phrase])
-
-    return resultats
+# def trouver_mots_phrases(liste_mots_phrases, texte):
+#     """
+#     Trouve toutes les occurrences exactes (à frontière de mot) d’une liste de mots/phrases dans un texte.
+#
+#     Args:
+#         liste_mots_phrases (Iterable[str]): Mots/expressions à chercher (sensibles aux accents, non à la casse).
+#         texte (str): Texte source.
+#
+#     Returns:
+#         list[list[int, str]]: Liste de [index_depart, mot_ou_phrase_trouvé] pour chaque correspondance,
+#         non triée entre différents motifs (ordre d’itération).
+#     """
+#     mots_phrases_indices = {}
+#     texte_lower = texte.lower()
+#     # Pattern pour détecter si un mot/phrase est bien entouré par des non-mots ou en début/fin de texte.
+#     word_boundary_pattern = r'(?<!\w){}(?!\w)'
+#
+#     for mot_phrase in liste_mots_phrases:
+#         mot_phrase_inf = mot_phrase.lower()
+#         mots_phrases_indices[mot_phrase_inf] = []
+#         pattern = word_boundary_pattern.format(re.escape(mot_phrase_inf))
+#         for match in re.finditer(pattern, texte_lower):
+#             mots_phrases_indices[mot_phrase_inf].append(match.start())
+#
+#     resultats = []
+#     for mot_phrase in liste_mots_phrases:
+#         mot_phrase_inf = mot_phrase.lower()
+#         if mot_phrase_inf in mots_phrases_indices:
+#             for indice in mots_phrases_indices[mot_phrase_inf]:
+#                 resultats.append([indice, mot_phrase])
+#
+#     return resultats
 
 
 def trouver_mots_phrases_plus_long(liste_mots_phrases, texte):
+    """
+    Comme trouver_mots_phrases, mais ne conserve qu’une seule correspondance par index:
+    si plusieurs motifs commencent au même index, on garde le plus long.
+
+    Args:
+        liste_mots_phrases (Iterable[str]): Mots/expressions à chercher.
+        texte (str): Texte source.
+
+    Returns:
+        list[list[int, str]]: Liste triée par index de [index_depart, motif_plus_long_à_cet_index].
+    """
     mots_phrases_indices = {}
     texte_lower = texte.lower()
     # Pattern pour détecter si un mot/phrase est bien entouré par des non-mots ou en début/fin de texte.
@@ -269,6 +340,36 @@ def trouver_mots_phrases_plus_long(liste_mots_phrases, texte):
 
 
 def nettoyer_doublons_souschaines(dico):
+    """
+       Supprime, dans les listes de chaque clé, les éléments :
+         1) dupliqués globalement (présents dans ≥ 2 clés),
+         2) qui sont des sous-chaînes d’un élément présent dans une autre clé.
+
+       ⚠️ La fonction modifie le dictionnaire **sur place** et le renvoie.
+
+       Args:
+           dico (dict[str, list[str]]): Dictionnaire {clé: [éléments]}.
+
+       Returns:
+           dict[str, list[str]]: Dictionnaire nettoyé (modifié sur place et renvoyé).
+
+       Exemple:
+           >>> d = {
+           ...     "A": ["Jean", "Jean Dupont", "Dup", "Du"],
+           ...     "B": ["Dupont", "Marie", "Jean"],
+           ...     "C": ["Mar", "Marie Curie"]
+           ... }
+           >>> nettoyer_doublons_souschaines(d)
+           {'A': ['Jean Dupont'], 'B': [], 'C': ['Marie Curie']}
+
+           Explications :
+           - "Jean" est dupliqué globalement (A et B) ⇒ supprimé partout.
+           - "Dup" et "Du" sont des sous-chaînes de "Dupont" (autre liste) ⇒ supprimés.
+           - "Dupont" est une sous-chaîne de "Jean Dupont" (autre liste) ⇒ supprimé.
+           - "Mar" est une sous-chaîne de "Marie Curie" (autre liste) ⇒ supprimé.
+           - "Marie" est une sous-chaîne de "Marie Curie" (autre liste) ⇒ supprimé.
+           - "Jean Dupont" et "Marie Curie" restent car ils ne sont ni dupliqués, ni sous-chaînes d’un autre élément.
+       """
     a_supprimer = set()
 
     # On identifie les doublons dans tout le dictionnaire
@@ -300,6 +401,22 @@ def nettoyer_doublons_souschaines(dico):
 
 
 def eviter_recouvrement(dict_img_positions):
+    """
+    Résout des conflits de recouvrement entre occurrences de mots-clés de plusieurs images dans un texte.
+
+    Principe:
+        - Chaque image possède une liste d’options [index, mot] ordonnée.
+        - On essaie d’assigner à chaque image une occurrence telle qu’aucune plage [index, index+len(mot)]
+          ne se recoupe avec celle d’une autre image. En cas de conflit, on essaie la « solution suivante »
+          pour l’image concernée jusqu’à obtenir un ensemble sans conflit.
+
+    Args:
+        dict_img_positions (dict[str, list[list[int, str]]]):
+            Pour chaque image, liste des [index, mot] possibles déjà triée/ordonnancée.
+
+    Returns:
+        list[list[str, int, str]]: Liste de [nom_image, index_choisi, mot_choisi] formant une solution sans recouvrement.
+    """
     class Bulle:
         def __init__(self, nom_image: str, liste_positions_nom: list[list]):
             self.nom_image = nom_image
@@ -365,6 +482,21 @@ def eviter_recouvrement(dict_img_positions):
 
 
 def requete_pour_inserer_img_et_formatter(image_id, position, longueur=0, verbal=False, avec_bold=True):
+    """
+    Construit les requêtes Google Docs API pour insérer une image inline et (optionnellement) mettre en gras
+    le mot-clé correspondant.
+
+    Args:
+        image_id (str): ID Drive de l’image à insérer.
+        position (int): Index (offset) dans le document où insérer.
+        longueur (int, optional): Longueur du mot/segment à mettre en gras à partir de 'position'. Par défaut 0.
+        verbal (bool, optional): Affiche des traces si True. Par défaut False.
+        avec_bold (bool, optional): Si True, ajoute une requête updateTextStyle pour mettre en gras. Par défaut True.
+
+    Returns:
+        list[dict]: Liste de requêtes (payloads) prêtes pour documents().batchUpdate(...).
+    """
+
     # Obtenir l'URL de l'image depuis Google Drive
     # image_file = drive_service.files().get(fileId=image_id, fields='webViewLink').execute()
     # image_url = image_file.get('webViewLink')
@@ -485,6 +617,47 @@ def preparer_donnees_photos(api_drive, api_sheets, id_dossier_images, id_sheet_p
 
 
 def creer_requetes_insertion(dict_img_id, dict_img_indexes, offset, verbal):
+    """
+    Construit la liste des requêtes Google Docs API permettant d’insérer les images
+    aux bons emplacements dans le texte, tout en évitant que deux images soient
+    placées sur des mots qui se chevauchent.
+
+    Le principe est :
+      - Chaque image est associée à une ou plusieurs positions possibles
+        (index dans le texte + mot détecté).
+      - On sélectionne pour chaque image une position qui ne rentre pas en
+        conflit avec les autres (pas de chevauchement de plages de texte).
+      - Une fois ces positions validées, on génère les requêtes d’insertion
+        et de mise en gras correspondantes.
+
+    Args:
+        dict_img_id (dict[str, str]): Dictionnaire {nom_image: id_image_drive}.
+        dict_img_indexes (dict[str, list[list[int, str]]]): Dictionnaire
+            {nom_image: [[index, mot], ...]} indiquant les occurrences trouvées
+            dans le texte pour chaque image.
+        offset (int): Décalage à appliquer à chaque index (utile si le document
+            contient un en-tête ou du texte avant la zone d’insertion).
+        verbal (bool): Si True, affiche des informations de débogage.
+
+    Returns:
+        list[dict]: Liste de requêtes (payloads) compatibles avec
+        `api_doc.documents().batchUpdate(...)`.
+
+    Exemple:
+        >>> dict_img_id = {"img1": "id123", "img2": "id456"}
+        >>> dict_img_indexes = {
+        ...     "img1": [[5, "Alice"]],
+        ...     "img2": [[10, "Bob"]]
+        ... }
+        >>> creer_requetes_insertion(dict_img_id, dict_img_indexes, offset=0, verbal=False)
+        [
+            {'updateTextStyle': {...}},
+            {'insertInlineImage': {...}},
+            {'updateTextStyle': {...}},
+            {'insertInlineImage': {...}}
+        ]
+    """
+
     # test_data_multiple_overlap = {
     #     "img1": [[0, "hello"], [20, "world"]],
     #     "img2": [[3, "bonjour"], [5, "salut"], [25, "monde"]],
@@ -507,6 +680,23 @@ def creer_requetes_insertion(dict_img_id, dict_img_indexes, offset, verbal):
 
 def copier_doc_et_inserer_images(api_doc, api_drive, id_doc_source, id_dossier_output, original_name, requetes,
                                  today_date):
+    """
+    Copie un document Google Docs, le renomme, le déplace dans un dossier cible,
+    puis exécute les requêtes d’insertion/formatage.
+
+    Args:
+        api_doc: Client Google Docs API.
+        api_drive: Client Google Drive API.
+        id_doc_source (str): ID du document source à dupliquer.
+        id_dossier_output (str): ID du dossier Drive de destination.
+        original_name (str): Nom d’origine du document (utilisé pour le nouveau nom).
+        requetes (list[dict]): Requêtes batchUpdate (insertion images, style, etc.).
+        today_date (str): Chaîne date/heure à inclure dans le nouveau nom.
+
+    Returns:
+        dict: Réponse de documents().batchUpdate(...).
+    """
+
     # Step 2: Copy and Rename the Document
     new_name = f"{original_name} - Enrichi MAGnet {today_date}"
     copied_file = {'name': new_name}
@@ -554,6 +744,24 @@ def creer_fichier_trombi(api_drive, api_doc, original_name, date_today, destinat
                          dico_photos_motsclefs,
                          dict_img_id,
                          suffixe="_Trombi", verbal=False):
+    """
+    Crée un document « trombinoscope » listant les noms détectés (triés) et leur image correspondante.
+
+    Args:
+        api_drive: Client Google Drive API.
+        api_doc: Client Google Docs API.
+        original_name (str): Nom de base pour l’intitulé du fichier.
+        date_today (str): Date/heure à intégrer au nom.
+        destination_folder_id (str): Dossier Drive où créer le doc.
+        dict_img_indexes (dict[str, list[list[int, str]]]): Occurrences par image (pour en déduire un nom représentatif).
+        dico_photos_motsclefs (dict[str, list[str]]): Dictionnaire photo → mots-clés (non utilisé directement ici).
+        dict_img_id (dict[str, str]): Map image → id Drive.
+        suffixe (str, optional): Suffixe du nom de fichier. Par défaut "_Trombi".
+        verbal (bool, optional): Traces si True.
+
+    Returns:
+        dict: Réponse de documents().batchUpdate(...) après insertion de tout le contenu.
+    """
     nom_fichier = date_today + suffixe + '_' + original_name
 
     if verbal:
@@ -600,6 +808,27 @@ def ajouter_photos_et_creer_tombis(api_doc, api_drive, api_sheets, folder_id, of
                                    racine_sortie,
                                    sheet_id, nom_onglet="Feuille 1", verbal=False,
                                    inserer_photos=True, creer_trombi=True) -> set:
+    """
+     Pipeline principal « module Photo » : pour chaque fiche d’entrée, prépare les données,
+     insère les images dans une copie de la fiche et/ou génère un trombinoscope.
+
+     Args:
+         api_doc: Client Google Docs API.
+         api_drive: Client Google Drive API.
+         api_sheets: Client Google Sheets API.
+         folder_id (str): ID du dossier Drive contenant les images.
+         offset (int): Décalage à appliquer lors des insertions dans les docs.
+         dossier_sources_fiches (list[str] | iterable): Dossier(s) Drive où lire les fiches sources.
+         racine_sortie (str): ID du dossier Drive racine pour créer les sorties.
+         sheet_id (str): ID de la feuille Sheets de correspondance photo ↔ mots-clés.
+         nom_onglet (str, optional): Nom d’onglet dans la feuille Sheets. Par défaut "Feuille 1".
+         verbal (bool, optional): Traces de debug. Par défaut False.
+         inserer_photos (bool, optional): Active la génération des fiches enrichies. Par défaut True.
+         creer_trombi (bool, optional): Active la création d’un trombinoscope. Par défaut True.
+
+     Returns:
+         set[str]: Ensemble de messages d’erreur (éventuellement vide) rencontrés pendant le traitement.
+     """
     if not inserer_photos and not creer_trombi:
         return {"Module Photo : Aucun fichier à créer"}
     texte_erreur = set()
@@ -800,6 +1029,17 @@ def ajouter_photos_et_creer_tombis(api_doc, api_drive, api_sheets, folder_id, of
 #                                    destination_folder_id, offset=offset, sheet_name='Session 1')
 
 def extraire_nom_perso_depuis_photo(nom_photo:str, separateur:str='-', format_nom_photo:str=FormatsNomsPhotos.JOUEUR):
+    """
+    Extrait le nom du personnage à partir du nom de fichier photo selon une convention donnée.
+
+    Args:
+        nom_photo (str): Nom de la photo (sans chemin).
+        separateur (str, optional): Séparateur joueur/personnage dans le nom (si applicable). Par défaut "-".
+        format_nom_photo (str | FormatsNomsPhotos): Format attendu (PERSO, JOUEUR, JOUEUR_PERSO, PERSO_JOUEUR).
+
+    Returns:
+        str: Nom du personnage déduit, ou chaîne vide si non déterminable pour le format choisi.
+    """
     # si des séparateurs ont été entrés sans utiliser des liste de persos
     # et faire évoluer les regles selectionnables / non selectionnables dans l'IH
     if format_nom_photo == FormatsNomsPhotos.PERSO.value:
@@ -818,6 +1058,27 @@ def extraire_nom_perso_depuis_photo(nom_photo:str, separateur:str='-', format_no
 
 def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos: dict,
                                    separateur:str, format_nom_photo:str, recurrent = False):
+    """
+     Construit en mémoire le tableau (lignes) à écrire dans la feuille Sheets
+     associant chemins de photos et noms/alias de personnages.
+
+     Deux modes:
+         - Avec 'noms_persos' fourni: rapprochement fuzzy entre nom de fichier et clés de 'noms_persos'.
+         - Sinon: déduction du nom via extraire_nom_perso_depuis_photo.
+
+     Args:
+         api_drive: Client Google Drive API.
+         folder_source_images (str): ID du dossier d’images.
+         noms_persos (dict | None): Dictionnaire {clé: nom} pour rapprochement fuzzy, ou None.
+         separateur (str): Séparateur pour l’extraction nom perso (si utilisé).
+         format_nom_photo (str | FormatsNomsPhotos): Convention de nommage des fichiers image.
+         recurrent (bool, optional): Inclure récursivement les sous-dossiers. Par défaut False.
+
+     Returns:
+         tuple[list[list[str]], Optional[str]]:
+             - Tableau « prêt à écrire » (première ligne = en-têtes NOMS_LIGNE).
+             - Message d’erreur ou None.
+     """
     dico_nom_id, erreurs = lister_images_dans_dossier(folder_id=folder_source_images, drive_service=api_drive,
                                                       recurrent=recurrent)
     if erreurs:
@@ -845,19 +1106,25 @@ def ecrire_tableau_photos_noms(api_drive, api_sheets, folder_source_images, noms
                                include_subfolders = False,
                                verbal=False):
     """
+       Crée une Google Sheet dans le dossier spécifié et y écrit le tableau photos ↔ noms généré.
 
-    :param include_subfolders:
-    :param format_nom_photo:
-    :param separateur:
-    :param api_drive:
-    :param api_sheets:
-    :param folder_source_images:
-    :param noms_persos:
-    :param dossier_output:
-    :param nom_fichier:
-    :param verbal:
-    :return: un tuple (id sheet, message_erreur), le premier vaut None si une erreur est survenue
-    """
+       Args:
+           api_drive: Client Google Drive API.
+           api_sheets: Client Google Sheets API.
+           folder_source_images (str): ID du dossier Drive des images.
+           noms_persos (dict | None): Dictionnaire pour rapprochement fuzzy, ou None pour extraction simple.
+           dossier_output (str): ID du dossier Drive où créer la feuille.
+           nom_fichier (str): Nom de la nouvelle feuille.
+           separateur (str): Séparateur joueur/personnage (si utilisé pour l’extraction).
+           format_nom_photo (str | FormatsNomsPhotos): Convention de nommage des photos.
+           include_subfolders (bool, optional): Si True, inclut les sous-dossiers. Par défaut False.
+           verbal (bool, optional): Traces si True.
+
+       Returns:
+           tuple[Optional[str], Optional[str]]: (id_sheet, message_erreur)
+               - id_sheet (str | None): ID de la feuille créée, ou None si échec.
+               - message_erreur (str | None): Description de l’erreur si échec, sinon None.
+       """
     to_write, erreurs = construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos,
                                                        separateur, format_nom_photo, recurrent=include_subfolders)
     if erreurs:
