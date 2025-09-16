@@ -78,7 +78,6 @@ from modeleGN import *
 
 
 # Module Photo
-# todo : remplir les infobulle dans l'IHM
 # todo : permettre de marcher avec un mgn pour qu'il n'y ait qu'un seul fichier pour les utilisateurs MAGnet
 # todo : rajouter un champ pour dire qu'on ne veut mettre que les photos des PJs ?
 

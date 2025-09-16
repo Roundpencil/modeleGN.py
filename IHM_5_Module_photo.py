@@ -153,13 +153,13 @@ class GUIPhotos(ttk.Frame):
         mgn_file_label = ttk.Label(creerfichier_labelframe, text="")
         mgn_file_label.grid(row=15, column=1, columnspan=2, sticky="nsew", pady=5)
 
-        mgn_file_tooltip = tk.Label(creerfichier_labelframe, text="?",
-                                                  font=("Arial", 14, "bold"),  # Larger, bold font
-                                                  bd=2,  # Add border width
-                                                  relief="solid",  # Solid border
-                                                  padx=5, pady=5)  # Padding inside the label
-        mgn_file_tooltip.grid(column=4, row=15, sticky=tk.W, columnspan=1)
-        ToolTip(mgn_file_tooltip, "ajouter ici un message d'aide utile mgntooltip")
+        # mgn_file_tooltip = tk.Label(creerfichier_labelframe, text="?",
+        #                                           font=("Arial", 14, "bold"),  # Larger, bold font
+        #                                           bd=2,  # Add border width
+        #                                           relief="solid",  # Solid border
+        #                                           padx=5, pady=5)  # Padding inside the label
+        # mgn_file_tooltip.grid(column=4, row=15, sticky=tk.W, columnspan=1)
+        # ToolTip(mgn_file_tooltip, "ajouter ici un message d'aide utile mgntooltip")
 
 
         # Text entry for "sheet dédiée"
@@ -209,13 +209,13 @@ class GUIPhotos(ttk.Frame):
                                   command=lambda: charger_sheet_noms())
         sheet_button.grid(row=20, column=3, padx=10, pady=5, sticky="nsew")
 
-        sheet_button_tooltip = tk.Label(creerfichier_labelframe, text="?",
-                                                  font=("Arial", 14, "bold"),  # Larger, bold font
-                                                  bd=2,  # Add border width
-                                                  relief="solid",  # Solid border
-                                                  padx=5, pady=5)  # Padding inside the label
-        sheet_button_tooltip.grid(column=4, row=20, sticky=tk.W, columnspan=1)
-        ToolTip(sheet_button_tooltip, "ajouter ici un message d'aide utile sheet_buttom")
+        # sheet_button_tooltip = tk.Label(creerfichier_labelframe, text="?",
+        #                                           font=("Arial", 14, "bold"),  # Larger, bold font
+        #                                           bd=2,  # Add border width
+        #                                           relief="solid",  # Solid border
+        #                                           padx=5, pady=5)  # Padding inside the label
+        # sheet_button_tooltip.grid(column=4, row=20, sticky=tk.W, columnspan=1)
+        # ToolTip(sheet_button_tooltip, "ajouter ici un message d'aide utile sheet_buttom")
 
 
         # Second section: "Emplacement du dossier Photo"
@@ -232,16 +232,10 @@ class GUIPhotos(ttk.Frame):
                                                   relief="solid",  # Solid border
                                                   padx=5, pady=5)  # Padding inside the label
         photo_folder_tooltip.grid(column=4, row=5, sticky=tk.W, columnspan=1)
-        ToolTip(photo_folder_tooltip, "ajouter ici un message d'aide utile photo_folder")
+        ToolTip(photo_folder_tooltip,
+                '''Coller ici l'url ou l'id du dossier google drive qui contient les photos
+                (et/ou les éventuels sous-dossier si les photos sont organisés selon une arborescnece''')
 
-        # include_subfolders_label = ttk.Label(creerfichier_labelframe,
-        #                                        text="Inclure les sous-dossier")
-        # include_subfolders_label.grid(row=6, column=2, padx=10, pady=5, columnspan=2, sticky='we')
-        # todo : tester le bout en bout avec la case à cocher
-        #  avec sous dossier
-        #  sans sous dossier
-        #  avec insertion de puis les sous dossier
-        #  sans insertion depuis les sous dossiers
         include_subfolders_var = tk.BooleanVar(value=False)
         include_subfolders_checkbox = ttk.Checkbutton(
             creerfichier_labelframe,
@@ -262,15 +256,21 @@ class GUIPhotos(ttk.Frame):
 
         # Third section: "Format du nom des photos"
         format_label = ttk.Label(creerfichier_labelframe, text="Format du nom des photos")
-        format_label.grid(row=8, column=0, sticky="w", pady=5)
+        format_label.grid(row=40, column=0, sticky="w", pady=5)
 
         format_tooltip = tk.Label(creerfichier_labelframe, text="?",
                                                   font=("Arial", 14, "bold"),  # Larger, bold font
                                                   bd=2,  # Add border width
                                                   relief="solid",  # Solid border
                                                   padx=5, pady=5)  # Padding inside the label
-        format_tooltip.grid(column=4, row=10, sticky=tk.W, columnspan=1)
-        ToolTip(format_tooltip, "ajouter ici un texte explicatif sur le format des photos")
+        format_tooltip.grid(column=4, row=11, sticky=tk.W, columnspan=1)
+        ToolTip(format_tooltip,
+                '''MAGnet peut automatiquement faire une première association des photos
+                aux personnages.
+                Ainsi, à partir d'un google sheet ou d'une fichier mgn (fichier se sauvegarde de MAGNet automatiquement
+                généré)contenant les éléments de casting (cf manuel) pour une ou plusieurs sessions, MAGnet pourra 
+                crer un fichier pré-rempli.
+                ''')
 
 
         # Dropdown menu for the third section
@@ -288,7 +288,7 @@ class GUIPhotos(ttk.Frame):
         format_dropdown = ttk.Combobox(creerfichier_labelframe, textvariable=format_var, values=format_options,
                                        state='readonly', width=30)
         # state='disabled', width=30)
-        format_dropdown.grid(row=8, column=1, padx=10, pady=5)
+        format_dropdown.grid(row=40, column=1, padx=10, pady=5)
         format_dropdown.bind("<<ComboboxSelected>>",
                              lambda event: on_format_change(format_var.get(),
                                                             format_option_activant_separateur,
@@ -301,49 +301,50 @@ class GUIPhotos(ttk.Frame):
 
         # Label for the separator
         separator_label = ttk.Label(creerfichier_labelframe, text="Séparateur :")
-        separator_label.grid(row=9, column=1, sticky="w", padx=10)
+        separator_label.grid(row=50, column=1, sticky="w", padx=10)
 
         # Entry for the separator
         separator_entry = ttk.Entry(creerfichier_labelframe, state="disabled")
         separator_entry.bind("<KeyRelease>", lambda x:verifier_affichage_bouton())
-        separator_entry.grid(row=9, column=2, padx=10, pady=5, sticky="w")
+        separator_entry.grid(row=50, column=2, padx=10, pady=5, sticky="w")
 
         # Label for the session
         session_label = ttk.Label(creerfichier_labelframe, text="Session :")
-        session_label.grid(row=10, column=1, sticky="w", padx=10)
+        session_label.grid(row=60, column=1, sticky="w", padx=10)
 
         # dropdown for the session
         session_var = tk.StringVar()
         session_dropdown = ttk.Combobox(creerfichier_labelframe, textvariable=session_var, values=[],
                                         # state='readonly', width=30)
                                         state='disabled', width=30)
-        session_dropdown.grid(row=10, column=2, padx=10, pady=5)
+        session_dropdown.grid(row=60, column=2, padx=10, pady=5)
         session_dropdown.bind("<<ComboboxSelected>>",
                               lambda event: verifier_affichage_bouton())
 
         # Fourth section: "Dossier où créer le fichier de sortie"
         output_folder_label = ttk.Label(creerfichier_labelframe, text="Dossier où créer le fichier de sortie")
-        output_folder_label.grid(row=60, column=0, sticky="w", pady=5)
+        output_folder_label.grid(row=70, column=0, sticky="w", pady=5)
 
         # Entry for the output folder
         output_folder_entry = GidEntry(creerfichier_labelframe)
-        output_folder_entry.grid(row=60, column=1, padx=10, pady=5, columnspan=3, sticky='we')
+        output_folder_entry.grid(row=70, column=1, padx=10, pady=5, columnspan=3, sticky='we')
 
         output_folder_tooltip = tk.Label(creerfichier_labelframe, text="?",
                                                   font=("Arial", 14, "bold"),  # Larger, bold font
                                                   bd=2,  # Add border width
                                                   relief="solid",  # Solid border
                                                   padx=5, pady=5)  # Padding inside the label
-        output_folder_tooltip.grid(column=4, row=60, sticky=tk.W, columnspan=1)
-        ToolTip(output_folder_tooltip, "ajouter ici un texte explicatif sur le dossier de sortie")
+        output_folder_tooltip.grid(column=4, row=70, sticky=tk.W, columnspan=1)
+        ToolTip(output_folder_tooltip, "Adresse ou id du dossier google drive où sera généré le fichier \n"
+                                       "qui servira de référence pour l'association des photos aux personnages.")
 
 
         output_file_name_label = ttk.Label(creerfichier_labelframe, text="Nom du fichier à créer")
-        output_file_name_label.grid(row=65, column=0, sticky="w", pady=5)
+        output_file_name_label.grid(row=80, column=0, sticky="w", pady=5)
 
         # Entry for the output folder
         output_file_name_entry = ttk.Entry(creerfichier_labelframe)
-        output_file_name_entry.grid(row=65, column=1, padx=10, pady=5, columnspan=3, sticky='we')
+        output_file_name_entry.grid(row=80, column=1, padx=10, pady=5, columnspan=3, sticky='we')
 
         # Button to create the file
         def creer_fichier_dans_drive():
@@ -423,15 +424,15 @@ class GUIPhotos(ttk.Frame):
 
         create_file_button = ttk.Button(creerfichier_labelframe, text="Créer fichier Photos / Noms",
                                         command=lambda: creer_fichier_dans_drive())
-        create_file_button.grid(row=80, column=0, columnspan=1, pady=10)
+        create_file_button.grid(row=90, column=0, columnspan=1, pady=10)
 
         # Label for the ini file name
         prez_output_label = ttk.Label(creerfichier_labelframe)
-        prez_output_label.grid(row=80, column=1, columnspan=1, sticky="w", pady=5)
+        prez_output_label.grid(row=90, column=1, columnspan=1, sticky="w", pady=5)
 
         # Entry for the ini file name
         output_label = ttk.Label(creerfichier_labelframe, foreground="blue", cursor="hand2")
-        output_label.grid(row=80, column=2, padx=10, pady=5, columnspan=2, sticky='we')
+        output_label.grid(row=90, column=2, padx=10, pady=5, columnspan=2, sticky='we')
 
         # bouton pour sauvegarder configuration dans fichier ini
         def initiate_ini_file(verbal=False):
@@ -454,7 +455,7 @@ class GUIPhotos(ttk.Frame):
 
         save_ini_button = ttk.Button(creerfichier_labelframe, text="Sauvegarder le fichier de configuration...",
                                      command=lambda: initiate_ini_file(), state='disabled')
-        save_ini_button.grid(row=90, column=0, columnspan=2, pady=10)
+        save_ini_button.grid(row=100, column=0, columnspan=2, pady=10)
 
         ################################################
         # ajout d'un labelframe pour la partie "insérer photos"
