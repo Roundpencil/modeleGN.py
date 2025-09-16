@@ -85,10 +85,6 @@ def lister_images_dans_dossier(folder_id, drive_service, recurrent = False):
                 #l'ajouter au to_recurse avec son nouveau prefixe
                 to_recurse[subfolder_id] = next_prefix
 
-        # todo : dans le tableau de remplissage des photos, il faudra chercher si le caractère sous dossier
-        #  est présent pour récursiver les sous dossier
-        pass
-
     for folder_id, prefixe in dict_dossier_prefixe.items():
         images_dans_dossier, retour_erreurs = lister_images_dans_un_dossier(folder_id, drive_service, prefixe)
         dict_retour |= images_dans_dossier
@@ -98,9 +94,6 @@ def lister_images_dans_dossier(folder_id, drive_service, recurrent = False):
         erreurs = "\n".join(e for e in tableau_erreurs if e is not None)
     else:
         erreurs = None
-
-    #  todo : prise en compte dans la focntion va effectivement insérer les photos
-    #   pour savoir si elle doit chercher dans les sous dossiers
 
     # return lister_images_dans_un_dossier(folder_id, drive_service)
     return dict_retour, erreurs
@@ -157,8 +150,31 @@ def base_nom_prenom(nom_secable):
         to_return.append(''.join(nom_prenom[1:]).strip())
     return to_return
 
-
 def lire_table_photos(api_sheets, sheet_id, sheet_name='Feuille 1', separateur=';', verbal=False):
+    """
+        Lit une feuille Google Sheets contenant les photos et les noms/associations de personnages,
+        puis construit un dictionnaire pour associer chaque photo à une liste de mots-clés.
+
+        Le dictionnaire produit permet ensuite de retrouver la bonne photo à partir des mots-clés
+        lors d'une insertion ou d'un traitement ultérieur.
+
+        Args:
+            api_sheets: Objet ou service client permettant d'interagir avec l'API Google Sheets.
+            sheet_id (str): Identifiant unique de la feuille Google Sheets à lire.
+            sheet_name (str, optional): Nom de l'onglet à lire dans la feuille.
+                Par défaut 'Feuille 1'.
+            separateur (str, optional): Caractère utilisé pour séparer plusieurs mots-clés
+                associés à une photo dans la feuille. Par défaut ';'.
+            verbal (bool, optional): Si True, affiche des informations de débogage
+                sur la lecture et le traitement de la feuille. Par défaut False.
+
+        Returns:
+            dict: Un dictionnaire de la forme :
+                {
+                    "nom_photo": ["mot_clef1", "mot_clef2", ...],
+                    ...
+                }
+        """
     result = api_sheets.spreadsheets().values().get(spreadsheetId=sheet_id, range=f"'{sheet_name}'",
                                                     majorDimension="ROWS").execute()
     values = result.get('values', [])
@@ -432,11 +448,37 @@ def requete_pour_inserer_img_et_formatter(image_id, position, longueur=0, verbal
 
 
 def preparer_donnees_photos(api_drive, api_sheets, id_dossier_images, id_sheet_photos_aliases, sheet_name, verbal):
+    """
+     Prépare les données nécessaires pour associer des photos à leurs mots-clés
+     à partir d'une feuille Google Sheets et d'un dossier d'images Google Drive.
+
+     Étapes principales :
+       1. Lecture de la table des correspondances (photos ↔ mots-clés) depuis Google Sheets.
+       2. Nettoyage des doublons et sous-chaînes redondantes dans les mots-clés.
+       3. Détection de la présence éventuelle de sous-dossiers dans les noms de photos.
+       4. Récupération de la liste des images et de leurs identifiants dans un dossier Google Drive.
+
+     Args:
+         api_drive: Objet ou service client permettant d’interagir avec l’API Google Drive.
+         api_sheets: Objet ou service client permettant d’interagir avec l’API Google Sheets.
+         id_dossier_images (str): Identifiant du dossier Google Drive contenant les images.
+         id_sheet_photos_aliases (str): Identifiant de la feuille Google Sheets contenant les associations
+             entre photos et mots-clés.
+         sheet_name (str): Nom de l’onglet de la feuille Google Sheets à lire.
+         verbal (bool): Si True, affiche des informations de débogage pendant l’exécution.
+
+     Returns:
+         tuple:
+             - dict: Dictionnaire des associations photo → [liste de mots-clés].
+             - dict: Dictionnaire des images trouvées dans le dossier Google Drive,
+               généralement sous la forme {nom_fichier: id_image}.
+     """
     dico_photos_motsclefs = lire_table_photos(api_sheets, id_sheet_photos_aliases, sheet_name=sheet_name, verbal=verbal)
     dico_photos_motsclefs = nettoyer_doublons_souschaines(dico_photos_motsclefs)
+    include_subfolders = any(SOUSDOSSIER in nom_photo for nom_photo in dico_photos_motsclefs.keys())
     if verbal:
         print(dico_photos_motsclefs)
-    dict_img_id, erreurs = lister_images_dans_dossier(id_dossier_images, api_drive)
+    dict_img_id, erreurs = lister_images_dans_dossier(id_dossier_images, api_drive, recurrent=include_subfolders)
     if verbal:
         print(dict_img_id)
     return dico_photos_motsclefs, dict_img_id
