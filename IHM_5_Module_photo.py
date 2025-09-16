@@ -2,7 +2,7 @@ import configparser
 import os
 import threading
 import webbrowser
-from enum import Enum
+
 from tkinter import filedialog
 from tkinter import font
 from tkinter import messagebox
@@ -118,7 +118,7 @@ class GUIPhotos(ttk.Frame):
 
         # First section: "Où sont mes fichiers de personnage"
         question_label = ttk.Label(creerfichier_labelframe, text="Source pour la liste des personnages : ")
-        question_label.grid(row=10, column=0, columnspan=3, sticky="w", pady=5)
+        question_label.grid(row=11, column=0, columnspan=3, sticky="w", pady=5)
 
         # Radiobuttons
         file_option = tk.StringVar(value="none")
@@ -234,6 +234,22 @@ class GUIPhotos(ttk.Frame):
         photo_folder_tooltip.grid(column=4, row=5, sticky=tk.W, columnspan=1)
         ToolTip(photo_folder_tooltip, "ajouter ici un message d'aide utile photo_folder")
 
+        # include_subfolders_label = ttk.Label(creerfichier_labelframe,
+        #                                        text="Inclure les sous-dossier")
+        # include_subfolders_label.grid(row=6, column=2, padx=10, pady=5, columnspan=2, sticky='we')
+        # todo : tester le bout en bout avec la case à cocher
+        #  avec sous dossier
+        #  sans sous dossier
+        #  avec insertion de puis les sous dossier
+        #  sans insertion depuis les sous dossiers
+        include_subfolders_var = tk.BooleanVar(value=False)
+        include_subfolders_checkbox = ttk.Checkbutton(
+            creerfichier_labelframe,
+            variable=include_subfolders_var,
+            text="Inclure les sous-dossier"  # pas de texte, car tu as déjà ton label à côté
+        )
+        include_subfolders_checkbox.grid(row=6, column=1, padx=5, pady=5, sticky='w')
+
         photo_folder_warning_label = ttk.Label(creerfichier_labelframe,
                                                text="Attention, ce dossier doit être publiquement accessible "
                                                     "pour que le Module Photo puisse l'utiliser. \n"
@@ -242,11 +258,11 @@ class GUIPhotos(ttk.Frame):
                                                     " - cf. manuel) ",
                                                foreground="red")
 
-        photo_folder_warning_label.grid(row=6, column=0, padx=10, pady=5, columnspan=3, sticky='we')
+        photo_folder_warning_label.grid(row=7, column=0, padx=10, pady=5, columnspan=3, sticky='we')
 
         # Third section: "Format du nom des photos"
         format_label = ttk.Label(creerfichier_labelframe, text="Format du nom des photos")
-        format_label.grid(row=7, column=0, sticky="w", pady=5)
+        format_label.grid(row=8, column=0, sticky="w", pady=5)
 
         format_tooltip = tk.Label(creerfichier_labelframe, text="?",
                                                   font=("Arial", 14, "bold"),  # Larger, bold font
@@ -272,7 +288,7 @@ class GUIPhotos(ttk.Frame):
         format_dropdown = ttk.Combobox(creerfichier_labelframe, textvariable=format_var, values=format_options,
                                        state='readonly', width=30)
         # state='disabled', width=30)
-        format_dropdown.grid(row=7, column=1, padx=10, pady=5)
+        format_dropdown.grid(row=8, column=1, padx=10, pady=5)
         format_dropdown.bind("<<ComboboxSelected>>",
                              lambda event: on_format_change(format_var.get(),
                                                             format_option_activant_separateur,
@@ -285,23 +301,23 @@ class GUIPhotos(ttk.Frame):
 
         # Label for the separator
         separator_label = ttk.Label(creerfichier_labelframe, text="Séparateur :")
-        separator_label.grid(row=8, column=1, sticky="w", padx=10)
+        separator_label.grid(row=9, column=1, sticky="w", padx=10)
 
         # Entry for the separator
         separator_entry = ttk.Entry(creerfichier_labelframe, state="disabled")
         separator_entry.bind("<KeyRelease>", lambda x:verifier_affichage_bouton())
-        separator_entry.grid(row=8, column=2, padx=10, pady=5, sticky="w")
+        separator_entry.grid(row=9, column=2, padx=10, pady=5, sticky="w")
 
         # Label for the session
         session_label = ttk.Label(creerfichier_labelframe, text="Session :")
-        session_label.grid(row=9, column=1, sticky="w", padx=10)
+        session_label.grid(row=10, column=1, sticky="w", padx=10)
 
         # dropdown for the session
         session_var = tk.StringVar()
         session_dropdown = ttk.Combobox(creerfichier_labelframe, textvariable=session_var, values=[],
                                         # state='readonly', width=30)
                                         state='disabled', width=30)
-        session_dropdown.grid(row=9, column=2, padx=10, pady=5)
+        session_dropdown.grid(row=10, column=2, padx=10, pady=5)
         session_dropdown.bind("<<ComboboxSelected>>",
                               lambda event: verifier_affichage_bouton())
 
@@ -379,7 +395,8 @@ class GUIPhotos(ttk.Frame):
                                                           dossier_output=output_folder_entry.get(verbal=True),
                                                           nom_fichier=output_file_name_entry.get(),
                                                           separateur=separateur,
-                                                          format_nom_photo=format_dropdown.get())
+                                                          format_nom_photo=format_dropdown.get(),
+                                                          include_subfolders=include_subfolders_var.get())
             if erreur:
                 messagebox.showerror("Une erreur est survenue", erreur)
                 return

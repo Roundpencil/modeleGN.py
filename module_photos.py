@@ -99,8 +99,8 @@ def lister_images_dans_dossier(folder_id, drive_service, recurrent = False):
     else:
         erreurs = None
 
-    # todo : case à ajouter dans la GUI
     #  todo : prise en compte dans la focntion va effectivement insérer les photos
+    #   pour savoir si elle doit chercher dans les sous dossiers
 
     # return lister_images_dans_un_dossier(folder_id, drive_service)
     return dict_retour, erreurs
@@ -168,7 +168,7 @@ def lire_table_photos(api_sheets, sheet_id, sheet_name='Feuille 1', separateur='
 
     if verbal:
         print(values)
-    to_return = {}
+    to_return = dict()
     for value in values[1:]:
         if len(value) > 5:
             value = value[:6]
@@ -800,9 +800,11 @@ def construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos:
 def ecrire_tableau_photos_noms(api_drive, api_sheets, folder_source_images, noms_persos: dict,
                                dossier_output, nom_fichier,
                                separateur, format_nom_photo:str,
+                               include_subfolders = False,
                                verbal=False):
     """
 
+    :param include_subfolders:
     :param format_nom_photo:
     :param separateur:
     :param api_drive:
@@ -815,7 +817,7 @@ def ecrire_tableau_photos_noms(api_drive, api_sheets, folder_source_images, noms
     :return: un tuple (id sheet, message_erreur), le premier vaut None si une erreur est survenue
     """
     to_write, erreurs = construire_tableau_photos_noms(api_drive, folder_source_images, noms_persos,
-                                                       separateur, format_nom_photo)
+                                                       separateur, format_nom_photo, recurrent=include_subfolders)
     if erreurs:
         return None, erreurs
 
