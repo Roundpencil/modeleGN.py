@@ -85,13 +85,6 @@ from modeleGN import *
 # todo : changer tous les paramètres de MAGnet_lib par une classe ou un dictionnaire pour accelérer le design
 #   vérifier l'usage de la GUI 3 qui utilise can write
 
-# à faire - plus long
-# todo : faire quelque part une liste de tous les dossiers ou se trouvent des *.mng
-#  vérifier auxquels a acces l'utilisateur quand il lance le programme, puis lui proposer de télécahrger les siens.
-#  objectifs : se passer et du fichier de config, et de la nécessité de télécharger un mgn
-#  quand on vérifie la validité du dict config du fichier GN, en profiter pour le loader et séparer les fcontions selon si on a utilisé .ini ou .mgn
-#  problème desécurté à craquer
-
 # confort / logique
 # todo : refaire version console
 
