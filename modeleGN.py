@@ -187,15 +187,60 @@ class DateScene(ABC):
 
     @staticmethod
     def _calculer_date_absolue(texte_brut: str) -> datetime:
-        if not isinstance(texte_brut, str):
-            return None
-
+        # if not isinstance(texte_brut, str):
+        #     return None
+        #
         if texte_brut.endswith("h"):
             texte_brut += "00"
 
-        # on essaye d'identifier une date absolue, on prend donc tous les parsers à part relative (car ce sera du il y a)
+        ## on essaye d'identifier une date absolue, on prend donc tous les parsers à part relative (car ce sera du il y a)
+        # parsers = [parser for parser in default_parsers if parser != 'relative-time']
+        # date_cible = dateparser.parse(texte_brut, languages=['fr'], settings={'PARSERS': parsers})
+
+        if not texte_brut or not isinstance(texte_brut, str):
+            return None
+
+        texte_lower = texte_brut.lower().strip()
+
+        # Liste exhaustive de mots-clés de dates relatives à rejeter
+        mots_relatifs = [
+            'aujourd', 'demain', 'hier', 'maintenant',
+            'dans', 'il y a', 'prochain', 'dernier', 'passé',
+            'semaine', 'mois', 'an', 'ans', 'année', 'années',
+            'jour', 'jours', 'heure', 'heures',
+            'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'
+        ]
+
+        # Vérifier si le texte contient des mots relatifs
+        for mot in mots_relatifs:
+            if mot in texte_lower:
+                return None
+
+        # Vérifier qu'il y a au moins un chiffre de 4 caractères (année)
+
+        # if not re.search(r'\b\d{4}\b', texte_brut):
+        #     return None
+
+        # Configuration stricte
         parsers = [parser for parser in default_parsers if parser != 'relative-time']
-        date_cible = dateparser.parse(texte_brut, languages=['fr'], settings={'PARSERS': parsers})
+
+        settings = {
+            'PREFER_DAY_OF_MONTH': 'first',
+            'STRICT_PARSING': True,
+            'REQUIRE_PARTS': ['day', 'month', 'year'],  # Exige jour, mois ET année
+            'PARSERS': parsers,  # Désactive les dates relatives
+        }
+
+        result = dateparser.parse(texte_brut, languages=['fr'], settings=settings)
+
+        # Double vérification : si la date parsée est trop proche d'aujourd'hui
+        # alors que le texte ne contenait pas de date explicite, on rejette
+        if result:
+            # Vérifier que le texte original contenait bien des nombres
+            if not re.search(r'\d', texte_brut):
+                return None
+
+        return result
 
         return date_cible  # qui vaut None si on n'a pas trouvé
 
@@ -213,15 +258,18 @@ class DateScene(ABC):
             # return DateSceneJours(texte_date, heure_brute)
             return DateSceneRelative(delta, heure_brute)
 
-        # dans ce cas, j'ai un texte, je commence par il y a car pour une raison obscure "3 ans" est une date absolue
+        # dans ce cas, j'ai un texte. Autrefois on commençait par il y a
+        # car pour une raison obscure "3 ans" était une date absolue
+        # c'est normalement résolu !
+
+        # je cherche une date absolue
+        if date_absolue := cls._calculer_date_absolue(texte_date):
+            return DateSceneAbsolue(date_absolue, heure_brute)
+
         # Est-ce que d'une manière ou d'une autre, je peux trouver un il y a dedans?
         if (tuple_delta_heure := cls._il_y_a_vers_relativedelta(texte_date))[0] is not None:
             # return DateSceneRelative(delta, heure_brute)
             return DateSceneRelative(tuple_delta_heure[0], tuple_delta_heure[1] or heure_brute)
-
-        # sinon je cherche une date absolue
-        if date_absolue := cls._calculer_date_absolue(texte_date):
-            return DateSceneAbsolue(date_absolue, heure_brute)
 
         # Sinon, je prends la date comme elle est
         return DateSceneLibre(texte_date.strip(), heure_brute)
