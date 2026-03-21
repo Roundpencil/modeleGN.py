@@ -20,7 +20,7 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.4.20250916"
+VERSION = "1.4.20260321"
 VERSION_MODELE = "1.4.20250205"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 GENRE_INDETERMINE = ''
@@ -213,7 +213,7 @@ class DateScene(ABC):
 
         # Vérifier si le texte contient des mots relatifs
         for mot in mots_relatifs:
-            if mot in texte_lower:
+            if mot in texte_lower and not 'jan' in texte_lower: #car "janvier" est un mois qui contient 'an'
                 return None
 
         # Vérifier qu'il y a au moins un chiffre de 4 caractères (année)
