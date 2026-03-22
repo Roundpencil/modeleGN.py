@@ -202,45 +202,53 @@ class DateScene(ABC):
 
         texte_lower = texte_brut.lower().strip()
 
-        # Liste exhaustive de mots-clés de dates relatives à rejeter
-        mots_relatifs = [
-            'aujourd', 'demain', 'hier', 'maintenant',
-            'dans', 'il y a', 'prochain', 'dernier', 'passé',
-            'semaine', 'mois', 'an', 'ans', 'année', 'années',
-            'jour', 'jours', 'heure', 'heures',
-            'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'
-        ]
+        # #  V2 avant lrelecture de la doc
+        # # Liste exhaustive de mots-clés de dates relatives à rejeter
+        # mots_relatifs = [
+        #     'aujourd', 'demain', 'hier', 'maintenant',
+        #     'dans', 'il y a', 'prochain', 'dernier', 'passé',
+        #     'semaine', 'mois', 'an', 'ans', 'année', 'années',
+        #     'jour', 'jours', 'heure', 'heures',
+        #     'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'
+        # ]
+        #
+        # # Vérifier si le texte contient des mots relatifs
+        # for mot in mots_relatifs:
+        #     if mot in texte_lower and not 'jan' in texte_lower: #car "janvier" est un mois qui contient 'an'
+        #         return None
+        #
+        # # Vérifier qu'il y a au moins un chiffre de 4 caractères (année)
+        #
+        # # if not re.search(r'\b\d{4}\b', texte_brut):
+        # #     return None
+        #
+        # # Configuration stricte
+        # parsers = [parser for parser in default_parsers if parser != 'relative-time']
+        #
+        # settings = {
+        #     'PREFER_DAY_OF_MONTH': 'first',
+        #     'STRICT_PARSING': True,
+        #     'REQUIRE_PARTS': ['day', 'month', 'year'],  # Exige jour, mois ET année
+        #     'PARSERS': parsers,  # Désactive les dates relatives
+        # }
+        #
+        # result = dateparser.parse(texte_brut, languages=['fr'], settings=settings)
+        #
+        # # Double vérification : si la date parsée est trop proche d'aujourd'hui
+        # # alors que le texte ne contenait pas de date explicite, on rejette
+        # if result:
+        #     # Vérifier que le texte original contenait bien des nombres
+        #     if not re.search(r'\d', texte_brut):
+        #         return None
+        #
+        # return result
 
-        # Vérifier si le texte contient des mots relatifs
-        for mot in mots_relatifs:
-            if mot in texte_lower and not 'jan' in texte_lower: #car "janvier" est un mois qui contient 'an'
-                return None
-
-        # Vérifier qu'il y a au moins un chiffre de 4 caractères (année)
-
-        # if not re.search(r'\b\d{4}\b', texte_brut):
-        #     return None
-
-        # Configuration stricte
-        parsers = [parser for parser in default_parsers if parser != 'relative-time']
-
+        # V3, plus simple, après lecture de la doc
         settings = {
-            'PREFER_DAY_OF_MONTH': 'first',
             'STRICT_PARSING': True,
-            'REQUIRE_PARTS': ['day', 'month', 'year'],  # Exige jour, mois ET année
-            'PARSERS': parsers,  # Désactive les dates relatives
+            'PARSERS': ['absolute-time'],  # Ne permet que le parser absolu
         }
-
-        result = dateparser.parse(texte_brut, languages=['fr'], settings=settings)
-
-        # Double vérification : si la date parsée est trop proche d'aujourd'hui
-        # alors que le texte ne contenait pas de date explicite, on rejette
-        if result:
-            # Vérifier que le texte original contenait bien des nombres
-            if not re.search(r'\d', texte_brut):
-                return None
-
-        return result
+        date_cible = dateparser.parse(texte_brut, settings=settings, languages=['fr'])
 
         return date_cible  # qui vaut None si on n'a pas trouvé
 
