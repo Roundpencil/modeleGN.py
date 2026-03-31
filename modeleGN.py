@@ -2538,7 +2538,12 @@ class GN:
 #     personnage.orga_referent = personnage.orgaReferent
 #     delattr(personnage, "orgaReferent")
 
-
+    def get_intrigues_from_noms(self, texte_cherche:str, case_sensitive:bool=False):
+        if case_sensitive:
+            return [i for i in self.intrigues.values() if texte_cherche in i.nom]
+        else:
+            texte_cherche = texte_cherche.lower()
+            return [i for i in self.intrigues.values() if texte_cherche in i.nom.lower()]
 # objets
 
 class Objet:
