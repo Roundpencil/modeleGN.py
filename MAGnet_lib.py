@@ -675,7 +675,7 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     solution = []
     solution_trouvee = False
 
-    # cosntruire la solution de départ en créant des triplettes [nom proposé, score, nom de départ]
+    # construire la solution de départ en créant des triplettes [nom proposé, score, nom de départ]
     # invariant : la solution est triée et l'élément le plus faible est en premier
     for original_nom, matches in scores.items():
         score_a_inclure = matches.pop()
@@ -683,9 +683,11 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
     solution.sort(key=lambda x: x[1])
 
     # met à jour la solution en prenant la valeur suivante de l'élément nom à updater désigné
-    def maj_solution(solution, scores, nom_a_updater):
+    def maj_solution(solution, scores, nom_a_updater, verbal=False):
         matches = scores[nom_a_updater]
         if not len(matches):
+            if verbal:
+                print(f"DEBUG = plus de solutions possibles pour {nom_a_updater}.")
             return None
 
         score_a_inclure = matches.pop()
@@ -723,7 +725,11 @@ def suggerer_tableau_persos(mon_gn: GN, intrigue: Intrigue, verbal: bool = False
                 if verbal:
                     print("et il était bien présent, j'itère")
                 solution_trouvee = False
-                solution = maj_solution(solution, scores, nom_origine)
+                solution = maj_solution(solution, scores, nom_origine, verbal=verbal)
+                if solution is None:
+                    return (f"Impossible de construire une proposition de tableau, le personnage <<{nom_origine}>>"
+                            f"a un nom beaucoup trop éloigné de tous les noms connus sur le GN "
+                            f"pour proposer quelque chose")
 
     if verbal:
         print(f'DEBUG : trouvé = {solution_trouvee} \n la solution est {solution}')
