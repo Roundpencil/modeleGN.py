@@ -200,7 +200,7 @@ class DateScene(ABC):
         if not texte_brut or not isinstance(texte_brut, str):
             return None
 
-        texte_lower = texte_brut.lower().strip()
+        # texte_lower = texte_brut.lower().strip()
 
         # #  V2 avant lrelecture de la doc
         # # Liste exhaustive de mots-clés de dates relatives à rejeter
@@ -2968,9 +2968,12 @@ class ObjetDeReference:
 
     def get_orga_referent(self):
         if self.referent == "Non spécifié":
-            for liste in [list(self.objets_dans_intrigues), list(self.objets_dans_evenements)]:
-                if len(liste):
-                    return liste[0].get_orga_referent()
+            try:
+                for liste in [list(self.objets_dans_intrigues), list(self.objets_dans_evenements)]:
+                    if len(liste):
+                        return liste[0].get_orga_referent()
+            except Exception:
+                return "Non spécifié et impossible à identifier"
 
         return self.referent
 
