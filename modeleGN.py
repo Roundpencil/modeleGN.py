@@ -11,7 +11,7 @@ from typing import LiteralString
 
 import dateparser
 import dill
-from dateparser_data.settings import default_parsers
+# from dateparser_data.settings import default_parsers
 from dateutil.relativedelta import relativedelta
 from fuzzywuzzy import process
 from packaging import version
@@ -20,7 +20,7 @@ from unidecode import unidecode
 
 import lecteurGoogle
 
-VERSION = "1.4.20260321"
+VERSION = "1.4.20260331"
 VERSION_MODELE = "1.4.20250205"
 ID_FICHIER_VERSION = "1FjW4URMWML_UX1Tw7SiJBaoOV4P7F_rKG9pmnOBjO4Q"
 GENRE_INDETERMINE = ''
@@ -101,10 +101,10 @@ class DateScene(ABC):
         self.heure_debut = heure_debut
 
     @abstractmethod
-    def formatter_date_sans_heure(self, date_gn: datetime = None, jours_semaine=False) -> str:
+    def formatter_date_sans_heure(self, date_gn: datetime.datetime = None, jours_semaine=False) -> str:
         pass
 
-    def formatter_date(self, date_gn:datetime=None, jours_semaine=False, avec_heure=True) -> str:
+    def formatter_date(self, date_gn:datetime.datetime=None, jours_semaine=False, avec_heure=True) -> str:
         """Retourne la représentation textuelle de la date en fonction du contexte."""
         date_string = self.formatter_date_sans_heure(date_gn=date_gn, jours_semaine=jours_semaine)
 
