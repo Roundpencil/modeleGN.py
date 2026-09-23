@@ -414,7 +414,7 @@ def retirer_balises_formattage(text, verbal=False):
 def generer_liste_items(api_drive, nom_fichier):
     if len(nom_fichier) < 1:
         print("erreur, aucun mon_id dans l'input")
-        return -1
+        return None
 
     requete = "".join(f"'{mon_id}' in parents or " for mon_id in nom_fichier)
     requete = requete[:-3]

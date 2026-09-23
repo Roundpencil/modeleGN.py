@@ -241,9 +241,15 @@ def extraire_texte_de_google_doc(api_drive, api_doc, fonction_extraction, dict_i
                                  taille_visualisation=100.0):
     items = lecteurGoogle.generer_liste_items(api_drive=api_drive, nom_fichier=folder_array)
 
-    if not items:
-        print('No files found.')
-        return
+    if items is None:
+        print('No files found / error lecteurgoogle.')
+        m_print("Impossible de trouver le dossier source")
+        return []
+    elif not items:
+        print('No files found / liste vide.')
+        m_print("Le dossier source ne contient aucun fichier")
+        return []
+
 
     is_single_test = int(single_test) > 0
     nb_items = len(items)
